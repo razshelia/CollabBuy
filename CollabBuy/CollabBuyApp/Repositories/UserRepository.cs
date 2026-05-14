@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 using Npgsql;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
@@ -17,11 +19,28 @@ namespace CollabBuy.CollabBuyApp.Repositories
             this.dbHelper = new DatabaseHelper();
         }
 
-        // Login: cek username & password, return Akun (User/Admin)
+        // Helper: Hash password dengan SHA256
+        private string HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+                return builder.ToString();
+            }
+        }
+
+        // Login: cek username & password yang sudah di-hash
         public Akun Login(string username, string password)
         {
             NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return null;
+            if (koneksi == null)
+            {
+                UXHelper.TampilkanError("Tidak dapat terhubung ke database. Periksa koneksi Anda.");
+                return null;
+            }
 
             try
             {
@@ -35,13 +54,19 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            string passHash = reader.GetString(2); // asumsi password disimpan hash
-                            // Verifikasi password (gunakan hashing yang sesuai)
-                            if (passHash == password) // sederhana, ganti dengan bcrypt dll
+                            string passHashDiDB = reader.GetString(2);
+                            string passHashInput = HashPassword(password);
+
+                            // Bandingkan hash, bukan plaintext
+                            if (passHashDiDB == passHashInput)
                             {
                                 string role = reader.GetString(5);
                                 if (role == "admin")
-                                    return new Admin { IdUser = reader.GetInt32(0), Username = username, /*...*/ };
+                                    return new Admin
+                                    {
+                                        IdUser = reader.GetInt32(0),
+                                        Username = username
+                                    };
                                 else
                                     return new User
                                     {
@@ -56,34 +81,67 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception) { }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Error saat login: " + ex.Message);
+            }
+            finally
+            {
+                if (koneksi.State == ConnectionState.Open)
+                    koneksi.Close();
+            }
             return null;
         }
 
-        // Register user baru
+        // Register user baru (password di-hash sebelum disimpan)
         public bool Register(Akun akun)
         {
             NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return false;
+            if (koneksi == null)
+            {
+                UXHelper.TampilkanError("Tidak dapat terhubung ke database.");
+                return false;
+            }
 
             try
             {
                 koneksi.Open();
+
+                // Cek apakah username sudah ada
+                string cekSql = "SELECT COUNT(*) FROM users WHERE username = @user";
+                using (NpgsqlCommand cmdCek = new NpgsqlCommand(cekSql, koneksi))
+                {
+                    cmdCek.Parameters.AddWithValue("user", akun.Username);
+                    long jumlah = (long)cmdCek.ExecuteScalar();
+                    if (jumlah > 0)
+                    {
+                        UXHelper.TampilkanError("Username sudah digunakan. Silakan pilih username lain.");
+                        return false;
+                    }
+                }
+
                 string sql = @"INSERT INTO users (username, password, nama, email, role, is_verifikasi)
                                VALUES (@user, @pass, @nama, @email, 'user', false)";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
                 {
                     cmd.Parameters.AddWithValue("user", akun.Username);
-                    cmd.Parameters.AddWithValue("pass", akun.Password); // sebaiknya sudah di-hash sebelumnya
+                    cmd.Parameters.AddWithValue("pass", HashPassword(akun.Password)); // SIMPAN HASH
                     cmd.Parameters.AddWithValue("nama", ((User)akun).NamaLengkap);
                     cmd.Parameters.AddWithValue("email", ((User)akun).Email);
                     int row = cmd.ExecuteNonQuery();
                     return row > 0;
                 }
             }
-            catch (Exception) { return false; }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal mendaftar: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (koneksi.State == ConnectionState.Open)
+                    koneksi.Close();
+            }
         }
 
         // Ajukan verifikasi seller
@@ -163,8 +221,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 koneksi.Open();
                 string sql1 = "UPDATE verifications SET status = 'disetujui' WHERE id_verifikasi = @id";
-                string sql2 = @"UPDATE users SET is_verifikasi = true 
-                                FROM verifications v 
+                string sql2 = @"UPDATE users SET is_verifikasi = true
+                                FROM verifications v
                                 WHERE users.id_user = v.id_user AND v.id_verifikasi = @id";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql1 + ";" + sql2, koneksi))
                 {

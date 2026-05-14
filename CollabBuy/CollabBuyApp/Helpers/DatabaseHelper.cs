@@ -6,13 +6,25 @@ namespace CollabBuy.CollabBuyApp.Helpers
 {
     public class DatabaseHelper
     {
-        // ENKAPSULASI: Konfigurasi koneksi tertutup rapat
         private string stringKoneksi;
 
         public DatabaseHelper()
         {
-            // ENKAPSULASI & SECURITY: Mengambil koneksi dengan aman dari App.config
-            this.stringKoneksi = ConfigurationManager.ConnectionStrings["CollabBuyDBConfig"].ConnectionString;
+            try
+            {
+                this.stringKoneksi = ConfigurationManager.ConnectionStrings["CollabBuyDBConfig"]?.ConnectionString;
+
+                if (string.IsNullOrWhiteSpace(this.stringKoneksi))
+                {
+                    // FALLBACK: gunakan connection string hardcoded jika App.config tidak ditemukan
+                    this.stringKoneksi = "Host=localhost;Port=5432;Database=collabbuy_db;Username=postgres;Password=admin123";
+                }
+            }
+            catch (Exception)
+            {
+                // FALLBACK saat ConfigurationManager gagal total
+                this.stringKoneksi = "Host=localhost;Port=5432;Database=collabbuy_db;Username=postgres;Password=admin123";
+            }
         }
 
         public NpgsqlConnection AmbilKoneksi()
@@ -22,10 +34,10 @@ namespace CollabBuy.CollabBuyApp.Helpers
                 NpgsqlConnection koneksi = new NpgsqlConnection(this.stringKoneksi);
                 return koneksi;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ERROR HANDLING: Mengembalikan null jika gagal.
-                // Nantinya di layer UI tinggal diatur: if (conn == null) { tampilkan_pesan_ramah_server_down }
+                // ERROR HANDLING: kembalikan null, UI yang menangani
+                System.Diagnostics.Debug.WriteLine("Gagal membuat koneksi: " + ex.Message);
                 return null;
             }
         }

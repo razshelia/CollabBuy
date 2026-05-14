@@ -20,22 +20,17 @@ namespace CollabBuy.CollabBuyApp.Services
                 UXHelper.TampilkanError("Username dan Password tidak boleh kosong!");
                 return null;
             }
-            else
-            {
-                Akun akunDitemukan = this.userRepo.Login(username, password);
 
-                if (akunDitemukan == null)
-                {
-                    UXHelper.TampilkanError("Username tidak terdaftar, Password salah, atau Akun Anda sedang diblokir.");
-                    return null;
-                }
-                else
-                {
-                    // Menampilkan dashboard dengan Polymorphism
-                    UXHelper.TampilkanSukses(akunDitemukan.TampilkanDashboard());
-                    return akunDitemukan;
-                }
+            Akun akunDitemukan = this.userRepo.Login(username, password);
+            if (akunDitemukan == null)
+            {
+                // UserRepository sudah menampilkan error, tidak perlu lagi di sini
+                return null;
             }
+
+            // Login berhasil
+            UXHelper.TampilkanSukses(akunDitemukan.TampilkanDashboard());
+            return akunDitemukan;
         }
     }
 }

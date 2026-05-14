@@ -15,7 +15,6 @@ namespace CollabBuy.CollabBuyApp.Services
             this.repository = new UserRepository();
         }
 
-        // Method login
         public Akun Login(string username, string password)
         {
             var akun = repository.Login(username, password);
@@ -24,31 +23,26 @@ namespace CollabBuy.CollabBuyApp.Services
             return akun;
         }
 
-        // Method yang dipanggil RegisterControl
         public bool DaftarPenggunaBaru(Akun akun)
         {
-            // Validasi bisa ditambahkan
+            // Repository.Register sudah melakukan hashing, validasi, dan menampilkan pesan error
             bool sukses = repository.Register(akun);
             if (sukses)
                 UXHelper.TampilkanSukses("Registrasi berhasil! Silakan login.");
-            else
-                UXHelper.TampilkanError("Gagal mendaftar, coba lagi.");
+            // Error sudah ditampilkan oleh repository
             return sukses;
         }
 
-        // Ajukan verifikasi seller (dipanggil dari SellerVerificationControl)
         public bool AjukanVerifikasiSeller(int idUser, string namaToko, string nim, int tahunMasuk, string pathKTM)
         {
             return repository.AjukanVerifikasiSeller(idUser, namaToko, nim, tahunMasuk, pathKTM);
         }
 
-        // Method yang dipanggil AdminUserManagementControl untuk memuat data
         public List<dynamic> MuatDaftarPengajuanVerifikasi()
         {
             return repository.AmbilDaftarPengajuanVerifikasi();
         }
 
-        // Method yang dipanggil AdminUserManagementControl untuk menyetujui
         public bool SetujuiPenjual(int idVerifikasi)
         {
             if (!UXHelper.TampilkanKonfirmasi("Setujui pengajuan ini?"))
@@ -61,7 +55,6 @@ namespace CollabBuy.CollabBuyApp.Services
             return sukses;
         }
 
-        // Method tolak verifikasi (opsional)
         public bool TolakPenjual(int idVerifikasi)
         {
             if (!UXHelper.TampilkanKonfirmasi("Tolak pengajuan ini?"))
@@ -72,7 +65,6 @@ namespace CollabBuy.CollabBuyApp.Services
             return sukses;
         }
 
-        // Update profil
         public bool UpdateProfil(Akun akun)
         {
             return repository.UpdateProfil(akun);
