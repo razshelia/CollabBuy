@@ -4,70 +4,33 @@ using System.Text;
 
 namespace CollabBuy.CollabBuyApp.Helpers
 {
-    public class PasswordHelper
+    public static class PasswordHelper
     {
-        // ENKAPSULASI: Variabel disembunyikan (private) dan tidak menggunakan get; set; kosong.
-        private string saltRahasia;
-
-        public PasswordHelper()
+        /// <summary>
+        /// Menghasilkan hash SHA-256 dari string password.
+        /// </summary>
+        public static string HashPassword(string password)
         {
-            // Menambahkan salt agar hash SHA256 jauh lebih aman dari serangan Rainbow Table
-            this.saltRahasia = "DanusFasilkomUnej2026";
-        }
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentException("Password tidak boleh kosong.");
 
-        public string HashPassword(string passwordAwal)
-        {
-            if (string.IsNullOrEmpty(passwordAwal))
+            using (SHA256 sha256 = SHA256.Create())
             {
-                return string.Empty;
-            }
-            else
-            {
-                try
-                {
-                    using (SHA256 sha256 = SHA256.Create())
-                    {
-                        // Menggabungkan password input dengan salt rahasia
-                        string passwordDenganSalt = passwordAwal + this.saltRahasia;
-                        byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(passwordDenganSalt));
-
-                        StringBuilder builder = new StringBuilder();
-                        for (int i = 0; i < bytes.Length; i++)
-                        {
-                            builder.Append(bytes[i].ToString("x2"));
-                        }
-
-                        return builder.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                    // ERROR HANDLING: UX Friendly. Tidak crash, hanya mengembalikan string kosong.
-                    // Nantinya layer UI/Service akan mengecek jika string kosong berarti ada masalah sistem.
-                    return string.Empty;
-                }
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                    builder.Append(b.ToString("x2"));
+                return builder.ToString();
             }
         }
 
-        public bool VerifikasiPassword(string passwordInput, string hashTersimpan)
+        /// <summary>
+        /// Membandingkan password plaintext dengan hash.
+        /// </summary>
+        public static bool VerifyPassword(string password, string hash)
         {
-            if (string.IsNullOrEmpty(passwordInput) || string.IsNullOrEmpty(hashTersimpan))
-            {
-                return false;
-            }
-            else
-            {
-                string hashInput = this.HashPassword(passwordInput);
-
-                if (hashInput == hashTersimpan)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            string hashOfInput = HashPassword(password);
+            return string.Equals(hashOfInput, hash, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

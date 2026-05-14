@@ -24,7 +24,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             }
             else
             {
-                Ulasan ulasanBaru = new Ulasan();
+                Review ulasanBaru = new Review();
                 ulasanBaru.Rating = (int)this.numRating.Value;
                 ulasanBaru.Komentar = this.txtKomentar.Text;
 

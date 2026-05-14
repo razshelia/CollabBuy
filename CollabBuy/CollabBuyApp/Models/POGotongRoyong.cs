@@ -1,45 +1,30 @@
-﻿namespace CollabBuy.CollabBuyApp.Models
+﻿using System;
+
+namespace CollabBuy.CollabBuyApp.Models
 {
-    public class POGotongRoyong : PreOrder
+    public class PreorderGotongRoyong : Preorder
     {
-        private int targetDiskon;
-        private decimal hargaDiskon;
+        private int _targetKuota;
 
-        public POGotongRoyong(string nama, decimal hargaAwal, decimal diskon, int target)
+        public override string JenisPo => "Gotong Royong";
+
+        public int TargetKuota
         {
-            this.NamaBarang = nama;
-            this.SetHargaDasar(hargaAwal); // Mengakses protected method dari induk
-
-            if (target <= 0)
-            {
-                this.targetDiskon = 10; // Default
-            }
-            else
-            {
-                this.targetDiskon = target;
-            }
-
-            if (diskon >= hargaAwal)
-            {
-                this.hargaDiskon = hargaAwal - 1000; // Mencegah diskon lebih besar dari harga
-            }
-            else
-            {
-                this.hargaDiskon = diskon;
-            }
+            get => _targetKuota;
+            set { if (value <= 0) throw new ArgumentException("Target kuota harus > 0."); _targetKuota = value; }
         }
 
-        public override decimal HitungHargaFinal(int kuotaTerkumpul)
+        public override decimal HitungHarga(int jumlah, decimal hargaDasar)
         {
-            // Mengakses protected field `this.hargaDasar` dari kelas induk
-            if (kuotaTerkumpul >= this.targetDiskon)
-            {
-                return this.hargaDiskon; // Target tercapai, dapat diskon!
-            }
-            else
-            {
-                return this.hargaDasar; // Target belum tercapai, harga normal
-            }
+            return jumlah * hargaDasar;
+        }
+
+        // Overloading: harga setelah diskon jika kuota tercapai
+        public decimal HitungHarga(int jumlah, decimal hargaDasar, int totalPesanan)
+        {
+            if (totalPesanan >= _targetKuota)
+                return jumlah * (hargaDasar * 0.9m); // 10% diskon
+            return jumlah * hargaDasar;
         }
     }
 }

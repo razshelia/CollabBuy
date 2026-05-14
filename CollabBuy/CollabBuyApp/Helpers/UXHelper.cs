@@ -1,55 +1,24 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace CollabBuy.CollabBuyApp.Helpers
 {
-    // Menggunakan keyword 'static' agar tidak perlu diinstansiasi (new)
     public static class UXHelper
     {
-        private static string tajukAplikasi = "CollabBuy ✨";
-
-        public static void TampilkanError(string mesej)
+        public static void TampilkanError(string pesan)
         {
-            if (string.IsNullOrEmpty(mesej))
-            {
-                // Tetap ada else untuk menjaga struktur alur logika
-            }
-            else
-            {
-                MessageBox.Show(mesej, tajukAplikasi, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            MessageBox.Show(pesan, "CollabBuy - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        public static void TampilkanSukses(string mesej)
+        public static void TampilkanSukses(string pesan)
         {
-            if (string.IsNullOrEmpty(mesej))
-            {
-            }
-            else
-            {
-                MessageBox.Show(mesej, tajukAplikasi, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            MessageBox.Show(pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public static bool TampilkanKonfirmasi(string mesej)
+        public static bool TampilkanKonfirmasi(string pesan)
         {
-            if (string.IsNullOrEmpty(mesej))
-            {
-                return false;
-            }
-            else
-            {
-                DialogResult hasil = MessageBox.Show(mesej, tajukAplikasi, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (hasil == DialogResult.Yes)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            DialogResult hasil = MessageBox.Show(pesan, "CollabBuy - Konfirmasi",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return hasil == DialogResult.Yes;
         }
     }
 }

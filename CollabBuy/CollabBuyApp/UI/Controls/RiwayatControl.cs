@@ -7,14 +7,14 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class RiwayatControl : UserControl
     {
-        private CheckoutService checkoutService;
+        private TransactionService checkoutService;
         private int idUser;
 
         public RiwayatControl(int idUser)
         {
             InitializeComponent();
             this.idUser = idUser;
-            this.checkoutService = new CheckoutService();
+            this.checkoutService = new TransactionService();
             this.MuatRiwayat();
         }
 

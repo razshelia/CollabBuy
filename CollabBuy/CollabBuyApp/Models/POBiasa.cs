@@ -1,25 +1,12 @@
 ﻿namespace CollabBuy.CollabBuyApp.Models
 {
-    public class POBiasa : PreOrder
+    public class PreorderBiasa : Preorder
     {
-        public POBiasa(string nama, decimal harga)
-        {
-            this.NamaBarang = nama;
-            // Mengakses method protected dari kelas induk (PreOrder)
-            this.SetHargaDasar(harga);
-        }
+        public override string JenisPo => "Biasa";
 
-        // OVERRIDE: Harga final PO Biasa selalu sama dengan harga dasar, berapapun kuotanya
-        public override decimal HitungHargaFinal(int kuotaTerkumpul)
+        public override decimal HitungHarga(int jumlah, decimal hargaDasar)
         {
-            if (kuotaTerkumpul < 0)
-            {
-                return this.hargaDasar;
-            }
-            else
-            {
-                return this.hargaDasar;
-            }
+            return jumlah * hargaDasar;
         }
     }
 }

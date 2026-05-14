@@ -1,46 +1,64 @@
 ﻿using System.Data;
+using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Repositories;
-using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class ReportService
     {
-        private ReportRepository reportRepo;
+        private readonly IReportRepository _reportRepo;
 
         public ReportService()
         {
-            this.reportRepo = new ReportRepository();
+            _reportRepo = new ReportRepository();
         }
 
-        public DataTable MuatLaporanOmzetCube()
+        // ── 1. Barang terlaris ──
+        public DataTable BarangTerjualPerProduk()
         {
-            DataTable data = this.reportRepo.AmbilLaporanOmzetCube();
-
-            if (data == null || data.Rows.Count == 0)
-            {
-                UXHelper.TampilkanError("Belum ada data transaksi yang bisa dianalisis (CUBE).");
-                return new DataTable();
-            }
-            else
-            {
-                return data;
-            }
+            return _reportRepo.BarangTerjualPerProduk();
         }
 
-        public DataTable MuatLaporanFakultasRollup()
+        // ── 2. CUBE: Kategori × Jenis PO ──
+        public DataTable CubeKategoriJenisPO()
         {
-            DataTable data = this.reportRepo.AmbilLaporanFakultasRollup();
+            return _reportRepo.CubeKategoriJenisPO();
+        }
 
-            if (data == null || data.Rows.Count == 0)
-            {
-                UXHelper.TampilkanError("Belum ada data belanja tingkat Fakultas (ROLLUP).");
-                return new DataTable();
-            }
-            else
-            {
-                return data;
-            }
+        // ── 3. ROLLUP: Omzet per tahun/bulan ──
+        public DataTable RollupOmzetPerWaktu()
+        {
+            return _reportRepo.RollupOmzetPerWaktu();
+        }
+
+        // ── 4. GROUPING SETS: Penjual & Kategori ──
+        public DataTable GroupingSetsPenjualKategori()
+        {
+            return _reportRepo.GroupingSetsPenjualKategori();
+        }
+
+        // ── 5. Subquery: Produk yang kuotanya menipis ──
+        public DataTable SubqueryProdukKuotaMenipis()
+        {
+            return _reportRepo.SubqueryProdukKuotaMenipis();
+        }
+
+        // ── 6. UNION: Transaksi berjalan & selesai ──
+        public DataTable UnionTransaksiBerjalanSelesai()
+        {
+            return _reportRepo.UnionTransaksiBerjalanSelesai();
+        }
+
+        // ── 7. INTERSECT: Penjual yang juga pembeli ──
+        public DataTable IntersectPenjualJugaPembeli()
+        {
+            return _reportRepo.IntersectPenjualJugaPembeli();
+        }
+
+        // ── 8. EXCEPT: User yang belum pernah transaksi ──
+        public DataTable ExceptUserBelumTransaksi()
+        {
+            return _reportRepo.ExceptUserBelumTransaksi();
         }
     }
 }

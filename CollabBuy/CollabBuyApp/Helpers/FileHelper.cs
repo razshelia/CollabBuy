@@ -3,56 +3,42 @@ using System.IO;
 
 namespace CollabBuy.CollabBuyApp.Helpers
 {
-    public class FileHelper
+    public static class FileHelper
     {
-        private string direktoriAsas;
-
-        public FileHelper()
+        /// <summary>
+        /// Menyalin file ke folder Uploads/<subfolder> dan mengembalikan path relatif.
+        /// </summary>
+        public static string SimpanFile(string pathFileSumber, string subfolder)
         {
-            // Mendapatkan direktori tempat aplikasi dijalankan (bin/Debug)
-            this.direktoriAsas = AppDomain.CurrentDomain.BaseDirectory;
+            if (string.IsNullOrWhiteSpace(pathFileSumber))
+                throw new ArgumentException("Path file sumber tidak boleh kosong.");
+            if (!File.Exists(pathFileSumber))
+                throw new ArgumentException("File sumber tidak ditemukan.");
+
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string targetFolder = Path.Combine(baseDir, "Uploads", subfolder);
+
+            if (!Directory.Exists(targetFolder))
+                Directory.CreateDirectory(targetFolder);
+
+            // Nama file unik: timestamp + nama asli
+            string namaFile = $"{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(pathFileSumber)}";
+            string fullPath = Path.Combine(targetFolder, namaFile);
+
+            File.Copy(pathFileSumber, fullPath, overwrite: true);
+
+            // Path relatif dari BaseDirectory: Uploads/KTM/2026...
+            return Path.Combine("Uploads", subfolder, namaFile);
         }
 
-        public string SimpanGambar(string pathAsal, string namaFolder, string namaFailBaru)
+        /// <summary>
+        /// Mengembalikan path absolut dari path relatif.
+        /// </summary>
+        public static string DapatkanFullPath(string relativePath)
         {
-            if (string.IsNullOrEmpty(pathAsal) || string.IsNullOrEmpty(namaFolder))
-            {
-                return string.Empty;
-            }
-            else
-            {
-                try
-                {
-                    string folderTujuan = Path.Combine(this.direktoriAsas, "Images", namaFolder);
-
-                    if (Directory.Exists(folderTujuan))
-                    {
-                        // Folder sudah wujud, teruskan proses
-                    }
-                    else
-                    {
-                        // Cipta folder jika belum ada (contoh: mencipta folder KTM)
-                        Directory.CreateDirectory(folderTujuan);
-                    }
-
-                    // Mengambil format fail (contoh: .jpg atau .png)
-                    string ekstensi = Path.GetExtension(pathAsal);
-                    string namaPenuhFail = namaFailBaru + ekstensi;
-                    string pathTujuan = Path.Combine(folderTujuan, namaPenuhFail);
-
-                    // Menyalin fail ke folder projek (tulis ganti jika sudah wujud)
-                    File.Copy(pathAsal, pathTujuan, true);
-
-                    // Mengembalikan Relative Path untuk disimpan ke dalam Database
-                    return Path.Combine("Images", namaFolder, namaPenuhFail);
-                }
-                catch (Exception)
-                {
-                    // ERROR HANDLING: Gagal secara senyap (UX Friendly), 
-                    // pangkalan data hanya akan menerima string kosong tanpa menyebabkan sistem berhenti berfungsi.
-                    return string.Empty;
-                }
-            }
+            if (string.IsNullOrWhiteSpace(relativePath))
+                return null;
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
         }
     }
 }

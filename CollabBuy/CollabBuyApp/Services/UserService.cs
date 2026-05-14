@@ -1,73 +1,47 @@
 ﻿using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
-using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class UserService
     {
-        private IUserRepository repository;
+        private readonly IUserRepository _userRepo;
 
         public UserService()
         {
-            this.repository = new UserRepository();
+            _userRepo = new UserRepository();
         }
 
-        public Akun Login(string username, string password)
+        public User AmbilUserById(int idUser)
         {
-            var akun = repository.Login(username, password);
-            if (akun == null)
-                UXHelper.TampilkanError("Username atau password salah.");
-            return akun;
+            return _userRepo.AmbilUserById(idUser);
         }
 
-        public bool DaftarPenggunaBaru(Akun akun)
+        public bool UpdateProfil(User user, string passwordBaru = null)
         {
-            // Repository.Register sudah melakukan hashing, validasi, dan menampilkan pesan error
-            bool sukses = repository.Register(akun);
+            if (!string.IsNullOrEmpty(passwordBaru))
+                user.Password = PasswordHelper.HashPassword(passwordBaru);
+
+            bool sukses = _userRepo.UpdateProfil(user);
             if (sukses)
-                UXHelper.TampilkanSukses("Registrasi berhasil! Silakan login.");
-            // Error sudah ditampilkan oleh repository
+                UXHelper.TampilkanSukses("Profil berhasil diperbarui.");
             return sukses;
         }
 
-        public bool AjukanVerifikasiSeller(int idUser, string namaToko, string nim, int tahunMasuk, string pathKTM)
+        public bool BlokirUser(int idUser, bool diblokir)
         {
-            return repository.AjukanVerifikasiSeller(idUser, namaToko, nim, tahunMasuk, pathKTM);
-        }
-
-        public List<dynamic> MuatDaftarPengajuanVerifikasi()
-        {
-            return repository.AmbilDaftarPengajuanVerifikasi();
-        }
-
-        public bool SetujuiPenjual(int idVerifikasi)
-        {
-            if (!UXHelper.TampilkanKonfirmasi("Setujui pengajuan ini?"))
-                return false;
-            bool sukses = repository.SetujuiVerifikasi(idVerifikasi);
+            bool sukses = _userRepo.BlokirUser(idUser, diblokir);
             if (sukses)
-                UXHelper.TampilkanSukses("Penjual telah disetujui.");
-            else
-                UXHelper.TampilkanError("Gagal menyetujui.");
+                UXHelper.TampilkanSukses(diblokir ? "User diblokir." : "User diaktifkan kembali.");
             return sukses;
         }
 
-        public bool TolakPenjual(int idVerifikasi)
+        public List<User> AmbilSemuaUser()
         {
-            if (!UXHelper.TampilkanKonfirmasi("Tolak pengajuan ini?"))
-                return false;
-            bool sukses = repository.TolakVerifikasi(idVerifikasi);
-            if (sukses)
-                UXHelper.TampilkanSukses("Pengajuan ditolak.");
-            return sukses;
-        }
-
-        public bool UpdateProfil(Akun akun)
-        {
-            return repository.UpdateProfil(akun);
+            return _userRepo.AmbilSemuaUser();
         }
     }
 }

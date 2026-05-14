@@ -85,7 +85,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            CheckoutService checkoutService = new CheckoutService();
+            TransactionService checkoutService = new TransactionService();
             bool sukses = checkoutService.BuatTransaksi(this.idUser, this.idPo, jumlah, pathBukti);
             if (sukses)
             {

@@ -7,13 +7,13 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class SellerOrderControl : UserControl
     {
-        private CheckoutService checkoutService;
+        private TransactionService checkoutService;
         private int sellerId;
 
         public SellerOrderControl(int currentSellerId)
         {
             this.InitializeComponent();
-            this.checkoutService = new CheckoutService();
+            this.checkoutService = new TransactionService();
             this.sellerId = currentSellerId;
             this.MuatDataPesanan();
         }

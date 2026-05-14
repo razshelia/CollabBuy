@@ -1,248 +1,225 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Interfaces;
+using CollabBuy.CollabBuyApp.Models;
+using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        private DatabaseHelper dbHelper;
+        private readonly DatabaseHelper _db;
 
         public ProductRepository()
         {
-            this.dbHelper = new DatabaseHelper();
+            _db = new DatabaseHelper();
         }
 
-        public bool TambahProduk(Product produkBaru, int idSeller)
+        public bool TambahProduk(Product produk)
         {
-            if (produkBaru == null)
-            {
-                return false;
-            }
-            else
-            {
-                NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
-
-                if (koneksi == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    try
-                    {
-                        koneksi.Open();
-                        string sql = "INSERT INTO products (id_seller, id_kategori, nama_produk, stok_produk, foto_produk, is_aktif) VALUES (@seller, @kategori, @nama, @stok, @foto, @aktif)";
-
-                        using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                        {
-                            cmd.Parameters.AddWithValue("seller", idSeller);
-                            // Mengambil ID Kategori dari objek hasil Composition/Aggregation
-                            cmd.Parameters.AddWithValue("kategori", 1); // Disederhanakan untuk contoh, idealnya produkBaru.KategoriProduk.Id
-                            cmd.Parameters.AddWithValue("nama", produkBaru.NamaProduk);
-                            cmd.Parameters.AddWithValue("stok", produkBaru.StokProduk);
-                            cmd.Parameters.AddWithValue("foto", produkBaru.FotoProduk);
-                            cmd.Parameters.AddWithValue("aktif", produkBaru.IsAktif);
-
-                            cmd.ExecuteNonQuery();
-                        }
-                        return true;
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        if (koneksi.State == ConnectionState.Open)
-                        {
-                            koneksi.Close();
-                        }
-                        else
-                        {
-                            // Koneksi sudah tertutup
-                        }
-                    }
-                }
-            }
-        }
-
-        public bool EditProduk(Product produkLama)
-        {
-            // Implementasi UPDATE
-            return false;
-        }
-
-        public bool HapusProduk(int idProduk)
-        {
-            if (idProduk <= 0)
-            {
-                return false;
-            }
-            else
-            {
-                NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
-
-                if (koneksi == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    try
-                    {
-                        koneksi.Open();
-                        // Kita gunakan Soft Delete (is_aktif = FALSE) agar data transaksi historis tidak rusak
-                        string sql = "UPDATE products SET is_aktif = FALSE WHERE id_produk = @id";
-
-                        using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                        {
-                            cmd.Parameters.AddWithValue("id", idProduk);
-                            cmd.ExecuteNonQuery();
-                        }
-                        return true;
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        if (koneksi.State == ConnectionState.Open)
-                        {
-                            koneksi.Close();
-                        }
-                        else
-                        {
-                            // Abaikan
-                        }
-                    }
-                }
-            }
-        }
-        public Product AmbilProdukById(int idProduk)
-        {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return null;
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
 
             try
             {
-                koneksi.Open();
-                string sql = @"SELECT id_produk, nama_produk, stok, harga, id_seller, foto
-                       FROM products WHERE id_produk = @id";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
+                conn.Open();
+                string sql = @"INSERT INTO products (id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk)
+                               VALUES (@po, @kat, @nama, @harga, @diskon, @target, @min, @foto)";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("po", produk.IdPo);
+                    cmd.Parameters.AddWithValue("kat", (object)produk.IdKategori ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("nama", produk.NamaProduk);
+                    cmd.Parameters.AddWithValue("harga", produk.HargaDasar);
+                    cmd.Parameters.AddWithValue("diskon", (object)produk.HargaDiskon ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("target", (object)produk.TargetKuota ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("min", produk.MinOrder);
+                    cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal tambah produk: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
+        }
+
+        public List<Product> AmbilProdukByPo(int idPo)
+        {
+            List<Product> list = new List<Product>();
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return list;
+
+            try
+            {
+                conn.Open();
+                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk
+                               FROM products WHERE id_po = @po";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("po", idPo);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            list.Add(BuatProdukDariReader(reader));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal ambil produk: " + ex.Message);
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
+            return list;
+        }
+
+        public Product AmbilProdukById(int idProduk)
+        {
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return null;
+
+            try
+            {
+                conn.Open();
+                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk
+                               FROM products WHERE id_produk = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", idProduk);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
-                        {
-                            Product p = new Product();
-                            p.IdProduk = reader.GetInt32(0);
-                            p.NamaProduk = reader.GetString(1);
-                            p.StokProduk = reader.GetInt32(2);
-                            p.HargaSatuan = reader.GetDecimal(3);   // <-- pakai HargaSatuan
-                            p.IdSeller = reader.GetInt32(4);
-                            p.FotoProduk = reader.IsDBNull(5) ? null : reader.GetString(5);
-                            return p;
-                        }
+                            return BuatProdukDariReader(reader);
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal ambil produk: " + ex.Message);
+            }
             finally
             {
-                if (koneksi.State == System.Data.ConnectionState.Open)
-                    koneksi.Close();
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
             }
             return null;
         }
 
-        public List<Product> AmbilSemuaProduk()
+        public bool UpdateProduk(Product produk)
         {
-            List<Product> daftarProduk = new List<Product>();
-            NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
 
-            if (koneksi == null)
+            try
             {
-                return daftarProduk;
+                conn.Open();
+                string sql = @"UPDATE products SET nama_produk = @nama, harga_dasar = @harga, harga_diskon = @diskon,
+                               target_kuota = @target, min_order = @min, foto_produk = @foto, id_kategori = @kat
+                               WHERE id_produk = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("nama", produk.NamaProduk);
+                    cmd.Parameters.AddWithValue("harga", produk.HargaDasar);
+                    cmd.Parameters.AddWithValue("diskon", (object)produk.HargaDiskon ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("target", (object)produk.TargetKuota ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("min", produk.MinOrder);
+                    cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("kat", (object)produk.IdKategori ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("id", produk.IdProduk);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    koneksi.Open();
-                    string sql = "SELECT nama_produk, stok_produk, foto_produk FROM products WHERE is_aktif = TRUE";
-
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                    {
-                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                Product p = new Product();
-                                p.NamaProduk = reader.GetString(0);
-                                p.StokProduk = reader.GetInt32(1);
-                                p.FotoProduk = reader.GetString(2);
-                                daftarProduk.Add(p);
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    // Kembalikan list kosong jika error
-                }
-                finally
-                {
-                    if (koneksi.State == ConnectionState.Open)
-                    {
-                        koneksi.Close();
-                    }
-                    else
-                    {
-                        // Abaikan
-                    }
-                }
-                return daftarProduk;
+                UXHelper.TampilkanError("Gagal update produk: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
             }
         }
 
-        // --- POLYMORPHISM OVERLOADING ---
-
-        // 1. Mencari menggunakan teks (Nama Produk)
-        public List<Product> CariProduk(string keywordNama)
+        public bool HapusProduk(int idProduk)
         {
-            List<Product> hasilPencarian = new List<Product>();
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
 
-            if (string.IsNullOrWhiteSpace(keywordNama))
+            try
             {
-                return hasilPencarian;
+                conn.Open();
+                string sql = "DELETE FROM products WHERE id_produk = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", idProduk);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Implementasi pencarian query dengan ILIKE (PostgreSQL case-insensitive)
-                return hasilPencarian;
+                UXHelper.TampilkanError("Gagal hapus produk: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
             }
         }
 
-        // 2. Mencari menggunakan angka (ID Kategori)
-        public List<Product> CariProduk(int idKategori)
+        private Product BuatProdukDariReader(NpgsqlDataReader reader)
         {
-            List<Product> hasilPencarian = new List<Product>();
+            return new Product
+            {
+                IdProduk = reader.GetInt32(0),
+                IdPo = reader.GetInt32(1),
+                IdKategori = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+                NamaProduk = reader.GetString(3),
+                HargaDasar = reader.GetInt32(4),
+                HargaDiskon = reader.IsDBNull(5) ? (int?)null : reader.GetInt32(5),
+                TargetKuota = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6),
+                MinOrder = reader.GetInt32(7),
+                FotoProduk = reader.IsDBNull(8) ? null : reader.GetString(8)
+            };
+        }
+        public int HitungHargaAktual(int idProduk)
+        {
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return 0;
 
-            if (idKategori <= 0)
+            try
             {
-                return hasilPencarian;
+                conn.Open();
+                // Memanggil function cek_harga_saat_ini
+                string sql = "SELECT cek_harga_saat_ini(@id)";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", idProduk);
+                    object hasil = cmd.ExecuteScalar();
+                    return hasil != DBNull.Value ? Convert.ToInt32(hasil) : 0;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Implementasi filter berdasarkan kategori
-                return hasilPencarian;
+                UXHelper.TampilkanError("Gagal menghitung harga: " + ex.Message);
+                return 0;
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
     }

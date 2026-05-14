@@ -1,20 +1,15 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.Interfaces
 {
     public interface IProductRepository
     {
-        // Fungsi Manajemen Produk oleh Penjual
-        bool TambahProduk(Product produkBaru, int idSeller);
-        bool EditProduk(Product produkLama);
+        bool TambahProduk(Product produk);
+        List<Product> AmbilProdukByPo(int idPo);
+        Product AmbilProdukById(int idProduk);
+        bool UpdateProduk(Product produk);
         bool HapusProduk(int idProduk);
-
-        // Fungsi Penarikan Data (Katalog)
-        List<Product> AmbilSemuaProduk();
-
-        // Pencarian (Polymorphism Overloading dari Controller ke Repository)
-        List<Product> CariProduk(string keywordNama);
-        List<Product> CariProduk(int idKategori);
+        int HitungHargaAktual(int idProduk);
     }
 }

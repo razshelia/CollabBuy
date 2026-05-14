@@ -4,98 +4,113 @@ namespace CollabBuy.CollabBuyApp.Models
 {
     public class Product
     {
-        // ── properti lama ──
-        private string namaProduk;
-        private int stokProduk;
-        private string fotoProduk;
-        private bool isAktif;
-        private Kategori kategoriProduk;
-
-        // ── properti baru (dengan validasi) ──
-        private int idProduk;
-        private decimal hargaSatuan;
-        private int idSeller;
+        private int _idProduk;
+        private int _idPo;
+        private int? _idKategori;
+        private string _namaProduk;
+        private int _hargaDasar;
+        private int? _hargaDiskon;
+        private int? _targetKuota;
+        private int _minOrder;
+        private string _fotoProduk;
 
         public Product()
         {
-            this.isAktif = true;
+            _minOrder = 1;
         }
 
-        // IdProduk
         public int IdProduk
         {
-            get { return this.idProduk; }
+            get => _idProduk;
             set
             {
                 if (value <= 0)
-                    throw new ArgumentException("ID produk tidak valid.");
-                this.idProduk = value;
+                    throw new ArgumentException("ID Produk tidak valid.");
+                _idProduk = value;
             }
         }
 
-        // HargaSatuan (harga per unit produk)
-        public decimal HargaSatuan
+        public int IdPo
         {
-            get { return this.hargaSatuan; }
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentException("Harga satuan tidak boleh negatif.");
-                this.hargaSatuan = value;
-            }
-        }
-
-        // IdSeller (foreign key ke user penjual)
-        public int IdSeller
-        {
-            get { return this.idSeller; }
+            get => _idPo;
             set
             {
                 if (value <= 0)
-                    throw new ArgumentException("ID seller tidak valid.");
-                this.idSeller = value;
+                    throw new ArgumentException("ID PO tidak valid.");
+                _idPo = value;
             }
         }
 
-        // ── properti lama tetap ada ──
+        public int? IdKategori
+        {
+            get => _idKategori;
+            set
+            {
+                if (value.HasValue && value.Value <= 0)
+                    throw new ArgumentException("ID Kategori tidak valid.");
+                _idKategori = value;
+            }
+        }
+
         public string NamaProduk
         {
-            get { return this.namaProduk; }
+            get => _namaProduk;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Nama produk wajib diisi.");
-                this.namaProduk = value;
+                _namaProduk = value.Trim();
             }
         }
 
-        public int StokProduk
+        public int HargaDasar
         {
-            get { return this.stokProduk; }
-            set { this.stokProduk = value < 0 ? 0 : value; }
+            get => _hargaDasar;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Harga dasar tidak boleh negatif.");
+                _hargaDasar = value;
+            }
+        }
+
+        public int? HargaDiskon
+        {
+            get => _hargaDiskon;
+            set
+            {
+                if (value.HasValue && value.Value < 0)
+                    throw new ArgumentException("Harga diskon tidak boleh negatif.");
+                _hargaDiskon = value;
+            }
+        }
+
+        public int? TargetKuota
+        {
+            get => _targetKuota;
+            set
+            {
+                if (value.HasValue && value.Value <= 0)
+                    throw new ArgumentException("Target kuota harus lebih dari 0.");
+                _targetKuota = value;
+            }
+        }
+
+        public int MinOrder
+        {
+            get => _minOrder;
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentException("Minimal pemesanan harus ≥ 1.");
+                _minOrder = value;
+            }
         }
 
         public string FotoProduk
         {
-            get { return this.fotoProduk; }
-            set { this.fotoProduk = string.IsNullOrWhiteSpace(value) ? "Images/Products/default.png" : value; }
-        }
-
-        public bool IsAktif
-        {
-            get { return this.isAktif; }
-            set { this.isAktif = value; }
-        }
-
-        public Kategori KategoriProduk
-        {
-            get { return this.kategoriProduk; }
-            set
-            {
-                if (value == null)
-                    throw new ArgumentException("Kategori tidak valid.");
-                this.kategoriProduk = value;
-            }
+            get => _fotoProduk;
+            set => _fotoProduk = value; // bisa null
         }
     }
 }

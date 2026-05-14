@@ -1,35 +1,74 @@
 ﻿using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
-using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class CategoryService
     {
-        private CategoryRepository categoryRepo;
+        private readonly ICategoryRepository _katRepo;
 
         public CategoryService()
         {
-            this.categoryRepo = new CategoryRepository();
+            _katRepo = new CategoryRepository();
         }
 
-        public List<Kategori> MuatSemuaKategori()
+        public List<Category> AmbilSemua()
         {
-            List<Kategori> daftar = this.categoryRepo.AmbilSemuaKategori();
-
-            if (daftar.Count == 0)
-            {
-                // Tidak perlu error, mungkin memang belum ada data dari admin
-                return new List<Kategori>();
-            }
-            else
-            {
-                return daftar;
-            }
+            return _katRepo.AmbilSemua();
         }
 
-        // Catatan: Tambahkan method TambahKategori(), EditKategori() 
-        // dengan pola if-else dan UXHelper yang sama untuk Admin.
+        public Category AmbilById(int id)
+        {
+            return _katRepo.AmbilById(id);
+        }
+
+        public bool Tambah(string namaKategori)
+        {
+            if (string.IsNullOrWhiteSpace(namaKategori))
+            {
+                UXHelper.TampilkanError("Nama kategori wajib diisi.");
+                return false;
+            }
+
+            Category kat = new Category();
+            kat.NamaKategori = namaKategori;
+
+            bool sukses = _katRepo.Tambah(kat);
+            if (sukses)
+                UXHelper.TampilkanSukses("Kategori berhasil ditambahkan.");
+            return sukses;
+        }
+
+        public bool Update(int idKategori, string namaBaru)
+        {
+            if (string.IsNullOrWhiteSpace(namaBaru))
+            {
+                UXHelper.TampilkanError("Nama kategori wajib diisi.");
+                return false;
+            }
+
+            Category kat = new Category();
+            kat.IdKategori = idKategori;
+            kat.NamaKategori = namaBaru;
+
+            bool sukses = _katRepo.Update(kat);
+            if (sukses)
+                UXHelper.TampilkanSukses("Kategori berhasil diperbarui.");
+            return sukses;
+        }
+
+        public bool Hapus(int idKategori)
+        {
+            if (!UXHelper.TampilkanKonfirmasi("Hapus kategori ini?"))
+                return false;
+
+            bool sukses = _katRepo.Hapus(idKategori);
+            if (sukses)
+                UXHelper.TampilkanSukses("Kategori berhasil dihapus.");
+            return sukses;
+        }
     }
 }

@@ -2,44 +2,53 @@
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public abstract class PreOrder
+    public abstract class Preorder
     {
-        private string namaBarang;
+        private int _idPo;
+        private int _idPenjual;
+        private string _judulPo;
+        private string _infoRekening;
+        private DateTime _batasWaktu;
+        private bool _isAktif;
 
-        // ENCAPSULATION PROTECTED: Hanya bisa diakses oleh kelas PreOrder dan turunannya.
-        // UI tidak akan bisa melihat atau mengubah `hargaDasar` secara langsung.
-        protected decimal hargaDasar;
-
-        public string NamaBarang
+        public Preorder()
         {
-            get { return this.namaBarang; }
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Nama barang PO tidak valid.");
-                }
-                else
-                {
-                    this.namaBarang = value;
-                }
-            }
+            _isAktif = true;
         }
 
-        // Method untuk mengisi harga dari database (diakses oleh child class)
-        protected void SetHargaDasar(decimal harga)
+        public int IdPo
         {
-            if (harga < 0)
-            {
-                this.hargaDasar = 0;
-            }
-            else
-            {
-                this.hargaDasar = harga;
-            }
+            get => _idPo;
+            set { if (value <= 0) throw new ArgumentException("ID PO tidak valid."); _idPo = value; }
+        }
+        public int IdPenjual
+        {
+            get => _idPenjual;
+            set { if (value <= 0) throw new ArgumentException("ID Penjual tidak valid."); _idPenjual = value; }
+        }
+        public string JudulPo
+        {
+            get => _judulPo;
+            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Judul PO wajib diisi."); _judulPo = value.Trim(); }
+        }
+        public abstract string JenisPo { get; }
+
+        public string InfoRekening
+        {
+            get => _infoRekening;
+            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Info rekening wajib diisi."); _infoRekening = value.Trim(); }
+        }
+        public DateTime BatasWaktu
+        {
+            get => _batasWaktu;
+            set { if (value <= DateTime.Now) throw new ArgumentException("Batas waktu PO tidak boleh di masa lalu."); _batasWaktu = value; }
+        }
+        public bool IsAktif
+        {
+            get => _isAktif;
+            set => _isAktif = value;
         }
 
-        // Method abstrak untuk menghitung harga akhir sesuai jenis PO
-        public abstract decimal HitungHargaFinal(int kuotaTerkumpul);
+        public abstract decimal HitungHarga(int jumlah, decimal hargaDasar);
     }
 }

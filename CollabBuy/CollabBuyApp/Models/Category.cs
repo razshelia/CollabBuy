@@ -2,7 +2,7 @@
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Kategori
+    public class Category
     {
         private int idKategori;
         private string namaKategori;

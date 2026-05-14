@@ -1,29 +1,23 @@
 ﻿namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Admin : Akun
+    public class Admin : User
     {
-        private string kodeAkses;
-
-        public string KodeAkses
+        public Admin()
         {
-            get { return this.kodeAkses; }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    this.kodeAkses = "DEFAULT_ADMIN";
-                }
-                else
-                {
-                    this.kodeAkses = value;
-                }
-            }
+            // Set peran = Admin
+            this.Peran = "Admin";
         }
 
-        // OVERRIDE: Tampilan khusus Admin
         public override string TampilkanDashboard()
         {
-            return "Dashboard Admin: Selamat bertugas memantau sistem CollabBuy.";
+            return $"Admin Dashboard - Selamat datang, {this.Nama}";
+        }
+
+        // Method khusus admin
+        public string BlokirUser(RegularUser user)
+        {
+            user.IsDiblokir = true;
+            return $"User {user.Username} telah diblokir.";
         }
     }
 }

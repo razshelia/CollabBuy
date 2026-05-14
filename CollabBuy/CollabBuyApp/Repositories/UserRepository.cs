@@ -1,264 +1,275 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Security.Cryptography;
-using System.Text;
 using Npgsql;
+using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private DatabaseHelper dbHelper;
+        private readonly DatabaseHelper _db;
 
         public UserRepository()
         {
-            this.dbHelper = new DatabaseHelper();
+            _db = new DatabaseHelper();
         }
 
-        // Helper: Hash password dengan SHA256
-        private string HashPassword(string password)
+        public User Login(string username, string password)
         {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
-                return builder.ToString();
-            }
-        }
-
-        // Login: cek username & password yang sudah di-hash
-        public Akun Login(string username, string password)
-        {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null)
-            {
-                UXHelper.TampilkanError("Tidak dapat terhubung ke database. Periksa koneksi Anda.");
-                return null;
-            }
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return null;
 
             try
             {
-                koneksi.Open();
-                string sql = @"SELECT id_user, username, password, nama, email, role, is_verifikasi
+                conn.Open();
+                string sql = @"SELECT id_user, nama, nomor_telepon, email, username, password, peran, is_diblokir
                                FROM users WHERE username = @user";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("user", username);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            string passHashDiDB = reader.GetString(2);
-                            string passHashInput = HashPassword(password);
+                            string hashDb = reader.GetString(5);
+                            if (!PasswordHelper.VerifyPassword(password, hashDb))
+                                return null;
 
-                            // Bandingkan hash, bukan plaintext
-                            if (passHashDiDB == passHashInput)
-                            {
-                                string role = reader.GetString(5);
-                                if (role == "admin")
-                                    return new Admin
-                                    {
-                                        IdUser = reader.GetInt32(0),
-                                        Username = username
-                                    };
-                                else
-                                    return new User
-                                    {
-                                        IdUser = reader.GetInt32(0),
-                                        Username = username,
-                                        NamaLengkap = reader.GetString(3),
-                                        Email = reader.GetString(4),
-                                        IsVerifikasi = reader.GetBoolean(6)
-                                    };
-                            }
+                            string peran = reader.GetString(6);
+                            bool diblokir = reader.GetBoolean(7);
+
+                            User user;
+                            if (peran == "Admin")
+                                user = new Admin();
+                            else
+                                user = new RegularUser();
+
+                            user.IdUser = reader.GetInt32(0);
+                            user.Nama = reader.GetString(1);
+                            user.NomorTelepon = reader.IsDBNull(2) ? null : reader.GetString(2);
+                            user.Email = reader.GetString(3);
+                            user.Username = reader.GetString(4);
+                            user.Password = hashDb; // password sudah hash
+                            user.IsDiblokir = diblokir;
+
+                            return user;
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                UXHelper.TampilkanError("Error saat login: " + ex.Message);
+                UXHelper.TampilkanError("Gagal login: " + ex.Message);
             }
             finally
             {
-                if (koneksi.State == ConnectionState.Open)
-                    koneksi.Close();
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
             }
             return null;
         }
 
-        // Register user baru (password di-hash sebelum disimpan)
-        public bool Register(Akun akun)
+        public bool Register(User user)
         {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null)
-            {
-                UXHelper.TampilkanError("Tidak dapat terhubung ke database.");
-                return false;
-            }
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
 
             try
             {
-                koneksi.Open();
+                conn.Open();
 
-                // Cek apakah username sudah ada
+                // Cek username sudah ada
                 string cekSql = "SELECT COUNT(*) FROM users WHERE username = @user";
-                using (NpgsqlCommand cmdCek = new NpgsqlCommand(cekSql, koneksi))
+                using (NpgsqlCommand cmdCek = new NpgsqlCommand(cekSql, conn))
                 {
-                    cmdCek.Parameters.AddWithValue("user", akun.Username);
+                    cmdCek.Parameters.AddWithValue("user", user.Username);
                     long jumlah = (long)cmdCek.ExecuteScalar();
                     if (jumlah > 0)
                     {
-                        UXHelper.TampilkanError("Username sudah digunakan. Silakan pilih username lain.");
+                        UXHelper.TampilkanError("Username sudah digunakan.");
                         return false;
                     }
                 }
 
-                string sql = @"INSERT INTO users (username, password, nama, email, role, is_verifikasi)
-                               VALUES (@user, @pass, @nama, @email, 'user', false)";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
+                string sql = @"INSERT INTO users (nama, nomor_telepon, email, username, password, peran, is_diblokir)
+                               VALUES (@nama, @telp, @email, @user, @pass, @peran, @blokir)";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("user", akun.Username);
-                    cmd.Parameters.AddWithValue("pass", HashPassword(akun.Password)); // SIMPAN HASH
-                    cmd.Parameters.AddWithValue("nama", ((User)akun).NamaLengkap);
-                    cmd.Parameters.AddWithValue("email", ((User)akun).Email);
+                    cmd.Parameters.AddWithValue("nama", user.Nama);
+                    cmd.Parameters.AddWithValue("telp", (object)user.NomorTelepon ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("email", user.Email);
+                    cmd.Parameters.AddWithValue("user", user.Username);
+                    cmd.Parameters.AddWithValue("pass", user.Password); // sudah di-hash dari service
+                    cmd.Parameters.AddWithValue("peran", "User"); // registrasi selalu user biasa
+                    cmd.Parameters.AddWithValue("blokir", false);
+
                     int row = cmd.ExecuteNonQuery();
                     return row > 0;
                 }
             }
             catch (Exception ex)
             {
-                UXHelper.TampilkanError("Gagal mendaftar: " + ex.Message);
+                UXHelper.TampilkanError("Gagal registrasi: " + ex.Message);
                 return false;
             }
             finally
             {
-                if (koneksi.State == ConnectionState.Open)
-                    koneksi.Close();
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
             }
         }
 
-        // Ajukan verifikasi seller
-        public bool AjukanVerifikasiSeller(int idUser, string namaToko, string nim, int tahunMasuk, string pathKTM)
+        public bool UpdateProfil(User user)
         {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return false;
-            try
-            {
-                koneksi.Open();
-                string sql = @"INSERT INTO verifications (id_user, nama_toko, nim, tahun_masuk, ktm_path, status)
-                               VALUES (@idUser, @toko, @nim, @tahun, @ktm, 'pending')";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                {
-                    cmd.Parameters.AddWithValue("idUser", idUser);
-                    cmd.Parameters.AddWithValue("toko", namaToko);
-                    cmd.Parameters.AddWithValue("nim", nim);
-                    cmd.Parameters.AddWithValue("tahun", tahunMasuk);
-                    cmd.Parameters.AddWithValue("ktm", pathKTM);
-                    cmd.ExecuteNonQuery();
-                }
-                return true;
-            }
-            catch (Exception) { return false; }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
-        }
-
-        // Ambil daftar pengajuan verifikasi yang statusnya 'pending'
-        public List<dynamic> AmbilDaftarPengajuanVerifikasi()
-        {
-            var hasil = new List<dynamic>();
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return hasil;
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
 
             try
             {
-                koneksi.Open();
-                string sql = @"
-                    SELECT v.id_verifikasi, u.username, u.nama, u.email,
-                           v.nama_toko, v.nim, v.tahun_masuk, v.status, v.created_at
-                    FROM verifications v
-                    JOIN users u ON v.id_user = u.id_user
-                    WHERE v.status = 'pending'
-                    ORDER BY v.created_at ASC";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                conn.Open();
+                string sql = @"UPDATE users SET nama = @nama, nomor_telepon = @telp, email = @email, password = @pass
+                               WHERE id_user = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    while (reader.Read())
-                    {
-                        hasil.Add(new
-                        {
-                            IdVerifikasi = reader.GetInt32(0),
-                            Username = reader.GetString(1),
-                            NamaLengkap = reader.GetString(2),
-                            Email = reader.GetString(3),
-                            NamaToko = reader.GetString(4),
-                            Nim = reader.GetString(5),
-                            TahunMasuk = reader.GetInt32(6),
-                            Status = reader.GetString(7),
-                            TanggalPengajuan = reader.GetDateTime(8)
-                        });
-                    }
-                }
-            }
-            catch (Exception) { }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
-
-            return hasil;
-        }
-
-        // Setujui verifikasi
-        public bool SetujuiVerifikasi(int idVerifikasi)
-        {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return false;
-            try
-            {
-                koneksi.Open();
-                string sql1 = "UPDATE verifications SET status = 'disetujui' WHERE id_verifikasi = @id";
-                string sql2 = @"UPDATE users SET is_verifikasi = true
-                                FROM verifications v
-                                WHERE users.id_user = v.id_user AND v.id_verifikasi = @id";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql1 + ";" + sql2, koneksi))
-                {
-                    cmd.Parameters.AddWithValue("id", idVerifikasi);
-                    cmd.ExecuteNonQuery();
-                }
-                return true;
-            }
-            catch (Exception) { return false; }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
-        }
-
-        // Tolak verifikasi
-        public bool TolakVerifikasi(int idVerifikasi)
-        {
-            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
-            if (koneksi == null) return false;
-            try
-            {
-                koneksi.Open();
-                string sql = "UPDATE verifications SET status = 'ditolak' WHERE id_verifikasi = @id";
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                {
-                    cmd.Parameters.AddWithValue("id", idVerifikasi);
+                    cmd.Parameters.AddWithValue("nama", user.Nama);
+                    cmd.Parameters.AddWithValue("telp", (object)user.NomorTelepon ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("email", user.Email);
+                    cmd.Parameters.AddWithValue("pass", user.Password);
+                    cmd.Parameters.AddWithValue("id", user.IdUser);
                     int row = cmd.ExecuteNonQuery();
                     return row > 0;
                 }
             }
-            catch (Exception) { return false; }
-            finally { if (koneksi.State == ConnectionState.Open) koneksi.Close(); }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal update profil: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
         }
 
-        public bool UpdateProfil(Akun akun)
+        public bool BlokirUser(int idUser, bool diblokir)
         {
-            // Implementasi update profil sesuai kebutuhan
-            throw new NotImplementedException();
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return false;
+
+            try
+            {
+                conn.Open();
+                string sql = "UPDATE users SET is_diblokir = @blokir WHERE id_user = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("blokir", diblokir);
+                    cmd.Parameters.AddWithValue("id", idUser);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal blokir user: " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
+        }
+
+        public List<User> AmbilSemuaUser()
+        {
+            List<User> list = new List<User>();
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return list;
+
+            try
+            {
+                conn.Open();
+                string sql = "SELECT id_user, nama, nomor_telepon, email, username, password, peran, is_diblokir FROM users";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        User user;
+                        if (reader.GetString(6) == "Admin")
+                            user = new Admin();
+                        else
+                            user = new RegularUser();
+
+                        user.IdUser = reader.GetInt32(0);
+                        user.Nama = reader.GetString(1);
+                        user.NomorTelepon = reader.IsDBNull(2) ? null : reader.GetString(2);
+                        user.Email = reader.GetString(3);
+                        user.Username = reader.GetString(4);
+                        user.Password = reader.GetString(5);
+                        user.IsDiblokir = reader.GetBoolean(7);
+                        list.Add(user);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal ambil user: " + ex.Message);
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
+            return list;
+        }
+
+        public User AmbilUserById(int idUser)
+        {
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return null;
+
+            try
+            {
+                conn.Open();
+                string sql = "SELECT id_user, nama, nomor_telepon, email, username, password, peran, is_diblokir FROM users WHERE id_user = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", idUser);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            User user;
+                            if (reader.GetString(6) == "Admin")
+                                user = new Admin();
+                            else
+                                user = new RegularUser();
+
+                            user.IdUser = reader.GetInt32(0);
+                            user.Nama = reader.GetString(1);
+                            user.NomorTelepon = reader.IsDBNull(2) ? null : reader.GetString(2);
+                            user.Email = reader.GetString(3);
+                            user.Username = reader.GetString(4);
+                            user.Password = reader.GetString(5);
+                            user.IsDiblokir = reader.GetBoolean(7);
+                            return user;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal ambil user: " + ex.Message);
+            }
+            finally
+            {
+                if (conn.State == System.Data.ConnectionState.Open)
+                    conn.Close();
+            }
+            return null;
         }
     }
 }

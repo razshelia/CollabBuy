@@ -2,138 +2,127 @@
 using System.Data;
 using Npgsql;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Interfaces;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ReportRepository
+    public class ReportRepository : IReportRepository
     {
-        private DatabaseHelper dbHelper;
+        private readonly DatabaseHelper _db;
 
         public ReportRepository()
         {
-            this.dbHelper = new DatabaseHelper();
+            _db = new DatabaseHelper();
         }
 
-        // 1. CUBE: Analisis Kombinasi Penjual & Produk
-        public DataTable AmbilLaporanOmzetCube()
+        private DataTable EksekusiQuery(string sql)
         {
             DataTable dt = new DataTable();
-            NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
-            if (koneksi == null) return dt;
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return dt;
 
             try
             {
-                koneksi.Open();
-                string sql = @"
-                    SELECT 
-                        COALESCE(v.nama_toko, 'Semua Toko') AS nama_toko,
-                        COALESCE(p.nama_produk, 'Semua Produk') AS nama_produk,
-                        SUM(c.total_bayar_awal) AS omzet
-                    FROM checkouts c
-                    JOIN preorders po ON c.id_po = po.id_po
-                    JOIN products p ON po.id_produk = p.id_produk
-                    LEFT JOIN verifications v ON p.id_seller = v.id_user
-                    GROUP BY CUBE(v.nama_toko, p.nama_produk)
-                    ORDER BY nama_toko, nama_produk";
-
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
                     dt.Load(reader);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Gagal senyap
+                UXHelper.TampilkanError("Gagal menjalankan laporan: " + ex.Message);
             }
             finally
             {
-                if (koneksi.State == ConnectionState.Open)
-                    koneksi.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
-
             return dt;
         }
 
-        // 2. ROLLUP: Penjualan per Fakultas ke Prodi
-        public DataTable AmbilLaporanFakultasRollup()
+        public DataTable BarangTerjualPerProduk()
         {
-            DataTable dt = new DataTable();
-            NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
-            if (koneksi == null) return dt;
-
-            try
-            {
-                koneksi.Open();
-                string sql = @"
-                    SELECT 
-                        COALESCE(u.fakultas, 'Semua Fakultas') AS fakultas,
-                        COALESCE(u.prodi, 'Semua Prodi') AS prodi,
-                        SUM(c.total_bayar_awal) AS belanja
-                    FROM checkouts c
-                    JOIN users u ON c.id_user_coordinator = u.id_user
-                    GROUP BY ROLLUP(u.fakultas, u.prodi)
-                    ORDER BY fakultas, prodi";
-
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                {
-                    dt.Load(reader);
-                }
-            }
-            catch (Exception)
-            {
-                // Gagal senyap
-            }
-            finally
-            {
-                if (koneksi.State == ConnectionState.Open)
-                    koneksi.Close();
-            }
-
-            return dt;
+            string sql = @"
+                SELECT p.nama_produk, SUM(td.jumlah_pesanan) AS total_terjual
+                FROM transaction_details td
+                JOIN products p ON td.id_produk = p.id_produk
+                GROUP BY p.nama_produk ORDER BY total_terjual DESC";
+            return EksekusiQuery(sql);
         }
 
-        // 3. GROUPING SETS: Perbandingan Omset Toko dan Total Belanja Fakultas
-        public DataTable AmbilLaporanPerbandinganGroupingSets()
+        public DataTable CubeKategoriJenisPO()
         {
-            DataTable dt = new DataTable();
-            NpgsqlConnection koneksi = this.dbHelper.AmbilKoneksi();
-            if (koneksi == null) return dt;
+            string sql = @"
+                SELECT kat.nama_kategori, po.jenis_po, SUM(td.jumlah_pesanan) AS total_barang_terjual
+                FROM transaction_details td
+                JOIN products p ON td.id_produk = p.id_produk
+                JOIN preorders po ON p.id_po = po.id_po
+                JOIN categories kat ON p.id_kategori = kat.id_kategori
+                GROUP BY CUBE (kat.nama_kategori, po.jenis_po)";
+            return EksekusiQuery(sql);
+        }
 
-            try
-            {
-                koneksi.Open();
-                string sql = @"
-                    SELECT 
-                        COALESCE(v.nama_toko, '') AS nama_toko,
-                        COALESCE(u.fakultas, '') AS fakultas,
-                        SUM(c.total_bayar_awal) AS total
-                    FROM checkouts c
-                    JOIN users u ON c.id_user_coordinator = u.id_user
-                    JOIN preorders po ON c.id_po = po.id_po
-                    JOIN products p ON po.id_produk = p.id_produk
-                    LEFT JOIN verifications v ON p.id_seller = v.id_user
-                    GROUP BY GROUPING SETS ((v.nama_toko), (u.fakultas))
-                    ORDER BY nama_toko, fakultas";
+        public DataTable RollupOmzetPerWaktu()
+        {
+            string sql = @"
+                SELECT EXTRACT(YEAR FROM t.tanggal_transaksi) AS tahun,
+                       EXTRACT(MONTH FROM t.tanggal_transaksi) AS bulan,
+                       SUM(t.total_bayar_grup) AS omzet_kotor
+                FROM transactions t WHERE t.status_pesanan = 'Selesai'
+                GROUP BY ROLLUP (EXTRACT(YEAR FROM t.tanggal_transaksi), EXTRACT(MONTH FROM t.tanggal_transaksi))";
+            return EksekusiQuery(sql);
+        }
 
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
-                using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                {
-                    dt.Load(reader);
-                }
-            }
-            catch (Exception)
-            {
-                // Gagal senyap
-            }
-            finally
-            {
-                if (koneksi.State == ConnectionState.Open)
-                    koneksi.Close();
-            }
+        public DataTable GroupingSetsPenjualKategori()
+        {
+            string sql = @"
+                SELECT u.nama AS nama_penjual, kat.nama_kategori, SUM(td.jumlah_pesanan) AS unit_terjual
+                FROM transaction_details td
+                JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                JOIN products p ON td.id_produk = p.id_produk
+                JOIN categories kat ON p.id_kategori = kat.id_kategori
+                JOIN preorders po ON p.id_po = po.id_po
+                JOIN users u ON po.id_penjual = u.id_user
+                GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori))";
+            return EksekusiQuery(sql);
+        }
 
-            return dt;
+        public DataTable SubqueryProdukKuotaMenipis()
+        {
+            string sql = @"
+                SELECT nama_produk, target_kuota FROM products p
+                WHERE p.target_kuota IS NOT NULL AND (
+                    p.target_kuota - (SELECT COALESCE(SUM(jumlah_pesanan), 0) FROM transaction_details td WHERE td.id_produk = p.id_produk)
+                ) <= 5";
+            return EksekusiQuery(sql);
+        }
+
+        public DataTable UnionTransaksiBerjalanSelesai()
+        {
+            string sql = @"
+                SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Diproses'
+                UNION
+                SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Selesai'";
+            return EksekusiQuery(sql);
+        }
+
+        public DataTable IntersectPenjualJugaPembeli()
+        {
+            string sql = @"
+                SELECT id_user FROM verifications WHERE is_verifikasi = TRUE
+                INTERSECT
+                SELECT id_koordinator FROM transactions";
+            return EksekusiQuery(sql);
+        }
+
+        public DataTable ExceptUserBelumTransaksi()
+        {
+            string sql = @"
+                SELECT id_user, nama FROM users
+                EXCEPT
+                SELECT u.id_user, u.nama FROM users u JOIN transactions t ON u.id_user = t.id_koordinator";
+            return EksekusiQuery(sql);
         }
     }
 }

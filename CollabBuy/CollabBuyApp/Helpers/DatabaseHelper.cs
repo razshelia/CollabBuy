@@ -1,43 +1,50 @@
-﻿using Npgsql;
-using System;
+﻿using System;
 using System.Configuration;
+using Npgsql;
 
 namespace CollabBuy.CollabBuyApp.Helpers
 {
     public class DatabaseHelper
     {
-        private string stringKoneksi;
+        private readonly string _connectionString;
 
         public DatabaseHelper()
         {
             try
             {
-                this.stringKoneksi = ConfigurationManager.ConnectionStrings["CollabBuyDBConfig"]?.ConnectionString;
+                // Baca dari App.config
+                var connStringSetting = ConfigurationManager.ConnectionStrings["CollabBuyDB"];
+                if (connStringSetting == null || string.IsNullOrWhiteSpace(connStringSetting.ConnectionString))
+                    throw new InvalidOperationException("Connection string 'CollabBuyDB' tidak ditemukan di App.config.");
 
-                if (string.IsNullOrWhiteSpace(this.stringKoneksi))
-                {
-                    // FALLBACK: gunakan connection string hardcoded jika App.config tidak ditemukan
-                    this.stringKoneksi = "Host=localhost;Port=5432;Database=collabbuy_db;Username=postgres;Password=admin123";
-                }
+                _connectionString = connStringSetting.ConnectionString;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // FALLBACK saat ConfigurationManager gagal total
-                this.stringKoneksi = "Host=localhost;Port=5432;Database=collabbuy_db;Username=postgres;Password=admin123";
+                // Jika terjadi error fatal, bisa log atau lempar exception
+                // UXHelper akan digunakan untuk menampilkan pesan, namun karena ini constructor,
+                // kita simpan error dan biarkan pemanggil mengecek.
+                _connectionString = null;
+                System.Diagnostics.Debug.WriteLine("Gagal membaca connection string: " + ex.Message);
             }
         }
 
         public NpgsqlConnection AmbilKoneksi()
         {
+            if (string.IsNullOrEmpty(_connectionString))
+            {
+                UXHelper.TampilkanError("Konfigurasi database tidak ditemukan. Hubungi administrator.");
+                return null;
+            }
+
             try
             {
-                NpgsqlConnection koneksi = new NpgsqlConnection(this.stringKoneksi);
+                var koneksi = new NpgsqlConnection(_connectionString);
                 return koneksi;
             }
             catch (Exception ex)
             {
-                // ERROR HANDLING: kembalikan null, UI yang menangani
-                System.Diagnostics.Debug.WriteLine("Gagal membuat koneksi: " + ex.Message);
+                UXHelper.TampilkanError("Gagal membuat koneksi ke database: " + ex.Message);
                 return null;
             }
         }
