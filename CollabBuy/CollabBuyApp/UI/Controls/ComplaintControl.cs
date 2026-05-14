@@ -18,7 +18,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void btnKirim_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(this.txtSubjek.Text) || string.IsNullOrWhiteSpace(this.txtPesan.Text))
+            if (string.IsNullOrWhiteSpace(this.txtSubjek.Text) ||
+                string.IsNullOrWhiteSpace(this.txtPesan.Text))
             {
                 UXHelper.TampilkanError("Subjek sama isi aduannya jangan dikosongin ya, Bestie! Nanti mimin bingung.");
                 return;
@@ -31,7 +32,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             if (UXHelper.TampilkanKonfirmasi("Udah bener ceritanya? Mau dikirim ke Admin sekarang?"))
             {
                 bool sukses = this.interactionService.KirimAduan(aduanBaru);
-
                 if (sukses)
                 {
                     this.txtSubjek.Clear();

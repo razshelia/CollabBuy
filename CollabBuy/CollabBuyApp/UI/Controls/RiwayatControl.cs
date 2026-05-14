@@ -20,10 +20,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void MuatRiwayat()
         {
-            // Pastikan CheckoutService memiliki method untuk ambil data per user
             var data = this.checkoutService.AmbilRiwayatUser(this.idUser);
             this.dgvRiwayat.DataSource = data;
-
             if (data == null || data.Count == 0)
                 UXHelper.TampilkanSukses("Belum ada riwayat pesanan nih, Bestie! Yuk jajan dulu. ✨");
         }

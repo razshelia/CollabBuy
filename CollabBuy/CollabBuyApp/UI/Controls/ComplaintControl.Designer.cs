@@ -34,7 +34,7 @@
             this.pnlCard.Location = new System.Drawing.Point(250, 100);
             this.pnlCard.Size = new System.Drawing.Size(500, 480);
 
-            this.lblJudul.Text = "ADA MASALAH? SPILL SINI 🗣️";
+            this.lblJudul.Text = "ADA MASALAH? SPILL SINI ️";
             this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
             this.lblJudul.Location = new System.Drawing.Point(40, 30);
             this.lblJudul.AutoSize = true;
@@ -59,7 +59,7 @@
             this.btnKirim.BackColor = System.Drawing.Color.FromArgb(170, 150, 218); // Ungu Logo
             this.btnKirim.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnKirim.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.btnKirim.Text = "KIRIM ADUAN 🚀";
+            this.btnKirim.Text = "KIRIM ADUAN ";
             this.btnKirim.Location = new System.Drawing.Point(50, 370);
             this.btnKirim.Size = new System.Drawing.Size(400, 50);
             this.btnKirim.Click += new System.EventHandler(this.btnKirim_Click);
@@ -68,8 +68,8 @@
                 this.lblJudul, this.lblSubjek, this.txtSubjek,
                 this.lblPesan, this.txtPesan, this.btnKirim
             });
-            this.Controls.Add(this.pnlCard);
 
+            this.Controls.Add(this.pnlCard);
             this.pnlCard.ResumeLayout(false);
             this.pnlCard.PerformLayout();
             this.ResumeLayout(false);

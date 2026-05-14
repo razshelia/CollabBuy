@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
 using CollabBuy.CollabBuyApp.Helpers;
@@ -7,84 +8,74 @@ namespace CollabBuy.CollabBuyApp.Services
 {
     public class UserService
     {
-        private UserRepository userRepo;
+        private IUserRepository repository;
 
         public UserService()
         {
-            this.userRepo = new UserRepository();
+            this.repository = new UserRepository();
         }
 
-        public bool DaftarPenggunaBaru(User penggunaBaru)
+        // Method login
+        public Akun Login(string username, string password)
         {
-            if (penggunaBaru == null)
-            {
-                UXHelper.TampilkanError("Data pendaftaran tidak valid.");
-                return false;
-            }
-            else
-            {
-                // Panggil repository untuk INSERT
-                bool sukses = this.userRepo.Register(penggunaBaru);
-
-                if (sukses)
-                {
-                    UXHelper.TampilkanSukses("Akun berhasil didaftarkan! Silakan Login.");
-                    return true;
-                }
-                else
-                {
-                    UXHelper.TampilkanError("Gagal mendaftar. Username atau Email mungkin sudah dipakai.");
-                    return false;
-                }
-            }
+            var akun = repository.Login(username, password);
+            if (akun == null)
+                UXHelper.TampilkanError("Username atau password salah.");
+            return akun;
         }
 
+        // Method yang dipanggil RegisterControl
+        public bool DaftarPenggunaBaru(Akun akun)
+        {
+            // Validasi bisa ditambahkan
+            bool sukses = repository.Register(akun);
+            if (sukses)
+                UXHelper.TampilkanSukses("Registrasi berhasil! Silakan login.");
+            else
+                UXHelper.TampilkanError("Gagal mendaftar, coba lagi.");
+            return sukses;
+        }
+
+        // Ajukan verifikasi seller (dipanggil dari SellerVerificationControl)
+        public bool AjukanVerifikasiSeller(int idUser, string namaToko, string nim, int tahunMasuk, string pathKTM)
+        {
+            return repository.AjukanVerifikasiSeller(idUser, namaToko, nim, tahunMasuk, pathKTM);
+        }
+
+        // Method yang dipanggil AdminUserManagementControl untuk memuat data
+        public List<dynamic> MuatDaftarPengajuanVerifikasi()
+        {
+            return repository.AmbilDaftarPengajuanVerifikasi();
+        }
+
+        // Method yang dipanggil AdminUserManagementControl untuk menyetujui
         public bool SetujuiPenjual(int idVerifikasi)
         {
-            if (idVerifikasi <= 0)
-            {
-                UXHelper.TampilkanError("ID Verifikasi tidak ditemukan.");
+            if (!UXHelper.TampilkanKonfirmasi("Setujui pengajuan ini?"))
                 return false;
-            }
+            bool sukses = repository.SetujuiVerifikasi(idVerifikasi);
+            if (sukses)
+                UXHelper.TampilkanSukses("Penjual telah disetujui.");
             else
-            {
-                bool yakin = UXHelper.TampilkanKonfirmasi("Setujui mahasiswa ini sebagai Penjual?");
-                if (yakin)
-                {
-                    bool sukses = this.userRepo.SetujuiVerifikasi(idVerifikasi);
-                    if (sukses)
-                    {
-                        UXHelper.TampilkanSukses("Status Penjual berhasil diaktifkan!");
-                        return true;
-                    }
-                    else
-                    {
-                        UXHelper.TampilkanError("Gagal menyetujui. Terjadi kesalahan pada database.");
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
+                UXHelper.TampilkanError("Gagal menyetujui.");
+            return sukses;
         }
-        // Tambahkan method ini untuk menjembatani UI dan Repository
-        public List<Seller> MuatDaftarPengajuanVerifikasi()
-        {
-            // Memanggil method dari UserRepository
-            List<Seller> daftarPengajuan = this.userRepo.AmbilDaftarPengajuanVerifikasi();
 
-            if (daftarPengajuan == null || daftarPengajuan.Count == 0)
-            {
-                // Jika kosong, kembalikan list kosong agar DataGridView tidak error/crash
-                return new List<Seller>();
-            }
-            else
-            {
-                // Jika ada isinya, langsung lemparkan ke UI
-                return daftarPengajuan;
-            }
+        // Method tolak verifikasi (opsional)
+        public bool TolakPenjual(int idVerifikasi)
+        {
+            if (!UXHelper.TampilkanKonfirmasi("Tolak pengajuan ini?"))
+                return false;
+            bool sukses = repository.TolakVerifikasi(idVerifikasi);
+            if (sukses)
+                UXHelper.TampilkanSukses("Pengajuan ditolak.");
+            return sukses;
+        }
+
+        // Update profil
+        public bool UpdateProfil(Akun akun)
+        {
+            return repository.UpdateProfil(akun);
         }
     }
 }

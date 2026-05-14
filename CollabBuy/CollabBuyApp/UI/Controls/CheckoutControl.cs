@@ -1,74 +1,99 @@
 ﻿using System;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Services;
+using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class CheckoutControl : UserControl
     {
-        private CheckoutService checkoutService;
-        private int idUserAktif;
-        private int idPoAktif;
-        private decimal hargaSatuan;
-        private string pathFileBukti = "";
+        private int idUser;
+        private int idPo;
+        private string pathBukti = null;
 
-        public CheckoutControl(int idUser, int idPo, string namaProduk, decimal harga)
+        // Konstruktor menerima ID user dan ID produk (Preorder/Product)
+        public CheckoutControl(int idUser, int idPo)
         {
-            this.InitializeComponent();
-            this.checkoutService = new CheckoutService();
-
-            this.idUserAktif = idUser;
-            this.idPoAktif = idPo;
-            this.hargaSatuan = harga;
-
-            this.lblNamaProduk.Text = "Produk: " + namaProduk;
-            this.HitungTotal();
+            InitializeComponent();
+            this.idUser = idUser;
+            this.idPo = idPo;
+            this.MuatDetailProduk();
         }
 
-        private void HitungTotal()
+        private void MuatDetailProduk()
         {
-            decimal total = this.hargaSatuan * this.numJumlah.Value;
-            this.lblTotal.Text = "Total Kasbon: Rp " + total.ToString("N0");
-        }
-
-        private void numJumlah_ValueChanged(object sender, EventArgs e)
-        {
-            this.HitungTotal();
-        }
-
-        private void btnUpload_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Image Files|*.jpg;*.jpeg;*.png";
-
-            if (ofd.ShowDialog() == DialogResult.OK)
+            // Panggil repository langsung (boleh juga lewat service)
+            var productRepo = new ProductRepository();
+            var produk = productRepo.AmbilProdukById(this.idPo);
+            if (produk != null)
             {
-                this.pathFileBukti = ofd.FileName;
-                this.lblPathBukti.Text = ofd.SafeFileName;
-                UXHelper.TampilkanSukses("Sipp, file aman! ✨");
+                lblNamaProduk.Text = produk.NamaProduk;
+                lblHargaSatuan.Text = $"Rp {produk.HargaSatuan:N0}";
+            }
+            else
+            {
+                UXHelper.TampilkanError("Produk tidak ditemukan.");
             }
         }
 
-        private void btnBayar_Click(object sender, EventArgs e)
+        private void btnUploadBukti_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(this.pathFileBukti))
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                UXHelper.TampilkanError("Upload dulu dong struk transfernya, no pic hoax! 📸");
+                openFileDialog.Title = "Pilih Bukti Transfer";
+                openFileDialog.Filter = "File Gambar|*.jpg;*.jpeg;*.png;*.bmp|Semua File|*.*";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string folderTujuan = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Uploads", "Bukti");
+                        if (!Directory.Exists(folderTujuan))
+                            Directory.CreateDirectory(folderTujuan);
+
+                        string namaFile = $"{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(openFileDialog.FileName)}";
+                        string fullPath = Path.Combine(folderTujuan, namaFile);
+                        File.Copy(openFileDialog.FileName, fullPath);
+
+                        pathBukti = Path.Combine("Uploads", "Bukti", namaFile);
+
+                        pictureBoxBukti.Image = Image.FromFile(fullPath);
+                        lblStatusUpload.Text = "Bukti terupload: " + namaFile;
+                        lblStatusUpload.ForeColor = Color.Green;
+                    }
+                    catch (Exception ex)
+                    {
+                        UXHelper.TampilkanError("Gagal menyimpan bukti: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        private void btnCheckout_Click(object sender, EventArgs e)
+        {
+            if (!int.TryParse(txtJumlah.Text, out int jumlah) || jumlah <= 0)
+            {
+                UXHelper.TampilkanError("Jumlah pesanan harus angka lebih dari 0.");
+                return;
+            }
+            if (string.IsNullOrEmpty(pathBukti))
+            {
+                UXHelper.TampilkanError("Silakan upload bukti transfer dulu.");
                 return;
             }
 
-            int jumlahBeli = (int)this.numJumlah.Value;
-
-            // Logika service udah include konfirmasi UXHelper dan validasi
-            bool sukses = this.checkoutService.LakukanPembayaran(this.idUserAktif, this.idPoAktif, jumlahBeli, this.pathFileBukti);
-
+            CheckoutService checkoutService = new CheckoutService();
+            bool sukses = checkoutService.BuatTransaksi(this.idUser, this.idPo, jumlah, pathBukti);
             if (sukses)
             {
-                // Reset form setelah sukses
-                this.numJumlah.Value = 1;
-                this.pathFileBukti = "";
-                this.lblPathBukti.Text = "Belum ada file terpilih.";
+                // Kembali ke katalog atau halaman lain
+                if (this.ParentForm is MainForm main)
+                {
+                    main.GantiHalaman(new CatalogControl());
+                }
             }
         }
     }

@@ -60,5 +60,21 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 // RenderCards(hasil);
             }
         }
+        // Di dalam CatalogControl, misalnya saat tombol "Beli" diklik:
+        private void BeliProduk(int idPo)
+        {
+            if (this.ParentForm is MainForm main)
+            {
+                Akun user = main.AmbilUserAktif();
+                if (user != null)
+                {
+                    main.GantiHalaman(new CheckoutControl(user.IdUser, idPo));
+                }
+                else
+                {
+                    UXHelper.TampilkanError("Silakan login terlebih dahulu.");
+                }
+            }
+        }
     }
 }

@@ -27,4 +27,9 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Uplouds\KTM\" />
+    <Folder Include="Uplouds\Bukti\" />
+  </ItemGroup>
+
 </Project>

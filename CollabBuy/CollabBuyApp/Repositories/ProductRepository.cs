@@ -124,6 +124,43 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
+        public Product AmbilProdukById(int idProduk)
+        {
+            NpgsqlConnection koneksi = dbHelper.AmbilKoneksi();
+            if (koneksi == null) return null;
+
+            try
+            {
+                koneksi.Open();
+                string sql = @"SELECT id_produk, nama_produk, stok, harga, id_seller, foto
+                       FROM products WHERE id_produk = @id";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, koneksi))
+                {
+                    cmd.Parameters.AddWithValue("id", idProduk);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            Product p = new Product();
+                            p.IdProduk = reader.GetInt32(0);
+                            p.NamaProduk = reader.GetString(1);
+                            p.StokProduk = reader.GetInt32(2);
+                            p.HargaSatuan = reader.GetDecimal(3);   // <-- pakai HargaSatuan
+                            p.IdSeller = reader.GetInt32(4);
+                            p.FotoProduk = reader.IsDBNull(5) ? null : reader.GetString(5);
+                            return p;
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                if (koneksi.State == System.Data.ConnectionState.Open)
+                    koneksi.Close();
+            }
+            return null;
+        }
 
         public List<Product> AmbilSemuaProduk()
         {

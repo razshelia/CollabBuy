@@ -9,8 +9,6 @@ namespace CollabBuy.CollabBuyApp.UI
     public partial class MainForm : Form
     {
         private Akun userAktif;
-
-        // Track active nav button untuk highlight
         private Button activeNavButton = null;
 
         public MainForm()
@@ -19,25 +17,29 @@ namespace CollabBuy.CollabBuyApp.UI
             this.TampilkanHalamanLogin();
         }
 
-        // ── Swap halaman di content area ─────────────────────────
-        private void GantiHalaman(UserControl halamanBaru)
+        // ── Ganti halaman di content area ─────────────────────────
+        public void GantiHalaman(UserControl halamanBaru)
         {
             if (halamanBaru == null) return;
             this.pnlMainContainer.Controls.Clear();
             halamanBaru.Dock = DockStyle.Fill;
             this.pnlMainContainer.Controls.Add(halamanBaru);
         }
+        public Akun AmbilUserAktif()
+        {
+            return this.userAktif;
+        }
 
-        // ── Highlight nav button aktif ───────────────────────────
+        // ── Highlight tombol navigasi aktif ───────────────────────
         private void SetActiveNav(Button btn)
         {
-            // Reset semua warna nav
             Button[] allNav = {
                 btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan,
                 btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak,
                 btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan,
                 btnProfil
             };
+
             foreach (var b in allNav)
             {
                 b.BackColor = System.Drawing.Color.Transparent;
@@ -54,7 +56,6 @@ namespace CollabBuy.CollabBuyApp.UI
         }
 
         // ── NAVIGASI HALAMAN ─────────────────────────────────────
-
         public void TampilkanHalamanLogin()
         {
             this.pnlSidebar.Visible = false;
@@ -93,45 +94,45 @@ namespace CollabBuy.CollabBuyApp.UI
             }
         }
 
-        // ── Polymorphism: Atur visibility menu berdasarkan Peran ─
+        // ── Atur visibility menu berdasarkan Peran ───────────────
         private void KonfigurasiSidebarBerdasarkanPeran()
         {
-            bool isAdmin  = (this.userAktif is Admin);
-            bool isUser   = !isAdmin;
-
-            // Cek apakah user sudah verifikasi sebagai penjual
+            bool isAdmin = (this.userAktif is Admin);
+            bool isUser = !isAdmin;
             bool isSeller = false;
-            if (this.userAktif is User u) isSeller = u.IsVerifikasi;
+
+            if (this.userAktif is User u)
+                isSeller = u.IsVerifikasi;
 
             // Label info user
             this.lblUserInfo.Text = isAdmin
-                ? $"🛡 Admin: {this.userAktif.Username}"
-                : $"👤 {this.userAktif.Username}";
+                ? $" Admin: {this.userAktif.Username}"
+                : $" {this.userAktif.Username}";
 
-            // ── Admin menus ───────────────────────────────────────
-            lblSectionAdmin.Visible    = isAdmin;
-            btnAdminDashboard.Visible  = isAdmin;
+            // ── Admin menus ─────────────────────────────────────
+            lblSectionAdmin.Visible = isAdmin;
+            btnAdminDashboard.Visible = isAdmin;
             btnAdminVerifikasi.Visible = isAdmin;
-            btnAdminKategori.Visible   = isAdmin;
-            btnAdminKeluhan.Visible    = isAdmin;
+            btnAdminKategori.Visible = isAdmin;
+            btnAdminKeluhan.Visible = isAdmin;
 
-            // ── Buyer menus ───────────────────────────────────────
-            lblSectionBuyer.Visible    = isUser;
-            btnUserKatalog.Visible     = isUser;
-            btnUserCheckout.Visible    = isUser;
-            btnUserRiwayat.Visible     = isUser;
-            btnUserAduan.Visible       = isUser;
-            btnUserBukaLapak.Visible   = isUser && !isSeller; // hilang setelah jadi seller
+            // ── Buyer menus ─────────────────────────────────────
+            lblSectionBuyer.Visible = isUser;
+            btnUserKatalog.Visible = isUser;
+            btnUserCheckout.Visible = isUser;
+            btnUserRiwayat.Visible = isUser;
+            btnUserAduan.Visible = isUser;
+            btnUserBukaLapak.Visible = isUser && !isSeller; // hilang setelah jadi seller
 
-            // ── Seller menus (hanya jika is_verifikasi = true) ───
-            lblSectionSeller.Visible   = isSeller;
-            btnSellerKatalog.Visible   = isSeller;
-            btnSellerPesanan.Visible   = isSeller;
-            btnSellerAnalitik.Visible  = isSeller;
-            btnSellerUlasan.Visible    = isSeller;
+            // ── Seller menus (hanya jika is_verifikasi = true) ─
+            lblSectionSeller.Visible = isSeller;
+            btnSellerKatalog.Visible = isSeller;
+            btnSellerPesanan.Visible = isSeller;
+            btnSellerAnalitik.Visible = isSeller;
+            btnSellerUlasan.Visible = isSeller;
         }
 
-        // ── PUBLIC helper untuk refresh sidebar setelah diverifikasi ─
+        // ── PUBLIC helper untuk refresh sidebar setelah verifikasi ─
         public void RefreshSidebar()
         {
             if (this.userAktif != null)
@@ -148,19 +149,24 @@ namespace CollabBuy.CollabBuyApp.UI
         private void btnAdminVerifikasi_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnAdminVerifikasi);
-            GantiHalaman(new SellerVerificationControl());
+            // **PERBAIKAN**: Admin sekarang melihat daftar user yang mengajukan verifikasi,
+            // BUKAN form pengajuan.
+            GantiHalaman(new AdminUserManagementControl());
         }
 
         private void btnAdminKategori_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnAdminKategori);
-            GantiHalaman(new AdminDashboardControl()); // ganti ke KategoriControl jika sudah ada
+            // TODO: Ganti dengan KategoriControl jika sudah dibuat.
+            GantiHalaman(new AdminDashboardControl());
         }
 
         private void btnAdminKeluhan_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnAdminKeluhan);
-            GantiHalaman(new AdminUserManagementControl());
+            // **PERBAIKAN**: Admin sekarang melihat daftar keluhan,
+            // BUKAN manajemen user.
+            GantiHalaman(new ComplaintControl());
         }
 
         // ── USER/BUYER CLICK HANDLERS ────────────────────────────
@@ -173,13 +179,19 @@ namespace CollabBuy.CollabBuyApp.UI
         private void btnUserCheckout_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnUserCheckout);
-            GantiHalaman(new CatalogControl());
+            // **PERBAIKAN**: Karena CheckoutControl butuh parameter produk,
+            // arahkan user ke Katalog dulu untuk memilih produk.
+            UXHelper.TampilkanError("Silakan pilih produk dari Katalog terlebih dahulu.");
         }
 
         private void btnUserRiwayat_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnUserRiwayat);
-            GantiHalaman(new UserDashboardControl(this.userAktif));
+            // **PERBAIKAN**: Sekarang membuka RiwayatControl, bukan UserDashboardControl.
+            if (this.userAktif != null)
+                GantiHalaman(new RiwayatControl(this.userAktif.IdUser));
+            else
+                UXHelper.TampilkanError("Anda harus login terlebih dahulu.");
         }
 
         private void btnUserAduan_Click(object sender, EventArgs e)
@@ -191,7 +203,8 @@ namespace CollabBuy.CollabBuyApp.UI
         private void btnUserBukaLapak_Click(object sender, EventArgs e)
         {
             SetActiveNav(btnUserBukaLapak);
-            GantiHalaman(new SellerVerificationControl());
+            // Form pengajuan seller (hanya muncul untuk user yang belum terverifikasi)
+            GantiHalaman(new SellerVerificationControl(this.userAktif, this.RefreshSidebar));
         }
 
         // ── SELLER CLICK HANDLERS ────────────────────────────────
@@ -228,7 +241,7 @@ namespace CollabBuy.CollabBuyApp.UI
 
         private void btnLogout_Click(object sender, EventArgs e)
         {
-            if (UXHelper.TampilkanKonfirmasi("Yakin mau logout sekarang, Bestie? 😢"))
+            if (UXHelper.TampilkanKonfirmasi("Yakin mau logout sekarang, Bestie? "))
             {
                 this.userAktif = null;
                 this.TampilkanHalamanLogin();

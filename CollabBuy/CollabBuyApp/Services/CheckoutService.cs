@@ -1,4 +1,5 @@
-﻿using CollabBuy.CollabBuyApp.Models;
+﻿using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Repositories;
 using CollabBuy.CollabBuyApp.Helpers;
 
@@ -6,54 +7,67 @@ namespace CollabBuy.CollabBuyApp.Services
 {
     public class CheckoutService
     {
-        private CheckoutRepository checkoutRepo;
+        private ICheckoutRepository repository;
 
         public CheckoutService()
         {
-            this.checkoutRepo = new CheckoutRepository();
+            this.repository = new CheckoutRepository();
         }
 
-        public bool LakukanPembayaran(int idUser, int idPo, int jumlahPesanan, string lokasiBuktiAsli)
+        public bool BuatTransaksi(int idUser, int idPo, int jumlahPesanan, string pathBukti)
         {
             if (jumlahPesanan <= 0)
             {
-                UXHelper.TampilkanError("Jumlah pesanan minimal adalah 1.");
+                UXHelper.TampilkanError("Jumlah pesanan harus lebih dari 0, Bestie!");
                 return false;
             }
+
+            bool sukses = repository.BuatTransaksi(idUser, idPo, jumlahPesanan, pathBukti);
+            if (sukses)
+                UXHelper.TampilkanSukses("Yeay! Pesanan berhasil dibuat. Tunggu konfirmasi ya! ✨");
             else
-            {
-                if (string.IsNullOrWhiteSpace(lokasiBuktiAsli))
-                {
-                    UXHelper.TampilkanError("Anda wajib melampirkan bukti transfer!");
-                    return false;
-                }
-                else
-                {
-                    // Konfirmasi dari UX Helper sebelum memanggil Stored Procedure
-                    bool yakin = UXHelper.TampilkanKonfirmasi("Apakah Anda yakin ingin menyelesaikan pembayaran ini?");
+                UXHelper.TampilkanError("Gagal membuat pesanan. Coba lagi nanti.");
+            return sukses;
+        }
 
-                    if (yakin)
-                    {
-                        // FileHelper di layer Form seharusnya sudah mengamankan file ke folder aplikasi
-                        bool sukses = this.checkoutRepo.BuatTransaksi(idUser, idPo, jumlahPesanan, lokasiBuktiAsli);
+        // Digunakan oleh RiwayatControl
+        public List<dynamic> AmbilRiwayatUser(int idUser)
+        {
+            return repository.AmbilRiwayatPesanan(idUser);
+        }
 
-                        if (sukses)
-                        {
-                            UXHelper.TampilkanSukses("Pembayaran berhasil dikirim dan menunggu validasi Penjual!");
-                            return true;
-                        }
-                        else
-                        {
-                            UXHelper.TampilkanError("Transaksi ditolak. Kuota mungkin sudah penuh atau stok habis.");
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false; // User membatalkan aksi
-                    }
-                }
-            }
+        // Method lain untuk seller / admin
+        public List<dynamic> AmbilPesananMasuk(int idSeller)
+        {
+            return repository.AmbilPesananMasuk(idSeller);
+        }
+
+        public bool ValidasiPembayaran(int idCheckout)
+        {
+            bool sukses = repository.ValidasiPembayaran(idCheckout);
+            if (sukses)
+                UXHelper.TampilkanSukses("Pembayaran berhasil divalidasi!");
+            else
+                UXHelper.TampilkanError("Gagal validasi pembayaran.");
+            return sukses;
+        }
+
+        public bool UbahStatusSelesai(int idCheckout)
+        {
+            bool sukses = repository.UbahStatusSelesai(idCheckout);
+            if (sukses)
+                UXHelper.TampilkanSukses("Pesanan diselesaikan.");
+            return sukses;
+        }
+
+        public bool BatalkanPesanan(int idCheckout)
+        {
+            if (!UXHelper.TampilkanKonfirmasi("Yakin ingin membatalkan pesanan ini?"))
+                return false;
+            bool sukses = repository.BatalkanPesanan(idCheckout);
+            if (sukses)
+                UXHelper.TampilkanSukses("Pesanan dibatalkan.");
+            return sukses;
         }
     }
 }
