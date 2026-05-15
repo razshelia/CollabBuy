@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
+using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Repositories;
 
@@ -13,52 +15,52 @@ namespace CollabBuy.CollabBuyApp.Services
             _reportRepo = new ReportRepository();
         }
 
-        // ── 1. Barang terlaris ──
         public DataTable BarangTerjualPerProduk()
         {
-            return _reportRepo.BarangTerjualPerProduk();
+            try { return _reportRepo.BarangTerjualPerProduk(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 2. CUBE: Kategori × Jenis PO ──
         public DataTable CubeKategoriJenisPO()
         {
-            return _reportRepo.CubeKategoriJenisPO();
+            try { return _reportRepo.CubeKategoriJenisPO(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 3. ROLLUP: Omzet per tahun/bulan ──
         public DataTable RollupOmzetPerWaktu()
         {
-            return _reportRepo.RollupOmzetPerWaktu();
+            try { return _reportRepo.RollupOmzetPerWaktu(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 4. GROUPING SETS: Penjual & Kategori ──
         public DataTable GroupingSetsPenjualKategori()
         {
-            return _reportRepo.GroupingSetsPenjualKategori();
+            try { return _reportRepo.GroupingSetsPenjualKategori(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 5. Subquery: Produk yang kuotanya menipis ──
         public DataTable SubqueryProdukKuotaMenipis()
         {
-            return _reportRepo.SubqueryProdukKuotaMenipis();
+            try { return _reportRepo.SubqueryProdukKuotaMenipis(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 6. UNION: Transaksi berjalan & selesai ──
         public DataTable UnionTransaksiBerjalanSelesai()
         {
-            return _reportRepo.UnionTransaksiBerjalanSelesai();
+            try { return _reportRepo.UnionTransaksiBerjalanSelesai(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 7. INTERSECT: Penjual yang juga pembeli ──
         public DataTable IntersectPenjualJugaPembeli()
         {
-            return _reportRepo.IntersectPenjualJugaPembeli();
+            try { return _reportRepo.IntersectPenjualJugaPembeli(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
 
-        // ── 8. EXCEPT: User yang belum pernah transaksi ──
         public DataTable ExceptUserBelumTransaksi()
         {
-            return _reportRepo.ExceptUserBelumTransaksi();
+            try { return _reportRepo.ExceptUserBelumTransaksi(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new DataTable(); }
         }
     }
 }

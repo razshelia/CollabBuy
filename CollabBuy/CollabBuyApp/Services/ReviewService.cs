@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
@@ -15,10 +16,8 @@ namespace CollabBuy.CollabBuyApp.Services
             _reviewRepo = new ReviewRepository();
         }
 
-        // ── 1. Tambah ulasan (oleh pembeli) ──
         public bool TambahUlasan(int idProduk, int idUser, int rating, string komentar)
         {
-            // Validasi rating
             if (rating < 1 || rating > 5)
             {
                 UXHelper.TampilkanError("Rating harus antara 1 sampai 5.");
@@ -29,27 +28,33 @@ namespace CollabBuy.CollabBuyApp.Services
             ulasan.IdProduk = idProduk;
             ulasan.IdUser = idUser;
             ulasan.Rating = rating;
-            ulasan.Komentar = komentar; // boleh null
+            ulasan.Komentar = komentar;
 
-            bool sukses = _reviewRepo.TambahUlasan(ulasan);
-            if (sukses)
-                UXHelper.TampilkanSukses("Ulasan berhasil ditambahkan. Terima kasih!");
-            return sukses;
+            try
+            {
+                bool sukses = _reviewRepo.TambahUlasan(ulasan);
+                if (sukses) UXHelper.TampilkanSukses("Ulasan berhasil ditambahkan. Terima kasih!");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // ── 2. Ambil ulasan berdasarkan produk (untuk detail produk) ──
         public List<Review> AmbilUlasanProduk(int idProduk)
         {
-            return _reviewRepo.AmbilUlasanByProduk(idProduk);
+            try { return _reviewRepo.AmbilUlasanByProduk(idProduk); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Review>(); }
         }
 
-        // ── 3. Ambil ulasan untuk penjual (semua produk miliknya) ──
         public List<Review> AmbilUlasanPenjual(int idPenjual)
         {
-            return _reviewRepo.AmbilUlasanByPenjual(idPenjual);
+            try { return _reviewRepo.AmbilUlasanByPenjual(idPenjual); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Review>(); }
         }
 
-        // ── 4. Balas ulasan (oleh penjual) ──
         public bool BalasUlasan(int idUlasan, string balasan)
         {
             if (string.IsNullOrWhiteSpace(balasan))
@@ -58,10 +63,17 @@ namespace CollabBuy.CollabBuyApp.Services
                 return false;
             }
 
-            bool sukses = _reviewRepo.BalasUlasan(idUlasan, balasan);
-            if (sukses)
-                UXHelper.TampilkanSukses("Balasan berhasil dikirim.");
-            return sukses;
+            try
+            {
+                bool sukses = _reviewRepo.BalasUlasan(idUlasan, balasan);
+                if (sukses) UXHelper.TampilkanSukses("Balasan berhasil dikirim.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Helpers;
+﻿using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -20,7 +20,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public bool KirimAduan(Complaint aduan)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -34,22 +34,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengirim aduan: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menyimpan aduan ke database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public List<Complaint> AmbilSemuaAduan()
         {
             List<Complaint> list = new List<Complaint>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -74,14 +67,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengambil aduan: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil semua daftar aduan.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
@@ -89,7 +76,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<Complaint> list = new List<Complaint>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -117,21 +104,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengambil aduan: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil riwayat aduan pengguna.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public bool TandaiSelesai(int idAduan)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -143,21 +124,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal menandai selesai: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menandai aduan selesai di database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public bool BalasAduan(int idAduan, string balasan)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -170,15 +144,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal membalas aduan: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menyimpan balasan aduan di database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
     }
 }

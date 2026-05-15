@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
@@ -19,7 +21,15 @@ namespace CollabBuy.CollabBuyApp.Services
         /// </summary>
         public List<Catalog> AmbilKatalogAktif()
         {
-            return _catalogRepo.AmbilKatalogAktif();
+            try
+            {
+                return _catalogRepo.AmbilKatalogAktif();
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return new List<Catalog>();
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<Category> list = new List<Category>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -39,22 +39,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengambil kategori: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil data kategori dari database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public Category AmbilById(int id)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -75,22 +68,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengambil kategori: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil detail kategori.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return null;
         }
 
         public bool Tambah(Category kategori)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -103,22 +89,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return row > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal menambah kategori: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menambah kategori ke database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public bool Update(Category kategori)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -132,22 +110,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return row > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal update kategori: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memperbarui kategori di database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public bool Hapus(int id)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -160,16 +130,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return row > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal menghapus kategori: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menghapus kategori. Kemungkinan kategori ini masih dipakai oleh produk.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
     }
 }

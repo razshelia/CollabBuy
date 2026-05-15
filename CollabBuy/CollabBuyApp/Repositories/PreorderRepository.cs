@@ -22,29 +22,41 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
-                        string sqlPO = @"INSERT INTO preorders (id_penjual, id_produk, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif)
-                                         VALUES (@penjual, @produk, @judul, @jenis, @rekening, @batas, true)";
+                        // 1. Insert ke preorders TANPA id_produk, dan minta kembalian ID PO barunya (RETURNING id_po)
+                        string sqlPO = @"INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif)
+                                 VALUES (@penjual, @judul, @jenis, @rekening, @batas, true) RETURNING id_po";
+                        int newIdPo;
                         using (NpgsqlCommand cmd = new NpgsqlCommand(sqlPO, conn, trans))
                         {
                             cmd.Parameters.AddWithValue("penjual", preorder.IdPenjual);
-                            cmd.Parameters.AddWithValue("produk", idProduk);
                             cmd.Parameters.AddWithValue("judul", preorder.JudulPo);
                             cmd.Parameters.AddWithValue("jenis", preorder.JenisPo);
                             cmd.Parameters.AddWithValue("rekening", preorder.InfoRekening);
                             cmd.Parameters.AddWithValue("batas", preorder.BatasWaktu);
-                            cmd.ExecuteNonQuery();
+                            newIdPo = Convert.ToInt32(cmd.ExecuteScalar()); // Tangkap ID PO yang baru terbuat
                         }
 
+                        // 2. UPDATE tabel products: Masukkan ID PO baru ke produk yang dipilih!
+                        string sqlProd = "UPDATE products SET id_po = @po_baru WHERE id_produk = @produk";
+                        using (NpgsqlCommand cmdProd = new NpgsqlCommand(sqlProd, conn, trans))
+                        {
+                            cmdProd.Parameters.AddWithValue("po_baru", newIdPo);
+                            cmdProd.Parameters.AddWithValue("produk", idProduk);
+                            cmdProd.ExecuteNonQuery();
+                        }
+
+                        // 3. Jika Gotong Royong, update juga target kuotanya
                         if (preorder.JenisPo == "Gotong Royong" && targetKuota > 0)
                         {
-                            string sqlProd = "UPDATE products SET target_kuota = @target WHERE id_produk = @produk";
-                            using (NpgsqlCommand cmdProd = new NpgsqlCommand(sqlProd, conn, trans))
+                            string sqlTarget = "UPDATE products SET target_kuota = @target WHERE id_produk = @produk";
+                            using (NpgsqlCommand cmdTarget = new NpgsqlCommand(sqlTarget, conn, trans))
                             {
-                                cmdProd.Parameters.AddWithValue("target", targetKuota);
-                                cmdProd.Parameters.AddWithValue("produk", idProduk);
-                                cmdProd.ExecuteNonQuery();
+                                cmdTarget.Parameters.AddWithValue("target", targetKuota);
+                                cmdTarget.Parameters.AddWithValue("produk", idProduk);
+                                cmdTarget.ExecuteNonQuery();
                             }
                         }
+
                         trans.Commit();
                         return true;
                     }
@@ -137,8 +149,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         private Preorder MapEntity(NpgsqlDataReader reader)
         {
             string jenis = reader["jenis_po"].ToString();
-            // Gunakan POGotongRoyong dan POBiasa sesuai file Models Anda
-            Preorder po = (jenis == "Gotong Royong") ? (Preorder)new POGotongRoyong() : (Preorder)new POBiasa();
+            Preorder po = (jenis == TipePO.GotongRoyong) ? (Preorder)new POGotongRoyong() : (Preorder)new POBiasa();
             po.IdPo = Convert.ToInt32(reader["id_po"]);
             po.IdPenjual = Convert.ToInt32(reader["id_penjual"]);
             po.JudulPo = reader["judul_po"].ToString();

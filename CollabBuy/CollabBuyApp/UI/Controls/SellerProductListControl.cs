@@ -28,7 +28,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void LoadProduk()
         {
-            _daftarProduk = _productService.AmbilProdukByPo(_idPo);
+            _daftarProduk = _productService.AmbilProdukByPenjual(_idPenjual);
             TampilkanProduk();
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
@@ -17,12 +18,28 @@ namespace CollabBuy.CollabBuyApp.Services
 
         public List<Category> AmbilSemua()
         {
-            return _katRepo.AmbilSemua();
+            try
+            {
+                return _katRepo.AmbilSemua();
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return new List<Category>();
+            }
         }
 
         public Category AmbilById(int id)
         {
-            return _katRepo.AmbilById(id);
+            try
+            {
+                return _katRepo.AmbilById(id);
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return null;
+            }
         }
 
         public bool Tambah(string namaKategori)
@@ -36,10 +53,17 @@ namespace CollabBuy.CollabBuyApp.Services
             Category kat = new Category();
             kat.NamaKategori = namaKategori;
 
-            bool sukses = _katRepo.Tambah(kat);
-            if (sukses)
-                UXHelper.TampilkanSukses("Kategori berhasil ditambahkan.");
-            return sukses;
+            try
+            {
+                bool sukses = _katRepo.Tambah(kat);
+                if (sukses) UXHelper.TampilkanSukses("Kategori berhasil ditambahkan.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
         public bool Update(int idKategori, string namaBaru)
@@ -54,10 +78,17 @@ namespace CollabBuy.CollabBuyApp.Services
             kat.IdKategori = idKategori;
             kat.NamaKategori = namaBaru;
 
-            bool sukses = _katRepo.Update(kat);
-            if (sukses)
-                UXHelper.TampilkanSukses("Kategori berhasil diperbarui.");
-            return sukses;
+            try
+            {
+                bool sukses = _katRepo.Update(kat);
+                if (sukses) UXHelper.TampilkanSukses("Kategori berhasil diperbarui.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
         public bool Hapus(int idKategori)
@@ -65,10 +96,17 @@ namespace CollabBuy.CollabBuyApp.Services
             if (!UXHelper.TampilkanKonfirmasi("Hapus kategori ini?"))
                 return false;
 
-            bool sukses = _katRepo.Hapus(idKategori);
-            if (sukses)
-                UXHelper.TampilkanSukses("Kategori berhasil dihapus.");
-            return sukses;
+            try
+            {
+                bool sukses = _katRepo.Hapus(idKategori);
+                if (sukses) UXHelper.TampilkanSukses("Kategori berhasil dihapus.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
     }
 }

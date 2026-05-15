@@ -16,53 +16,23 @@ namespace CollabBuy.CollabBuyApp.Services
             _poRepo = new PreorderRepository();
         }
 
-        // 1. Buat PO baru (Ditambahkan idProduk)
         public bool BuatPO(int idPenjual, int idProduk, string judul, string jenis, string infoRekening, DateTime batasWaktu, int targetKuota = 0)
         {
-            if (idProduk <= 0)
-            {
-                UXHelper.TampilkanError("Silakan pilih produk terlebih dahulu.");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(judul))
-            {
-                UXHelper.TampilkanError("Judul PO wajib diisi.");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(infoRekening))
-            {
-                UXHelper.TampilkanError("Info rekening wajib diisi.");
-                return false;
-            }
-            if (batasWaktu <= DateTime.Now)
-            {
-                UXHelper.TampilkanError("Batas waktu PO tidak boleh di masa lalu.");
-                return false;
-            }
-            if (jenis != "Biasa" && jenis != "Gotong Royong")
-            {
-                UXHelper.TampilkanError("Jenis PO hanya boleh 'Biasa' atau 'Gotong Royong'.");
-                return false;
-            }
+            if (idProduk <= 0) { UXHelper.TampilkanError("Silakan pilih produk terlebih dahulu."); return false; }
+            if (string.IsNullOrWhiteSpace(judul)) { UXHelper.TampilkanError("Judul PO wajib diisi."); return false; }
+            if (string.IsNullOrWhiteSpace(infoRekening)) { UXHelper.TampilkanError("Info rekening wajib diisi."); return false; }
+            if (batasWaktu <= DateTime.Now) { UXHelper.TampilkanError("Batas waktu PO tidak boleh di masa lalu."); return false; }
+            if (jenis != TipePO.Biasa && jenis != TipePO.GotongRoyong) { UXHelper.TampilkanError("Jenis PO tidak valid."); return false;}
 
             Preorder po;
-            if (jenis == "Gotong Royong")
+            if (jenis == TipePO.GotongRoyong)
             {
-                // Menggunakan POGotongRoyong sesuai file Models/POGotongRoyong.cs
                 var gr = new POGotongRoyong();
-                if (targetKuota <= 0)
-                {
-                    UXHelper.TampilkanError("Target kuota harus > 0 untuk PO Gotong Royong.");
-                    return false;
-                }
-                // Jika Model POGotongRoyong Anda memiliki field TargetKuota, set di sini:
-                // gr.TargetKuota = targetKuota; 
-
+                if (targetKuota <= 0) { UXHelper.TampilkanError("Target kuota harus > 0 untuk PO Gotong Royong."); return false; }
                 po = gr;
             }
             else
             {
-                // Menggunakan POBiasa sesuai file Models/POBiasa.cs
                 po = new POBiasa();
             }
 
@@ -71,72 +41,72 @@ namespace CollabBuy.CollabBuyApp.Services
             po.InfoRekening = infoRekening;
             po.BatasWaktu = batasWaktu;
 
-            bool sukses = _poRepo.TambahPreorder(po, idProduk, targetKuota);
-
-            if (sukses)
-                UXHelper.TampilkanSukses("Preorder berhasil dibuat.");
-
-            return sukses;
+            try
+            {
+                bool sukses = _poRepo.TambahPreorder(po, idProduk, targetKuota);
+                if (sukses) UXHelper.TampilkanSukses("Preorder berhasil dibuat.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // 2. Ambil semua PO yang masih aktif (untuk katalog pembeli)
         public List<Preorder> AmbilPOAktifUntukKatalog()
         {
-            return _poRepo.AmbilPreorderAktif();
+            try { return _poRepo.AmbilPreorderAktif(); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Preorder>(); }
         }
 
-        // 3. Ambil PO aktif milik penjual tertentu
         public List<Preorder> AmbilPOAktifByPenjual(int idPenjual)
         {
-            List<Preorder> semua = _poRepo.AmbilPreorderByPenjual(idPenjual);
-            List<Preorder> aktif = new List<Preorder>();
-            foreach (var po in semua)
+            try
             {
-                if (po.IsAktif && po.BatasWaktu > DateTime.Now)
-                    aktif.Add(po);
+                List<Preorder> semua = _poRepo.AmbilPreorderByPenjual(idPenjual);
+                List<Preorder> aktif = new List<Preorder>();
+                foreach (var po in semua)
+                {
+                    if (po.IsAktif && po.BatasWaktu > DateTime.Now) aktif.Add(po);
+                }
+                return aktif;
             }
-            return aktif;
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Preorder>(); }
         }
 
-        // 4. Ambil semua PO milik penjual (termasuk yang sudah tutup)
         public List<Preorder> AmbilSemuaPOByPenjual(int idPenjual)
         {
-            return _poRepo.AmbilPreorderByPenjual(idPenjual);
+            try { return _poRepo.AmbilPreorderByPenjual(idPenjual); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Preorder>(); }
         }
 
-        // 5. Ambil detail PO berdasarkan ID
         public Preorder AmbilPOById(int idPo)
         {
-            return _poRepo.AmbilPreorderById(idPo);
+            try { return _poRepo.AmbilPreorderById(idPo); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return null; }
         }
 
-        // 6. Tutup PO (hanya pemilik PO yang bisa)
         public bool TutupPO(int idPo, int idPenjual)
         {
-            Preorder po = _poRepo.AmbilPreorderById(idPo);
-            if (po == null)
+            try
             {
-                UXHelper.TampilkanError("Preorder tidak ditemukan.");
-                return false;
-            }
-            if (po.IdPenjual != idPenjual)
-            {
-                UXHelper.TampilkanError("Anda bukan pemilik preorder ini.");
-                return false;
-            }
-            if (!po.IsAktif)
-            {
-                UXHelper.TampilkanError("Preorder sudah ditutup sebelumnya.");
-                return false;
-            }
+                Preorder po = _poRepo.AmbilPreorderById(idPo);
+                if (po == null) { UXHelper.TampilkanError("Preorder tidak ditemukan."); return false; }
+                if (po.IdPenjual != idPenjual) { UXHelper.TampilkanError("Anda bukan pemilik preorder ini."); return false; }
+                if (!po.IsAktif) { UXHelper.TampilkanError("Preorder sudah ditutup sebelumnya."); return false; }
 
-            if (!UXHelper.TampilkanKonfirmasi($"Tutup PO \"{po.JudulPo}\"?"))
-                return false;
+                if (!UXHelper.TampilkanKonfirmasi($"Tutup PO \"{po.JudulPo}\"?")) return false;
 
-            bool sukses = _poRepo.TutupPreorder(idPo);
-            if (sukses)
-                UXHelper.TampilkanSukses("Preorder berhasil ditutup.");
-            return sukses;
+                bool sukses = _poRepo.TutupPreorder(idPo);
+                if (sukses) UXHelper.TampilkanSukses("Preorder berhasil ditutup.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
     }
 }

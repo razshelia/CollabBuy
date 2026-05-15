@@ -19,7 +19,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return dt;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -32,7 +32,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             catch (Exception ex)
             {
-                UXHelper.TampilkanError("Gagal menjalankan laporan: " + ex.Message);
+                // Lempar error ke Service, jangan gunakan UXHelper di sini
+                throw new Exception("Gagal mengeksekusi kueri laporan.", ex);
             }
             finally
             {

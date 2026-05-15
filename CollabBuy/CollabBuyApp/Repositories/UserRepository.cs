@@ -19,7 +19,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public User Login(string username, string password)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -51,7 +51,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             user.NomorTelepon = reader.IsDBNull(2) ? null : reader.GetString(2);
                             user.Email = reader.GetString(3);
                             user.Username = reader.GetString(4);
-                            user.Password = hashDb; // password sudah hash
+                            user.Password = hashDb;
                             user.IsDiblokir = diblokir;
 
                             return user;
@@ -59,22 +59,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal login: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal melakukan proses login.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return null;
         }
 
         public bool Register(User user)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -88,8 +81,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     long jumlah = (long)cmdCek.ExecuteScalar();
                     if (jumlah > 0)
                     {
-                        UXHelper.TampilkanError("Username sudah digunakan.");
-                        return false;
+                        // Lempar error agar ditangkap oleh Service
+                        throw new Exception("Username sudah digunakan. Silakan pilih username lain.");
                     }
                 }
 
@@ -101,30 +94,22 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     cmd.Parameters.AddWithValue("telp", (object)user.NomorTelepon ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("email", user.Email);
                     cmd.Parameters.AddWithValue("user", user.Username);
-                    cmd.Parameters.AddWithValue("pass", user.Password); // sudah di-hash dari service
-                    cmd.Parameters.AddWithValue("peran", "User"); // registrasi selalu user biasa
+                    cmd.Parameters.AddWithValue("pass", user.Password);
+                    cmd.Parameters.AddWithValue("peran", "User");
                     cmd.Parameters.AddWithValue("blokir", false);
 
                     int row = cmd.ExecuteNonQuery();
                     return row > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal registrasi: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception(ex.Message, ex); } // Menangkap Exception custom kita di atas atau error DB
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public bool UpdateProfil(User user)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -142,22 +127,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return row > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal update profil: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menyimpan update profil ke database.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public bool BlokirUser(int idUser, bool diblokir)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -170,23 +147,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal blokir user: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memperbarui status blokir user.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public List<User> AmbilSemuaUser()
         {
             List<User> list = new List<User>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -214,22 +183,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil user: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memuat daftar semua pengguna.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public User AmbilUserById(int idUser)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -260,15 +222,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil user: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil data spesifik pengguna.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return null;
         }
     }

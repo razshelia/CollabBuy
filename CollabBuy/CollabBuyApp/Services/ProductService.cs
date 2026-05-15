@@ -16,37 +16,40 @@ namespace CollabBuy.CollabBuyApp.Services
             _productRepo = new ProductRepository();
         }
 
-        // 1. Tambah Produk 
         public bool TambahProduk(Product produkBaru)
         {
             if (produkBaru == null) return false;
-
             if (string.IsNullOrWhiteSpace(produkBaru.NamaProduk))
             {
                 UXHelper.TampilkanError("Nama produk tidak boleh kosong.");
                 return false;
             }
 
-            bool sukses = _productRepo.TambahProduk(produkBaru);
-            if (sukses)
-                UXHelper.TampilkanSukses("Produk berhasil ditambahkan ke Katalog Master!");
-
-            return sukses;
+            try
+            {
+                bool sukses = _productRepo.TambahProduk(produkBaru);
+                if (sukses) UXHelper.TampilkanSukses("Produk berhasil ditambahkan ke Katalog Master!");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // 2. Ambil Produk By PO
         public List<Product> AmbilProdukByPo(int idPo)
         {
-            return _productRepo.AmbilProdukByPo(idPo);
+            try { return _productRepo.AmbilProdukByPo(idPo); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Product>(); }
         }
 
-        // 3. Ambil Produk By Id
         public Product AmbilProdukById(int idProduk)
         {
-            return _productRepo.AmbilProdukById(idProduk);
+            try { return _productRepo.AmbilProdukById(idProduk); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return null; }
         }
 
-        // 4. Update Produk
         public bool UpdateProduk(Product produkUpdate)
         {
             if (produkUpdate == null || string.IsNullOrWhiteSpace(produkUpdate.NamaProduk))
@@ -55,42 +58,54 @@ namespace CollabBuy.CollabBuyApp.Services
                 return false;
             }
 
-            bool sukses = _productRepo.UpdateProduk(produkUpdate);
-            if (sukses)
-                UXHelper.TampilkanSukses("Produk berhasil diperbarui!");
-
-            return sukses;
+            try
+            {
+                bool sukses = _productRepo.UpdateProduk(produkUpdate);
+                if (sukses) UXHelper.TampilkanSukses("Produk berhasil diperbarui!");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // 5. Hapus Produk
         public bool HapusProduk(int idProduk)
         {
             if (UXHelper.TampilkanKonfirmasi("Yakin ingin menghapus produk ini dari katalog master?"))
             {
-                bool sukses = _productRepo.HapusProduk(idProduk);
-                if (sukses)
-                    UXHelper.TampilkanSukses("Produk berhasil dihapus.");
-                return sukses;
+                try
+                {
+                    bool sukses = _productRepo.HapusProduk(idProduk);
+                    if (sukses) UXHelper.TampilkanSukses("Produk berhasil dihapus.");
+                    return sukses;
+                }
+                catch (Exception ex)
+                {
+                    UXHelper.TampilkanError(ex.Message);
+                    return false;
+                }
             }
             return false;
         }
 
-        // 6. Hitung Harga Aktual (Dinamis berdasarkan pencapaian kuota)
         public int HitungHargaAktual(int idProduk)
         {
-            return _productRepo.HitungHargaAktual(idProduk);
+            try { return _productRepo.HitungHargaAktual(idProduk); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return 0; }
         }
 
-        // 7. Ambil Total Jumlah Produk (Untuk Dashboard Admin)
         public int AmbilJumlahProduk()
         {
-            return _productRepo.AmbilJumlahProduk();
+            try { return _productRepo.AmbilJumlahProduk(); }
+            catch { return 0; } // Untuk dashboard admin, biarkan 0 jika error
         }
 
-        // 8. Ambil Produk By Penjual (Wajib untuk ComboBox Buka PO)
         public List<Product> AmbilProdukByPenjual(int idPenjual)
         {
-            return _productRepo.AmbilProdukByPenjual(idPenjual);
+            try { return _productRepo.AmbilProdukByPenjual(idPenjual); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Product>(); }
         }
     }
 }

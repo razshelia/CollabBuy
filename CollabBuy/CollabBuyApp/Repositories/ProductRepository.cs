@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Helpers;
+﻿using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
+using CollabBuy.CollabBuyApp.Models;
+using Npgsql;
+using System;
+using System.Collections.Generic;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -14,7 +14,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public bool TambahProduk(Product produk)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -38,7 +38,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex) { UXHelper.TampilkanError("Gagal tambah produk: " + ex.Message); return false; }
+            catch (Exception ex) { throw new Exception("Terjadi kesalahan saat menyimpan produk ke database.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
@@ -46,43 +46,30 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<Product> list = new List<Product>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
                 conn.Open();
-
-                // KUERI BARU: Sekarang kita cukup cari di tabel products yang id_po-nya cocok
-                // Tidak perlu JOIN ke preorders lagi karena id_po sudah ada di tabel products
                 string sql = "SELECT * FROM products WHERE id_po = @id";
-
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", idPo);
                     using (var reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
-                        {
-                            list.Add(MapEntity(reader));
-                        }
+                        while (reader.Read()) list.Add(MapEntity(reader));
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal mengambil produk PO: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memuat produk dari PO ini.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public Product AmbilProdukById(int idProduk)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -97,6 +84,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
+            catch (Exception ex) { throw new Exception("Gagal mengambil detail produk.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return null;
         }
@@ -104,7 +92,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public bool UpdateProduk(Product produk)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -130,14 +118,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex) { UXHelper.TampilkanError("Gagal update produk: " + ex.Message); return false; }
+            catch (Exception ex) { throw new Exception("Gagal memperbarui data produk.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public bool HapusProduk(int idProduk)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -149,7 +137,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex) { UXHelper.TampilkanError("Gagal hapus produk: " + ex.Message); return false; }
+            catch (Exception ex) { throw new Exception("Gagal menghapus produk karena data sedang digunakan.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
@@ -161,16 +149,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             try
             {
                 conn.Open();
-                // Memanggil Function PostgreSQL (Materi 6 & 7)
                 string sql = "SELECT cek_harga_saat_ini(@id)";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", idProduk);
                     var result = cmd.ExecuteScalar();
-                    if (result != DBNull.Value && result != null)
-                        return Convert.ToInt32(result);
+                    if (result != DBNull.Value && result != null) return Convert.ToInt32(result);
                 }
             }
+            catch (Exception ex) { throw new Exception("Gagal menghitung harga aktual.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return 0;
         }
@@ -189,21 +176,19 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return Convert.ToInt32(cmd.ExecuteScalar());
                 }
             }
+            catch (Exception ex) { throw new Exception("Gagal mengambil jumlah produk.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
-            return 0;
         }
 
-        // Method tambahan untuk ComboBox Form Buat PO
         public List<Product> AmbilProdukByPenjual(int idPenjual)
         {
             List<Product> list = new List<Product>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
                 conn.Open();
-                // KUERI: Ambil semua produk berdasarkan id_penjual saja
                 string sql = "SELECT * FROM products WHERE id_penjual = @id ORDER BY id_produk DESC";
 
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -211,17 +196,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     cmd.Parameters.AddWithValue("id", idPenjual);
                     using (var reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
-                        {
-                            list.Add(MapEntity(reader));
-                        }
+                        while (reader.Read()) list.Add(MapEntity(reader));
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal memuat katalog: " + ex.Message);
-            }
+            catch (Exception ex) { throw new Exception("Gagal memuat katalog produk penjual.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return list;
         }
@@ -232,12 +211,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 IdProduk = Convert.ToInt32(reader["id_produk"]),
                 IdPenjual = Convert.ToInt32(reader["id_penjual"]),
-                IdKategori = reader["id_kategori"] as int?,
+                IdPo = reader["id_po"] != DBNull.Value ? Convert.ToInt32(reader["id_po"]) : (int?)null,
+                IdKategori = reader["id_kategori"] != DBNull.Value ? Convert.ToInt32(reader["id_kategori"]) : (int?)null,
                 NamaProduk = reader["nama_produk"].ToString(),
                 Deskripsi = reader["deskripsi"]?.ToString(),
                 HargaDasar = Convert.ToInt32(reader["harga_dasar"]),
-                HargaDiskon = reader["harga_diskon"] as int?,
-                TargetKuota = reader["target_kuota"] as int?,
+                HargaDiskon = reader["harga_diskon"] != DBNull.Value ? Convert.ToInt32(reader["harga_diskon"]) : (int?)null,
+                TargetKuota = reader["target_kuota"] != DBNull.Value ? Convert.ToInt32(reader["target_kuota"]) : (int?)null,
                 MinOrder = Convert.ToInt32(reader["min_order"]),
                 FotoProduk = reader["foto_produk"]?.ToString()
             };

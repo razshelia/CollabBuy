@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Helpers;
+﻿using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -20,7 +20,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public int BuatTransaksi(Transaction transaksi, List<TransactionDetail> details)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return -1;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -29,10 +29,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
-                        // 1. Insert transaksi utama dan ambil id_transaksi
+                        // 1. Insert transaksi utama manual untuk mendapatkan ID Transaksi
                         int idTransaksi;
                         string sqlTrans = @"INSERT INTO transactions (id_koordinator, total_bayar_grup, status_pesanan)
-                                    VALUES (@idKoor, @total, @status) RETURNING id_transaksi";
+                            VALUES (@idKoor, @total, @status) RETURNING id_transaksi";
                         using (NpgsqlCommand cmd = new NpgsqlCommand(sqlTrans, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("idKoor", transaksi.IdKoordinator);
@@ -41,26 +41,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             idTransaksi = (int)cmd.ExecuteScalar();
                         }
 
-                        // 2. Panggil procedure untuk setiap detail (atau insert manual, tapi kita pakai procedure)
+                        // 2. Gunakan PROCEDURE untuk memasukkan list detailnya
                         foreach (var detail in details)
                         {
-                            using (NpgsqlCommand cmd = new NpgsqlCommand("CALL proses_checkout(@p_id_koordinator, @p_total_bayar, @p_id_produk, @p_nama_penitip, @p_jumlah, @p_catatan)", conn, transaction))
-                            {
-                                // Karena procedure mengharapkan semua parameter, tapi kita sudah punya id_transaksi, 
-                                // lebih baik procedure disesuaikan agar menerima id_transaksi juga. 
-                                // Untuk sementara, kita insert manual transaction_details seperti sebelumnya.
-                                // Karena procedure kita desain tanpa id_transaksi (membuat transaksi baru), 
-                                // lebih aman tetap insert manual untuk detail.
-                                // Jadi kita tidak ubah bagian detail.
-                            }
-                        }
-
-                        // Tetap gunakan insert manual untuk detail (procedure kita tidak cocok untuk multi detail)
-                        string sqlDetail = @"INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan)
-                                    VALUES (@idTrans, @idProd, @penitip, @jumlah, @catatan)";
-                        foreach (var detail in details)
-                        {
-                            using (NpgsqlCommand cmd = new NpgsqlCommand(sqlDetail, conn, transaction))
+                            using (NpgsqlCommand cmd = new NpgsqlCommand("CALL proses_checkout_detail(@idTrans, @idProd, @penitip, @jumlah, @catatan)", conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("idTrans", idTransaksi);
                                 cmd.Parameters.AddWithValue("idProd", detail.IdProduk);
@@ -81,21 +65,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal membuat transaksi: " + ex.Message);
-                return -1;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal membuat transaksi ke database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public bool ValidasiPembayaran(int idTransaksi, string buktiBayar)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -108,22 +85,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal validasi: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memvalidasi pembayaran di database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public bool UbahStatusPesanan(int idTransaksi, string statusBaru)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -136,23 +105,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ubah status: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengubah status pesanan di database.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
         public List<Transaction> AmbilRiwayatKoordinator(int idKoordinator)
         {
             List<Transaction> list = new List<Transaction>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -178,15 +139,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil riwayat: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil riwayat transaksi.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
@@ -194,12 +148,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<Transaction> list = new List<Transaction>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
                 conn.Open();
-                // Join dengan products dan preorders untuk mendapatkan penjual
                 string sql = @"SELECT DISTINCT t.id_transaksi, t.id_koordinator, t.tanggal_transaksi, t.total_bayar_grup, t.status_pesanan, t.bukti_bayar, t.is_valid
                                FROM transactions t
                                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
@@ -227,15 +180,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil pesanan: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil daftar pesanan masuk.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
@@ -243,7 +189,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<TransactionDetail> list = new List<TransactionDetail>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -263,28 +209,21 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             d.NamaPenitip = reader.GetString(3);
                             d.JumlahPesanan = reader.GetInt32(4);
                             d.Catatan = reader.IsDBNull(5) ? null : reader.GetString(5);
-                            d.SelisihRefund = reader.GetInt32(6);
+                            d.SelisihRefund = reader.IsDBNull(6) ? 0 : reader.GetInt32(6);
                             list.Add(d);
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil detail: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil detail transaksi.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public Transaction AmbilTransaksiById(int idTransaksi)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -310,17 +249,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil transaksi: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil data transaksi tunggal.", ex); }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
             return null;
         }
+
         public int AmbilJumlahTransaksi()
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
@@ -332,7 +265,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                     return Convert.ToInt32(cmd.ExecuteScalar());
             }
-            catch { return 0; }
+            catch (Exception ex) { throw new Exception("Gagal mengambil jumlah transaksi.", ex); }
             finally { if (conn.State == ConnectionState.Open) conn.Close(); }
         }
     }

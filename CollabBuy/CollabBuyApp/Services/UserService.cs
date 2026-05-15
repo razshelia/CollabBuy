@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
@@ -17,31 +18,63 @@ namespace CollabBuy.CollabBuyApp.Services
 
         public User AmbilUserById(int idUser)
         {
-            return _userRepo.AmbilUserById(idUser);
+            try
+            {
+                return _userRepo.AmbilUserById(idUser);
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return null;
+            }
         }
 
         public bool UpdateProfil(User user, string passwordBaru = null)
         {
-            if (!string.IsNullOrEmpty(passwordBaru))
-                user.Password = PasswordHelper.HashPassword(passwordBaru);
+            try
+            {
+                if (!string.IsNullOrEmpty(passwordBaru))
+                    user.Password = PasswordHelper.HashPassword(passwordBaru);
 
-            bool sukses = _userRepo.UpdateProfil(user);
-            if (sukses)
-                UXHelper.TampilkanSukses("Profil berhasil diperbarui.");
-            return sukses;
+                bool sukses = _userRepo.UpdateProfil(user);
+                if (sukses)
+                    UXHelper.TampilkanSukses("Profil berhasil diperbarui.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
         public bool BlokirUser(int idUser, bool diblokir)
         {
-            bool sukses = _userRepo.BlokirUser(idUser, diblokir);
-            if (sukses)
-                UXHelper.TampilkanSukses(diblokir ? "User diblokir." : "User diaktifkan kembali.");
-            return sukses;
+            try
+            {
+                bool sukses = _userRepo.BlokirUser(idUser, diblokir);
+                if (sukses)
+                    UXHelper.TampilkanSukses(diblokir ? "User berhasil diblokir." : "User diaktifkan kembali.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
         public List<User> AmbilSemuaUser()
         {
-            return _userRepo.AmbilSemuaUser();
+            try
+            {
+                return _userRepo.AmbilSemuaUser();
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return new List<User>();
+            }
         }
     }
 }

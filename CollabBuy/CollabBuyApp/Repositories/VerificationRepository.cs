@@ -19,7 +19,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public bool AjukanVerifikasi(Verification verif)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -36,23 +36,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ajukan verifikasi: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menyimpan pengajuan verifikasi ke database.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public List<Verification> AmbilPengajuanPending()
         {
             List<Verification> list = new List<Verification>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -76,22 +68,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil pengajuan: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil daftar pengajuan verifikasi.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return list;
         }
 
         public bool SetujuiVerifikasi(int idVerifikasi)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -103,49 +88,33 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal setujui: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal memperbarui status verifikasi di database.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public bool TolakVerifikasi(int idVerifikasi)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return false;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
                 conn.Open();
-                string sql = "DELETE FROM verifications WHERE id_verifikasi = @id"; // atau update status ditolak, tapi di tabel tidak ada kolom status. Saya gunakan delete
+                string sql = "DELETE FROM verifications WHERE id_verifikasi = @id";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", idVerifikasi);
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal tolak: " + ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal menolak (menghapus) pengajuan verifikasi.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
         }
 
         public Verification AmbilVerifikasiByUser(int idUser)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return null;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -171,15 +140,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                UXHelper.TampilkanError("Gagal ambil verifikasi: " + ex.Message);
-            }
-            finally
-            {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
-            }
+            catch (Exception ex) { throw new Exception("Gagal mengambil data status verifikasi user.", ex); }
+            finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return null;
         }
     }

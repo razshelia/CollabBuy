@@ -80,8 +80,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             {
                 Text = $"Status: {trans.StatusPesanan}",
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = trans.StatusPesanan == "Menunggu" ? Color.Orange :
-                           trans.StatusPesanan == "Diproses" ? Color.Blue : Color.Green,
+                ForeColor = trans.StatusPesanan == StatusTransaksi.Menunggu ? Color.Orange :
+                           trans.StatusPesanan == StatusTransaksi.Diproses ? Color.Blue : Color.Green,
                 Size = new Size(150, 20),
                 Location = new Point(250, 10)
             };
@@ -153,7 +153,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             ComboBox cmbStatus = new ComboBox()
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Items = { "Menunggu", "Diproses", "Selesai" },
+                Items = { StatusTransaksi.Menunggu, StatusTransaksi.Diproses, StatusTransaksi.Selesai },
                 Location = new Point(550, 70),
                 Size = new Size(100, 23)
             };

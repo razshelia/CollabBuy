@@ -16,7 +16,6 @@ namespace CollabBuy.CollabBuyApp.Services
             _transRepo = new TransactionRepository();
         }
 
-        // ── 1. Buat transaksi baru (checkout) ──
         public int BuatTransaksi(int idKoordinator, int totalBayarGrup, List<TransactionDetail> details)
         {
             if (details == null || details.Count == 0)
@@ -25,40 +24,34 @@ namespace CollabBuy.CollabBuyApp.Services
                 return -1;
             }
 
-            // Validasi setiap detail
             foreach (var d in details)
             {
-                if (string.IsNullOrWhiteSpace(d.NamaPenitip))
-                {
-                    UXHelper.TampilkanError("Nama penitip wajib diisi.");
-                    return -1;
-                }
-                if (d.JumlahPesanan < 1)
-                {
-                    UXHelper.TampilkanError("Jumlah pesanan harus ≥ 1.");
-                    return -1;
-                }
-                if (d.IdProduk <= 0)
-                {
-                    UXHelper.TampilkanError("Produk tidak valid.");
-                    return -1;
-                }
+                if (string.IsNullOrWhiteSpace(d.NamaPenitip)) { UXHelper.TampilkanError("Nama penitip wajib diisi."); return -1; }
+                if (d.JumlahPesanan < 1) { UXHelper.TampilkanError("Jumlah pesanan harus ≥ 1."); return -1; }
+                if (d.IdProduk <= 0) { UXHelper.TampilkanError("Produk tidak valid."); return -1; }
             }
 
             Transaction transaksi = new Transaction();
             transaksi.IdKoordinator = idKoordinator;
             transaksi.TotalBayarGrup = totalBayarGrup;
-            transaksi.StatusPesanan = "Menunggu";
+            transaksi.StatusPesanan = StatusTransaksi.Menunggu;
 
-            int idTransaksi = _transRepo.BuatTransaksi(transaksi, details);
-            if (idTransaksi > 0)
-                UXHelper.TampilkanSukses("Transaksi berhasil dibuat. Silakan upload bukti bayar.");
-            else
-                UXHelper.TampilkanError("Gagal membuat transaksi.");
-            return idTransaksi;
+            try
+            {
+                int idTransaksi = _transRepo.BuatTransaksi(transaksi, details);
+                if (idTransaksi > 0)
+                    UXHelper.TampilkanSukses("Transaksi berhasil dibuat. Silakan upload bukti bayar.");
+                else
+                    UXHelper.TampilkanError("Gagal membuat transaksi.");
+                return idTransaksi;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return -1;
+            }
         }
 
-        // ── 2. Validasi pembayaran (oleh penjual/admin) ──
         public bool ValidasiPembayaran(int idTransaksi, string pathBukti)
         {
             if (string.IsNullOrWhiteSpace(pathBukti))
@@ -67,51 +60,68 @@ namespace CollabBuy.CollabBuyApp.Services
                 return false;
             }
 
-            bool sukses = _transRepo.ValidasiPembayaran(idTransaksi, pathBukti);
-            if (sukses)
-                UXHelper.TampilkanSukses("Pembayaran berhasil divalidasi.");
-            return sukses;
+            try
+            {
+                bool sukses = _transRepo.ValidasiPembayaran(idTransaksi, pathBukti);
+                if (sukses) UXHelper.TampilkanSukses("Pembayaran berhasil divalidasi.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // ── 3. Ubah status pesanan (oleh penjual) ──
         public bool UbahStatusPesanan(int idTransaksi, string statusBaru)
         {
-            // Status yang diperbolehkan: Menunggu, Diproses, Selesai
-            if (statusBaru != "Menunggu" && statusBaru != "Diproses" && statusBaru != "Selesai")
+            if (statusBaru != StatusTransaksi.Menunggu && statusBaru != StatusTransaksi.Diproses && statusBaru != StatusTransaksi.Selesai)
             {
                 UXHelper.TampilkanError("Status tidak valid.");
                 return false;
             }
 
-            bool sukses = _transRepo.UbahStatusPesanan(idTransaksi, statusBaru);
-            if (sukses)
-                UXHelper.TampilkanSukses($"Status berhasil diubah menjadi {statusBaru}.");
-            return sukses;
+            try
+            {
+                bool sukses = _transRepo.UbahStatusPesanan(idTransaksi, statusBaru);
+                if (sukses) UXHelper.TampilkanSukses($"Status berhasil diubah menjadi {statusBaru}.");
+                return sukses;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError(ex.Message);
+                return false;
+            }
         }
 
-        // ── 4. Riwayat transaksi koordinator (pembeli) ──
         public List<Transaction> AmbilRiwayatKoordinator(int idKoordinator)
         {
-            return _transRepo.AmbilRiwayatKoordinator(idKoordinator);
+            try { return _transRepo.AmbilRiwayatKoordinator(idKoordinator); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Transaction>(); }
         }
 
-        // ── 5. Pesanan masuk untuk penjual ──
         public List<Transaction> AmbilPesananMasukPenjual(int idPenjual)
         {
-            return _transRepo.AmbilPesananMasukPenjual(idPenjual);
+            try { return _transRepo.AmbilPesananMasukPenjual(idPenjual); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<Transaction>(); }
         }
 
-        // ── 6. Detail transaksi ──
         public List<TransactionDetail> AmbilDetailTransaksi(int idTransaksi)
         {
-            return _transRepo.AmbilDetailTransaksi(idTransaksi);
+            try { return _transRepo.AmbilDetailTransaksi(idTransaksi); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return new List<TransactionDetail>(); }
         }
 
-        // ── 7. Ambil satu transaksi ──
         public Transaction AmbilTransaksiById(int idTransaksi)
         {
-            return _transRepo.AmbilTransaksiById(idTransaksi);
+            try { return _transRepo.AmbilTransaksiById(idTransaksi); }
+            catch (Exception ex) { UXHelper.TampilkanError(ex.Message); return null; }
         }
-        public int AmbilJumlahTransaksi() => _transRepo.AmbilJumlahTransaksi();
+
+        public int AmbilJumlahTransaksi()
+        {
+            try { return _transRepo.AmbilJumlahTransaksi(); }
+            catch { return 0; } // Untuk dashboard admin, biarkan 0 jika error
+        }
     }
 }

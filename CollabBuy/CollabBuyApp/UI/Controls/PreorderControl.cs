@@ -55,7 +55,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void cmbJenis_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool isGotong = cmbJenis.Text == "Gotong Royong";
+            bool isGotong = cmbJenis.Text == TipePO.GotongRoyong;
             lblTargetKuota.Visible = isGotong;
             txtTargetKuota.Visible = isGotong;
         }
@@ -75,7 +75,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 int.TryParse(cmbProduk.SelectedValue.ToString(), out idProdukTerpilih);
             }
 
-            if (jenis == "Gotong Royong")
+            if (jenis == TipePO.GotongRoyong)
             {
                 int.TryParse(txtTargetKuota.Text, out targetKuota);
             }

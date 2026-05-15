@@ -198,9 +198,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Procedure Checkout
-CREATE OR REPLACE PROCEDURE proses_checkout(
-    p_id_koordinator INT,
-    p_total_bayar INT,
+CREATE OR REPLACE PROCEDURE proses_checkout_detail(
+    p_id_transaksi INT,
     p_id_produk INT,
     p_nama_penitip VARCHAR,
     p_jumlah INT,
@@ -208,18 +207,12 @@ CREATE OR REPLACE PROCEDURE proses_checkout(
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    v_id_transaksi INT;
 BEGIN
-    INSERT INTO transactions (id_koordinator, total_bayar_grup, status_pesanan)
-    VALUES (p_id_koordinator, p_total_bayar, 'Menunggu')
-    RETURNING id_transaksi INTO v_id_transaksi;
-
     INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan)
-    VALUES (v_id_transaksi, p_id_produk, p_nama_penitip, p_jumlah, p_catatan);
+    VALUES (p_id_transaksi, p_id_produk, p_nama_penitip, p_jumlah, p_catatan);
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE NOTICE 'Terjadi kesalahan saat checkout: %', SQLERRM;
+        RAISE NOTICE 'Terjadi kesalahan saat checkout detail: %', SQLERRM;
         ROLLBACK;
 END;
 $$;

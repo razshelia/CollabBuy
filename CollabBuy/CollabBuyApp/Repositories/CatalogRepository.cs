@@ -20,7 +20,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<Catalog> list = new List<Catalog>();
             NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) return list;
+            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
 
             try
             {
@@ -45,7 +45,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch (Exception ex) { UXHelper.TampilkanError("Gagal ambil katalog: " + ex.Message); }
+            catch (Exception ex) { throw new Exception("Gagal mengambil data katalog aktif dari database.", ex); }
             finally { if (conn.State == System.Data.ConnectionState.Open) conn.Close(); }
             return list;
         }

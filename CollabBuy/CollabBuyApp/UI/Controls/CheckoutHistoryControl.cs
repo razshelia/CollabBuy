@@ -93,9 +93,9 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Color statusColor = trans.StatusPesanan switch
             {
-                "Menunggu" => Color.Orange,
-                "Diproses" => Color.Blue,
-                "Selesai" => Color.Green,
+                StatusTransaksi.Menunggu => Color.Orange,
+                StatusTransaksi.Diproses => Color.Blue,
+                StatusTransaksi.Selesai => Color.Green,
                 _ => Color.Gray
             };
             lblStatus.ForeColor = statusColor;
