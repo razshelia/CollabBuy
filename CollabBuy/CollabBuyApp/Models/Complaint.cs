@@ -18,19 +18,6 @@ namespace CollabBuy.CollabBuyApp.Models
             _isSelesai = false;
         }
 
-        // Internal constructor untuk repository
-        internal Complaint(int idAduan, int idUser, string subjek, string deskripsi,
-                           DateTime tanggal, bool isSelesai, string balasan)
-        {
-            _idAduan = idAduan;
-            _idUser = idUser;
-            _subjek = subjek;
-            _deskripsi = deskripsi;
-            _tanggal = tanggal;
-            _isSelesai = isSelesai;
-            _balasan = balasan;
-        }
-
         public int IdAduan
         {
             get => _idAduan;
@@ -58,19 +45,19 @@ namespace CollabBuy.CollabBuyApp.Models
         public DateTime Tanggal
         {
             get => _tanggal;
-            set => _tanggal = value;
+            set { if (value.Year < 2026) throw new ArgumentException("Tanggal tidak valid."); _tanggal = value; }
         }
 
         public bool IsSelesai
         {
             get => _isSelesai;
-            set => _isSelesai = value;
+            set { if (_isSelesai != value) _isSelesai = value; }
         }
 
         public string Balasan
         {
             get => _balasan;
-            set => _balasan = value;
+            set => _balasan = string.IsNullOrWhiteSpace(value) ? "Belum ada balasan dari admin." : value.Trim();
         }
     }
 }

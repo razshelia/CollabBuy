@@ -1,130 +1,96 @@
-﻿using System.Collections.Generic;
-using CollabBuy.CollabBuyApp.Helpers;
-using CollabBuy.CollabBuyApp.Interfaces;
+﻿using System;
+using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Repositories;
+using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class ProductService
     {
-        private readonly IProductRepository _prodRepo;
+        private readonly IProductRepository _productRepo;
 
         public ProductService()
         {
-            _prodRepo = new ProductRepository();
+            _productRepo = new ProductRepository();
         }
 
-        // 1. Ambil semua produk milik PO tertentu
+        // 1. Tambah Produk 
+        public bool TambahProduk(Product produkBaru)
+        {
+            if (produkBaru == null) return false;
+
+            if (string.IsNullOrWhiteSpace(produkBaru.NamaProduk))
+            {
+                UXHelper.TampilkanError("Nama produk tidak boleh kosong.");
+                return false;
+            }
+
+            bool sukses = _productRepo.TambahProduk(produkBaru);
+            if (sukses)
+                UXHelper.TampilkanSukses("Produk berhasil ditambahkan ke Katalog Master!");
+
+            return sukses;
+        }
+
+        // 2. Ambil Produk By PO
         public List<Product> AmbilProdukByPo(int idPo)
         {
-            return _prodRepo.AmbilProdukByPo(idPo);
+            return _productRepo.AmbilProdukByPo(idPo);
         }
 
-        // 2. Ambil detail produk berdasarkan ID
+        // 3. Ambil Produk By Id
         public Product AmbilProdukById(int idProduk)
         {
-            return _prodRepo.AmbilProdukById(idProduk);
+            return _productRepo.AmbilProdukById(idProduk);
         }
 
-        // 3. Tambah produk baru ke dalam PO
-        public bool TambahProduk(int idPo, int? idKategori, string namaProduk,
-                                 int hargaDasar, int? hargaDiskon, int? targetKuota,
-                                 int minOrder, string fotoPath, string deskripsi = null)
+        // 4. Update Produk
+        public bool UpdateProduk(Product produkUpdate)
         {
-            if (string.IsNullOrWhiteSpace(namaProduk))
+            if (produkUpdate == null || string.IsNullOrWhiteSpace(produkUpdate.NamaProduk))
             {
-                UXHelper.TampilkanError("Nama produk wajib diisi.");
-                return false;
-            }
-            if (hargaDasar < 0)
-            {
-                UXHelper.TampilkanError("Harga dasar tidak boleh negatif.");
-                return false;
-            }
-            if (minOrder < 1)
-            {
-                UXHelper.TampilkanError("Minimal order harus ≥ 1.");
+                UXHelper.TampilkanError("Data tidak valid untuk diupdate.");
                 return false;
             }
 
-            Product produk = new Product();
-            produk.IdPo = idPo;
-            produk.IdKategori = idKategori;
-            produk.NamaProduk = namaProduk;
-            produk.HargaDasar = hargaDasar;
-            produk.HargaDiskon = hargaDiskon;
-            produk.TargetKuota = targetKuota;
-            produk.MinOrder = minOrder;
-            produk.FotoProduk = fotoPath;
-            produk.Deskripsi = deskripsi;
-
-            bool sukses = _prodRepo.TambahProduk(produk);
+            bool sukses = _productRepo.UpdateProduk(produkUpdate);
             if (sukses)
-                UXHelper.TampilkanSukses("Produk berhasil ditambahkan.");
+                UXHelper.TampilkanSukses("Produk berhasil diperbarui!");
+
             return sukses;
         }
 
-        // 4. Update produk
-        public bool UpdateProduk(int idProduk, string nama, int hargaDasar, int? hargaDiskon,
-                                 int? targetKuota, int minOrder, string fotoPath, string deskripsi = null)
-        {
-            Product produk = _prodRepo.AmbilProdukById(idProduk);
-            if (produk == null)
-            {
-                UXHelper.TampilkanError("Produk tidak ditemukan.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(nama))
-            {
-                UXHelper.TampilkanError("Nama produk wajib diisi.");
-                return false;
-            }
-            if (hargaDasar < 0)
-            {
-                UXHelper.TampilkanError("Harga dasar tidak boleh negatif.");
-                return false;
-            }
-            if (minOrder < 1)
-            {
-                UXHelper.TampilkanError("Minimal order harus ≥ 1.");
-                return false;
-            }
-
-            produk.NamaProduk = nama;
-            produk.HargaDasar = hargaDasar;
-            produk.HargaDiskon = hargaDiskon;
-            produk.TargetKuota = targetKuota;
-            produk.MinOrder = minOrder;
-            produk.Deskripsi = deskripsi;
-            if (!string.IsNullOrEmpty(fotoPath))
-                produk.FotoProduk = fotoPath;
-
-            bool sukses = _prodRepo.UpdateProduk(produk);
-            if (sukses)
-                UXHelper.TampilkanSukses("Produk berhasil diperbarui.");
-            return sukses;
-        }
-
-        // 5. Hapus produk
+        // 5. Hapus Produk
         public bool HapusProduk(int idProduk)
         {
-            if (!UXHelper.TampilkanKonfirmasi("Hapus produk ini?"))
-                return false;
-
-            bool sukses = _prodRepo.HapusProduk(idProduk);
-            if (sukses)
-                UXHelper.TampilkanSukses("Produk berhasil dihapus.");
-            return sukses;
+            if (UXHelper.TampilkanKonfirmasi("Yakin ingin menghapus produk ini dari katalog master?"))
+            {
+                bool sukses = _productRepo.HapusProduk(idProduk);
+                if (sukses)
+                    UXHelper.TampilkanSukses("Produk berhasil dihapus.");
+                return sukses;
+            }
+            return false;
         }
 
-        // 6. Hitung harga aktual (function DB cek_harga_saat_ini)
+        // 6. Hitung Harga Aktual (Dinamis berdasarkan pencapaian kuota)
         public int HitungHargaAktual(int idProduk)
         {
-            return _prodRepo.HitungHargaAktual(idProduk);
+            return _productRepo.HitungHargaAktual(idProduk);
         }
 
-        public int AmbilJumlahProduk() => _prodRepo.AmbilJumlahProduk();
+        // 7. Ambil Total Jumlah Produk (Untuk Dashboard Admin)
+        public int AmbilJumlahProduk()
+        {
+            return _productRepo.AmbilJumlahProduk();
+        }
+
+        // 8. Ambil Produk By Penjual (Wajib untuk ComboBox Buka PO)
+        public List<Product> AmbilProdukByPenjual(int idPenjual)
+        {
+            return _productRepo.AmbilProdukByPenjual(idPenjual);
+        }
     }
 }

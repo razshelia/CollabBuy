@@ -4,57 +4,26 @@ namespace CollabBuy.CollabBuyApp.Models
 {
     public class Category
     {
-        private int idKategori;
-        private string namaKategori;
-        private string deskripsi;
+        private int _idKategori;
+        private string _namaKategori;
+        private string _deskripsi;
 
-        // ✅ FIX: Tambahkan IdKategori yang dibutuhkan oleh ComboBox ValueMember
         public int IdKategori
         {
-            get { return this.idKategori; }
-            set
-            {
-                if (value <= 0)
-                {
-                    this.idKategori = 0;
-                }
-                else
-                {
-                    this.idKategori = value;
-                }
-            }
+            get => _idKategori;
+            set { if (value < 0) _idKategori = 0; else _idKategori = value; }
         }
 
         public string NamaKategori
         {
-            get { return this.namaKategori; }
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Nama kategori wajib diisi.");
-                }
-                else
-                {
-                    this.namaKategori = value;
-                }
-            }
+            get => _namaKategori;
+            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Nama kategori wajib diisi."); _namaKategori = value.Trim(); }
         }
 
         public string Deskripsi
         {
-            get { return this.deskripsi; }
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    this.deskripsi = "Tidak ada deskripsi.";
-                }
-                else
-                {
-                    this.deskripsi = value;
-                }
-            }
+            get => _deskripsi;
+            set => _deskripsi = string.IsNullOrWhiteSpace(value) ? "Tidak ada deskripsi untuk kategori ini." : value.Trim();
         }
     }
 }

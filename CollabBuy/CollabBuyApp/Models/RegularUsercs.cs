@@ -2,10 +2,7 @@
 {
     public class RegularUser : User
     {
-        public RegularUser()
-        {
-            this.Peran = "User";
-        }
+        public RegularUser() { this.Peran = "User"; }
 
         public override string TampilkanDashboard()
         {

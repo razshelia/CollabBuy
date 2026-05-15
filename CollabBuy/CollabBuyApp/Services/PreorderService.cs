@@ -16,10 +16,14 @@ namespace CollabBuy.CollabBuyApp.Services
             _poRepo = new PreorderRepository();
         }
 
-        // 1. Buat PO baru
-        public bool BuatPO(int idPenjual, string judul, string jenis, string infoRekening, DateTime batasWaktu, int targetKuota = 0)
+        // 1. Buat PO baru (Ditambahkan idProduk)
+        public bool BuatPO(int idPenjual, int idProduk, string judul, string jenis, string infoRekening, DateTime batasWaktu, int targetKuota = 0)
         {
-            // Validasi
+            if (idProduk <= 0)
+            {
+                UXHelper.TampilkanError("Silakan pilih produk terlebih dahulu.");
+                return false;
+            }
             if (string.IsNullOrWhiteSpace(judul))
             {
                 UXHelper.TampilkanError("Judul PO wajib diisi.");
@@ -44,29 +48,34 @@ namespace CollabBuy.CollabBuyApp.Services
             Preorder po;
             if (jenis == "Gotong Royong")
             {
-                var gr = new PreorderGotongRoyong();
+                // Menggunakan POGotongRoyong sesuai file Models/POGotongRoyong.cs
+                var gr = new POGotongRoyong();
                 if (targetKuota <= 0)
                 {
                     UXHelper.TampilkanError("Target kuota harus > 0 untuk PO Gotong Royong.");
                     return false;
                 }
-                gr.TargetKuota = targetKuota;
+                // Jika Model POGotongRoyong Anda memiliki field TargetKuota, set di sini:
+                // gr.TargetKuota = targetKuota; 
+
                 po = gr;
             }
             else
             {
-                po = new PreorderBiasa();
+                // Menggunakan POBiasa sesuai file Models/POBiasa.cs
+                po = new POBiasa();
             }
 
             po.IdPenjual = idPenjual;
             po.JudulPo = judul;
             po.InfoRekening = infoRekening;
             po.BatasWaktu = batasWaktu;
-            // isAktif default true dari constructor model
 
-            bool sukses = _poRepo.TambahPreorder(po);
+            bool sukses = _poRepo.TambahPreorder(po, idProduk, targetKuota);
+
             if (sukses)
                 UXHelper.TampilkanSukses("Preorder berhasil dibuat.");
+
             return sukses;
         }
 

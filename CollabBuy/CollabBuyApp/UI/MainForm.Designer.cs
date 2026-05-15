@@ -105,12 +105,14 @@ namespace CollabBuy.CollabBuyApp.UI
             this.lblSellerTitle.Size = new Size(240, 20);
             this.lblSellerTitle.Location = new Point(10, 0);
 
-            btnSellerKatalog = BuatTombolSidebar("📦 Kelola Produk & PO", 25);
-            btnSellerPesanan = BuatTombolSidebar("📋 Pesanan Masuk", 65);
-            btnSellerAnalitik = BuatTombolSidebar("📊 Analitik", 105);
-            btnSellerUlasan = BuatTombolSidebar("⭐ Ulasan", 145);
+            btnSellerProduk = BuatTombolSidebar("📦 Kelola Produk", 25);
+            btnSellerPO = BuatTombolSidebar("📢 Kelola PO", 65);
+            btnSellerPesanan = BuatTombolSidebar("🛒 Pesanan Masuk", 105);
+            btnSellerAnalitik = BuatTombolSidebar("📊 Analitik", 145);
+            btnSellerUlasan = BuatTombolSidebar("⭐ Ulasan", 185);
             pnlSeller.Controls.Add(lblSellerTitle);
-            pnlSeller.Controls.Add(btnSellerKatalog);
+            pnlSeller.Controls.Add(btnSellerProduk);
+            pnlSeller.Controls.Add(btnSellerPO);
             pnlSeller.Controls.Add(btnSellerPesanan);
             pnlSeller.Controls.Add(btnSellerAnalitik);
             pnlSeller.Controls.Add(btnSellerUlasan);
@@ -129,7 +131,8 @@ namespace CollabBuy.CollabBuyApp.UI
             btnUserRiwayat.Click += btnUserRiwayat_Click;
             btnUserAduan.Click += btnUserAduan_Click;
             btnUserBukaLapak.Click += btnUserBukaLapak_Click;
-            btnSellerKatalog.Click += btnSellerKatalog_Click;
+            btnSellerProduk.Click += btnSellerProduk_Click;
+            btnSellerPO.Click += btnSellerPO_Click;
             btnSellerPesanan.Click += btnSellerPesanan_Click;
             btnSellerAnalitik.Click += btnSellerAnalitik_Click;
             btnSellerUlasan.Click += btnSellerUlasan_Click;
@@ -175,7 +178,7 @@ namespace CollabBuy.CollabBuyApp.UI
         private Label lblLogo, lblUserInfo, lblAdminTitle, lblBuyerTitle, lblSellerTitle;
         private Button btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan;
         private Button btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak;
-        private Button btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan;
+        private Button btnSellerProduk, btnSellerPO, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan;
         private Button btnProfil, btnLogout;
     }
 }

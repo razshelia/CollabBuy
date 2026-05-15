@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
 
@@ -9,16 +11,40 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
     public partial class PreorderControl : UserControl
     {
         private int _idPenjual;
+        private ProductService _productService;
 
         public PreorderControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
+            _productService = new ProductService();
+
             dtpBatasWaktu.MinDate = DateTime.Now.AddDays(1);
             dtpBatasWaktu.Value = DateTime.Now.AddDays(14);
+
+            LoadProdukCombo();
         }
 
-        // Dipanggil setiap kali ukuran kontrol berubah → card selalu di tengah
+        private void LoadProdukCombo()
+        {
+            try
+            {
+                var listProduk = _productService.AmbilProdukByPenjual(_idPenjual) ?? new List<Product>();
+
+                // Tambahkan opsi default di indeks 0
+                listProduk.Insert(0, new Product { IdProduk = 0, NamaProduk = "-- Pilih Produk --" });
+
+                cmbProduk.DataSource = listProduk;
+                cmbProduk.DisplayMember = "NamaProduk"; // Teks yang tampil di antarmuka
+                cmbProduk.ValueMember = "IdProduk";     // ID yang digunakan di database
+                cmbProduk.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal memuat daftar produk: " + ex.Message);
+            }
+        }
+
         private void PreorderControl_Resize(object sender, EventArgs e)
         {
             pnlCard.Location = new Point(
@@ -42,32 +68,28 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             DateTime batas = dtpBatasWaktu.Value;
             int targetKuota = 0;
 
-            if (string.IsNullOrWhiteSpace(judul))
+            // Validasi ComboBox Produk dengan TryParse agar aman dari NullReferenceException
+            int idProdukTerpilih = 0;
+            if (cmbProduk.SelectedValue != null)
             {
-                UXHelper.TampilkanError("Judul PO jangan kosong ya bestie! 📝");
-                return;
+                int.TryParse(cmbProduk.SelectedValue.ToString(), out idProdukTerpilih);
             }
-            if (string.IsNullOrWhiteSpace(rekening))
-            {
-                UXHelper.TampilkanError("Info rekening wajib diisi buat transferan nanti~");
-                return;
-            }
+
             if (jenis == "Gotong Royong")
             {
-                if (!int.TryParse(txtTargetKuota.Text, out targetKuota) || targetKuota < 1)
-                {
-                    UXHelper.TampilkanError("Target kuota harus angka > 0!");
-                    return;
-                }
+                int.TryParse(txtTargetKuota.Text, out targetKuota);
             }
 
             var poService = new PreorderService();
-            bool sukses = poService.BuatPO(_idPenjual, judul, jenis, rekening, batas, targetKuota);
+            // Lempar idProdukTerpilih ke Service
+            bool sukses = poService.BuatPO(_idPenjual, idProdukTerpilih, judul, jenis, rekening, batas, targetKuota);
+
             if (sukses)
             {
-                UXHelper.TampilkanSukses("PO berhasil dibuat! 🎉 Sekarang tambahkan produkmu~");
                 if (ParentForm is MainForm main)
+                {
                     main.GantiHalaman(new SellerPOListControl(_idPenjual));
+                }
             }
         }
     }

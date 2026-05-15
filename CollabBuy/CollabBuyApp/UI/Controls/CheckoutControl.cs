@@ -45,10 +45,21 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            _po = _preorderService.AmbilPOById(_produk.IdPo);
+            // 1. Cek dulu apakah produk ini punya ID PO atau tidak
+            if (!_produk.IdPo.HasValue)
+            {
+                UXHelper.TampilkanError("Produk ini belum dimasukkan ke dalam sesi Pre-Order.");
+                Kembali(); // Mengasumsikan method ini untuk menutup form/kembali ke list
+                return;
+            }
+
+            // 2. Jika ada (HasValue), panggil service dengan menggunakan .Value
+            _po = _preorderService.AmbilPOById(_produk.IdPo.Value);
+
+            // 3. Cek apakah datanya benar-benar ada di database
             if (_po == null)
             {
-                UXHelper.TampilkanError("Pre‑order tidak ditemukan.");
+                UXHelper.TampilkanError("Data Pre-Order tidak ditemukan di sistem.");
                 Kembali();
                 return;
             }

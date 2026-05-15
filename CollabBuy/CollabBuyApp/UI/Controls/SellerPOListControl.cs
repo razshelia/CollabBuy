@@ -116,9 +116,10 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             btnProduk.Click += (s, e) =>
             {
                 if (ParentForm is MainForm main)
-                    main.GantiHalaman(
-                        new SellerProductListControl(_idPenjual, po.IdPo, po.JudulPo)
-                    );
+                {
+                    // Hapus po.IdPo dan po.JudulPo karena constructor-nya sekarang cuma butuh ID Penjual
+                    main.GantiHalaman(new SellerProductListControl(_idPenjual));
+                }
             };
 
             // ── Tombol Tutup PO ───────────────────────────────

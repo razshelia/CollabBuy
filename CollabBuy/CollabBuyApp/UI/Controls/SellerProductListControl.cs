@@ -17,16 +17,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         private ProductService _productService;
         private List<Product> _daftarProduk;
 
-        public SellerProductListControl(int idPenjual, int idPo, string judulPo = "")
+        public SellerProductListControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            _idPo = idPo;
-            _judulPo = judulPo;
             _productService = new ProductService();
-
-            if (!string.IsNullOrEmpty(judulPo))
-                lblJudul.Text = $"🛍️ Produk — {judulPo}";
 
             LoadProduk();
         }
@@ -153,7 +148,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         private void NavigasiKeFormProduk(Product produkEdit = null)
         {
             if (ParentForm is MainForm main)
-                main.GantiHalaman(new ProductFormControl(_idPo, produkEdit));
+                main.GantiHalaman(new ProductFormControl(_idPenjual, produkEdit));
         }
     }
 }

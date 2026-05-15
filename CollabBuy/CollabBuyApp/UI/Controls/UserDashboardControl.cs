@@ -153,9 +153,22 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                     var user = main.AmbilUserAktif();
                     if (user != null)
                     {
+                        // 1. IdProduk langsung saja dipanggil tanpa GetValueOrDefault()
                         var produkDetail = _productService.AmbilProdukById(produk.IdProduk);
+
                         if (produkDetail != null)
-                            main.GantiHalaman(new PODetailControl(user, produkDetail.IdPo));
+                        {
+                            // 2. IdPo tetap dicek .HasValue karena tipenya int? (nullable)
+                            if (produkDetail.IdPo.HasValue)
+                            {
+                                // Ambil nilai aslinya dengan .Value
+                                main.GantiHalaman(new PODetailControl(user, produkDetail.IdPo.Value));
+                            }
+                            else
+                            {
+                                UXHelper.TampilkanError("Produk ini belum dimasukkan ke dalam sesi Pre-Order apa pun.");
+                            }
+                        }
                     }
                 }
             };

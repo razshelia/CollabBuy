@@ -3,187 +3,255 @@
     partial class PreorderControl
     {
         private System.ComponentModel.IContainer components = null;
+
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null)) components.Dispose();
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
             base.Dispose(disposing);
         }
 
+        #region Component Designer generated code
+
         private void InitializeComponent()
         {
-            pnlCard = new Panel();
-            lblTitle = new Label();
-            lblJudul = new Label();
-            txtJudulPO = new TextBox();
-            lblJenis = new Label();
-            cmbJenis = new ComboBox();
-            lblRekening = new Label();
-            txtInfoRekening = new TextBox();
-            lblBatas = new Label();
-            dtpBatasWaktu = new DateTimePicker();
-            lblTargetKuota = new Label();
-            txtTargetKuota = new TextBox();
-            btnBuat = new Button();
-            pnlCard.SuspendLayout();
-            SuspendLayout();
+            this.pnlCard = new System.Windows.Forms.Panel();
+            this.lblTitle = new System.Windows.Forms.Label();
+
+            // Produk ComboBox
+            this.lblProduk = new System.Windows.Forms.Label();
+            this.cmbProduk = new System.Windows.Forms.ComboBox();
+
+            this.lblJudulPO = new System.Windows.Forms.Label();
+            this.txtJudulPO = new System.Windows.Forms.TextBox();
+            this.lblJenis = new System.Windows.Forms.Label();
+            this.cmbJenis = new System.Windows.Forms.ComboBox();
+            this.lblInfoRekening = new System.Windows.Forms.Label();
+            this.txtInfoRekening = new System.Windows.Forms.TextBox();
+            this.lblBatasWaktu = new System.Windows.Forms.Label();
+            this.dtpBatasWaktu = new System.Windows.Forms.DateTimePicker();
+            this.lblTargetKuota = new System.Windows.Forms.Label();
+            this.txtTargetKuota = new System.Windows.Forms.TextBox();
+            this.btnBuat = new System.Windows.Forms.Button();
+
+            this.pnlCard.SuspendLayout();
+            this.SuspendLayout();
+
             // 
             // pnlCard
             // 
-            pnlCard.Anchor = AnchorStyles.None;
-            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
-            pnlCard.Controls.Add(lblTitle);
-            pnlCard.Controls.Add(lblJudul);
-            pnlCard.Controls.Add(txtJudulPO);
-            pnlCard.Controls.Add(lblJenis);
-            pnlCard.Controls.Add(cmbJenis);
-            pnlCard.Controls.Add(lblRekening);
-            pnlCard.Controls.Add(txtInfoRekening);
-            pnlCard.Controls.Add(lblBatas);
-            pnlCard.Controls.Add(dtpBatasWaktu);
-            pnlCard.Controls.Add(lblTargetKuota);
-            pnlCard.Controls.Add(txtTargetKuota);
-            pnlCard.Controls.Add(btnBuat);
-            pnlCard.Location = new Point(623, 216);
-            pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(500, 500);
-            pnlCard.TabIndex = 0;
+            this.pnlCard.BackColor = System.Drawing.Color.White;
+            this.pnlCard.Controls.Add(this.btnBuat);
+            this.pnlCard.Controls.Add(this.txtTargetKuota);
+            this.pnlCard.Controls.Add(this.lblTargetKuota);
+            this.pnlCard.Controls.Add(this.dtpBatasWaktu);
+            this.pnlCard.Controls.Add(this.lblBatasWaktu);
+            this.pnlCard.Controls.Add(this.txtInfoRekening);
+            this.pnlCard.Controls.Add(this.lblInfoRekening);
+            this.pnlCard.Controls.Add(this.cmbJenis);
+            this.pnlCard.Controls.Add(this.lblJenis);
+            this.pnlCard.Controls.Add(this.txtJudulPO);
+            this.pnlCard.Controls.Add(this.lblJudulPO);
+            this.pnlCard.Controls.Add(this.cmbProduk);
+            this.pnlCard.Controls.Add(this.lblProduk);
+            this.pnlCard.Controls.Add(this.lblTitle);
+            this.pnlCard.Location = new System.Drawing.Point(100, 50);
+            this.pnlCard.Name = "pnlCard";
+            this.pnlCard.Size = new System.Drawing.Size(400, 560);
+            this.pnlCard.TabIndex = 0;
+
             // 
             // lblTitle
             // 
-            lblTitle.Font = new Font("Segoe UI Black", 18F);
-            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
-            lblTitle.Location = new Point(35, 30);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(430, 40);
-            lblTitle.TabIndex = 0;
-            lblTitle.Text = "BUKA PREORDER BARU 🚀";
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblTitle.AutoSize = true;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.Location = new System.Drawing.Point(25, 20);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(229, 30);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "Buka Sesi Pre-Order 📢";
+
             // 
-            // lblJudul
+            // lblProduk
             // 
-            lblJudul.AutoSize = true;
-            lblJudul.ForeColor = Color.White;
-            lblJudul.Location = new Point(40, 90);
-            lblJudul.Name = "lblJudul";
-            lblJudul.Size = new Size(57, 15);
-            lblJudul.TabIndex = 1;
-            lblJudul.Text = "Judul PO:";
+            this.lblProduk.AutoSize = true;
+            this.lblProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblProduk.Location = new System.Drawing.Point(25, 75);
+            this.lblProduk.Name = "lblProduk";
+            this.lblProduk.Size = new System.Drawing.Size(124, 19);
+            this.lblProduk.TabIndex = 1;
+            this.lblProduk.Text = "Pilih Produk Master";
+
+            // 
+            // cmbProduk
+            // 
+            this.cmbProduk.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cmbProduk.FormattingEnabled = true;
+            this.cmbProduk.Location = new System.Drawing.Point(29, 97);
+            this.cmbProduk.Name = "cmbProduk";
+            this.cmbProduk.Size = new System.Drawing.Size(340, 25);
+            this.cmbProduk.TabIndex = 2;
+
+            // 
+            // lblJudulPO
+            // 
+            this.lblJudulPO.AutoSize = true;
+            this.lblJudulPO.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblJudulPO.Location = new System.Drawing.Point(25, 140);
+            this.lblJudulPO.Name = "lblJudulPO";
+            this.lblJudulPO.Size = new System.Drawing.Size(65, 19);
+            this.lblJudulPO.TabIndex = 3;
+            this.lblJudulPO.Text = "Judul PO";
+
             // 
             // txtJudulPO
             // 
-            txtJudulPO.Location = new Point(40, 110);
-            txtJudulPO.Name = "txtJudulPO";
-            txtJudulPO.PlaceholderText = "cth: PO Kaos BEM 2024";
-            txtJudulPO.Size = new Size(420, 23);
-            txtJudulPO.TabIndex = 2;
+            this.txtJudulPO.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtJudulPO.Location = new System.Drawing.Point(29, 162);
+            this.txtJudulPO.Name = "txtJudulPO";
+            this.txtJudulPO.Size = new System.Drawing.Size(340, 25);
+            this.txtJudulPO.TabIndex = 4;
+
             // 
             // lblJenis
             // 
-            lblJenis.AutoSize = true;
-            lblJenis.ForeColor = Color.White;
-            lblJenis.Location = new Point(40, 150);
-            lblJenis.Name = "lblJenis";
-            lblJenis.Size = new Size(54, 15);
-            lblJenis.TabIndex = 3;
-            lblJenis.Text = "Jenis PO:";
+            this.lblJenis.AutoSize = true;
+            this.lblJenis.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblJenis.Location = new System.Drawing.Point(25, 205);
+            this.lblJenis.Name = "lblJenis";
+            this.lblJenis.Size = new System.Drawing.Size(59, 19);
+            this.lblJenis.TabIndex = 5;
+            this.lblJenis.Text = "Jenis PO";
+
             // 
             // cmbJenis
             // 
-            cmbJenis.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbJenis.Items.AddRange(new object[] { "Biasa", "Gotong Royong" });
-            cmbJenis.Location = new Point(40, 170);
-            cmbJenis.Name = "cmbJenis";
-            cmbJenis.Size = new Size(420, 23);
-            cmbJenis.TabIndex = 4;
-            cmbJenis.SelectedIndexChanged += cmbJenis_SelectedIndexChanged;
+            this.cmbJenis.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbJenis.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cmbJenis.FormattingEnabled = true;
+            this.cmbJenis.Items.AddRange(new object[] {
+            "Biasa",
+            "Gotong Royong"});
+            this.cmbJenis.Location = new System.Drawing.Point(29, 227);
+            this.cmbJenis.Name = "cmbJenis";
+            this.cmbJenis.Size = new System.Drawing.Size(340, 25);
+            this.cmbJenis.TabIndex = 6;
+            this.cmbJenis.SelectedIndexChanged += new System.EventHandler(this.cmbJenis_SelectedIndexChanged);
+
             // 
-            // lblRekening
+            // lblInfoRekening
             // 
-            lblRekening.AutoSize = true;
-            lblRekening.ForeColor = Color.White;
-            lblRekening.Location = new Point(40, 210);
-            lblRekening.Name = "lblRekening";
-            lblRekening.Size = new Size(83, 15);
-            lblRekening.TabIndex = 5;
-            lblRekening.Text = "Info Rekening:";
+            this.lblInfoRekening.AutoSize = true;
+            this.lblInfoRekening.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblInfoRekening.Location = new System.Drawing.Point(25, 270);
+            this.lblInfoRekening.Name = "lblInfoRekening";
+            this.lblInfoRekening.Size = new System.Drawing.Size(95, 19);
+            this.lblInfoRekening.TabIndex = 7;
+            this.lblInfoRekening.Text = "Info Rekening";
+
             // 
             // txtInfoRekening
             // 
-            txtInfoRekening.Location = new Point(40, 230);
-            txtInfoRekening.Name = "txtInfoRekening";
-            txtInfoRekening.PlaceholderText = "cth: BCA 1234567890 a.n. Budi";
-            txtInfoRekening.Size = new Size(420, 23);
-            txtInfoRekening.TabIndex = 6;
+            this.txtInfoRekening.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtInfoRekening.Location = new System.Drawing.Point(29, 292);
+            this.txtInfoRekening.Name = "txtInfoRekening";
+            this.txtInfoRekening.Size = new System.Drawing.Size(340, 25);
+            this.txtInfoRekening.TabIndex = 8;
+
             // 
-            // lblBatas
+            // lblBatasWaktu
             // 
-            lblBatas.AutoSize = true;
-            lblBatas.ForeColor = Color.White;
-            lblBatas.Location = new Point(40, 270);
-            lblBatas.Name = "lblBatas";
-            lblBatas.Size = new Size(75, 15);
-            lblBatas.TabIndex = 7;
-            lblBatas.Text = "Batas Waktu:";
+            this.lblBatasWaktu.AutoSize = true;
+            this.lblBatasWaktu.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblBatasWaktu.Location = new System.Drawing.Point(25, 335);
+            this.lblBatasWaktu.Name = "lblBatasWaktu";
+            this.lblBatasWaktu.Size = new System.Drawing.Size(86, 19);
+            this.lblBatasWaktu.TabIndex = 9;
+            this.lblBatasWaktu.Text = "Batas Waktu";
+
             // 
             // dtpBatasWaktu
             // 
-            dtpBatasWaktu.Location = new Point(40, 290);
-            dtpBatasWaktu.Name = "dtpBatasWaktu";
-            dtpBatasWaktu.Size = new Size(420, 23);
-            dtpBatasWaktu.TabIndex = 8;
+            this.dtpBatasWaktu.CustomFormat = "dd MMMM yyyy HH:mm";
+            this.dtpBatasWaktu.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.dtpBatasWaktu.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpBatasWaktu.Location = new System.Drawing.Point(29, 357);
+            this.dtpBatasWaktu.Name = "dtpBatasWaktu";
+            this.dtpBatasWaktu.Size = new System.Drawing.Size(340, 25);
+            this.dtpBatasWaktu.TabIndex = 10;
+
             // 
             // lblTargetKuota
             // 
-            lblTargetKuota.AutoSize = true;
-            lblTargetKuota.ForeColor = Color.White;
-            lblTargetKuota.Location = new Point(40, 330);
-            lblTargetKuota.Name = "lblTargetKuota";
-            lblTargetKuota.Size = new Size(77, 15);
-            lblTargetKuota.TabIndex = 9;
-            lblTargetKuota.Text = "Target Kuota:";
-            lblTargetKuota.Visible = false;
+            this.lblTargetKuota.AutoSize = true;
+            this.lblTargetKuota.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblTargetKuota.Location = new System.Drawing.Point(25, 400);
+            this.lblTargetKuota.Name = "lblTargetKuota";
+            this.lblTargetKuota.Size = new System.Drawing.Size(256, 19);
+            this.lblTargetKuota.TabIndex = 11;
+            this.lblTargetKuota.Text = "Target Kuota (Khusus Gotong Royong)";
+            this.lblTargetKuota.Visible = false;
+
             // 
             // txtTargetKuota
             // 
-            txtTargetKuota.Location = new Point(40, 350);
-            txtTargetKuota.Name = "txtTargetKuota";
-            txtTargetKuota.PlaceholderText = "cth: 50";
-            txtTargetKuota.Size = new Size(420, 23);
-            txtTargetKuota.TabIndex = 10;
-            txtTargetKuota.Visible = false;
+            this.txtTargetKuota.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtTargetKuota.Location = new System.Drawing.Point(29, 422);
+            this.txtTargetKuota.Name = "txtTargetKuota";
+            this.txtTargetKuota.Size = new System.Drawing.Size(340, 25);
+            this.txtTargetKuota.TabIndex = 12;
+            this.txtTargetKuota.Visible = false;
+
             // 
             // btnBuat
             // 
-            btnBuat.BackColor = Color.FromArgb(167, 139, 250);
-            btnBuat.FlatAppearance.BorderSize = 0;
-            btnBuat.FlatStyle = FlatStyle.Flat;
-            btnBuat.Font = new Font("Segoe UI Black", 12F);
-            btnBuat.ForeColor = Color.White;
-            btnBuat.Location = new Point(40, 415);
-            btnBuat.Name = "btnBuat";
-            btnBuat.Size = new Size(420, 45);
-            btnBuat.TabIndex = 11;
-            btnBuat.Text = "BUKA PO SEKARANG ✨";
-            btnBuat.UseVisualStyleBackColor = false;
-            btnBuat.Click += btnBuat_Click;
+            this.btnBuat.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(167)))), ((int)(((byte)(139)))), ((int)(((byte)(250)))));
+            this.btnBuat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBuat.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnBuat.ForeColor = System.Drawing.Color.White;
+            this.btnBuat.Location = new System.Drawing.Point(29, 485);
+            this.btnBuat.Name = "btnBuat";
+            this.btnBuat.Size = new System.Drawing.Size(340, 40);
+            this.btnBuat.TabIndex = 13;
+            this.btnBuat.Text = "BUKA LAPAK SEKARANG";
+            this.btnBuat.UseVisualStyleBackColor = false;
+            this.btnBuat.Click += new System.EventHandler(this.btnBuat_Click);
+
             // 
             // PreorderControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(pnlCard);
-            Name = "PreorderControl";
-            Size = new Size(1046, 333);
-            Resize += PreorderControl_Resize;
-            pnlCard.ResumeLayout(false);
-            pnlCard.PerformLayout();
-            ResumeLayout(false);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(242)))), ((int)(((byte)(245)))));
+            this.Controls.Add(this.pnlCard);
+            this.Name = "PreorderControl";
+            this.Size = new System.Drawing.Size(600, 650);
+            this.Resize += new System.EventHandler(this.PreorderControl_Resize);
+            this.pnlCard.ResumeLayout(false);
+            this.pnlCard.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
+        #endregion
+
         private System.Windows.Forms.Panel pnlCard;
-        private System.Windows.Forms.Label lblTitle, lblJudul, lblJenis, lblRekening, lblBatas, lblTargetKuota;
-        private System.Windows.Forms.TextBox txtJudulPO, txtInfoRekening, txtTargetKuota;
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Label lblProduk;
+        private System.Windows.Forms.ComboBox cmbProduk;
+        private System.Windows.Forms.Label lblJudulPO;
+        private System.Windows.Forms.TextBox txtJudulPO;
+        private System.Windows.Forms.Label lblJenis;
         private System.Windows.Forms.ComboBox cmbJenis;
+        private System.Windows.Forms.Label lblInfoRekening;
+        private System.Windows.Forms.TextBox txtInfoRekening;
+        private System.Windows.Forms.Label lblBatasWaktu;
         private System.Windows.Forms.DateTimePicker dtpBatasWaktu;
+        private System.Windows.Forms.Label lblTargetKuota;
+        private System.Windows.Forms.TextBox txtTargetKuota;
         private System.Windows.Forms.Button btnBuat;
     }
 }

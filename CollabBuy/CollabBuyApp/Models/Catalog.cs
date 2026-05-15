@@ -13,10 +13,8 @@ namespace CollabBuy.CollabBuyApp.Models
         private DateTime _batasWaktu;
         private string _infoRekening;
 
-        // Overloading konstruktor #1: default
         public Catalog() { }
 
-        // Overloading konstruktor #2: parameter lengkap
         public Catalog(int idProduk, string judulPo, string namaKategori, string namaProduk,
                        int hargaDasar, int? hargaDiskon, DateTime batasWaktu, string infoRekening)
         {
@@ -33,109 +31,53 @@ namespace CollabBuy.CollabBuyApp.Models
         public int IdProduk
         {
             get => _idProduk;
-            set
-            {
-                if (value <= 0)
-                    throw new ArgumentException("ID Produk tidak valid.");
-                _idProduk = value;
-            }
+            set { if (value <= 0) throw new ArgumentException("ID Produk tidak valid."); _idProduk = value; }
         }
 
         public string JudulPo
         {
             get => _judulPo;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Judul PO tidak boleh kosong.");
-                _judulPo = value.Trim();
-            }
+            set { _judulPo = string.IsNullOrWhiteSpace(value) ? "PO Tanpa Judul" : value.Trim(); }
         }
 
         public string NamaKategori
         {
             get => _namaKategori;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Nama kategori tidak boleh kosong.");
-                _namaKategori = value.Trim();
-            }
+            set { _namaKategori = string.IsNullOrWhiteSpace(value) ? "Umum" : value.Trim(); }
         }
 
         public string NamaProduk
         {
             get => _namaProduk;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Nama produk tidak boleh kosong.");
-                _namaProduk = value.Trim();
-            }
+            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Nama produk kosong."); _namaProduk = value.Trim(); }
         }
 
         public int HargaDasar
         {
             get => _hargaDasar;
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentException("Harga dasar tidak boleh negatif.");
-                _hargaDasar = value;
-            }
+            set { if (value < 0) throw new ArgumentException("Harga tidak boleh negatif."); _hargaDasar = value; }
         }
 
         public int? HargaDiskon
         {
             get => _hargaDiskon;
-            set
-            {
-                if (value.HasValue && value.Value < 0)
-                    throw new ArgumentException("Harga diskon tidak boleh negatif.");
-                _hargaDiskon = value;
-            }
+            set { if (value.HasValue && value.Value < 0) throw new ArgumentException("Diskon tidak valid."); _hargaDiskon = value; }
         }
 
         public DateTime BatasWaktu
         {
             get => _batasWaktu;
-            set
-            {
-                // Tidak divalidasi masa lalu karena bisa berasal dari database
-                _batasWaktu = value;
-            }
+            set { if (value.Year < 2026) _batasWaktu = DateTime.Now; else _batasWaktu = value; }
         }
 
         public string InfoRekening
         {
             get => _infoRekening;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Info rekening tidak boleh kosong.");
-                _infoRekening = value.Trim();
-            }
+            set { _infoRekening = string.IsNullOrWhiteSpace(value) ? "Hubungi Penjual" : value.Trim(); }
         }
 
-        // Overloading method Tampilkan()
-        public string Tampilkan()
-        {
-            return $"{NamaProduk} - Rp{HargaDasar}";
-        }
+        public string Tampilkan() => $"{NamaProduk} - Rp{HargaDasar}";
 
-        public string Tampilkan(bool denganKategori)
-        {
-            return denganKategori
-                ? $"[{NamaKategori}] {Tampilkan()}"
-                : Tampilkan();
-        }
-
-        public string Tampilkan(bool denganKategori, bool denganBatasWaktu)
-        {
-            string hasil = Tampilkan(denganKategori);
-            if (denganBatasWaktu)
-                hasil += $" (sampai {BatasWaktu:dd MMM yyyy})";
-            return hasil;
-        }
+        public string Tampilkan(bool denganKategori) => denganKategori ? $"[{NamaKategori}] {Tampilkan()}" : Tampilkan();
     }
 }

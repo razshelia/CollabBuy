@@ -44,8 +44,13 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             lblBatasWaktu.Text = $"Batas Waktu: {_po.BatasWaktu:dd MMMM yyyy HH:mm}";
 
             // Tampilkan produk dalam PO
-            var produkList = _productService.AmbilProdukByPo(_idPo);
-            TampilkanProdukCard(produkList);
+            List<Product> listProdukDiPO = _productService.AmbilProdukByPo(_idPo);
+
+            // 2. Kirim list tersebut ke method tampilan
+            if (listProdukDiPO != null)
+            {
+                TampilkanProdukCard(listProdukDiPO);
+            }
         }
 
         private void TampilkanProdukCard(List<Product> produkList)

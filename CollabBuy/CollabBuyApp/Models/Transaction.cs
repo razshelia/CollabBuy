@@ -22,63 +22,43 @@ namespace CollabBuy.CollabBuyApp.Models
         public int IdTransaksi
         {
             get => _idTransaksi;
-            set
-            {
-                if (value <= 0)
-                    throw new ArgumentException("ID Transaksi tidak valid.");
-                _idTransaksi = value;
-            }
+            set { if (value <= 0) throw new ArgumentException("ID Transaksi tidak valid."); _idTransaksi = value; }
         }
 
         public int IdKoordinator
         {
             get => _idKoordinator;
-            set
-            {
-                if (value <= 0)
-                    throw new ArgumentException("ID Koordinator tidak valid.");
-                _idKoordinator = value;
-            }
+            set { if (value <= 0) throw new ArgumentException("ID Koordinator tidak valid."); _idKoordinator = value; }
         }
 
         public DateTime TanggalTransaksi
         {
             get => _tanggalTransaksi;
-            set => _tanggalTransaksi = value;
+            set { if (value.Year < 2026) throw new ArgumentException("Tahun transaksi tidak valid."); _tanggalTransaksi = value; }
         }
 
         public int TotalBayarGrup
         {
             get => _totalBayarGrup;
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentException("Total bayar tidak boleh negatif.");
-                _totalBayarGrup = value;
-            }
+            set { if (value < 0) throw new ArgumentException("Total bayar tidak boleh negatif."); _totalBayarGrup = value; }
         }
 
         public string StatusPesanan
         {
             get => _statusPesanan;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Status pesanan tidak boleh kosong.");
-                _statusPesanan = value.Trim();
-            }
+            set { if (string.IsNullOrWhiteSpace(value)) _statusPesanan = "Menunggu"; else _statusPesanan = value.Trim(); }
         }
 
         public string BuktiBayar
         {
             get => _buktiBayar;
-            set => _buktiBayar = value; // bisa null
+            set => _buktiBayar = string.IsNullOrWhiteSpace(value) ? "belum_ada_bukti.jpg" : value;
         }
 
         public bool IsValid
         {
             get => _isValid;
-            set => _isValid = value;
+            set { if (_isValid != value) _isValid = value; }
         }
     }
 }

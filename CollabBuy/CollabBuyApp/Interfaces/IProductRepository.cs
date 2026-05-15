@@ -12,5 +12,8 @@ namespace CollabBuy.CollabBuyApp.Interfaces
         bool HapusProduk(int idProduk);
         int HitungHargaAktual(int idProduk);
         int AmbilJumlahProduk();
+
+        // Method ini WAJIB dipertahankan untuk mengisi ComboBox di Form Buat PO
+        List<Product> AmbilProdukByPenjual(int idPenjual);
     }
 }

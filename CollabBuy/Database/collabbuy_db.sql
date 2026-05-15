@@ -3,6 +3,13 @@
 -- RDBMS: PostgreSQL
 -- Deskripsi: File ini berisi pembuatan tabel, data dummy, trigger, procedure, dan view.
 -- ========================================================================================
+-- ========================================================================================
+-- FILE INISIALISASI DATABASE COLLABBUY (VERSI MASTER PRODUK & MULTI-ITEM PO)
+-- RDBMS: PostgreSQL
+-- ========================================================================================
+
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 -- =========================================================
 -- BAGIAN 1: DATA DEFINITION LANGUAGE (DDL) - PEMBUATAN TABEL
@@ -44,9 +51,11 @@ CREATE TABLE preorders (
     is_aktif BOOLEAN DEFAULT TRUE
 );
 
+-- TABEL PRODUCTS SEKARANG PUNYA ID_PENJUAL (GUDANG) DAN ID_PO (LAPAK)
 CREATE TABLE products (
     id_produk SERIAL PRIMARY KEY,
-    id_po INTEGER REFERENCES preorders(id_po) ON DELETE CASCADE,
+    id_penjual INTEGER REFERENCES users(id_user) ON DELETE CASCADE,
+    id_po INTEGER REFERENCES preorders(id_po) ON DELETE SET NULL, -- Bisa NULL jika sedang di gudang
     id_kategori INTEGER REFERENCES categories(id_kategori) ON DELETE SET NULL,
     nama_produk VARCHAR(150) NOT NULL,
     deskripsi TEXT,
@@ -100,8 +109,6 @@ CREATE TABLE reviews (
 
 -- =========================================================
 -- BAGIAN 2: DATA MANIPULATION LANGUAGE (DML) - DATA DUMMY
--- Password Default: password123 
--- (Hash: ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f)
 -- =========================================================
 
 INSERT INTO users (nama, nomor_telepon, email, username, password, peran, is_diblokir) VALUES
@@ -121,23 +128,16 @@ INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_wakt
 (3, 'Danus HIMATIF Gotong Royong', 'Gotong Royong', 'Mandiri 0987654321 a.n Daffa (Danus HIMATIF)', '2026-06-10 23:59:00', TRUE),
 (1, 'BPM Peduli Merchandise', 'Biasa', 'Gopay 081234567890 a.n Rangga Saputra', '2026-05-20 23:59:00', TRUE);
 
-INSERT INTO products (id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
-(1, 1, 'Kaos Polo BEM Eksklusif',
- 'Kaos polo premium berbahan cotton combed 30s dengan bordir logo BEM eksklusif. Tersedia ukuran S, M, L, XL.',
- 85000, NULL, NULL, 1, 'Uploads/Products/20260514_kaos_bem.jpg'),
-
-(2, 2, 'Ganci Akrilik HIMATIF',
- 'Gantungan kunci akrilik custom desain maskot HIMATIF. Cocok untuk koleksi atau hadiah.',
- 15000, 12000, 50, 2, 'Uploads/Products/20260514_ganci_himatif.jpg'),
-
-(3, 3, 'Tumblr Aesthetic BPM',
- 'Tumblr stainless steel 500ml dengan desain estetik logo BPM. Tahan panas hingga 12 jam.',
- 45000, NULL, NULL, 1, 'Uploads/Products/20260514_tumblr_bpm.jpg');
+-- Data Dummy Produk diisi dengan id_penjual (Pemilik) dan id_po (PO aktifnya)
+INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
+(2, 1, 1, 'Kaos Polo BEM Eksklusif', 'Kaos polo premium berbahan cotton combed 30s dengan bordir logo BEM.', 85000, NULL, NULL, 1, 'Uploads/Products/kaos_bem.jpg'),
+(3, 2, 2, 'Ganci Akrilik HIMATIF', 'Gantungan kunci akrilik custom desain maskot HIMATIF.', 15000, 12000, 50, 2, 'Uploads/Products/ganci_himatif.jpg'),
+(1, 3, 3, 'Tumblr Aesthetic BPM', 'Tumblr stainless steel 500ml dengan desain estetik logo BPM.', 45000, NULL, NULL, 1, 'Uploads/Products/tumblr_bpm.jpg');
 
 INSERT INTO transactions (id_koordinator, tanggal_transaksi, total_bayar_grup, status_pesanan, bukti_bayar, is_valid) VALUES
-(2, '2026-05-15 10:30:00', 30000, 'Diproses', 'Uploads/Payments/20260515_resi_nabila_tf.jpg', TRUE),
-(3, '2026-05-16 14:15:00', 45000, 'Menunggu', 'Uploads/Payments/20260516_resi_daffa_tf.jpg', FALSE),
-(1, '2026-05-17 09:00:00', 170000, 'Selesai', 'Uploads/Payments/20260517_resi_rangga_tf.jpg', TRUE);
+(2, '2026-05-15 10:30:00', 30000, 'Diproses', 'Uploads/Payments/resi_nabila.jpg', TRUE),
+(3, '2026-05-16 14:15:00', 45000, 'Menunggu', 'Uploads/Payments/resi_daffa.jpg', FALSE),
+(1, '2026-05-17 09:00:00', 170000, 'Selesai', 'Uploads/Payments/resi_rangga.jpg', TRUE);
 
 INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan, selisih_refund) VALUES
 (1, 2, 'Caca (Kelas A)', 2, 'Desain warna biru ya', 6000), 
@@ -145,22 +145,18 @@ INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_p
 (3, 1, 'Tiara (Kelas C)', 2, 'Ukuran L dan M', 0);        
 
 INSERT INTO complaints (id_user, subjek, deskripsi, tanggal, is_selesai, balasan) VALUES
-(3, 'Validasi Bukti Transfer Lama', 'Halo min, bukti bayar saya ke toko BEM belum divalidasi sejak kemarin.', '2026-05-18 08:00:00', TRUE, 'Mohon maaf, sudah kami infokan ke pihak BEM untuk segera diproses.'),
-(2, 'Aplikasi Error saat Checkout', 'Tabel detail teman yang nitip tiba-tiba mereset saat saya tekan enter.', '2026-05-19 10:20:00', FALSE, NULL),
-(1, 'Laporan Penjual Fiktif', 'Ada akun penjual yang menggunakan foto KTM palsu dari Google.', '2026-05-20 15:45:00', FALSE, NULL);
+(3, 'Validasi Bukti Transfer Lama', 'Halo min, bukti bayar saya ke toko BEM belum divalidasi.', '2026-05-18 08:00:00', TRUE, 'Sudah diinfokan ke pihak BEM.'),
+(2, 'Aplikasi Error saat Checkout', 'Tabel detail teman yang nitip mereset.', '2026-05-19 10:20:00', FALSE, NULL);
 
 INSERT INTO reviews (id_produk, id_user, rating, komentar, tanggal_ulasan, balasan_penjual) VALUES
-(1, 1, 5, 'Bahan kaosnya sangat adem dan jahitannya rapi!', '2026-05-18 16:30:00', 'Terima kasih banyak atas pesanannya!'),
-(2, 2, 4, 'Desain gancinya bagus, tapi warnanya sedikit lebih gelap dari foto.', '2026-05-19 11:10:00', 'Mohon maaf atas perbedaan warnanya, akan kami perbaiki di PO selanjutnya.'),
-(3, 3, 5, 'Tumblr-nya tahan panas sampai 12 jam. Keren!', '2026-05-20 09:00:00', NULL);
+(1, 1, 5, 'Bahan kaosnya sangat adem dan jahitannya rapi!', '2026-05-18 16:30:00', 'Terima kasih banyak atas pesanannya!');
 
 
 -- =========================================================
 -- BAGIAN 3: ADVANCED DB OBJECTS (VIEW, FUNCTION, PROCEDURE, TRIGGER)
--- (Ini akan dieksekusi otomatis dan tersimpan di database)
 -- =========================================================
 
--- MATERI 5: VIEW (vw_katalog_aktif)
+-- View Katalog (Melihat produk yang punya ID PO aktif)
 CREATE OR REPLACE VIEW vw_katalog_aktif AS
 SELECT 
     p.id_produk,
@@ -176,7 +172,7 @@ JOIN preorders po ON p.id_po = po.id_po
 JOIN categories kat ON p.id_kategori = kat.id_kategori
 WHERE po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP;
 
--- MATERI 6 & 7: FUNCTION & STATEMENT IF/ELSE (cek_harga_saat_ini)
+-- Function Cek Harga
 CREATE OR REPLACE FUNCTION cek_harga_saat_ini(p_id_produk INT) 
 RETURNS INT AS $$
 DECLARE
@@ -201,7 +197,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- MATERI 8 & 9: STORED PROCEDURE & TRANSACTION (proses_checkout)
+-- Procedure Checkout
 CREATE OR REPLACE PROCEDURE proses_checkout(
     p_id_koordinator INT,
     p_total_bayar INT,
@@ -223,12 +219,12 @@ BEGIN
     VALUES (v_id_transaksi, p_id_produk, p_nama_penitip, p_jumlah, p_catatan);
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE NOTICE 'Terjadi kesalahan saat checkout, data dibatalkan: %', SQLERRM;
+        RAISE NOTICE 'Terjadi kesalahan saat checkout: %', SQLERRM;
         ROLLBACK;
 END;
 $$;
 
--- MATERI 10: TRIGGER (trg_hitung_refund_gotong_royong)
+-- Trigger Refund
 CREATE OR REPLACE FUNCTION trg_hitung_refund_gotong_royong()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -262,7 +258,6 @@ CREATE TRIGGER t_after_insert_detail
 AFTER INSERT ON transaction_details
 FOR EACH ROW
 EXECUTE FUNCTION trg_hitung_refund_gotong_royong();
-
 
 -- =========================================================
 -- BAGIAN 4: KUMPULAN KUERI ANALITIK 

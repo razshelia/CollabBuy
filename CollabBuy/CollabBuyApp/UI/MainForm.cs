@@ -142,7 +142,7 @@ namespace CollabBuy.CollabBuyApp.UI
             {
                 btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan,
                 btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak,
-                btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan,
+                btnSellerProduk, btnSellerPO, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan,
                 btnProfil
             };
 
@@ -229,10 +229,18 @@ namespace CollabBuy.CollabBuyApp.UI
         }
 
         // ── SELLER CLICK ──
-        private void btnSellerKatalog_Click(object sender, EventArgs e)
+        private void btnSellerProduk_Click(object sender, EventArgs e)
         {
-            HighlightNav(btnSellerKatalog);
-            GantiHalaman(new SellerPOListControl(_userAktif.IdUser));
+            HighlightNav(btnSellerProduk);
+            if (_userAktif != null)
+                GantiHalaman(new SellerProductListControl(_userAktif.IdUser));
+        }
+
+        private void btnSellerPO_Click(object sender, EventArgs e)
+        {
+            HighlightNav(btnSellerPO);
+            if (_userAktif != null)
+                GantiHalaman(new SellerPOListControl(_userAktif.IdUser));
         }
 
         private void btnSellerPesanan_Click(object sender, EventArgs e)
