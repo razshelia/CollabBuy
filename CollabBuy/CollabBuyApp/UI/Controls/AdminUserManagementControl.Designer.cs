@@ -3,79 +3,81 @@
     partial class AdminUserManagementControl
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         private void InitializeComponent()
         {
-            this.lblJudul = new System.Windows.Forms.Label();
-            this.dgvUsers = new System.Windows.Forms.DataGridView();
-            this.btnApprove = new System.Windows.Forms.Button();
-            this.btnBlock = new System.Windows.Forms.Button();
-            this.pnlAction = new System.Windows.Forms.Panel();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvUsers)).BeginInit();
-            this.pnlAction.SuspendLayout();
-            this.SuspendLayout();
-
-            this.BackColor = System.Drawing.Color.White;
-            this.Size = new System.Drawing.Size(1200, 800);
-
-            this.lblJudul.Text = "USER MANAGEMENT AREA 🕵️‍♂️";
-            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 18F);
-            this.lblJudul.Location = new System.Drawing.Point(30, 30);
-            this.lblJudul.AutoSize = true;
-
-            // DataGridView Neo-Retro
-            this.dgvUsers.BackgroundColor = System.Drawing.Color.White;
-            this.dgvUsers.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.dgvUsers.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvUsers.Location = new System.Drawing.Point(30, 100);
-            this.dgvUsers.Size = new System.Drawing.Size(1100, 450);
-            this.dgvUsers.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-
-            // Panel Action (Bottom)
-            this.pnlAction.BackColor = System.Drawing.Color.FromArgb(255, 235, 133); // Kuning Logo
-            this.pnlAction.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlAction.Controls.Add(this.btnBlock);
-            this.pnlAction.Controls.Add(this.btnApprove);
-            this.pnlAction.Location = new System.Drawing.Point(30, 580);
-            this.pnlAction.Size = new System.Drawing.Size(1100, 100);
-
-            this.btnApprove.BackColor = System.Drawing.Color.FromArgb(170, 150, 218); // Ungu Logo
-            this.btnApprove.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnApprove.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            this.btnApprove.Text = "APPROVE SELLER KAK! ✅";
-            this.btnApprove.Location = new System.Drawing.Point(30, 25);
-            this.btnApprove.Size = new System.Drawing.Size(250, 50);
-            this.btnApprove.Click += new System.EventHandler(this.btnApprove_Click);
-
-            this.btnBlock.BackColor = System.Drawing.Color.White;
-            this.btnBlock.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBlock.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            this.btnBlock.Text = "BLOCK USER NAKAL 🚫";
-            this.btnBlock.Location = new System.Drawing.Point(310, 25);
-            this.btnBlock.Size = new System.Drawing.Size(250, 50);
-            this.btnBlock.Click += new System.EventHandler(this.btnBlock_Click);
-
-            this.Controls.Add(this.pnlAction);
-            this.Controls.Add(this.dgvUsers);
-            this.Controls.Add(this.lblJudul);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvUsers)).EndInit();
-            this.pnlAction.ResumeLayout(false);
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            pnlHeader = new Panel();
+            lblJudul = new Label();
+            btnRefresh = new Button();
+            flowPanelVerif = new FlowLayoutPanel();
+            pnlHeader.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlHeader
+            // 
+            pnlHeader.BackColor = Color.FromArgb(45, 27, 79);
+            pnlHeader.Controls.Add(lblJudul);
+            pnlHeader.Controls.Add(btnRefresh);
+            pnlHeader.Dock = DockStyle.Top;
+            pnlHeader.Location = new Point(0, 0);
+            pnlHeader.Name = "pnlHeader";
+            pnlHeader.Size = new Size(1046, 80);
+            pnlHeader.TabIndex = 1;
+            // 
+            // lblJudul
+            // 
+            lblJudul.Font = new Font("Segoe UI Black", 16F, FontStyle.Bold);
+            lblJudul.ForeColor = Color.FromArgb(253, 224, 71);
+            lblJudul.Location = new Point(20, 20);
+            lblJudul.Name = "lblJudul";
+            lblJudul.Size = new Size(400, 35);
+            lblJudul.TabIndex = 0;
+            lblJudul.Text = "VERIFIKASI PENJUAL ✅";
+            // 
+            // btnRefresh
+            // 
+            btnRefresh.BackColor = Color.FromArgb(167, 139, 250);
+            btnRefresh.FlatStyle = FlatStyle.Flat;
+            btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnRefresh.ForeColor = Color.White;
+            btnRefresh.Location = new Point(600, 25);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(100, 30);
+            btnRefresh.TabIndex = 1;
+            btnRefresh.Text = "🔄 Refresh";
+            btnRefresh.UseVisualStyleBackColor = false;
+            btnRefresh.Click += btnRefresh_Click;
+            // 
+            // flowPanelVerif
+            // 
+            flowPanelVerif.AutoScroll = true;
+            flowPanelVerif.BackColor = Color.FromArgb(255, 249, 230);
+            flowPanelVerif.Dock = DockStyle.Fill;
+            flowPanelVerif.Location = new Point(0, 80);
+            flowPanelVerif.Name = "flowPanelVerif";
+            flowPanelVerif.Padding = new Padding(10);
+            flowPanelVerif.Size = new Size(1046, 253);
+            flowPanelVerif.TabIndex = 0;
+            // 
+            // AdminUserManagementControl
+            // 
+            BackColor = Color.FromArgb(255, 249, 230);
+            Controls.Add(flowPanelVerif);
+            Controls.Add(pnlHeader);
+            Name = "AdminUserManagementControl";
+            Size = new Size(1046, 333);
+            pnlHeader.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
+        private System.Windows.Forms.Panel pnlHeader;
         private System.Windows.Forms.Label lblJudul;
-        private System.Windows.Forms.DataGridView dgvUsers;
-        private System.Windows.Forms.Panel pnlAction;
-        private System.Windows.Forms.Button btnApprove, btnBlock;
+        private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.FlowLayoutPanel flowPanelVerif;
     }
 }

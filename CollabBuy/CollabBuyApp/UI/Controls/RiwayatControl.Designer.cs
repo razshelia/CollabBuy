@@ -3,62 +3,82 @@
     partial class RiwayatControl
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         private void InitializeComponent()
         {
-            this.lblJudul = new System.Windows.Forms.Label();
-            this.dgvRiwayat = new System.Windows.Forms.DataGridView();
-            this.btnRefresh = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).BeginInit();
-            this.SuspendLayout();
-
-            this.BackColor = System.Drawing.Color.White;
-            this.Size = new System.Drawing.Size(1000, 700);
-
-            this.lblJudul.Text = "RIWAYAT PESANAN KAMU ";
-            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
-            this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(30, 27, 50);
-            this.lblJudul.Location = new System.Drawing.Point(30, 30);
-            this.lblJudul.AutoSize = true;
-
-            this.dgvRiwayat.BackgroundColor = System.Drawing.Color.White;
-            this.dgvRiwayat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.dgvRiwayat.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvRiwayat.Location = new System.Drawing.Point(30, 80);
-            this.dgvRiwayat.Size = new System.Drawing.Size(940, 500);
-            this.dgvRiwayat.ReadOnly = true;
-            this.dgvRiwayat.AllowUserToAddRows = false;
-            this.dgvRiwayat.AllowUserToDeleteRows = false;
-            this.dgvRiwayat.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-
-            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(170, 150, 218);
-            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnRefresh.ForeColor = System.Drawing.Color.White;
-            this.btnRefresh.Text = "REFRESH DATA ";
-            this.btnRefresh.Location = new System.Drawing.Point(820, 600);
-            this.btnRefresh.Size = new System.Drawing.Size(150, 40);
-            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-
-            this.Controls.Add(this.lblJudul);
-            this.Controls.Add(this.dgvRiwayat);
-            this.Controls.Add(this.btnRefresh);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            pnlHeader = new Panel();
+            lblJudul = new Label();
+            btnRefresh = new Button();
+            flowPanelRiwayat = new FlowLayoutPanel();
+            pnlHeader.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlHeader
+            // 
+            pnlHeader.BackColor = Color.FromArgb(45, 27, 79);
+            pnlHeader.Controls.Add(lblJudul);
+            pnlHeader.Controls.Add(btnRefresh);
+            pnlHeader.Dock = DockStyle.Top;
+            pnlHeader.Location = new Point(0, 0);
+            pnlHeader.Name = "pnlHeader";
+            pnlHeader.Size = new Size(1046, 80);
+            pnlHeader.TabIndex = 1;
+            // 
+            // lblJudul
+            // 
+            lblJudul.Font = new Font("Segoe UI Black", 16F, FontStyle.Bold);
+            lblJudul.ForeColor = Color.FromArgb(253, 224, 71);
+            lblJudul.Location = new Point(20, 20);
+            lblJudul.Name = "lblJudul";
+            lblJudul.Size = new Size(400, 35);
+            lblJudul.TabIndex = 0;
+            lblJudul.Text = "RIWAYAT PESANAN KAMU 📋";
+            // 
+            // btnRefresh
+            // 
+            btnRefresh.BackColor = Color.FromArgb(167, 139, 250);
+            btnRefresh.FlatAppearance.BorderSize = 0;
+            btnRefresh.FlatStyle = FlatStyle.Flat;
+            btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnRefresh.ForeColor = Color.White;
+            btnRefresh.Location = new Point(600, 25);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(100, 30);
+            btnRefresh.TabIndex = 1;
+            btnRefresh.Text = "🔄 Refresh";
+            btnRefresh.UseVisualStyleBackColor = false;
+            btnRefresh.Click += btnRefresh_Click;
+            // 
+            // flowPanelRiwayat
+            // 
+            flowPanelRiwayat.AutoScroll = true;
+            flowPanelRiwayat.BackColor = Color.FromArgb(255, 249, 230);
+            flowPanelRiwayat.Dock = DockStyle.Fill;
+            flowPanelRiwayat.Location = new Point(0, 80);
+            flowPanelRiwayat.Name = "flowPanelRiwayat";
+            flowPanelRiwayat.Padding = new Padding(10);
+            flowPanelRiwayat.Size = new Size(1046, 253);
+            flowPanelRiwayat.TabIndex = 0;
+            // 
+            // RiwayatControl
+            // 
+            BackColor = Color.FromArgb(255, 249, 230);
+            Controls.Add(flowPanelRiwayat);
+            Controls.Add(pnlHeader);
+            Name = "RiwayatControl";
+            Size = new Size(1046, 333);
+            pnlHeader.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
+        private System.Windows.Forms.Panel pnlHeader;
         private System.Windows.Forms.Label lblJudul;
-        private System.Windows.Forms.DataGridView dgvRiwayat;
         private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.FlowLayoutPanel flowPanelRiwayat;
     }
 }

@@ -112,5 +112,6 @@ namespace CollabBuy.CollabBuyApp.Services
         {
             return _transRepo.AmbilTransaksiById(idTransaksi);
         }
+        public int AmbilJumlahTransaksi() => _transRepo.AmbilJumlahTransaksi();
     }
 }

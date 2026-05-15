@@ -1,85 +1,89 @@
 ﻿using System;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
+using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class SellerVerificationControl : UserControl
     {
-        private Akun userAktif;
-        private Action onVerificationSubmitted;
-        private string pathKTM = null; // path relatif yang akan disimpan ke DB
+        private RegularUser _user;
+        private Action _onVerificationSuccess;
+        private string _pathKTM;
 
-        public SellerVerificationControl(Akun user, Action refreshSidebarCallback)
+        public SellerVerificationControl(RegularUser user, Action onVerificationSuccess)
         {
             InitializeComponent();
-            this.userAktif = user;
-            this.onVerificationSubmitted = refreshSidebarCallback;
+            _user = user;
+            _onVerificationSuccess = onVerificationSuccess;
+            this.Resize += (s, e) => CenterCard();
         }
 
-        // Event handler tombol Upload KTM
+        private void CenterCard()
+        {
+            if (pnlCard == null) return;
+            pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+            pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+        }
+
         private void btnUploadKTM_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            using (OpenFileDialog dlg = new OpenFileDialog())
             {
-                openFileDialog.Title = "Pilih Scan / Foto KTM";
-                openFileDialog.Filter = "File Gambar|*.jpg;*.jpeg;*.png;*.bmp";
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                dlg.Title = "Pilih Scan / Foto KTM";
+                dlg.Filter = "File Gambar|*.jpg;*.jpeg;*.png;*.bmp";
+                if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
-                        // 1. Tentukan folder tujuan (Uploads/KTM di direktori aplikasi)
-                        string folderTujuan = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Uploads", "KTM");
-                        if (!Directory.Exists(folderTujuan))
-                            Directory.CreateDirectory(folderTujuan);
-
-                        // 2. Buat nama file unik (timestamp + nama asli)
-                        string namaFile = $"{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(openFileDialog.FileName)}";
-                        string fullPath = Path.Combine(folderTujuan, namaFile);
-
-                        // 3. Salin file yang dipilih ke folder tujuan
-                        File.Copy(openFileDialog.FileName, fullPath);
-
-                        // 4. Simpan path relatif (dari BaseDirectory) untuk disimpan ke database
-                        pathKTM = Path.Combine("Uploads", "KTM", namaFile);
-
-                        // 5. Tampilkan status ke user
-                        lblStatusKTM.Text = "KTM berhasil diunggah: " + namaFile;
+                        _pathKTM = FileHelper.SimpanFile(dlg.FileName, "KTM");
+                        lblStatusKTM.Text = "KTM berhasil diunggah ✨";
                         lblStatusKTM.ForeColor = Color.Green;
                     }
                     catch (Exception ex)
                     {
-                        UXHelper.TampilkanError("Gagal menyimpan gambar KTM: " + ex.Message);
+                        UXHelper.TampilkanError("Gagal menyimpan KTM: " + ex.Message);
                     }
                 }
             }
         }
 
-        private void btnKirimPengajuan_Click(object sender, EventArgs e)
+        private void btnKirim_Click(object sender, EventArgs e)
         {
-            // Validasi input ...
-            // Panggil UserService untuk menyimpan pengajuan (termasuk pathKTM)
-            UserService userService = new UserService();
-            bool sukses = userService.AjukanVerifikasiSeller(
-                userAktif.IdUser,
-                txtNamaToko.Text,
-                txtNIM.Text,
-                int.Parse(txtTahunMasuk.Text),
-                pathKTM   // <-- path relatif disimpan ke database
-            );
+            string nim = txtNIM.Text.Trim();
+            string namaToko = txtNamaToko.Text.Trim();
+            string tahunMasukStr = txtTahunMasuk.Text.Trim();
 
+            if (string.IsNullOrWhiteSpace(nim))
+            {
+                UXHelper.TampilkanError("NIM wajib diisi, bestie! 🎓");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(namaToko))
+            {
+                UXHelper.TampilkanError("Nama toko / danus jangan kosong ya~");
+                return;
+            }
+            if (!int.TryParse(tahunMasukStr, out int tahunMasuk) || tahunMasuk < DateTime.Now.Year - 7 || tahunMasuk > DateTime.Now.Year)
+            {
+                UXHelper.TampilkanError($"Tahun masuk harus antara {DateTime.Now.Year - 7} sampai {DateTime.Now.Year}.");
+                return;
+            }
+            if (string.IsNullOrEmpty(_pathKTM))
+            {
+                UXHelper.TampilkanError("Upload foto KTM dulu dong~ 📸");
+                return;
+            }
+
+            var verifService = new VerificationService();
+            bool sukses = verifService.AjukanVerifikasi(_user.IdUser, nim, namaToko, _pathKTM, tahunMasuk);
             if (sukses)
             {
-                UXHelper.TampilkanSukses("Pengajuan seller berhasil dikirim. Tunggu verifikasi admin ya!");
-                onVerificationSubmitted?.Invoke(); // refresh sidebar
-            }
-            else
-            {
-                UXHelper.TampilkanError("Gagal mengirim pengajuan, coba lagi nanti.");
+                _onVerificationSuccess?.Invoke();
+                if (ParentForm is MainForm main)
+                    main.RefreshSidebar();
             }
         }
     }

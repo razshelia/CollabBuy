@@ -1,3 +1,6 @@
+﻿using System.Drawing;
+using System.Windows.Forms;
+
 namespace CollabBuy.CollabBuyApp.UI
 {
     partial class MainForm
@@ -13,262 +16,164 @@ namespace CollabBuy.CollabBuyApp.UI
 
         private void InitializeComponent()
         {
-            this.pnlSidebar = new System.Windows.Forms.Panel();
-            this.pnlSidebarTop = new System.Windows.Forms.Panel();
-            this.lblLogo = new System.Windows.Forms.Label();
-            this.lblLogoSub = new System.Windows.Forms.Label();
-            this.lblUserInfo = new System.Windows.Forms.Label();
-            this.pnlDivider = new System.Windows.Forms.Panel();
-            this.pnlDivider2 = new System.Windows.Forms.Panel();
+            // ── Form ──
+            this.Text = "CollabBuy – Solusi Danus Mahasiswa ✨";
+            this.BackColor = Color.FromArgb(255, 249, 230);   // #FFF9E6
+            this.ClientSize = new Size(1280, 720);
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.WindowState = FormWindowState.Maximized;
 
-            // Section labels
-            this.lblSectionAdmin = new System.Windows.Forms.Label();
-            this.lblSectionBuyer = new System.Windows.Forms.Label();
-            this.lblSectionSeller = new System.Windows.Forms.Label();
-
-            // Admin buttons
-            this.btnAdminDashboard = new System.Windows.Forms.Button();
-            this.btnAdminVerifikasi = new System.Windows.Forms.Button();
-            this.btnAdminKategori = new System.Windows.Forms.Button();
-            this.btnAdminKeluhan = new System.Windows.Forms.Button();
-
-            // Buyer buttons
-            this.btnUserKatalog = new System.Windows.Forms.Button();
-            this.btnUserCheckout = new System.Windows.Forms.Button();
-            this.btnUserRiwayat = new System.Windows.Forms.Button();
-            this.btnUserAduan = new System.Windows.Forms.Button();
-            this.btnUserBukaLapak = new System.Windows.Forms.Button();
-
-            // Seller buttons
-            this.btnSellerKatalog = new System.Windows.Forms.Button();
-            this.btnSellerPesanan = new System.Windows.Forms.Button();
-            this.btnSellerAnalitik = new System.Windows.Forms.Button();
-            this.btnSellerUlasan = new System.Windows.Forms.Button();
-
-            // Bottom static buttons
-            this.btnProfil = new System.Windows.Forms.Button();
-            this.btnLogout = new System.Windows.Forms.Button();
-
-            // Main container
-            this.pnlMainContainer = new System.Windows.Forms.Panel();
-
-            this.pnlSidebar.SuspendLayout();
-            this.SuspendLayout();
-
-            // ── FORM ─────────────────────────────────────────────
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1280, 720);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CollabBuy – Solusi Gotong Royong Mahasiswa ✨";
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-
-            // ── SIDEBAR ──────────────────────────────────────────
-            this.pnlSidebar.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlSidebar.BackColor = System.Drawing.Color.FromArgb(30, 27, 50);
+            // ── Sidebar ──
+            this.pnlSidebar = new Panel();
+            this.pnlSidebar.Dock = DockStyle.Left;
             this.pnlSidebar.Width = 260;
-            this.pnlSidebar.Visible = false;
+            this.pnlSidebar.BackColor = Color.FromArgb(45, 27, 79);   // #2D1B4F
 
-            // Logo area
-            this.pnlSidebarTop.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlSidebarTop.Height = 110;
-            this.pnlSidebarTop.BackColor = System.Drawing.Color.FromArgb(40, 37, 65);
-
+            // Logo
+            this.lblLogo = new Label();
             this.lblLogo.Text = "COLLABBUY";
-            this.lblLogo.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
-            this.lblLogo.ForeColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            this.lblLogo.AutoSize = false;
-            this.lblLogo.Size = new System.Drawing.Size(240, 40);
-            this.lblLogo.Location = new System.Drawing.Point(10, 18);
-            this.lblLogo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblLogo.Font = new Font("Segoe UI Black", 18F, FontStyle.Bold);
+            this.lblLogo.ForeColor = Color.FromArgb(253, 224, 71);   // #FDE047
+            this.lblLogo.Size = new Size(240, 40);
+            this.lblLogo.Location = new Point(10, 20);
+            this.lblLogo.TextAlign = ContentAlignment.MiddleCenter;
 
-            this.lblLogoSub.Text = "✨ Platform Danus Kampus";
-            this.lblLogoSub.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.lblLogoSub.ForeColor = System.Drawing.Color.FromArgb(170, 150, 218);
-            this.lblLogoSub.AutoSize = false;
-            this.lblLogoSub.Size = new System.Drawing.Size(240, 20);
-            this.lblLogoSub.Location = new System.Drawing.Point(10, 60);
-            this.lblLogoSub.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-
+            // Info user
+            this.lblUserInfo = new Label();
             this.lblUserInfo.Text = "";
-            this.lblUserInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblUserInfo.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-            this.lblUserInfo.AutoSize = false;
-            this.lblUserInfo.Size = new System.Drawing.Size(240, 20);
-            this.lblUserInfo.Location = new System.Drawing.Point(10, 85);
-            this.lblUserInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblUserInfo.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.lblUserInfo.ForeColor = Color.FromArgb(167, 139, 250); // #A78BFA
+            this.lblUserInfo.Size = new Size(240, 20);
+            this.lblUserInfo.Location = new Point(10, 65);
+            this.lblUserInfo.TextAlign = ContentAlignment.MiddleCenter;
 
-            this.pnlSidebarTop.Controls.Add(this.lblLogo);
-            this.pnlSidebarTop.Controls.Add(this.lblLogoSub);
-            this.pnlSidebarTop.Controls.Add(this.lblUserInfo);
+            // ── Panel Admin ──
+            this.pnlAdmin = new Panel();
+            this.pnlAdmin.Location = new Point(0, 100);
+            this.pnlAdmin.Size = new Size(260, 200);
+            this.lblAdminTitle = new Label();
+            this.lblAdminTitle.Text = "👑 ADMIN";
+            this.lblAdminTitle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.lblAdminTitle.ForeColor = Color.FromArgb(253, 224, 71);
+            this.lblAdminTitle.Size = new Size(240, 20);
+            this.lblAdminTitle.Location = new Point(10, 0);
 
-            // Section labels
-            this.lblSectionAdmin.Text = "👑 ADMIN MENU";
-            this.lblSectionAdmin.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblSectionAdmin.ForeColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            this.lblSectionAdmin.AutoSize = false;
-            this.lblSectionAdmin.Size = new System.Drawing.Size(240, 25);
-            this.lblSectionAdmin.Location = new System.Drawing.Point(10, 120);
-            this.lblSectionAdmin.Visible = false;
+            btnAdminDashboard = BuatTombolSidebar("🏠 Dashboard", 25);
+            btnAdminVerifikasi = BuatTombolSidebar("✅ Verifikasi Penjual", 65);
+            btnAdminKategori = BuatTombolSidebar("📂 Kategori", 105);
+            btnAdminKeluhan = BuatTombolSidebar("📩 Keluhan", 145);
+            pnlAdmin.Controls.Add(lblAdminTitle);
+            pnlAdmin.Controls.Add(btnAdminDashboard);
+            pnlAdmin.Controls.Add(btnAdminVerifikasi);
+            pnlAdmin.Controls.Add(btnAdminKategori);
+            pnlAdmin.Controls.Add(btnAdminKeluhan);
 
-            this.lblSectionBuyer.Text = "🛒 BUYER MENU";
-            this.lblSectionBuyer.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblSectionBuyer.ForeColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            this.lblSectionBuyer.AutoSize = false;
-            this.lblSectionBuyer.Size = new System.Drawing.Size(240, 25);
-            this.lblSectionBuyer.Location = new System.Drawing.Point(10, 300);
-            this.lblSectionBuyer.Visible = false;
+            // ── Panel Buyer ──
+            this.pnlBuyer = new Panel();
+            this.pnlBuyer.Location = new Point(0, 310);
+            this.pnlBuyer.Size = new Size(260, 240);
+            this.lblBuyerTitle = new Label();
+            this.lblBuyerTitle.Text = "🛒 BUYER";
+            this.lblBuyerTitle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.lblBuyerTitle.ForeColor = Color.FromArgb(253, 224, 71);
+            this.lblBuyerTitle.Size = new Size(240, 20);
+            this.lblBuyerTitle.Location = new Point(10, 0);
 
-            this.lblSectionSeller.Text = "🏪 SELLER MENU";
-            this.lblSectionSeller.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblSectionSeller.ForeColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            this.lblSectionSeller.AutoSize = false;
-            this.lblSectionSeller.Size = new System.Drawing.Size(240, 25);
-            this.lblSectionSeller.Location = new System.Drawing.Point(10, 460);
-            this.lblSectionSeller.Visible = false;
+            btnUserKatalog = BuatTombolSidebar("🛍️ Katalog", 25);
+            btnUserCheckout = BuatTombolSidebar("💳 Checkout", 65);
+            btnUserRiwayat = BuatTombolSidebar("📋 Riwayat", 105);
+            btnUserAduan = BuatTombolSidebar("📝 Aduan", 145);
+            btnUserBukaLapak = BuatTombolSidebar("🚀 Buka Lapak", 185);
+            pnlBuyer.Controls.Add(lblBuyerTitle);
+            pnlBuyer.Controls.Add(btnUserKatalog);
+            pnlBuyer.Controls.Add(btnUserCheckout);
+            pnlBuyer.Controls.Add(btnUserRiwayat);
+            pnlBuyer.Controls.Add(btnUserAduan);
+            pnlBuyer.Controls.Add(btnUserBukaLapak);
 
-            // ── Admin Buttons ────────────────────────────────────
-            Button[] adminBtns = { btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan };
-            string[] adminTexts = { "🏠 Dashboard", "✅ Verifikasi Penjual", "📂 Kategori", "📩 Keluhan" };
-            for (int i = 0; i < adminBtns.Length; i++)
-            {
-                var b = adminBtns[i];
-                b.Text = adminTexts[i];
-                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-                b.FlatAppearance.BorderSize = 0;
-                b.Font = new System.Drawing.Font("Segoe UI", 10F);
-                b.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-                b.Size = new System.Drawing.Size(240, 40);
-                b.Location = new System.Drawing.Point(10, 150 + i * 45);
-                b.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-                b.Visible = false;
-            }
-            // Event handlers
-            this.btnAdminDashboard.Click += new System.EventHandler(this.btnAdminDashboard_Click);
-            this.btnAdminVerifikasi.Click += new System.EventHandler(this.btnAdminVerifikasi_Click);
-            this.btnAdminKategori.Click += new System.EventHandler(this.btnAdminKategori_Click);
-            this.btnAdminKeluhan.Click += new System.EventHandler(this.btnAdminKeluhan_Click);
+            // ── Panel Seller ──
+            this.pnlSeller = new Panel();
+            this.pnlSeller.Location = new Point(0, 560);
+            this.pnlSeller.Size = new Size(260, 180);
+            this.lblSellerTitle = new Label();
+            this.lblSellerTitle.Text = "🏪 PENJUAL";
+            this.lblSellerTitle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            this.lblSellerTitle.ForeColor = Color.FromArgb(253, 224, 71);
+            this.lblSellerTitle.Size = new Size(240, 20);
+            this.lblSellerTitle.Location = new Point(10, 0);
 
-            // ── Buyer Buttons ────────────────────────────────────
-            Button[] buyerBtns = { btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak };
-            string[] buyerTexts = { "🛍️ Katalog Produk", "💳 Checkout", "📋 Riwayat Pesanan", "📝 Aduan", "🚀 Buka Lapak" };
-            for (int i = 0; i < buyerBtns.Length; i++)
-            {
-                var b = buyerBtns[i];
-                b.Text = buyerTexts[i];
-                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-                b.FlatAppearance.BorderSize = 0;
-                b.Font = new System.Drawing.Font("Segoe UI", 10F);
-                b.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-                b.Size = new System.Drawing.Size(240, 40);
-                b.Location = new System.Drawing.Point(10, 330 + i * 45);
-                b.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-                b.Visible = false;
-            }
-            this.btnUserKatalog.Click += new System.EventHandler(this.btnUserKatalog_Click);
-            this.btnUserCheckout.Click += new System.EventHandler(this.btnUserCheckout_Click);
-            this.btnUserRiwayat.Click += new System.EventHandler(this.btnUserRiwayat_Click);
-            this.btnUserAduan.Click += new System.EventHandler(this.btnUserAduan_Click);
-            this.btnUserBukaLapak.Click += new System.EventHandler(this.btnUserBukaLapak_Click);
+            btnSellerKatalog = BuatTombolSidebar("📦 Produk Saya", 25);
+            btnSellerPesanan = BuatTombolSidebar("📋 Pesanan Masuk", 65);
+            btnSellerAnalitik = BuatTombolSidebar("📊 Analitik", 105);
+            btnSellerUlasan = BuatTombolSidebar("⭐ Ulasan", 145);
+            pnlSeller.Controls.Add(lblSellerTitle);
+            pnlSeller.Controls.Add(btnSellerKatalog);
+            pnlSeller.Controls.Add(btnSellerPesanan);
+            pnlSeller.Controls.Add(btnSellerAnalitik);
+            pnlSeller.Controls.Add(btnSellerUlasan);
 
-            // ── Seller Buttons ───────────────────────────────────
-            Button[] sellerBtns = { btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan };
-            string[] sellerTexts = { "📦 Produk Saya", "📋 Pesanan Masuk", "📊 Analitik", "⭐ Ulasan" };
-            for (int i = 0; i < sellerBtns.Length; i++)
-            {
-                var b = sellerBtns[i];
-                b.Text = sellerTexts[i];
-                b.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-                b.FlatAppearance.BorderSize = 0;
-                b.Font = new System.Drawing.Font("Segoe UI", 10F);
-                b.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-                b.Size = new System.Drawing.Size(240, 40);
-                b.Location = new System.Drawing.Point(10, 490 + i * 45);
-                b.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-                b.Visible = false;
-            }
-            this.btnSellerKatalog.Click += new System.EventHandler(this.btnSellerKatalog_Click);
-            this.btnSellerPesanan.Click += new System.EventHandler(this.btnSellerPesanan_Click);
-            this.btnSellerAnalitik.Click += new System.EventHandler(this.btnSellerAnalitik_Click);
-            this.btnSellerUlasan.Click += new System.EventHandler(this.btnSellerUlasan_Click);
+            // ── Tombol statis ──
+            btnProfil = BuatTombolSidebar("👤 Profil", 630);
+            btnLogout = BuatTombolSidebar("🚪 Logout", 670);
 
-            // ── Bottom Buttons ───────────────────────────────────
-            this.btnProfil.Text = "👤 Profil";
-            this.btnProfil.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnProfil.FlatAppearance.BorderSize = 0;
-            this.btnProfil.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.btnProfil.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-            this.btnProfil.Size = new System.Drawing.Size(240, 40);
-            this.btnProfil.Location = new System.Drawing.Point(10, 620);
-            this.btnProfil.Click += new System.EventHandler(this.btnProfil_Click);
+            // ── Event handlers ──
+            btnAdminDashboard.Click += btnAdminDashboard_Click;
+            btnAdminVerifikasi.Click += btnAdminVerifikasi_Click;
+            btnAdminKategori.Click += btnAdminKategori_Click;
+            btnAdminKeluhan.Click += btnAdminKeluhan_Click;
+            btnUserKatalog.Click += btnUserKatalog_Click;
+            btnUserCheckout.Click += btnUserCheckout_Click;
+            btnUserRiwayat.Click += btnUserRiwayat_Click;
+            btnUserAduan.Click += btnUserAduan_Click;
+            btnUserBukaLapak.Click += btnUserBukaLapak_Click;
+            btnSellerKatalog.Click += btnSellerKatalog_Click;
+            btnSellerPesanan.Click += btnSellerPesanan_Click;
+            btnSellerAnalitik.Click += btnSellerAnalitik_Click;
+            btnSellerUlasan.Click += btnSellerUlasan_Click;
+            btnProfil.Click += btnProfil_Click;
+            btnLogout.Click += btnLogout_Click;
 
-            this.btnLogout.Text = "🚪 Logout";
-            this.btnLogout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogout.FlatAppearance.BorderSize = 0;
-            this.btnLogout.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.btnLogout.ForeColor = System.Drawing.Color.FromArgb(210, 210, 230);
-            this.btnLogout.Size = new System.Drawing.Size(240, 40);
-            this.btnLogout.Location = new System.Drawing.Point(10, 665);
-            this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);
+            // ── Container utama ──
+            pnlMainContainer = new Panel();
+            pnlMainContainer.Dock = DockStyle.Fill;
+            pnlMainContainer.BackColor = Color.FromArgb(255, 249, 230);
 
-            // ── Main Container ───────────────────────────────────
-            this.pnlMainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlMainContainer.BackColor = System.Drawing.Color.White;
+            // Tambah ke sidebar
+            pnlSidebar.Controls.Add(lblLogo);
+            pnlSidebar.Controls.Add(lblUserInfo);
+            pnlSidebar.Controls.Add(pnlAdmin);
+            pnlSidebar.Controls.Add(pnlBuyer);
+            pnlSidebar.Controls.Add(pnlSeller);
+            pnlSidebar.Controls.Add(btnProfil);
+            pnlSidebar.Controls.Add(btnLogout);
 
-            // ── Add controls to sidebar ──────────────────────────
-            this.pnlSidebar.Controls.Add(this.pnlSidebarTop);
-            this.pnlSidebar.Controls.Add(this.lblSectionAdmin);
-            this.pnlSidebar.Controls.Add(this.btnAdminDashboard);
-            this.pnlSidebar.Controls.Add(this.btnAdminVerifikasi);
-            this.pnlSidebar.Controls.Add(this.btnAdminKategori);
-            this.pnlSidebar.Controls.Add(this.btnAdminKeluhan);
-            this.pnlSidebar.Controls.Add(this.lblSectionBuyer);
-            this.pnlSidebar.Controls.Add(this.btnUserKatalog);
-            this.pnlSidebar.Controls.Add(this.btnUserCheckout);
-            this.pnlSidebar.Controls.Add(this.btnUserRiwayat);
-            this.pnlSidebar.Controls.Add(this.btnUserAduan);
-            this.pnlSidebar.Controls.Add(this.btnUserBukaLapak);
-            this.pnlSidebar.Controls.Add(this.lblSectionSeller);
-            this.pnlSidebar.Controls.Add(this.btnSellerKatalog);
-            this.pnlSidebar.Controls.Add(this.btnSellerPesanan);
-            this.pnlSidebar.Controls.Add(this.btnSellerAnalitik);
-            this.pnlSidebar.Controls.Add(this.btnSellerUlasan);
-            this.pnlSidebar.Controls.Add(this.btnProfil);
-            this.pnlSidebar.Controls.Add(this.btnLogout);
-
-            // ── Add to form ──────────────────────────────────────
-            this.Controls.Add(this.pnlMainContainer);
-            this.Controls.Add(this.pnlSidebar);
-
-            this.pnlSidebar.ResumeLayout(false);
-            this.ResumeLayout(false);
+            // Tambah ke form
+            Controls.Add(pnlMainContainer);
+            Controls.Add(pnlSidebar);
         }
 
-        private System.Windows.Forms.Panel pnlSidebar;
-        private System.Windows.Forms.Panel pnlSidebarTop;
-        private System.Windows.Forms.Label lblLogo;
-        private System.Windows.Forms.Label lblLogoSub;
-        private System.Windows.Forms.Label lblUserInfo;
-        private System.Windows.Forms.Panel pnlDivider;
-        private System.Windows.Forms.Panel pnlDivider2;
-        private System.Windows.Forms.Label lblSectionAdmin;
-        private System.Windows.Forms.Label lblSectionBuyer;
-        private System.Windows.Forms.Label lblSectionSeller;
-        private System.Windows.Forms.Button btnAdminDashboard;
-        private System.Windows.Forms.Button btnAdminVerifikasi;
-        private System.Windows.Forms.Button btnAdminKategori;
-        private System.Windows.Forms.Button btnAdminKeluhan;
-        private System.Windows.Forms.Button btnUserKatalog;
-        private System.Windows.Forms.Button btnUserCheckout;
-        private System.Windows.Forms.Button btnUserRiwayat;
-        private System.Windows.Forms.Button btnUserAduan;
-        private System.Windows.Forms.Button btnUserBukaLapak;
-        private System.Windows.Forms.Button btnSellerKatalog;
-        private System.Windows.Forms.Button btnSellerPesanan;
-        private System.Windows.Forms.Button btnSellerAnalitik;
-        private System.Windows.Forms.Button btnSellerUlasan;
-        private System.Windows.Forms.Button btnProfil;
-        private System.Windows.Forms.Button btnLogout;
-        private System.Windows.Forms.Panel pnlMainContainer;
+        private Button BuatTombolSidebar(string teks, int y)
+        {
+            Button btn = new Button();
+            btn.Text = teks;
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.Font = new Font("Segoe UI", 10F);
+            btn.ForeColor = Color.FromArgb(210, 210, 230);
+            btn.Size = new Size(240, 35);
+            btn.Location = new Point(10, y);
+            btn.TextAlign = ContentAlignment.MiddleLeft;
+            return btn;
+        }
+
+        // ── Deklarasi kontrol ──
+        private Panel pnlSidebar, pnlMainContainer;
+        private Panel pnlAdmin, pnlBuyer, pnlSeller;
+        private Label lblLogo, lblUserInfo, lblAdminTitle, lblBuyerTitle, lblSellerTitle;
+        private Button btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan;
+        private Button btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak;
+        private Button btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan;
+        private Button btnProfil, btnLogout;
     }
 }

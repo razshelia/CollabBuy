@@ -1,9 +1,8 @@
-namespace CollabBuy.CollabBuyApp.UI.Controls
+﻿namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     partial class RegisterControl
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null)) components.Dispose();
@@ -12,226 +11,201 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void InitializeComponent()
         {
-            pnlLeft         = new System.Windows.Forms.Panel();
-            pnlRight        = new System.Windows.Forms.Panel();
-            pnlScroll       = new System.Windows.Forms.Panel();
-            pnlCard         = new System.Windows.Forms.Panel();
-            lblBrandTitle   = new System.Windows.Forms.Label();
-            lblBrandSub     = new System.Windows.Forms.Label();
-            lblJudul        = new System.Windows.Forms.Label();
-            lblSubJudul     = new System.Windows.Forms.Label();
-            lblNama         = new System.Windows.Forms.Label();
-            txtNama         = new System.Windows.Forms.TextBox();
-            lblTglLahir     = new System.Windows.Forms.Label();
-            dtpTglLahir     = new System.Windows.Forms.DateTimePicker();
-            lblUsername     = new System.Windows.Forms.Label();
-            txtUsername     = new System.Windows.Forms.TextBox();
-            lblTelp         = new System.Windows.Forms.Label();
-            txtTelp         = new System.Windows.Forms.MaskedTextBox();
-            lblEmail        = new System.Windows.Forms.Label();
-            txtEmail        = new System.Windows.Forms.TextBox();
-            lblPassword     = new System.Windows.Forms.Label();
-            txtPassword     = new System.Windows.Forms.TextBox();
-            chkShowPassword = new System.Windows.Forms.CheckBox();
-            btnDaftarBaru   = new System.Windows.Forms.Button();
-            btnKembali      = new System.Windows.Forms.Button();
-
+            pnlCard = new Panel();
+            lblTitle = new Label();
+            lblSubtitle = new Label();
+            txtNama = new TextBox();
+            txtNomorTelepon = new TextBox();
+            txtEmail = new TextBox();
+            txtUsername = new TextBox();
+            txtPassword = new TextBox();
+            txtKonfirmasiPassword = new TextBox();
+            chkLihatPassword = new CheckBox();
+            chkSetuju = new CheckBox();
+            lblSyaratKetentuan = new Label();
+            btnDaftar = new Button();
+            lblLoginLink = new Label();
+            pnlCard.SuspendLayout();
             SuspendLayout();
-
-            BackColor = System.Drawing.Color.White;
-            Dock      = System.Windows.Forms.DockStyle.Fill;
-            Name      = "RegisterControl";
-
-            // ── LEFT BRANDING ─────────────────────────────────────
-            pnlLeft.Dock      = System.Windows.Forms.DockStyle.Left;
-            pnlLeft.BackColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            pnlLeft.Width     = 500;
-            pnlLeft.Name      = "pnlLeft";
-
-            lblBrandTitle.Text      = "COLLAB\nBUY";
-            lblBrandTitle.Font      = new System.Drawing.Font("Segoe UI Black", 56F, System.Drawing.FontStyle.Bold);
-            lblBrandTitle.ForeColor = System.Drawing.Color.FromArgb(40, 40, 60);
-            lblBrandTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            lblBrandTitle.AutoSize  = false;
-            lblBrandTitle.Size      = new System.Drawing.Size(400, 210);
-            lblBrandTitle.Location  = new System.Drawing.Point(50, 170);
-            lblBrandTitle.Name      = "lblBrandTitle";
-
-            lblBrandSub.Text      = "🏫 OTW BIKIN AKUN!\nGabung & mulai Danus bareng 🚀";
-            lblBrandSub.Font      = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            lblBrandSub.ForeColor = System.Drawing.Color.FromArgb(80, 60, 140);
-            lblBrandSub.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            lblBrandSub.AutoSize  = false;
-            lblBrandSub.Size      = new System.Drawing.Size(400, 70);
-            lblBrandSub.Location  = new System.Drawing.Point(50, 400);
-            lblBrandSub.Name      = "lblBrandSub";
-
-            pnlLeft.Controls.Add(lblBrandTitle);
-            pnlLeft.Controls.Add(lblBrandSub);
-
-            // ── RIGHT FORM (Scrollable) ───────────────────────────
-            pnlRight.Dock      = System.Windows.Forms.DockStyle.Fill;
-            pnlRight.BackColor = System.Drawing.Color.FromArgb(247, 247, 252);
-            pnlRight.Name      = "pnlRight";
-
-            pnlScroll.Dock         = System.Windows.Forms.DockStyle.Fill;
-            pnlScroll.AutoScroll   = true;
-            pnlScroll.BackColor    = System.Drawing.Color.FromArgb(247, 247, 252);
-            pnlScroll.Name         = "pnlScroll";
-
-            // Card (tall - will be centred horizontally, scroll vertically)
-            pnlCard.BackColor   = System.Drawing.Color.White;
-            pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            pnlCard.Size        = new System.Drawing.Size(460, 720);
-            pnlCard.Location    = new System.Drawing.Point(30, 20);
-            pnlCard.Name        = "pnlCard";
-
-            // ── Card contents ─────────────────────────────────────
-            lblJudul.Text      = "OTW Bikin Akun 🚀";
-            lblJudul.Font      = new System.Drawing.Font("Segoe UI Black", 24F, System.Drawing.FontStyle.Bold);
-            lblJudul.ForeColor = System.Drawing.Color.FromArgb(40, 40, 60);
-            lblJudul.AutoSize  = false;
-            lblJudul.Size      = new System.Drawing.Size(400, 52);
-            lblJudul.Location  = new System.Drawing.Point(30, 28);
-            lblJudul.Name      = "lblJudul";
-
-            lblSubJudul.Text      = "Isi semua data di bawah ini ya bestie ✨";
-            lblSubJudul.Font      = new System.Drawing.Font("Segoe UI", 10F);
-            lblSubJudul.ForeColor = System.Drawing.Color.Gray;
-            lblSubJudul.AutoSize  = false;
-            lblSubJudul.Size      = new System.Drawing.Size(400, 22);
-            lblSubJudul.Location  = new System.Drawing.Point(30, 84);
-            lblSubJudul.Name      = "lblSubJudul";
-
-            // Helper local method to position label+input pairs
-            int y = 125;
-            int inputW = 396;
-
-            void AddField(System.Windows.Forms.Label lbl, string labelText, System.Windows.Forms.Control input)
-            {
-                lbl.Text      = labelText;
-                lbl.Font      = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-                lbl.ForeColor = System.Drawing.Color.FromArgb(60, 60, 80);
-                lbl.AutoSize  = true;
-                lbl.Location  = new System.Drawing.Point(32, y);
-                y += 26;
-                input.Location  = new System.Drawing.Point(32, y);
-                input.Width     = inputW;
-                input.Font      = new System.Drawing.Font("Segoe UI", 11F);
-                if (input is System.Windows.Forms.TextBox tb)   tb.BorderStyle  = System.Windows.Forms.BorderStyle.FixedSingle;
-                if (input is System.Windows.Forms.MaskedTextBox mb) mb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-                y += 40;
-                pnlCard.Controls.Add(lbl);
-                pnlCard.Controls.Add(input);
-            }
-
-            pnlCard.Controls.Add(lblJudul);
-            pnlCard.Controls.Add(lblSubJudul);
-
-            AddField(lblNama,     "Nama Lengkap Kamu:",              txtNama);
-            txtNama.PlaceholderText = "Nama kamu...";
-
-            // Tanggal Lahir
-            lblTglLahir.Text      = "Tanggal Brojol:";
-            lblTglLahir.Font      = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            lblTglLahir.ForeColor = System.Drawing.Color.FromArgb(60, 60, 80);
-            lblTglLahir.AutoSize  = true;
-            lblTglLahir.Location  = new System.Drawing.Point(32, y);
-            y += 26;
-            dtpTglLahir.Location  = new System.Drawing.Point(32, y);
-            dtpTglLahir.Width     = inputW;
-            dtpTglLahir.Font      = new System.Drawing.Font("Segoe UI", 11F);
-            dtpTglLahir.Format    = System.Windows.Forms.DateTimePickerFormat.Short;
-            y += 40;
-            pnlCard.Controls.Add(lblTglLahir);
-            pnlCard.Controls.Add(dtpTglLahir);
-
-            AddField(lblUsername, "Username Keren:",                 txtUsername);
-            txtUsername.PlaceholderText = "Pilih username unik...";
-
-            AddField(lblTelp,     "No. WhatsApp (Biar gampang di-chat):", txtTelp);
-            txtTelp.Mask         = "00000000000000";
-            txtTelp.PromptChar   = ' ';
-
-            AddField(lblEmail,    "Email Kampus / Pribadi:",         txtEmail);
-            txtEmail.PlaceholderText = "email@kampus.ac.id";
-
-            AddField(lblPassword, "Password Rahasia:",               txtPassword);
-            txtPassword.PasswordChar    = '●';
-            txtPassword.PlaceholderText = "Min. 6 karakter...";
-
-            // Checkbox show password
-            chkShowPassword.Text      = "👁 Tampilkan Password";
-            chkShowPassword.Font      = new System.Drawing.Font("Segoe UI", 9F);
-            chkShowPassword.ForeColor = System.Drawing.Color.Gray;
-            chkShowPassword.AutoSize  = true;
-            chkShowPassword.Location  = new System.Drawing.Point(32, y);
-            chkShowPassword.Name      = "chkShowPassword";
-            chkShowPassword.CheckedChanged += chkShowPassword_CheckedChanged;
-            y += 36;
-
-            // Tombol DONE
-            btnDaftarBaru.Text                              = "DONE! BIKIN AKUN ✨";
-            btnDaftarBaru.Font                              = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            btnDaftarBaru.BackColor                         = System.Drawing.Color.FromArgb(255, 235, 133);
-            btnDaftarBaru.ForeColor                         = System.Drawing.Color.FromArgb(40, 40, 60);
-            btnDaftarBaru.FlatStyle                         = System.Windows.Forms.FlatStyle.Flat;
-            btnDaftarBaru.FlatAppearance.BorderSize         = 0;
-            btnDaftarBaru.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(240, 210, 80);
-            btnDaftarBaru.Size                              = new System.Drawing.Size(396, 52);
-            btnDaftarBaru.Location                          = new System.Drawing.Point(32, y);
-            btnDaftarBaru.Cursor                            = System.Windows.Forms.Cursors.Hand;
-            btnDaftarBaru.Name                              = "btnDaftarBaru";
-            btnDaftarBaru.Click                            += btnDaftarBaru_Click;
-            y += 62;
-
-            btnKembali.Text                             = "Eh gajadi, balik ke Login aja 👈";
-            btnKembali.Font                             = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            btnKembali.BackColor                        = System.Drawing.Color.White;
-            btnKembali.ForeColor                        = System.Drawing.Color.FromArgb(170, 150, 218);
-            btnKembali.FlatStyle                        = System.Windows.Forms.FlatStyle.Flat;
-            btnKembali.FlatAppearance.BorderColor       = System.Drawing.Color.FromArgb(170, 150, 218);
-            btnKembali.FlatAppearance.BorderSize        = 2;
-            btnKembali.Size                             = new System.Drawing.Size(396, 48);
-            btnKembali.Location                         = new System.Drawing.Point(32, y);
-            btnKembali.Cursor                           = System.Windows.Forms.Cursors.Hand;
-            btnKembali.Name                             = "btnKembali";
-            btnKembali.Click                           += btnKembali_Click;
-            y += 68;
-
-            // Make card tall enough
-            pnlCard.Height = y + 20;
-            pnlCard.Controls.Add(chkShowPassword);
-            pnlCard.Controls.Add(btnDaftarBaru);
-            pnlCard.Controls.Add(btnKembali);
-
-            pnlScroll.Controls.Add(pnlCard);
-            pnlRight.Controls.Add(pnlScroll);
-
-            // Center card horizontally on resize
-            pnlScroll.Resize += (s, e) => {
-                pnlCard.Left = (pnlScroll.Width - pnlCard.Width) / 2;
-                if (pnlCard.Left < 10) pnlCard.Left = 10;
-            };
-            this.Resize += (s, e) => {
-                pnlLeft.Width = this.Width / 2;
-                pnlCard.Left  = (pnlScroll.Width - pnlCard.Width) / 2;
-                if (pnlCard.Left < 10) pnlCard.Left = 10;
-            };
-
-            Controls.Add(pnlRight);
-            Controls.Add(pnlLeft);
+            // 
+            // pnlCard
+            // 
+            pnlCard.Anchor = AnchorStyles.None;
+            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
+            pnlCard.Controls.Add(lblTitle);
+            pnlCard.Controls.Add(lblSubtitle);
+            pnlCard.Controls.Add(txtNama);
+            pnlCard.Controls.Add(txtNomorTelepon);
+            pnlCard.Controls.Add(txtEmail);
+            pnlCard.Controls.Add(txtUsername);
+            pnlCard.Controls.Add(txtPassword);
+            pnlCard.Controls.Add(txtKonfirmasiPassword);
+            pnlCard.Controls.Add(chkLihatPassword);
+            pnlCard.Controls.Add(chkSetuju);
+            pnlCard.Controls.Add(lblSyaratKetentuan);
+            pnlCard.Controls.Add(btnDaftar);
+            pnlCard.Controls.Add(lblLoginLink);
+            pnlCard.Location = new Point(673, 316);
+            pnlCard.Name = "pnlCard";
+            pnlCard.Size = new Size(460, 660);
+            pnlCard.TabIndex = 0;
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI Black", 20F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
+            lblTitle.Location = new Point(40, 25);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(380, 45);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "DAFTAR DULU, GENGS! 🌟";
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblSubtitle
+            // 
+            lblSubtitle.Font = new Font("Segoe UI", 9F);
+            lblSubtitle.ForeColor = Color.FromArgb(167, 139, 250);
+            lblSubtitle.Location = new Point(40, 70);
+            lblSubtitle.Name = "lblSubtitle";
+            lblSubtitle.Size = new Size(380, 25);
+            lblSubtitle.TabIndex = 1;
+            lblSubtitle.Text = "Gabung komunitas paling solid se-kampus!";
+            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // txtNama
+            // 
+            txtNama.Font = new Font("Segoe UI", 11F);
+            txtNama.Location = new Point(65, 105);
+            txtNama.Name = "txtNama";
+            txtNama.PlaceholderText = "Nama lengkap kamu...";
+            txtNama.Size = new Size(330, 27);
+            txtNama.TabIndex = 2;
+            // 
+            // txtNomorTelepon
+            // 
+            txtNomorTelepon.Font = new Font("Segoe UI", 11F);
+            txtNomorTelepon.Location = new Point(65, 145);
+            txtNomorTelepon.Name = "txtNomorTelepon";
+            txtNomorTelepon.PlaceholderText = "Nomor telepon (angka aja)";
+            txtNomorTelepon.Size = new Size(330, 27);
+            txtNomorTelepon.TabIndex = 3;
+            txtNomorTelepon.KeyPress += txtNomorTelepon_KeyPress;
+            // 
+            // txtEmail
+            // 
+            txtEmail.Font = new Font("Segoe UI", 11F);
+            txtEmail.Location = new Point(65, 185);
+            txtEmail.Name = "txtEmail";
+            txtEmail.PlaceholderText = "Email aktif kamu...";
+            txtEmail.Size = new Size(330, 27);
+            txtEmail.TabIndex = 4;
+            // 
+            // txtUsername
+            // 
+            txtUsername.Font = new Font("Segoe UI", 11F);
+            txtUsername.Location = new Point(65, 225);
+            txtUsername.Name = "txtUsername";
+            txtUsername.PlaceholderText = "Username kece (min 5 karakter)";
+            txtUsername.Size = new Size(330, 27);
+            txtUsername.TabIndex = 5;
+            // 
+            // txtPassword
+            // 
+            txtPassword.Font = new Font("Segoe UI", 11F);
+            txtPassword.Location = new Point(65, 265);
+            txtPassword.Name = "txtPassword";
+            txtPassword.PlaceholderText = "Password (min 8 karakter) \U0001f92b";
+            txtPassword.Size = new Size(330, 27);
+            txtPassword.TabIndex = 6;
+            txtPassword.UseSystemPasswordChar = true;
+            // 
+            // txtKonfirmasiPassword
+            // 
+            txtKonfirmasiPassword.Font = new Font("Segoe UI", 11F);
+            txtKonfirmasiPassword.Location = new Point(65, 305);
+            txtKonfirmasiPassword.Name = "txtKonfirmasiPassword";
+            txtKonfirmasiPassword.PlaceholderText = "Ulangi password tadi...";
+            txtKonfirmasiPassword.Size = new Size(330, 27);
+            txtKonfirmasiPassword.TabIndex = 7;
+            txtKonfirmasiPassword.UseSystemPasswordChar = true;
+            // 
+            // chkLihatPassword
+            // 
+            chkLihatPassword.Font = new Font("Segoe UI", 9F);
+            chkLihatPassword.ForeColor = Color.FromArgb(167, 139, 250);
+            chkLihatPassword.Location = new Point(65, 345);
+            chkLihatPassword.Name = "chkLihatPassword";
+            chkLihatPassword.Size = new Size(200, 20);
+            chkLihatPassword.TabIndex = 8;
+            chkLihatPassword.Text = "Lihat Password 👀";
+            chkLihatPassword.CheckedChanged += chkLihatPassword_CheckedChanged;
+            // 
+            // chkSetuju
+            // 
+            chkSetuju.Font = new Font("Segoe UI", 9F);
+            chkSetuju.ForeColor = Color.FromArgb(167, 139, 250);
+            chkSetuju.Location = new Point(65, 375);
+            chkSetuju.Name = "chkSetuju";
+            chkSetuju.Size = new Size(330, 20);
+            chkSetuju.TabIndex = 9;
+            chkSetuju.Text = "Aku setuju sama Syarat & Ketentuan yang berlaku 📜";
+            // 
+            // lblSyaratKetentuan
+            // 
+            lblSyaratKetentuan.Cursor = Cursors.Hand;
+            lblSyaratKetentuan.Font = new Font("Segoe UI", 8F, FontStyle.Underline);
+            lblSyaratKetentuan.ForeColor = Color.FromArgb(253, 224, 71);
+            lblSyaratKetentuan.Location = new Point(85, 395);
+            lblSyaratKetentuan.Name = "lblSyaratKetentuan";
+            lblSyaratKetentuan.Size = new Size(290, 18);
+            lblSyaratKetentuan.TabIndex = 10;
+            lblSyaratKetentuan.Text = "📋 Lihat Syarat & Ketentuan";
+            lblSyaratKetentuan.TextAlign = ContentAlignment.MiddleLeft;
+            lblSyaratKetentuan.Click += lblSyaratKetentuan_Click;
+            // 
+            // btnDaftar
+            // 
+            btnDaftar.BackColor = Color.FromArgb(167, 139, 250);
+            btnDaftar.FlatAppearance.BorderSize = 0;
+            btnDaftar.FlatStyle = FlatStyle.Flat;
+            btnDaftar.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
+            btnDaftar.ForeColor = Color.White;
+            btnDaftar.Location = new Point(65, 430);
+            btnDaftar.Name = "btnDaftar";
+            btnDaftar.Size = new Size(330, 45);
+            btnDaftar.TabIndex = 11;
+            btnDaftar.Text = "GABUNG SEKARANG 💜";
+            btnDaftar.UseVisualStyleBackColor = false;
+            btnDaftar.Click += btnDaftar_Click;
+            // 
+            // lblLoginLink
+            // 
+            lblLoginLink.Cursor = Cursors.Hand;
+            lblLoginLink.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
+            lblLoginLink.ForeColor = Color.FromArgb(253, 224, 71);
+            lblLoginLink.Location = new Point(65, 490);
+            lblLoginLink.Name = "lblLoginLink";
+            lblLoginLink.Size = new Size(330, 25);
+            lblLoginLink.TabIndex = 12;
+            lblLoginLink.Text = "Udah punya akun? Login aja, bestie! 🔑";
+            lblLoginLink.TextAlign = ContentAlignment.MiddleCenter;
+            lblLoginLink.Click += lblLoginLink_Click;
+            // 
+            // RegisterControl
+            // 
+            BackColor = Color.FromArgb(255, 249, 230);
+            Controls.Add(pnlCard);
+            Name = "RegisterControl";
+            Size = new Size(1046, 333);
+            pnlCard.ResumeLayout(false);
+            pnlCard.PerformLayout();
             ResumeLayout(false);
         }
 
-        private System.Windows.Forms.Panel         pnlLeft, pnlRight, pnlScroll, pnlCard;
-        private System.Windows.Forms.Label         lblBrandTitle, lblBrandSub;
-        private System.Windows.Forms.Label         lblJudul, lblSubJudul;
-        private System.Windows.Forms.Label         lblNama, lblTglLahir, lblUsername, lblTelp, lblEmail, lblPassword;
-        private System.Windows.Forms.TextBox       txtNama, txtUsername, txtEmail, txtPassword;
-        private System.Windows.Forms.MaskedTextBox txtTelp;
-        private System.Windows.Forms.DateTimePicker dtpTglLahir;
-        private System.Windows.Forms.CheckBox      chkShowPassword;
-        private System.Windows.Forms.Button        btnDaftarBaru, btnKembali;
+        private System.Windows.Forms.Panel pnlCard;
+        private System.Windows.Forms.Label lblTitle, lblSubtitle, lblLoginLink, lblSyaratKetentuan;
+        private System.Windows.Forms.TextBox txtNama, txtNomorTelepon, txtEmail, txtUsername, txtPassword, txtKonfirmasiPassword;
+        private System.Windows.Forms.CheckBox chkLihatPassword, chkSetuju;
+        private System.Windows.Forms.Button btnDaftar;
     }
 }

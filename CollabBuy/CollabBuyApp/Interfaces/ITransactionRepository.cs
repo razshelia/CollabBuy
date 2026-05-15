@@ -12,5 +12,6 @@ namespace CollabBuy.CollabBuyApp.Interfaces
         List<Transaction> AmbilPesananMasukPenjual(int idPenjual);
         List<TransactionDetail> AmbilDetailTransaksi(int idTransaksi);
         Transaction AmbilTransaksiById(int idTransaksi);
+        int AmbilJumlahTransaksi();
     }
 }

@@ -126,5 +126,6 @@ namespace CollabBuy.CollabBuyApp.Services
         {
             return _prodRepo.HitungHargaAktual(idProduk);
         }
+        public int AmbilJumlahProduk() => _prodRepo.AmbilJumlahProduk();
     }
 }

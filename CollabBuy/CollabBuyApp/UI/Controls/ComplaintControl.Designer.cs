@@ -3,81 +3,105 @@
     partial class ComplaintControl
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         private void InitializeComponent()
         {
             this.pnlCard = new System.Windows.Forms.Panel();
-            this.lblJudul = new System.Windows.Forms.Label();
+            this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubjek = new System.Windows.Forms.Label();
             this.txtSubjek = new System.Windows.Forms.TextBox();
-            this.lblPesan = new System.Windows.Forms.Label();
-            this.txtPesan = new System.Windows.Forms.TextBox();
+            this.lblDeskripsi = new System.Windows.Forms.Label();
+            this.txtDeskripsi = new System.Windows.Forms.TextBox();
             this.btnKirim = new System.Windows.Forms.Button();
+            this.btnLihatAduanSaya = new System.Windows.Forms.Button();
+
             this.pnlCard.SuspendLayout();
             this.SuspendLayout();
 
-            this.BackColor = System.Drawing.Color.White;
-            this.Size = new System.Drawing.Size(1000, 700);
+            // Fullscreen
+            this.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
 
-            // Panel Card (Warna Kuning Gold Logo)
-            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(255, 235, 133);
-            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlCard.Location = new System.Drawing.Point(250, 100);
-            this.pnlCard.Size = new System.Drawing.Size(500, 480);
+            // Card
+            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
+            this.pnlCard.Size = new System.Drawing.Size(550, 500);
+            this.pnlCard.Anchor = System.Windows.Forms.AnchorStyles.None;
 
-            this.lblJudul.Text = "ADA MASALAH? SPILL SINI ️";
-            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
-            this.lblJudul.Location = new System.Drawing.Point(40, 30);
-            this.lblJudul.AutoSize = true;
+            // Title
+            this.lblTitle.Text = "ADA KENDALA? SPILL SINI! 📢";
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(253, 224, 71);
+            this.lblTitle.Size = new System.Drawing.Size(480, 35);
+            this.lblTitle.Location = new System.Drawing.Point(35, 30);
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
-            this.lblSubjek.Text = "Judul Aduan:";
-            this.lblSubjek.Location = new System.Drawing.Point(45, 90);
-            this.lblSubjek.AutoSize = true;
+            // Subjek
+            this.lblSubjek.Text = "Subjek Aduan:";
+            this.lblSubjek.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblSubjek.ForeColor = System.Drawing.Color.White;
+            this.lblSubjek.Size = new System.Drawing.Size(480, 25);
+            this.lblSubjek.Location = new System.Drawing.Point(35, 90);
 
-            this.txtSubjek.Location = new System.Drawing.Point(50, 115);
-            this.txtSubjek.Size = new System.Drawing.Size(400, 27);
+            this.txtSubjek.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtSubjek.Location = new System.Drawing.Point(35, 115);
+            this.txtSubjek.Size = new System.Drawing.Size(480, 27);
+            this.txtSubjek.Multiline = false;   // ← pastikan single line
 
-            this.lblPesan.Text = "Ceritain detailnya (jangan di-skip):";
-            this.lblPesan.Location = new System.Drawing.Point(45, 160);
-            this.lblPesan.AutoSize = true;
+            // Deskripsi
+            this.lblDeskripsi.Text = "Ceritakan keluhannya:";
+            this.lblDeskripsi.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblDeskripsi.ForeColor = System.Drawing.Color.White;
+            this.lblDeskripsi.Size = new System.Drawing.Size(480, 25);
+            this.lblDeskripsi.Location = new System.Drawing.Point(35, 160);
 
-            // Mode Multiline untuk Pesan
-            this.txtPesan.Multiline = true;
-            this.txtPesan.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtPesan.Location = new System.Drawing.Point(50, 185);
-            this.txtPesan.Size = new System.Drawing.Size(400, 150);
+            this.txtDeskripsi.Multiline = true;
+            this.txtDeskripsi.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtDeskripsi.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtDeskripsi.Location = new System.Drawing.Point(35, 190);
+            this.txtDeskripsi.Size = new System.Drawing.Size(480, 140);
 
-            this.btnKirim.BackColor = System.Drawing.Color.FromArgb(170, 150, 218); // Ungu Logo
+            // Kirim
+            this.btnKirim.Text = "KIRIM ADUAN 🚀";
+            this.btnKirim.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
+            this.btnKirim.BackColor = System.Drawing.Color.FromArgb(167, 139, 250);
+            this.btnKirim.ForeColor = System.Drawing.Color.White;
             this.btnKirim.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnKirim.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.btnKirim.Text = "KIRIM ADUAN ";
-            this.btnKirim.Location = new System.Drawing.Point(50, 370);
-            this.btnKirim.Size = new System.Drawing.Size(400, 50);
+            this.btnKirim.Size = new System.Drawing.Size(480, 45);
+            this.btnKirim.Location = new System.Drawing.Point(35, 355);
             this.btnKirim.Click += new System.EventHandler(this.btnKirim_Click);
 
-            this.pnlCard.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblJudul, this.lblSubjek, this.txtSubjek,
-                this.lblPesan, this.txtPesan, this.btnKirim
-            });
+            // Lihat Aduan Saya
+            this.btnLihatAduanSaya.Text = "📝 Lihat Aduan Saya";
+            this.btnLihatAduanSaya.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnLihatAduanSaya.BackColor = System.Drawing.Color.FromArgb(253, 224, 71);
+            this.btnLihatAduanSaya.ForeColor = System.Drawing.Color.FromArgb(45, 27, 79);
+            this.btnLihatAduanSaya.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLihatAduanSaya.Size = new System.Drawing.Size(480, 30);
+            this.btnLihatAduanSaya.Location = new System.Drawing.Point(35, 410);
+            this.btnLihatAduanSaya.Click += new System.EventHandler(this.btnLihatAduanSaya_Click);
+
+            this.pnlCard.Controls.Add(this.lblTitle);
+            this.pnlCard.Controls.Add(this.lblSubjek);
+            this.pnlCard.Controls.Add(this.txtSubjek);
+            this.pnlCard.Controls.Add(this.lblDeskripsi);
+            this.pnlCard.Controls.Add(this.txtDeskripsi);
+            this.pnlCard.Controls.Add(this.btnKirim);
+            this.pnlCard.Controls.Add(this.btnLihatAduanSaya);
 
             this.Controls.Add(this.pnlCard);
+
             this.pnlCard.ResumeLayout(false);
-            this.pnlCard.PerformLayout();
             this.ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlCard;
-        private System.Windows.Forms.Label lblJudul, lblSubjek, lblPesan;
-        private System.Windows.Forms.TextBox txtSubjek, txtPesan;
-        private System.Windows.Forms.Button btnKirim;
+        private System.Windows.Forms.Label lblTitle, lblSubjek, lblDeskripsi;
+        private System.Windows.Forms.TextBox txtSubjek, txtDeskripsi;
+        private System.Windows.Forms.Button btnKirim, btnLihatAduanSaya;
     }
 }

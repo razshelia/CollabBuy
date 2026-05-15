@@ -222,5 +222,19 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
+        public int AmbilJumlahProduk()
+        {
+            NpgsqlConnection conn = _db.AmbilKoneksi();
+            if (conn == null) return 0;
+            try
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM products";
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch { return 0; }
+            finally { if (conn.State == ConnectionState.Open) conn.Close(); }
+        }
     }
 }

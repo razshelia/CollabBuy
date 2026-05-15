@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
@@ -8,54 +9,76 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class EditProfileControl : UserControl
     {
-        private UserService userService;
-        private Akun userAktif;
+        private User _user;
+        private UserService _userService;
 
-        public EditProfileControl(Akun akun)
+        public EditProfileControl(User user)
         {
-            this.InitializeComponent();
-            this.userService = new UserService();
-            this.userAktif = akun;
+            InitializeComponent();
+            _user = user;
+            _userService = new UserService();
+            LoadProfile();
+        }
 
-            // Auto-fill data saat ini
-            this.txtNama.Text = "Nama Dari Database"; // Asumsi binding data
+        private void LoadProfile()
+        {
+            txtNama.Text = _user.Nama;
+            txtTelepon.Text = _user.NomorTelepon ?? "";
+            txtEmail.Text = _user.Email;
+            txtUsername.Text = _user.Username;
+            // Username tidak bisa diedit
+            txtUsername.Enabled = false;
         }
 
         private void chkLihatPassword_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.chkLihatPassword.Checked)
-            {
-                // Karakter \0 (null) akan memperlihatkan teks aslinya
-                this.txtPasswordLama.PasswordChar = '\0';
-                this.txtPasswordBaru.PasswordChar = '\0';
-            }
-            else
-            {
-                // Kembalikan ke karakter bulat
-                this.txtPasswordLama.PasswordChar = '●';
-                this.txtPasswordBaru.PasswordChar = '●';
-            }
+            txtPasswordBaru.UseSystemPasswordChar = !chkLihatPassword.Checked;
+            txtKonfirmasiPassword.UseSystemPasswordChar = !chkLihatPassword.Checked;
         }
 
         private void btnSimpan_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(this.txtPasswordLama.Text))
+            string nama = txtNama.Text.Trim();
+            string telepon = txtTelepon.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string passBaru = txtPasswordBaru.Text.Trim();
+            string passKonfirmasi = txtKonfirmasiPassword.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(nama) || string.IsNullOrWhiteSpace(email))
             {
-                UXHelper.TampilkanError("Password lama wajib diisi buat verifikasi kalau ini beneran kamu! 🔒");
+                UXHelper.TampilkanError("Nama dan email wajib diisi, bestie!");
                 return;
             }
 
-            if (UXHelper.TampilkanKonfirmasi("Yakin nih data barunya udah bener?"))
+            if (!string.IsNullOrEmpty(passBaru))
             {
-                // Logika ganti password:
-                // 1. Service ngecek dulu apakah txtPasswordLama cocok sama hash di database.
-                // 2. Kalau txtPasswordBaru ga kosong, berarti password ikut di-update (di-hash ulang).
-                // 3. Simpan perubahan ke database.
+                if (passBaru != passKonfirmasi)
+                {
+                    UXHelper.TampilkanError("Password dan konfirmasi tidak cocok!");
+                    return;
+                }
+                if (passBaru.Length < 8)
+                {
+                    UXHelper.TampilkanError("Password minimal 8 karakter ya~");
+                    return;
+                }
+            }
 
-                UXHelper.TampilkanSukses("Profil kamu berhasil di-glow up! Ganti password sukses! ✨");
-                this.txtPasswordLama.Clear();
-                this.txtPasswordBaru.Clear();
-                this.chkLihatPassword.Checked = false;
+            // Update model user
+            _user.Nama = nama;
+            _user.NomorTelepon = telepon;
+            _user.Email = email;
+
+            // Jika password diisi, kirim password baru (akan di‑hash oleh service)
+            bool sukses = _userService.UpdateProfil(_user, string.IsNullOrEmpty(passBaru) ? null : passBaru);
+            if (sukses)
+            {
+                UXHelper.TampilkanSukses("Profil berhasil diperbarui! ✨");
+                // Kembali ke halaman sebelumnya (dashboard)
+                if (ParentForm is MainForm main)
+                {
+                    main.GantiHalaman(new UserDashboardControl(_user));
+                }
             }
         }
     }

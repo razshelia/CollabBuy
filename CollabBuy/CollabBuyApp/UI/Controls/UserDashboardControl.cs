@@ -1,94 +1,219 @@
+﻿// UserDashboardControl.cs
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Services;
+using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class UserDashboardControl : UserControl
     {
-        private Akun userAktif;
+        private User _user;
+        private CatalogService _catalogService;
+        private CategoryService _categoryService;
+        private ProductService _productService;
+        private List<Catalog> _semuaProduk;
 
-        public UserDashboardControl(Akun akun)
+        public UserDashboardControl(User user)
         {
             InitializeComponent();
-            this.userAktif = akun;
-            this.lblSapaan.Text = $"Hola {akun.Username}! Spill Produk Hari Ini ✨";
-            this.lblSubtitle.Text = "Temukan barang Danus favoritmu sekarang!";
-            this.MuatBarangDummy();
+            _user = user;
+            _catalogService = new CatalogService();
+            _categoryService = new CategoryService();
+            _productService = new ProductService();
+            MuatKatalog();
+            MuatKategoriFilter();
         }
 
-        private void MuatBarangDummy()
+        private void MuatKatalog()
         {
-            this.flpKonten.Controls.Clear();
-
-            string[] namaBarang = {
-                "Ganci Himatif 2024", "Hoodie Kampus XL", "Sticker Pack OOP",
-                "Mug Coding Night", "Totebag Wisuda", "Pin Set HMI"
-            };
-            string[] harga = { "Rp 15.000", "Rp 120.000", "Rp 25.000",
-                                "Rp 45.000", "Rp 60.000", "Rp 10.000" };
-
-            for (int i = 0; i < namaBarang.Length; i++)
+            try
             {
-                Panel card = new Panel();
-                card.Size      = new Size(220, 300);
-                card.BackColor = Color.White;
-                card.BorderStyle = BorderStyle.FixedSingle;
-                card.Margin    = new Padding(10);
-                card.Cursor    = Cursors.Hand;
-
-                // Foto placeholder (coloured block)
-                Panel foto = new Panel();
-                foto.Size      = new Size(220, 150);
-                foto.Location  = new Point(0, 0);
-                foto.BackColor = (i % 2 == 0)
-                    ? Color.FromArgb(255, 235, 133)
-                    : Color.FromArgb(200, 190, 240);
-
-                Label lblEmoji = new Label();
-                lblEmoji.Text      = "🛍️";
-                lblEmoji.Font      = new Font("Segoe UI", 28F);
-                lblEmoji.AutoSize  = false;
-                lblEmoji.Size      = new Size(220, 150);
-                lblEmoji.TextAlign = ContentAlignment.MiddleCenter;
-                foto.Controls.Add(lblEmoji);
-
-                Label lblNama = new Label();
-                lblNama.Text      = namaBarang[i];
-                lblNama.Font      = new Font("Segoe UI", 10F, FontStyle.Bold);
-                lblNama.ForeColor = Color.FromArgb(40, 40, 60);
-                lblNama.AutoSize  = false;
-                lblNama.Size      = new Size(200, 40);
-                lblNama.Location  = new Point(10, 158);
-                lblNama.TextAlign = ContentAlignment.MiddleLeft;
-
-                Label lblHarga = new Label();
-                lblHarga.Text      = harga[i];
-                lblHarga.Font      = new Font("Segoe UI", 11F, FontStyle.Bold);
-                lblHarga.ForeColor = Color.FromArgb(100, 80, 170);
-                lblHarga.AutoSize  = false;
-                lblHarga.Size      = new Size(200, 28);
-                lblHarga.Location  = new Point(10, 198);
-
-                Button btnBeli = new Button();
-                btnBeli.Text                              = "GAS CHECKOUT! 🛒";
-                btnBeli.Font                              = new Font("Segoe UI", 9F, FontStyle.Bold);
-                btnBeli.BackColor                         = Color.FromArgb(170, 150, 218);
-                btnBeli.ForeColor                         = Color.White;
-                btnBeli.FlatStyle                         = FlatStyle.Flat;
-                btnBeli.FlatAppearance.BorderSize         = 0;
-                btnBeli.FlatAppearance.MouseOverBackColor = Color.FromArgb(145, 125, 195);
-                btnBeli.Size                              = new Size(200, 38);
-                btnBeli.Location                          = new Point(10, 252);
-                btnBeli.Cursor                            = Cursors.Hand;
-
-                card.Controls.Add(foto);
-                card.Controls.Add(lblNama);
-                card.Controls.Add(lblHarga);
-                card.Controls.Add(btnBeli);
-                this.flpKonten.Controls.Add(card);
+                _semuaProduk = _catalogService.AmbilKatalogAktif();
+                FilterDanTampilkan();
+            }
+            catch (Exception ex)
+            {
+                UXHelper.TampilkanError("Gagal memuat katalog: " + ex.Message);
             }
         }
+
+        private void MuatKategoriFilter()
+        {
+            var listKategori = _categoryService.AmbilSemua();
+            listKategori.Insert(0, new Category { IdKategori = 0, NamaKategori = "Semua Kategori" });
+
+            cmbKategori.DataSource = listKategori;
+            cmbKategori.DisplayMember = "NamaKategori";
+            cmbKategori.ValueMember = "IdKategori";
+            cmbKategori.SelectedIndex = 0;
+        }
+
+        private void FilterDanTampilkan()
+        {
+            string keyword = txtSearch.Text.Trim().ToLower();
+
+            // Cek apakah SelectedValue null atau bukan int
+            int selectedKategoriId = 0;
+            if (cmbKategori.SelectedValue != null && cmbKategori.SelectedValue is int)
+                selectedKategoriId = (int)cmbKategori.SelectedValue;
+
+            IEnumerable<Catalog> hasil = _semuaProduk;
+
+            if (!string.IsNullOrEmpty(keyword))
+                hasil = hasil.Where(p => p.NamaProduk.ToLower().Contains(keyword) ||
+                                         p.JudulPo.ToLower().Contains(keyword));
+
+            if (selectedKategoriId > 0)
+            {
+                var idProdukTerpilih = new List<int>();
+                foreach (var p in _semuaProduk)
+                {
+                    var produk = _productService.AmbilProdukById(p.IdProduk);
+                    if (produk != null && produk.IdKategori == selectedKategoriId)
+                        idProdukTerpilih.Add(p.IdProduk);
+                }
+                hasil = hasil.Where(p => idProdukTerpilih.Contains(p.IdProduk));
+            }
+
+            var listHasil = hasil.ToList();
+            TampilkanCardProduk(listHasil);
+            lblCount.Text = $"Menampilkan {listHasil.Count} produk";
+        }
+
+        private void TampilkanCardProduk(List<Catalog> daftar)
+        {
+            flowPanelProduk.Controls.Clear();
+
+            if (daftar.Count == 0)
+            {
+                Label lblKosong = new Label();
+                lblKosong.Text = "Belum ada produk nih, bestie! 😴\nCoba cek lagi nanti~";
+                lblKosong.Font = new Font("Segoe UI", 14F, FontStyle.Regular);
+                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
+                lblKosong.Size = new Size(600, 80);
+                lblKosong.Location = new Point(150, 200);
+                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
+                flowPanelProduk.Controls.Add(lblKosong);
+                return;
+            }
+
+            foreach (var item in daftar)
+            {
+                Panel card = BuatCard(item);
+                flowPanelProduk.Controls.Add(card);
+            }
+        }
+
+        private Panel BuatCard(Catalog produk)
+        {
+            Panel card = new Panel();
+            card.Size = new Size(280, 400);
+            card.BackColor = Color.White;
+            card.Margin = new Padding(10);
+
+            Panel content = new Panel();
+            content.Size = new Size(280, 400);
+            content.BackColor = Color.White;
+
+            PictureBox pic = new PictureBox();
+            pic.Size = new Size(256, 140);
+            pic.Location = new Point(12, 12);
+            pic.BackColor = Color.FromArgb(167, 139, 250);
+            pic.SizeMode = PictureBoxSizeMode.Zoom;
+
+            try
+            {
+                var productDetail = _productService.AmbilProdukById(produk.IdProduk);
+                if (productDetail != null && !string.IsNullOrEmpty(productDetail.FotoProduk))
+                {
+                    string fullPath = FileHelper.DapatkanFullPath(productDetail.FotoProduk);
+                    if (File.Exists(fullPath))
+                        pic.Image = Image.FromFile(fullPath);
+                }
+            }
+            catch { }
+
+            Label lblJudulPO = new Label();
+            lblJudulPO.Text = $"📦 {produk.JudulPo}";
+            lblJudulPO.Font = new Font("Segoe UI Black", 10F, FontStyle.Bold);
+            lblJudulPO.ForeColor = Color.FromArgb(45, 27, 79);
+            lblJudulPO.Size = new Size(256, 35);
+            lblJudulPO.Location = new Point(12, 160);
+            lblJudulPO.Cursor = Cursors.Hand;
+            lblJudulPO.Click += (s, e) =>
+            {
+                if (ParentForm is MainForm main)
+                {
+                    var user = main.AmbilUserAktif();
+                    if (user != null)
+                    {
+                        var produkDetail = _productService.AmbilProdukById(produk.IdProduk);
+                        if (produkDetail != null)
+                            main.GantiHalaman(new PODetailControl(user, produkDetail.IdPo));
+                    }
+                }
+            };
+
+            Label lblNama = new Label();
+            lblNama.Text = produk.NamaProduk;
+            lblNama.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblNama.ForeColor = Color.FromArgb(167, 139, 250);
+            lblNama.Size = new Size(256, 25);
+            lblNama.Location = new Point(12, 195);
+
+            Label lblHarga = new Label();
+            lblHarga.Text = $"Rp {produk.HargaDasar:N0}";
+            lblHarga.Font = new Font("Segoe UI Black", 14F, FontStyle.Bold);
+            lblHarga.ForeColor = Color.FromArgb(253, 224, 71);
+            lblHarga.Size = new Size(256, 30);
+            lblHarga.Location = new Point(12, 225);
+
+            Label lblBatas = new Label();
+            lblBatas.Text = $"⏰ {produk.BatasWaktu:dd MMM yyyy HH:mm}";
+            lblBatas.Font = new Font("Segoe UI", 8F);
+            lblBatas.ForeColor = Color.Gray;
+            lblBatas.Size = new Size(256, 20);
+            lblBatas.Location = new Point(12, 260);
+
+            Button btnTitip = new Button();
+            btnTitip.Text = "Titip Sekarang ✨";
+            btnTitip.BackColor = Color.FromArgb(167, 139, 250);
+            btnTitip.ForeColor = Color.White;
+            btnTitip.FlatStyle = FlatStyle.Flat;
+            btnTitip.FlatAppearance.BorderSize = 0;
+            btnTitip.Size = new Size(256, 35);
+            btnTitip.Location = new Point(12, 295);
+            btnTitip.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnTitip.Click += (s, e) =>
+            {
+                if (ParentForm is MainForm main)
+                {
+                    var user = main.AmbilUserAktif();
+                    if (user != null)
+                        main.GantiHalaman(new CheckoutControl(user.IdUser, produk.IdProduk));
+                    else
+                        UXHelper.TampilkanError("Login dulu ya bestie! 🔐");
+                }
+            };
+
+            content.Controls.Add(pic);
+            content.Controls.Add(lblJudulPO);
+            content.Controls.Add(lblNama);
+            content.Controls.Add(lblHarga);
+            content.Controls.Add(lblBatas);
+            content.Controls.Add(btnTitip);
+
+            card.Controls.Add(content);
+            return card;
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e) => FilterDanTampilkan();
+        private void cmbKategori_SelectedIndexChanged(object sender, EventArgs e) => FilterDanTampilkan();
     }
 }

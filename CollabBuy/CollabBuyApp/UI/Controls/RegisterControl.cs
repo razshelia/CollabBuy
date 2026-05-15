@@ -1,86 +1,101 @@
 ﻿using System;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class RegisterControl : UserControl
     {
-        private UserService userService;
-
         public event EventHandler PindahKeLogin;
 
         public RegisterControl()
         {
             InitializeComponent();
-            this.userService = new UserService();
+            this.Resize += (s, e) => {
+                if (pnlCard != null)
+                {
+                    pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+                    pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+                }
+            };
         }
 
-        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+        private void chkLihatPassword_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.chkShowPassword.Checked)
-            {
-                this.txtPassword.PasswordChar = '\0';
-            }
-            else
-            {
-                this.txtPassword.PasswordChar = '●';
-            }
+            txtPassword.UseSystemPasswordChar = !chkLihatPassword.Checked;
+            txtKonfirmasiPassword.UseSystemPasswordChar = !chkLihatPassword.Checked;
         }
 
-        private void btnDaftarBaru_Click(object sender, EventArgs e)
+        private void txtNomorTelepon_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Bersihkan nomor telepon dari spasi (MaskedTextBox)
-            string nomorTeleponBersih = this.txtTelp.Text.Replace(" ", "").Trim();
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+                e.Handled = true;
+        }
 
-            if (string.IsNullOrWhiteSpace(this.txtNama.Text) ||
-                string.IsNullOrWhiteSpace(this.txtUsername.Text) ||
-                string.IsNullOrWhiteSpace(this.txtPassword.Text) ||
-                string.IsNullOrWhiteSpace(this.txtEmail.Text))
+        private void btnDaftar_Click(object sender, EventArgs e)
+        {
+            string nama = txtNama.Text.Trim();
+            string telp = txtNomorTelepon.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string user = txtUsername.Text.Trim();
+            string pass = txtPassword.Text.Trim();
+            string pass2 = txtKonfirmasiPassword.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(nama) || string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
             {
-                MessageBox.Show("Jangan ada yang kosong ya bestie, diisi semua dong!", "Ups!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                UXHelper.TampilkanError("Semua field wajib diisi dulu ya, bestie! 📝");
                 return;
             }
 
-            try
+            if (pass != pass2)
             {
-                User userBaru = new User();
-                userBaru.NamaLengkap = this.txtNama.Text.Trim();
-                userBaru.Username = this.txtUsername.Text.Trim();
-
-                // ✅ FIX: Set Password dan Email yang sebelumnya tidak pernah di-set!
-                userBaru.Password = this.txtPassword.Text;
-                userBaru.Email = this.txtEmail.Text.Trim();
-
-                // Hanya set nomor telepon jika diisi (tidak wajib kosong)
-                if (!string.IsNullOrWhiteSpace(nomorTeleponBersih))
-                {
-                    userBaru.NomorTelepon = nomorTeleponBersih;
-                }
-
-                bool sukses = this.userService.DaftarPenggunaBaru(userBaru);
-
-                if (sukses)
-                {
-                    if (this.PindahKeLogin != null)
-                    {
-                        this.PindahKeLogin.Invoke(this, EventArgs.Empty);
-                    }
-                }
+                UXHelper.TampilkanError("Password dan konfirmasinya beda nih 😖, coba samain dulu.");
+                return;
             }
-            catch (ArgumentException ex)
+
+            if (!chkSetuju.Checked)
             {
-                MessageBox.Show(ex.Message, "Waduh, data kurang valid nih!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                UXHelper.TampilkanError("Harus setuju sama syarat & ketentuannya ya, bestie! 📜");
+                return;
+            }
+
+            var auth = new AuthService();
+            bool sukses = auth.Register(nama, telp, email, user, pass);
+            if (sukses)
+            {
+                MessageBox.Show("Akun kamu berhasil dibuat, bestie! Login sekarang ya. 🎉",
+                    "CollabBuy – Yeay!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                PindahKeLogin?.Invoke(this, EventArgs.Empty);
             }
         }
 
-        private void btnKembali_Click(object sender, EventArgs e)
+        private void lblLoginLink_Click(object sender, EventArgs e)
         {
-            if (this.PindahKeLogin != null)
-            {
-                this.PindahKeLogin.Invoke(this, EventArgs.Empty);
-            }
+            PindahKeLogin?.Invoke(this, EventArgs.Empty);
+        }
+
+        // 👇 EVENT BARU: menampilkan Syarat & Ketentuan
+        private void lblSyaratKetentuan_Click(object sender, EventArgs e)
+        {
+            string teksSyarat =
+                "📜 Syarat & Ketentuan CollabBuy\n\n" +
+                "1. Kamu mahasiswa aktif Universitas Jember (UNEJ) yang terdaftar di database kemahasiswaan.\n" +
+                "2. Akun ini hanya untuk transaksi resmi danus, bukan buat nitip doi.\n" +
+                "3. Dilarang keras melakukan spam, penipuan, atau jualan jasa skripsi.\n" +
+                "4. Semua transaksi yang terjadi adalah tanggung jawab masing‑masing pengguna.\n" +
+                "5. Admin berhak memblokir akun yang melanggar aturan tanpa peringatan dulu.\n" +
+                "6. Password jangan kasih tahu siapa‑siapa, termasuk gebetan!\n" +
+                "7. Dengan mendaftar, kamu setuju buat ikut gotong royong demi solidaritas kampus. ✨";
+
+            MessageBox.Show(teksSyarat, "CollabBuy – Syarat & Ketentuan",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private static class UXHelper
+        {
+            public static void TampilkanError(string pesan) =>
+                MessageBox.Show(pesan, "CollabBuy – Oops!", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

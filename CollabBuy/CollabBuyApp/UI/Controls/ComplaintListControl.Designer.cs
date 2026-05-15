@@ -1,6 +1,6 @@
 ﻿namespace CollabBuy.CollabBuyApp.UI.Controls
 {
-    partial class SellerOrderControl
+    partial class ComplaintListControl
     {
         private System.ComponentModel.IContainer components = null;
         protected override void Dispose(bool disposing)
@@ -14,7 +14,7 @@
             pnlHeader = new Panel();
             lblJudul = new Label();
             btnRefresh = new Button();
-            flowPanelPesanan = new FlowLayoutPanel();
+            flowPanel = new FlowLayoutPanel();
             pnlHeader.SuspendLayout();
             SuspendLayout();
             // 
@@ -37,7 +37,7 @@
             lblJudul.Name = "lblJudul";
             lblJudul.Size = new Size(400, 35);
             lblJudul.TabIndex = 0;
-            lblJudul.Text = "PESANAN MASUK 📋";
+            lblJudul.Text = "DAFTAR ADUAN 📩";
             // 
             // btnRefresh
             // 
@@ -53,23 +53,23 @@
             btnRefresh.UseVisualStyleBackColor = false;
             btnRefresh.Click += btnRefresh_Click;
             // 
-            // flowPanelPesanan
+            // flowPanel
             // 
-            flowPanelPesanan.AutoScroll = true;
-            flowPanelPesanan.BackColor = Color.FromArgb(255, 249, 230);
-            flowPanelPesanan.Dock = DockStyle.Fill;
-            flowPanelPesanan.Location = new Point(0, 80);
-            flowPanelPesanan.Name = "flowPanelPesanan";
-            flowPanelPesanan.Padding = new Padding(10);
-            flowPanelPesanan.Size = new Size(1046, 253);
-            flowPanelPesanan.TabIndex = 0;
+            flowPanel.AutoScroll = true;
+            flowPanel.BackColor = Color.FromArgb(255, 249, 230);
+            flowPanel.Dock = DockStyle.Fill;
+            flowPanel.Location = new Point(0, 80);
+            flowPanel.Name = "flowPanel";
+            flowPanel.Padding = new Padding(10);
+            flowPanel.Size = new Size(1046, 253);
+            flowPanel.TabIndex = 0;
             // 
-            // SellerOrderControl
+            // ComplaintListControl
             // 
             BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelPesanan);
+            Controls.Add(flowPanel);
             Controls.Add(pnlHeader);
-            Name = "SellerOrderControl";
+            Name = "ComplaintListControl";
             Size = new Size(1046, 333);
             pnlHeader.ResumeLayout(false);
             ResumeLayout(false);
@@ -78,6 +78,6 @@
         private System.Windows.Forms.Panel pnlHeader;
         private System.Windows.Forms.Label lblJudul;
         private System.Windows.Forms.Button btnRefresh;
-        private System.Windows.Forms.FlowLayoutPanel flowPanelPesanan;
+        private System.Windows.Forms.FlowLayoutPanel flowPanel;
     }
 }

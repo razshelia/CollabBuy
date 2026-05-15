@@ -1,114 +1,108 @@
-namespace CollabBuy.CollabBuyApp.UI.Controls
+﻿namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     partial class AdminDashboardControl
     {
+        private System.ComponentModel.IContainer components = null;
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
+
         private void InitializeComponent()
         {
-            pnlHeader = new System.Windows.Forms.Panel();
-            lblJudul  = new System.Windows.Forms.Label();
-            lblSub    = new System.Windows.Forms.Label();
-            pnlStats  = new System.Windows.Forms.Panel();
-            cardUsers = new System.Windows.Forms.Panel();
-            cardPO    = new System.Windows.Forms.Panel();
-            cardDone  = new System.Windows.Forms.Panel();
-            lblAdmin  = new System.Windows.Forms.Label();
-
+            lblWelcome = new Label();
+            pnlCards = new FlowLayoutPanel();
+            lblTotalUser = new Label();
+            lblTotalProduk = new Label();
+            lblTotalTransaksi = new Label();
+            lblTotalAduan = new Label();
             SuspendLayout();
-
-            BackColor = System.Drawing.Color.FromArgb(247, 247, 252);
-            Dock      = System.Windows.Forms.DockStyle.Fill;
-            Name      = "AdminDashboardControl";
-
-            // Header
-            pnlHeader.Dock      = System.Windows.Forms.DockStyle.Top;
-            pnlHeader.Height    = 110;
-            pnlHeader.BackColor = System.Drawing.Color.White;
-            pnlHeader.Name      = "pnlHeader";
-
-            lblJudul.Text      = "Dashboard Admin 🛡️";
-            lblJudul.Font      = new System.Drawing.Font("Segoe UI Black", 22F, System.Drawing.FontStyle.Bold);
-            lblJudul.ForeColor = System.Drawing.Color.FromArgb(40, 40, 60);
-            lblJudul.AutoSize  = false;
-            lblJudul.Size      = new System.Drawing.Size(700, 50);
-            lblJudul.Location  = new System.Drawing.Point(30, 18);
-
-            lblSub.Text      = "Pantau kondisi global perputaran dana usaha di kampus.";
-            lblSub.Font      = new System.Drawing.Font("Segoe UI", 11F);
-            lblSub.ForeColor = System.Drawing.Color.Gray;
-            lblSub.AutoSize  = false;
-            lblSub.Size      = new System.Drawing.Size(600, 26);
-            lblSub.Location  = new System.Drawing.Point(32, 72);
-
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(lblSub);
-
-            // Stats row
-            pnlStats.Dock      = System.Windows.Forms.DockStyle.Top;
-            pnlStats.Height    = 140;
-            pnlStats.BackColor = System.Drawing.Color.FromArgb(247, 247, 252);
-            pnlStats.Padding   = new System.Windows.Forms.Padding(30, 20, 30, 0);
-            pnlStats.Name      = "pnlStats";
-
-            System.Windows.Forms.Panel MakeStatCard(string emoji, string title, string val,
-                                                     System.Drawing.Color bg, int x)
-            {
-                var c = new System.Windows.Forms.Panel();
-                c.BackColor   = bg;
-                c.Size        = new System.Drawing.Size(220, 100);
-                c.Location    = new System.Drawing.Point(x, 20);
-                c.BorderStyle = System.Windows.Forms.BorderStyle.None;
-
-                var emojiLbl = new System.Windows.Forms.Label();
-                emojiLbl.Text      = emoji;
-                emojiLbl.Font      = new System.Drawing.Font("Segoe UI", 22F);
-                emojiLbl.Location  = new System.Drawing.Point(14, 12);
-                emojiLbl.AutoSize  = true;
-                c.Controls.Add(emojiLbl);
-
-                var titleLbl = new System.Windows.Forms.Label();
-                titleLbl.Text      = title;
-                titleLbl.Font      = new System.Drawing.Font("Segoe UI", 9F);
-                titleLbl.ForeColor = System.Drawing.Color.FromArgb(80, 80, 100);
-                titleLbl.Location  = new System.Drawing.Point(60, 14);
-                titleLbl.AutoSize  = true;
-                c.Controls.Add(titleLbl);
-
-                var valLbl = new System.Windows.Forms.Label();
-                valLbl.Text      = val;
-                valLbl.Font      = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
-                valLbl.ForeColor = System.Drawing.Color.FromArgb(40, 40, 60);
-                valLbl.Location  = new System.Drawing.Point(58, 34);
-                valLbl.AutoSize  = true;
-                c.Controls.Add(valLbl);
-
-                return c;
-            }
-
-            cardUsers = MakeStatCard("👥", "Total User",         "128", System.Drawing.Color.FromArgb(255, 235, 133), 0);
-            cardPO    = MakeStatCard("📦", "PO Aktif",           "24",  System.Drawing.Color.FromArgb(200, 190, 240), 240);
-            cardDone  = MakeStatCard("✅", "Transaksi Selesai",   "312", System.Drawing.Color.FromArgb(180, 230, 200), 480);
-
-            pnlStats.Controls.Add(cardUsers);
-            pnlStats.Controls.Add(cardPO);
-            pnlStats.Controls.Add(cardDone);
-
-            // Placeholder info
-            lblAdmin.Text      = "Pilih menu di sidebar untuk mulai mengelola CollabBuy 👈";
-            lblAdmin.Font      = new System.Drawing.Font("Segoe UI", 13F);
-            lblAdmin.ForeColor = System.Drawing.Color.Silver;
-            lblAdmin.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            lblAdmin.Dock      = System.Windows.Forms.DockStyle.Fill;
-            lblAdmin.Name      = "lblAdmin";
-
-            Controls.Add(lblAdmin);
-            Controls.Add(pnlStats);
-            Controls.Add(pnlHeader);
-
+            // 
+            // lblWelcome
+            // 
+            lblWelcome.Font = new Font("Segoe UI Black", 22F);
+            lblWelcome.ForeColor = Color.FromArgb(45, 27, 79);
+            lblWelcome.Location = new Point(40, 30);
+            lblWelcome.Name = "lblWelcome";
+            lblWelcome.Size = new Size(500, 50);
+            lblWelcome.TabIndex = 0;
+            lblWelcome.Text = "DASHBOARD ADMIN 💼";
+            // 
+            // pnlCards
+            // 
+            pnlCards.BackColor = Color.Transparent;
+            pnlCards.Location = new Point(40, 110);
+            pnlCards.Name = "pnlCards";
+            pnlCards.Size = new Size(900, 300);
+            pnlCards.TabIndex = 1;
+            // 
+            // lblTotalUser
+            // 
+            lblTotalUser.Location = new Point(0, 0);
+            lblTotalUser.Name = "lblTotalUser";
+            lblTotalUser.Size = new Size(100, 23);
+            lblTotalUser.TabIndex = 0;
+            // 
+            // lblTotalProduk
+            // 
+            lblTotalProduk.Location = new Point(0, 0);
+            lblTotalProduk.Name = "lblTotalProduk";
+            lblTotalProduk.Size = new Size(100, 23);
+            lblTotalProduk.TabIndex = 0;
+            // 
+            // lblTotalTransaksi
+            // 
+            lblTotalTransaksi.Location = new Point(0, 0);
+            lblTotalTransaksi.Name = "lblTotalTransaksi";
+            lblTotalTransaksi.Size = new Size(100, 23);
+            lblTotalTransaksi.TabIndex = 0;
+            // 
+            // lblTotalAduan
+            // 
+            lblTotalAduan.Location = new Point(0, 0);
+            lblTotalAduan.Name = "lblTotalAduan";
+            lblTotalAduan.Size = new Size(100, 23);
+            lblTotalAduan.TabIndex = 0;
+            // 
+            // AdminDashboardControl
+            // 
+            BackColor = Color.FromArgb(255, 249, 230);
+            Controls.Add(lblWelcome);
+            Controls.Add(pnlCards);
+            Name = "AdminDashboardControl";
+            Size = new Size(1046, 333);
             ResumeLayout(false);
         }
 
-        private System.Windows.Forms.Panel pnlHeader, pnlStats;
-        private System.Windows.Forms.Panel cardUsers, cardPO, cardDone;
-        private System.Windows.Forms.Label lblJudul, lblSub, lblAdmin;
+        private System.Windows.Forms.Panel BuatCardStat(string judul, ref System.Windows.Forms.Label lblValue)
+        {
+            Panel card = new Panel();
+            card.Size = new Size(200, 120);
+            card.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
+            card.Margin = new Padding(10);
+            Label lblJudul = new Label()
+            {
+                Text = judul,
+                Font = new System.Drawing.Font("Segoe UI", 10F),
+                ForeColor = System.Drawing.Color.White,
+                Size = new Size(180, 30),
+                Location = new Point(10, 10)
+            };
+            lblValue = new Label()
+            {
+                Text = "0",
+                Font = new System.Drawing.Font("Segoe UI Black", 24F),
+                ForeColor = System.Drawing.Color.FromArgb(253, 224, 71),
+                Size = new Size(180, 50),
+                Location = new Point(10, 50)
+            };
+            card.Controls.Add(lblJudul);
+            card.Controls.Add(lblValue);
+            return card;
+        }
+
+        private System.Windows.Forms.Label lblWelcome, lblTotalUser, lblTotalProduk, lblTotalTransaksi, lblTotalAduan;
+        private System.Windows.Forms.FlowLayoutPanel pnlCards;
     }
 }

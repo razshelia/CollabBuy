@@ -11,5 +11,6 @@ namespace CollabBuy.CollabBuyApp.Interfaces
         bool UpdateProduk(Product produk);
         bool HapusProduk(int idProduk);
         int HitungHargaAktual(int idProduk);
+        int AmbilJumlahProduk();
     }
 }
