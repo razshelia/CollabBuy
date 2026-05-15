@@ -59,7 +59,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         private Panel BuatCardAduan(Complaint aduan)
         {
             Panel card = new Panel();
-            card.Size = new Size(680, 110);
+            card.Size = new Size(700, 130);
             card.BackColor = Color.White;
             card.Margin = new Padding(5);
             card.Padding = new Padding(15);

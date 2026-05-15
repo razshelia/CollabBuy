@@ -32,7 +32,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         private void LoadKategoriCombo()
         {
             var listKat = _categoryService.AmbilSemua();
-            listKat.Insert(0, new Category { IdKategori = 0, NamaKategori = "Pilih Kategori" });
+            listKat.Insert(0, new Category { IdKategori = 0, NamaKategori = "-- Pilih Kategori --" });
             cmbKategori.DataSource = listKat;
             cmbKategori.DisplayMember = "NamaKategori";
             cmbKategori.ValueMember = "IdKategori";
@@ -47,10 +47,10 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             txtDiskon.Text = _produkEdit.HargaDiskon?.ToString();
             txtTarget.Text = _produkEdit.TargetKuota?.ToString();
             nudMinOrder.Value = _produkEdit.MinOrder;
+            txtDeskripsi.Text = _produkEdit.Deskripsi ?? string.Empty; // ← TAMBAHAN
             cmbKategori.SelectedValue = _produkEdit.IdKategori ?? 0;
             _pathFoto = _produkEdit.FotoProduk;
 
-            // Tampilkan preview foto lama jika ada
             if (!string.IsNullOrEmpty(_produkEdit.FotoProduk))
             {
                 string fullPath = FileHelper.DapatkanFullPath(_produkEdit.FotoProduk);
@@ -86,7 +86,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void btnSimpan_Click(object sender, EventArgs e)
         {
-            // Validasi
+            // --- Validasi ---
             if (string.IsNullOrWhiteSpace(txtNama.Text))
             {
                 UXHelper.TampilkanError("Nama produk wajib diisi ya!");
@@ -104,21 +104,44 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             int? idKat = (int?)cmbKategori.SelectedValue;
             if (idKat == 0) idKat = null;
 
+            // Ambil deskripsi (opsional, boleh kosong)
+            string deskripsi = string.IsNullOrWhiteSpace(txtDeskripsi.Text)
+                               ? null
+                               : txtDeskripsi.Text.Trim();
+
             bool sukses;
             if (_produkEdit != null)
             {
-                // Update
-                sukses = _productService.UpdateProduk(_produkEdit.IdProduk, txtNama.Text.Trim(), harga, diskon, target, minOrder, _pathFoto);
+                // Update — kirim deskripsi ke service
+                sukses = _productService.UpdateProduk(
+                    _produkEdit.IdProduk,
+                    txtNama.Text.Trim(),
+                    harga,
+                    diskon,
+                    target,
+                    minOrder,
+                    deskripsi,   // ← TAMBAHAN
+                    _pathFoto
+                );
             }
             else
             {
-                // Tambah baru
-                sukses = _productService.TambahProduk(_idPo, idKat, txtNama.Text.Trim(), harga, diskon, target, minOrder, _pathFoto);
+                // Tambah baru — kirim deskripsi ke service
+                sukses = _productService.TambahProduk(
+                    _idPo,
+                    idKat,
+                    txtNama.Text.Trim(),
+                    harga,
+                    diskon,
+                    target,
+                    minOrder,
+                    deskripsi,   // ← TAMBAHAN
+                    _pathFoto
+                );
             }
 
             if (sukses)
             {
-                // Kembali ke daftar produk
                 if (ParentForm is MainForm main)
                 {
                     var user = main.AmbilUserAktif();

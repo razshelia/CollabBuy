@@ -30,9 +30,8 @@ namespace CollabBuy.CollabBuyApp.Services
         // 3. Tambah produk baru ke dalam PO
         public bool TambahProduk(int idPo, int? idKategori, string namaProduk,
                                  int hargaDasar, int? hargaDiskon, int? targetKuota,
-                                 int minOrder, string fotoPath)
+                                 int minOrder, string fotoPath, string deskripsi = null)
         {
-            // Validasi manual
             if (string.IsNullOrWhiteSpace(namaProduk))
             {
                 UXHelper.TampilkanError("Nama produk wajib diisi.");
@@ -48,7 +47,6 @@ namespace CollabBuy.CollabBuyApp.Services
                 UXHelper.TampilkanError("Minimal order harus ≥ 1.");
                 return false;
             }
-            // Validasi targetKuota khusus untuk PO Gotong Royong bisa ditambahkan di UI, tidak wajib di sini
 
             Product produk = new Product();
             produk.IdPo = idPo;
@@ -58,18 +56,18 @@ namespace CollabBuy.CollabBuyApp.Services
             produk.HargaDiskon = hargaDiskon;
             produk.TargetKuota = targetKuota;
             produk.MinOrder = minOrder;
-            produk.FotoProduk = fotoPath;  // path relatif dari FileHelper
+            produk.FotoProduk = fotoPath;
+            produk.Deskripsi = deskripsi;
 
             bool sukses = _prodRepo.TambahProduk(produk);
             if (sukses)
                 UXHelper.TampilkanSukses("Produk berhasil ditambahkan.");
-            // Error sudah ditampilkan oleh repository jika gagal
             return sukses;
         }
 
-        // 4. Update produk (hanya oleh penjual yang memiliki PO terkait)
+        // 4. Update produk
         public bool UpdateProduk(int idProduk, string nama, int hargaDasar, int? hargaDiskon,
-                                 int? targetKuota, int minOrder, string fotoPath)
+                                 int? targetKuota, int minOrder, string fotoPath, string deskripsi = null)
         {
             Product produk = _prodRepo.AmbilProdukById(idProduk);
             if (produk == null)
@@ -78,7 +76,6 @@ namespace CollabBuy.CollabBuyApp.Services
                 return false;
             }
 
-            // Validasi
             if (string.IsNullOrWhiteSpace(nama))
             {
                 UXHelper.TampilkanError("Nama produk wajib diisi.");
@@ -100,6 +97,7 @@ namespace CollabBuy.CollabBuyApp.Services
             produk.HargaDiskon = hargaDiskon;
             produk.TargetKuota = targetKuota;
             produk.MinOrder = minOrder;
+            produk.Deskripsi = deskripsi;
             if (!string.IsNullOrEmpty(fotoPath))
                 produk.FotoProduk = fotoPath;
 
@@ -109,7 +107,7 @@ namespace CollabBuy.CollabBuyApp.Services
             return sukses;
         }
 
-        // 5. Hapus produk (hanya oleh pemilik PO)
+        // 5. Hapus produk
         public bool HapusProduk(int idProduk)
         {
             if (!UXHelper.TampilkanKonfirmasi("Hapus produk ini?"))
@@ -121,11 +119,12 @@ namespace CollabBuy.CollabBuyApp.Services
             return sukses;
         }
 
-        // 6. Hitung harga aktual (memanggil function DB cek_harga_saat_ini)
+        // 6. Hitung harga aktual (function DB cek_harga_saat_ini)
         public int HitungHargaAktual(int idProduk)
         {
             return _prodRepo.HitungHargaAktual(idProduk);
         }
+
         public int AmbilJumlahProduk() => _prodRepo.AmbilJumlahProduk();
     }
 }

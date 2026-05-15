@@ -16,12 +16,11 @@ namespace CollabBuy.CollabBuyApp.UI
         public MainForm()
         {
             InitializeComponent();
-            this.Load += MainForm_Load;   // ← PENTING: panggil setelah form siap
+            this.Load += MainForm_Load;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            // Setelah form fully loaded, ukuran container sudah valid
             WindowState = FormWindowState.Maximized;
             TampilkanLogin();
         }
@@ -93,47 +92,54 @@ namespace CollabBuy.CollabBuyApp.UI
                 isSeller = verif != null && verif.IsVerifikasi;
             }
 
-            lblUserInfo.Text = isAdmin ? $"✨ Admin: {_userAktif.Nama}" : $"🛍️ {_userAktif.Nama}";
+            lblUserInfo.Text = isAdmin
+                ? $"✨ Admin: {_userAktif.Nama}"
+                : $"🛍️ {_userAktif.Nama}";
 
-            // Reset visibility
+            // Sembunyikan semua panel dulu
             pnlAdmin.Visible = false;
             pnlBuyer.Visible = false;
             pnlSeller.Visible = false;
 
-            int currentY = 100; // mulai setelah label user info
+            int currentY = 100;
 
             if (isAdmin)
             {
                 pnlAdmin.Top = currentY;
                 pnlAdmin.Visible = true;
-                currentY += pnlAdmin.Height + 10; // 210
+                currentY += pnlAdmin.Height + 10;
             }
 
             if (isUser)
             {
+                // Tampilkan/sembunyikan tombol BukaLapak sebelum set tinggi panel
+                btnUserBukaLapak.Visible = !isSeller;
+
+                // Hitung tinggi panel buyer dinamis:
+                // Label judul (25) + 4 tombol tetap × 40 + BukaLapak jika tampil × 40
+                int jumlahTombolBuyer = 4 + (isSeller ? 0 : 1); // Katalog, Checkout, Riwayat, Aduan, (+BukaLapak)
+                pnlBuyer.Height = 25 + (jumlahTombolBuyer * 40) + 10;
                 pnlBuyer.Top = currentY;
                 pnlBuyer.Visible = true;
-                currentY += pnlBuyer.Height + 10; // 250
+                currentY += pnlBuyer.Height + 10;
             }
 
             if (isSeller)
             {
                 pnlSeller.Top = currentY;
                 pnlSeller.Visible = true;
-                currentY += pnlSeller.Height + 10; // 190
+                currentY += pnlSeller.Height + 10;
             }
 
-            // Tombol BukaLapak hanya untuk user yang belum seller
-            btnUserBukaLapak.Visible = isUser && !isSeller;
-
-            // Posisi Profil dan Logout mengikuti akhir panel
+            // Profil dan Logout selalu di bawah panel terakhir
             btnProfil.Top = currentY;
             btnLogout.Top = currentY + 40;
         }
 
         private void HighlightNav(Button btn)
         {
-            Button[] allNav = {
+            Button[] allNav =
+            {
                 btnAdminDashboard, btnAdminVerifikasi, btnAdminKategori, btnAdminKeluhan,
                 btnUserKatalog, btnUserCheckout, btnUserRiwayat, btnUserAduan, btnUserBukaLapak,
                 btnSellerKatalog, btnSellerPesanan, btnSellerAnalitik, btnSellerUlasan,
@@ -194,11 +200,12 @@ namespace CollabBuy.CollabBuyApp.UI
             GantiHalaman(new UserDashboardControl(_userAktif));
         }
 
+        // Riwayat sekarang = Riwayat Checkout
         private void btnUserRiwayat_Click(object sender, EventArgs e)
         {
             HighlightNav(btnUserRiwayat);
             if (_userAktif != null)
-                GantiHalaman(new RiwayatControl(_userAktif.IdUser));
+                GantiHalaman(new CheckoutHistoryControl(_userAktif.IdUser));
         }
 
         private void btnUserAduan_Click(object sender, EventArgs e)
@@ -215,13 +222,9 @@ namespace CollabBuy.CollabBuyApp.UI
                 var verifService = new VerificationService();
                 var verif = verifService.AmbilVerifikasiByUser(reg.IdUser);
                 if (verif == null || !verif.IsVerifikasi)
-                {
                     GantiHalaman(new SellerVerificationControl(reg, RefreshSidebar));
-                }
                 else
-                {
                     GantiHalaman(new SellerPOListControl(reg.IdUser));
-                }
             }
         }
 
@@ -235,7 +238,6 @@ namespace CollabBuy.CollabBuyApp.UI
         private void btnSellerPesanan_Click(object sender, EventArgs e)
         {
             HighlightNav(btnSellerPesanan);
-            // SellerOrderControl sudah Anda buat
             GantiHalaman(new SellerOrderControl(_userAktif.IdUser));
         }
 
@@ -255,7 +257,6 @@ namespace CollabBuy.CollabBuyApp.UI
         private void btnProfil_Click(object sender, EventArgs e)
         {
             HighlightNav(btnProfil);
-            // EditProfileControl sudah Anda buat
             GantiHalaman(new EditProfileControl(_userAktif));
         }
 

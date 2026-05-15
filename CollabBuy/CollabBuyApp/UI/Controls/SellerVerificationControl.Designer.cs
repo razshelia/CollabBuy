@@ -43,7 +43,7 @@
             pnlCard.Controls.Add(btnKirim);
             pnlCard.Location = new Point(523, 166);
             pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(500, 480);
+            pnlCard.Size = new Size(500, 490);
             pnlCard.TabIndex = 0;
             // 
             // lblTitle
@@ -73,7 +73,7 @@
             lblNIM.ForeColor = Color.White;
             lblNIM.Location = new Point(40, 115);
             lblNIM.Name = "lblNIM";
-            lblNIM.Size = new Size(100, 23);
+            lblNIM.Size = new Size(420, 20);
             lblNIM.TabIndex = 2;
             lblNIM.Text = "NIM:";
             // 
@@ -81,6 +81,7 @@
             // 
             txtNIM.Location = new Point(40, 135);
             txtNIM.Name = "txtNIM";
+            txtNIM.PlaceholderText = "cth: 220411100001";
             txtNIM.Size = new Size(420, 23);
             txtNIM.TabIndex = 3;
             // 
@@ -89,7 +90,7 @@
             lblNamaToko.ForeColor = Color.White;
             lblNamaToko.Location = new Point(40, 170);
             lblNamaToko.Name = "lblNamaToko";
-            lblNamaToko.Size = new Size(100, 23);
+            lblNamaToko.Size = new Size(420, 20);
             lblNamaToko.TabIndex = 4;
             lblNamaToko.Text = "Nama Toko / Danus:";
             // 
@@ -97,6 +98,7 @@
             // 
             txtNamaToko.Location = new Point(40, 190);
             txtNamaToko.Name = "txtNamaToko";
+            txtNamaToko.PlaceholderText = "cth: Danus Teknik 2024";
             txtNamaToko.Size = new Size(420, 23);
             txtNamaToko.TabIndex = 5;
             // 
@@ -105,7 +107,7 @@
             lblTahunMasuk.ForeColor = Color.White;
             lblTahunMasuk.Location = new Point(40, 225);
             lblTahunMasuk.Name = "lblTahunMasuk";
-            lblTahunMasuk.Size = new Size(100, 23);
+            lblTahunMasuk.Size = new Size(420, 20);
             lblTahunMasuk.TabIndex = 6;
             lblTahunMasuk.Text = "Tahun Masuk Kuliah:";
             // 
@@ -113,6 +115,7 @@
             // 
             txtTahunMasuk.Location = new Point(40, 245);
             txtTahunMasuk.Name = "txtTahunMasuk";
+            txtTahunMasuk.PlaceholderText = "cth: 2022";
             txtTahunMasuk.Size = new Size(120, 23);
             txtTahunMasuk.TabIndex = 7;
             // 
@@ -120,10 +123,11 @@
             // 
             btnUploadKTM.BackColor = Color.FromArgb(167, 139, 250);
             btnUploadKTM.FlatStyle = FlatStyle.Flat;
+            btnUploadKTM.FlatAppearance.BorderSize = 0;
             btnUploadKTM.ForeColor = Color.White;
             btnUploadKTM.Location = new Point(40, 290);
             btnUploadKTM.Name = "btnUploadKTM";
-            btnUploadKTM.Size = new Size(75, 23);
+            btnUploadKTM.Size = new Size(200, 35);
             btnUploadKTM.TabIndex = 8;
             btnUploadKTM.Text = "📸 Upload Foto KTM";
             btnUploadKTM.UseVisualStyleBackColor = false;
@@ -131,10 +135,10 @@
             // 
             // lblStatusKTM
             // 
-            lblStatusKTM.ForeColor = Color.Gray;
-            lblStatusKTM.Location = new Point(40, 325);
+            lblStatusKTM.ForeColor = Color.FromArgb(167, 139, 250);
+            lblStatusKTM.Location = new Point(40, 335);
             lblStatusKTM.Name = "lblStatusKTM";
-            lblStatusKTM.Size = new Size(100, 23);
+            lblStatusKTM.Size = new Size(420, 20);
             lblStatusKTM.TabIndex = 9;
             lblStatusKTM.Text = "Belum ada file dipilih";
             // 
@@ -142,9 +146,10 @@
             // 
             btnKirim.BackColor = Color.FromArgb(167, 139, 250);
             btnKirim.FlatStyle = FlatStyle.Flat;
+            btnKirim.FlatAppearance.BorderSize = 0;
             btnKirim.Font = new Font("Segoe UI Black", 12F);
             btnKirim.ForeColor = Color.White;
-            btnKirim.Location = new Point(40, 370);
+            btnKirim.Location = new Point(40, 375);
             btnKirim.Name = "btnKirim";
             btnKirim.Size = new Size(420, 45);
             btnKirim.TabIndex = 10;

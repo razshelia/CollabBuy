@@ -13,30 +13,22 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
     {
         private int _idPenjual;
         private int _idPo;
+        private string _judulPo;
         private ProductService _productService;
-        private CategoryService _categoryService;
         private List<Product> _daftarProduk;
-        private string _pathFotoEdit = null; // untuk sementara saat edit
 
-        public SellerProductListControl(int idPenjual, int idPo)
+        public SellerProductListControl(int idPenjual, int idPo, string judulPo = "")
         {
             InitializeComponent();
             _idPenjual = idPenjual;
             _idPo = idPo;
+            _judulPo = judulPo;
             _productService = new ProductService();
-            _categoryService = new CategoryService();
-            LoadKategoriCombo();
-            LoadProduk();
-            ResetForm();
-        }
 
-        private void LoadKategoriCombo()
-        {
-            var listKat = _categoryService.AmbilSemua();
-            listKat.Insert(0, new Category { IdKategori = 0, NamaKategori = "-- Pilih Kategori --" });
-            cmbKategori.DataSource = listKat;
-            cmbKategori.DisplayMember = "NamaKategori";
-            cmbKategori.ValueMember = "IdKategori";
+            if (!string.IsNullOrEmpty(judulPo))
+                lblJudul.Text = $"🛍️ Produk — {judulPo}";
+
+            LoadProduk();
         }
 
         private void LoadProduk()
@@ -51,35 +43,35 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             if (_daftarProduk.Count == 0)
             {
-                Label lblKosong = new Label();
-                lblKosong.Text = "Belum ada produk di PO ini, bestie! 🥺\nTambah produk dulu yuk~";
-                lblKosong.Font = new Font("Segoe UI", 14F);
-                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
-                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
-                lblKosong.Dock = DockStyle.Fill;
+                Label lblKosong = new Label
+                {
+                    Text = "Belum ada produk di PO ini 🥺\nYuk tambah produk dulu~",
+                    Font = new Font("Segoe UI", 13F),
+                    ForeColor = Color.FromArgb(45, 27, 79),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Dock = DockStyle.Fill
+                };
                 flowPanelProduk.Controls.Add(lblKosong);
                 return;
             }
 
             foreach (var produk in _daftarProduk)
-            {
-                Panel card = BuatCardProduk(produk);
-                flowPanelProduk.Controls.Add(card);
-            }
+                flowPanelProduk.Controls.Add(BuatCardProduk(produk));
         }
 
         private Panel BuatCardProduk(Product produk)
         {
-            Panel card = new Panel();
-            card.Size = new Size(250, 200);
-            card.BackColor = Color.White;
-            card.Margin = new Padding(5);
-            card.Padding = new Padding(8);
-
-            // Foto
-            PictureBox pic = new PictureBox()
+            Panel card = new Panel
             {
-                Size = new Size(234, 90),
+                Size = new Size(220, 220),
+                BackColor = Color.White,
+                Margin = new Padding(8),
+                Padding = new Padding(8)
+            };
+
+            PictureBox pic = new PictureBox
+            {
+                Size = new Size(204, 100),
                 Location = new Point(8, 8),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.FromArgb(167, 139, 250)
@@ -90,146 +82,78 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 if (File.Exists(full)) pic.Image = Image.FromFile(full);
             }
 
-            // Nama
-            Label lblNama = new Label()
+            Label lblNama = new Label
             {
                 Text = produk.NamaProduk,
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(45, 27, 79),
-                Size = new Size(234, 20),
-                Location = new Point(8, 105)
+                Size = new Size(204, 20),
+                Location = new Point(8, 115)
             };
 
-            // Harga
-            Label lblHarga = new Label()
+            Label lblHarga = new Label
             {
                 Text = $"Rp {produk.HargaDasar:N0}",
                 Font = new Font("Segoe UI", 8F),
-                ForeColor = Color.FromArgb(253, 224, 71),
-                Size = new Size(120, 20),
-                Location = new Point(8, 125)
+                ForeColor = Color.FromArgb(100, 60, 180),
+                Size = new Size(204, 18),
+                Location = new Point(8, 137)
             };
 
-            // Tombol edit & hapus
-            Button btnEdit = new Button()
+            Button btnEdit = new Button
             {
-                Text = "✏️",
+                Text = "✏️ Edit",
                 BackColor = Color.FromArgb(167, 139, 250),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 8F),
-                Size = new Size(35, 25),
-                Location = new Point(8, 155)
+                Size = new Size(90, 28),
+                Location = new Point(8, 162)
             };
-            btnEdit.Click += (s, e) => IsiFormEdit(produk);
+            btnEdit.FlatAppearance.BorderSize = 0;
+            btnEdit.Click += (s, e) => NavigasiKeFormProduk(produk);
 
-            Button btnHapus = new Button()
+            Button btnHapus = new Button
             {
-                Text = "🗑",
-                BackColor = Color.Red,
+                Text = "🗑 Hapus",
+                BackColor = Color.FromArgb(220, 50, 50),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 8F),
-                Size = new Size(35, 25),
-                Location = new Point(48, 155)
+                Size = new Size(90, 28),
+                Location = new Point(106, 162)
             };
+            btnHapus.FlatAppearance.BorderSize = 0;
             btnHapus.Click += (s, e) =>
             {
-                if (MessageBox.Show("Hapus produk ini?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (UXHelper.TampilkanKonfirmasi($"Hapus produk \"{produk.NamaProduk}\"?"))
                 {
                     if (_productService.HapusProduk(produk.IdProduk))
                         LoadProduk();
                 }
             };
 
-            card.Controls.Add(pic);
-            card.Controls.Add(lblNama);
-            card.Controls.Add(lblHarga);
-            card.Controls.Add(btnEdit);
-            card.Controls.Add(btnHapus);
+            card.Controls.AddRange(new Control[] { pic, lblNama, lblHarga, btnEdit, btnHapus });
             return card;
         }
 
-        private void IsiFormEdit(Product p)
+        // ── Event Handlers ────────────────────────────────────
+
+        private void btnTambahProduk_Click(object sender, EventArgs e)
         {
-            txtNama.Text = p.NamaProduk;
-            nudHarga.Value = p.HargaDasar;
-            nudDiskon.Value = p.HargaDiskon ?? 0;
-            nudTarget.Value = p.TargetKuota ?? 0;
-            nudMinOrder.Value = p.MinOrder;
-            cmbKategori.SelectedValue = p.IdKategori ?? 0;
-            _pathFotoEdit = p.FotoProduk;
-            // status foto
-            lblStatusFoto.Text = string.IsNullOrEmpty(p.FotoProduk) ? "" : "Foto sudah ada (upload baru utk ganti)";
-            btnSimpan.Text = "💾 Update";
-            btnSimpan.Tag = p.IdProduk;
+            NavigasiKeFormProduk(null);
         }
 
-        private void ResetForm()
+        private void btnKembali_Click(object sender, EventArgs e)
         {
-            txtNama.Clear();
-            nudHarga.Value = 0;
-            nudDiskon.Value = 0;
-            nudTarget.Value = 0;
-            nudMinOrder.Value = 1;
-            cmbKategori.SelectedIndex = 0;
-            _pathFotoEdit = null;
-            lblStatusFoto.Text = "";
-            btnSimpan.Text = "➕ Tambah Produk";
-            btnSimpan.Tag = null;
+            if (ParentForm is MainForm main)
+                main.GantiHalaman(new SellerPOListControl(_idPenjual));
         }
 
-        private void btnUploadFoto_Click(object sender, EventArgs e)
+        private void NavigasiKeFormProduk(Product produkEdit = null)
         {
-            using (OpenFileDialog dlg = new OpenFileDialog())
-            {
-                dlg.Filter = "Images|*.jpg;*.png";
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    _pathFotoEdit = FileHelper.SimpanFile(dlg.FileName, "Products");
-                    lblStatusFoto.Text = "Foto baru terupload ✨";
-                }
-            }
-        }
-
-        private void btnSimpan_Click(object sender, EventArgs e)
-        {
-            string nama = txtNama.Text.Trim();
-            if (string.IsNullOrWhiteSpace(nama))
-            {
-                UXHelper.TampilkanError("Nama produk wajib diisi!");
-                return;
-            }
-            int hargaDasar = (int)nudHarga.Value;
-            int? hargaDiskon = nudDiskon.Value > 0 ? (int)nudDiskon.Value : (int?)null;
-            int? targetKuota = nudTarget.Value > 0 ? (int)nudTarget.Value : (int?)null;
-            int minOrder = (int)nudMinOrder.Value;
-            int? idKategori = (int)cmbKategori.SelectedValue;
-            if (idKategori == 0) idKategori = null;
-
-            if (btnSimpan.Tag is int idEdit)
-            {
-                bool sukses = _productService.UpdateProduk(idEdit, nama, hargaDasar, hargaDiskon, targetKuota, minOrder, _pathFotoEdit);
-                if (sukses)
-                {
-                    ResetForm();
-                    LoadProduk();
-                }
-            }
-            else
-            {
-                bool sukses = _productService.TambahProduk(_idPo, idKategori, nama, hargaDasar, hargaDiskon, targetKuota, minOrder, _pathFotoEdit);
-                if (sukses)
-                {
-                    ResetForm();
-                    LoadProduk();
-                }
-            }
-        }
-
-        private void btnBatal_Click(object sender, EventArgs e)
-        {
-            ResetForm();
+            if (ParentForm is MainForm main)
+                main.GantiHalaman(new ProductFormControl(_idPo, produkEdit));
         }
     }
 }

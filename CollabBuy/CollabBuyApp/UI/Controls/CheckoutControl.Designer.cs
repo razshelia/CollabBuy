@@ -125,11 +125,12 @@
             lblNama.Text = "Nama Penitip:";
             // 
             // txtNamaPenitip
-            // 
+            //
             txtNamaPenitip.Location = new Point(20, 40);
             txtNamaPenitip.Name = "txtNamaPenitip";
             txtNamaPenitip.Size = new Size(250, 23);
             txtNamaPenitip.TabIndex = 1;
+            txtNamaPenitip.PlaceholderText = "cth: Budi Santoso";
             // 
             // lblJml
             // 
@@ -147,6 +148,7 @@
             txtJumlah.Name = "txtJumlah";
             txtJumlah.Size = new Size(100, 23);
             txtJumlah.TabIndex = 3;
+            txtJumlah.PlaceholderText = "cth: 2";
             // 
             // lblCat
             // 
@@ -164,6 +166,7 @@
             txtCatatan.Name = "txtCatatan";
             txtCatatan.Size = new Size(300, 23);
             txtCatatan.TabIndex = 5;
+            txtCatatan.PlaceholderText = "cth: Ukuran M, warna merah (opsional)";
             // 
             // btnTambahPenitip
             // 

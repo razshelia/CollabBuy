@@ -11,97 +11,172 @@
 
         private void InitializeComponent()
         {
-            this.pnlCard = new System.Windows.Forms.Panel();
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.lblJudul = new System.Windows.Forms.Label();
-            this.txtJudulPO = new System.Windows.Forms.TextBox();
-            this.lblJenis = new System.Windows.Forms.Label();
-            this.cmbJenis = new System.Windows.Forms.ComboBox();
-            this.lblRekening = new System.Windows.Forms.Label();
-            this.txtInfoRekening = new System.Windows.Forms.TextBox();
-            this.lblBatas = new System.Windows.Forms.Label();
-            this.dtpBatasWaktu = new System.Windows.Forms.DateTimePicker();
-            this.lblTargetKuota = new System.Windows.Forms.Label();
-            this.txtTargetKuota = new System.Windows.Forms.TextBox();
-            this.btnBuat = new System.Windows.Forms.Button();
-
-            this.pnlCard.SuspendLayout();
-            this.SuspendLayout();
-
-            this.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
-
-            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
-            this.pnlCard.Size = new System.Drawing.Size(500, 500);
-            this.pnlCard.Location = new System.Drawing.Point((this.ClientSize.Width - 500) / 2, (this.ClientSize.Height - 500) / 2);
-            this.pnlCard.Anchor = System.Windows.Forms.AnchorStyles.None;
-
-            this.lblTitle.Text = "BUKA PREORDER BARU 🚀";
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 18F);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(253, 224, 71);
-            this.lblTitle.Size = new System.Drawing.Size(430, 40);
-            this.lblTitle.Location = new System.Drawing.Point(35, 30);
-            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-
-            this.lblJudul.Text = "Judul PO:";
-            this.lblJudul.ForeColor = System.Drawing.Color.White;
-            this.lblJudul.Location = new System.Drawing.Point(40, 90);
-            this.txtJudulPO.Location = new System.Drawing.Point(40, 110);
-            this.txtJudulPO.Size = new System.Drawing.Size(420, 27);
-
-            this.lblJenis.Text = "Jenis PO:";
-            this.lblJenis.ForeColor = System.Drawing.Color.White;
-            this.lblJenis.Location = new System.Drawing.Point(40, 150);
-            this.cmbJenis.Items.AddRange(new string[] { "Biasa", "Gotong Royong" });
-            this.cmbJenis.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbJenis.Location = new System.Drawing.Point(40, 170);
-            this.cmbJenis.Size = new System.Drawing.Size(420, 27);
-            this.cmbJenis.SelectedIndexChanged += new System.EventHandler(this.cmbJenis_SelectedIndexChanged);
-
-            this.lblRekening.Text = "Info Rekening:";
-            this.lblRekening.ForeColor = System.Drawing.Color.White;
-            this.lblRekening.Location = new System.Drawing.Point(40, 210);
-            this.txtInfoRekening.Location = new System.Drawing.Point(40, 230);
-            this.txtInfoRekening.Size = new System.Drawing.Size(420, 27);
-
-            this.lblBatas.Text = "Batas Waktu:";
-            this.lblBatas.ForeColor = System.Drawing.Color.White;
-            this.lblBatas.Location = new System.Drawing.Point(40, 270);
-            this.dtpBatasWaktu.Location = new System.Drawing.Point(40, 290);
-            this.dtpBatasWaktu.Size = new System.Drawing.Size(420, 27);
-
-            this.lblTargetKuota.Text = "Target Kuota:";
-            this.lblTargetKuota.ForeColor = System.Drawing.Color.White;
-            this.lblTargetKuota.Location = new System.Drawing.Point(40, 330);
-            this.txtTargetKuota.Location = new System.Drawing.Point(40, 350);
-            this.txtTargetKuota.Size = new System.Drawing.Size(420, 27);
-            this.lblTargetKuota.Visible = this.txtTargetKuota.Visible = false;
-
-            this.btnBuat.Text = "BUKA PO SEKARANG ✨";
-            this.btnBuat.BackColor = System.Drawing.Color.FromArgb(167, 139, 250);
-            this.btnBuat.ForeColor = System.Drawing.Color.White;
-            this.btnBuat.Font = new System.Drawing.Font("Segoe UI Black", 12F);
-            this.btnBuat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBuat.Location = new System.Drawing.Point(40, 400);
-            this.btnBuat.Size = new System.Drawing.Size(420, 45);
-            this.btnBuat.Click += new System.EventHandler(this.btnBuat_Click);
-
-            this.pnlCard.Controls.Add(this.lblTitle);
-            this.pnlCard.Controls.Add(this.lblJudul);
-            this.pnlCard.Controls.Add(this.txtJudulPO);
-            this.pnlCard.Controls.Add(this.lblJenis);
-            this.pnlCard.Controls.Add(this.cmbJenis);
-            this.pnlCard.Controls.Add(this.lblRekening);
-            this.pnlCard.Controls.Add(this.txtInfoRekening);
-            this.pnlCard.Controls.Add(this.lblBatas);
-            this.pnlCard.Controls.Add(this.dtpBatasWaktu);
-            this.pnlCard.Controls.Add(this.lblTargetKuota);
-            this.pnlCard.Controls.Add(this.txtTargetKuota);
-            this.pnlCard.Controls.Add(this.btnBuat);
-
-            this.Controls.Add(this.pnlCard);
-            this.pnlCard.ResumeLayout(false);
-            this.ResumeLayout(false);
+            pnlCard = new Panel();
+            lblTitle = new Label();
+            lblJudul = new Label();
+            txtJudulPO = new TextBox();
+            lblJenis = new Label();
+            cmbJenis = new ComboBox();
+            lblRekening = new Label();
+            txtInfoRekening = new TextBox();
+            lblBatas = new Label();
+            dtpBatasWaktu = new DateTimePicker();
+            lblTargetKuota = new Label();
+            txtTargetKuota = new TextBox();
+            btnBuat = new Button();
+            pnlCard.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlCard
+            // 
+            pnlCard.Anchor = AnchorStyles.None;
+            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
+            pnlCard.Controls.Add(lblTitle);
+            pnlCard.Controls.Add(lblJudul);
+            pnlCard.Controls.Add(txtJudulPO);
+            pnlCard.Controls.Add(lblJenis);
+            pnlCard.Controls.Add(cmbJenis);
+            pnlCard.Controls.Add(lblRekening);
+            pnlCard.Controls.Add(txtInfoRekening);
+            pnlCard.Controls.Add(lblBatas);
+            pnlCard.Controls.Add(dtpBatasWaktu);
+            pnlCard.Controls.Add(lblTargetKuota);
+            pnlCard.Controls.Add(txtTargetKuota);
+            pnlCard.Controls.Add(btnBuat);
+            pnlCard.Location = new Point(623, 216);
+            pnlCard.Name = "pnlCard";
+            pnlCard.Size = new Size(500, 500);
+            pnlCard.TabIndex = 0;
+            // 
+            // lblTitle
+            // 
+            lblTitle.Font = new Font("Segoe UI Black", 18F);
+            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
+            lblTitle.Location = new Point(35, 30);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(430, 40);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "BUKA PREORDER BARU 🚀";
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblJudul
+            // 
+            lblJudul.AutoSize = true;
+            lblJudul.ForeColor = Color.White;
+            lblJudul.Location = new Point(40, 90);
+            lblJudul.Name = "lblJudul";
+            lblJudul.Size = new Size(57, 15);
+            lblJudul.TabIndex = 1;
+            lblJudul.Text = "Judul PO:";
+            // 
+            // txtJudulPO
+            // 
+            txtJudulPO.Location = new Point(40, 110);
+            txtJudulPO.Name = "txtJudulPO";
+            txtJudulPO.PlaceholderText = "cth: PO Kaos BEM 2024";
+            txtJudulPO.Size = new Size(420, 23);
+            txtJudulPO.TabIndex = 2;
+            // 
+            // lblJenis
+            // 
+            lblJenis.AutoSize = true;
+            lblJenis.ForeColor = Color.White;
+            lblJenis.Location = new Point(40, 150);
+            lblJenis.Name = "lblJenis";
+            lblJenis.Size = new Size(54, 15);
+            lblJenis.TabIndex = 3;
+            lblJenis.Text = "Jenis PO:";
+            // 
+            // cmbJenis
+            // 
+            cmbJenis.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbJenis.Items.AddRange(new object[] { "Biasa", "Gotong Royong" });
+            cmbJenis.Location = new Point(40, 170);
+            cmbJenis.Name = "cmbJenis";
+            cmbJenis.Size = new Size(420, 23);
+            cmbJenis.TabIndex = 4;
+            cmbJenis.SelectedIndexChanged += cmbJenis_SelectedIndexChanged;
+            // 
+            // lblRekening
+            // 
+            lblRekening.AutoSize = true;
+            lblRekening.ForeColor = Color.White;
+            lblRekening.Location = new Point(40, 210);
+            lblRekening.Name = "lblRekening";
+            lblRekening.Size = new Size(83, 15);
+            lblRekening.TabIndex = 5;
+            lblRekening.Text = "Info Rekening:";
+            // 
+            // txtInfoRekening
+            // 
+            txtInfoRekening.Location = new Point(40, 230);
+            txtInfoRekening.Name = "txtInfoRekening";
+            txtInfoRekening.PlaceholderText = "cth: BCA 1234567890 a.n. Budi";
+            txtInfoRekening.Size = new Size(420, 23);
+            txtInfoRekening.TabIndex = 6;
+            // 
+            // lblBatas
+            // 
+            lblBatas.AutoSize = true;
+            lblBatas.ForeColor = Color.White;
+            lblBatas.Location = new Point(40, 270);
+            lblBatas.Name = "lblBatas";
+            lblBatas.Size = new Size(75, 15);
+            lblBatas.TabIndex = 7;
+            lblBatas.Text = "Batas Waktu:";
+            // 
+            // dtpBatasWaktu
+            // 
+            dtpBatasWaktu.Location = new Point(40, 290);
+            dtpBatasWaktu.Name = "dtpBatasWaktu";
+            dtpBatasWaktu.Size = new Size(420, 23);
+            dtpBatasWaktu.TabIndex = 8;
+            // 
+            // lblTargetKuota
+            // 
+            lblTargetKuota.AutoSize = true;
+            lblTargetKuota.ForeColor = Color.White;
+            lblTargetKuota.Location = new Point(40, 330);
+            lblTargetKuota.Name = "lblTargetKuota";
+            lblTargetKuota.Size = new Size(77, 15);
+            lblTargetKuota.TabIndex = 9;
+            lblTargetKuota.Text = "Target Kuota:";
+            lblTargetKuota.Visible = false;
+            // 
+            // txtTargetKuota
+            // 
+            txtTargetKuota.Location = new Point(40, 350);
+            txtTargetKuota.Name = "txtTargetKuota";
+            txtTargetKuota.PlaceholderText = "cth: 50";
+            txtTargetKuota.Size = new Size(420, 23);
+            txtTargetKuota.TabIndex = 10;
+            txtTargetKuota.Visible = false;
+            // 
+            // btnBuat
+            // 
+            btnBuat.BackColor = Color.FromArgb(167, 139, 250);
+            btnBuat.FlatAppearance.BorderSize = 0;
+            btnBuat.FlatStyle = FlatStyle.Flat;
+            btnBuat.Font = new Font("Segoe UI Black", 12F);
+            btnBuat.ForeColor = Color.White;
+            btnBuat.Location = new Point(40, 415);
+            btnBuat.Name = "btnBuat";
+            btnBuat.Size = new Size(420, 45);
+            btnBuat.TabIndex = 11;
+            btnBuat.Text = "BUKA PO SEKARANG ✨";
+            btnBuat.UseVisualStyleBackColor = false;
+            btnBuat.Click += btnBuat_Click;
+            // 
+            // PreorderControl
+            // 
+            BackColor = Color.FromArgb(255, 249, 230);
+            Controls.Add(pnlCard);
+            Name = "PreorderControl";
+            Size = new Size(1046, 333);
+            Resize += PreorderControl_Resize;
+            pnlCard.ResumeLayout(false);
+            pnlCard.PerformLayout();
+            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlCard;

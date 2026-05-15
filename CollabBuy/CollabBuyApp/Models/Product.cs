@@ -13,6 +13,7 @@ namespace CollabBuy.CollabBuyApp.Models
         private int? _targetKuota;
         private int _minOrder;
         private string _fotoProduk;
+        private string _deskripsi;
 
         public Product()
         {
@@ -110,7 +111,14 @@ namespace CollabBuy.CollabBuyApp.Models
         public string FotoProduk
         {
             get => _fotoProduk;
-            set => _fotoProduk = value; // bisa null
+            set => _fotoProduk = value;
+        }
+
+        // Deskripsi produk — boleh kosong/null
+        public string Deskripsi
+        {
+            get => _deskripsi;
+            set => _deskripsi = value;
         }
     }
 }

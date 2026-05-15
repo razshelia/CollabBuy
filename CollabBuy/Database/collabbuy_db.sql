@@ -49,6 +49,7 @@ CREATE TABLE products (
     id_po INTEGER REFERENCES preorders(id_po) ON DELETE CASCADE,
     id_kategori INTEGER REFERENCES categories(id_kategori) ON DELETE SET NULL,
     nama_produk VARCHAR(150) NOT NULL,
+    deskripsi TEXT,
     harga_dasar INTEGER NOT NULL,
     harga_diskon INTEGER,
     target_kuota INTEGER,
@@ -120,10 +121,18 @@ INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_wakt
 (3, 'Danus HIMATIF Gotong Royong', 'Gotong Royong', 'Mandiri 0987654321 a.n Daffa (Danus HIMATIF)', '2026-06-10 23:59:00', TRUE),
 (1, 'BPM Peduli Merchandise', 'Biasa', 'Gopay 081234567890 a.n Rangga Saputra', '2026-05-20 23:59:00', TRUE);
 
-INSERT INTO products (id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
-(1, 1, 'Kaos Polo BEM Eksklusif', 85000, NULL, NULL, 1, 'Uploads/Products/20260514_kaos_bem.jpg'),
-(2, 2, 'Ganci Akrilik HIMATIF', 15000, 12000, 50, 2, 'Uploads/Products/20260514_ganci_himatif.jpg'),
-(3, 3, 'Tumblr Aesthetic BPM', 45000, NULL, NULL, 1, 'Uploads/Products/20260514_tumblr_bpm.jpg');
+INSERT INTO products (id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
+(1, 1, 'Kaos Polo BEM Eksklusif',
+ 'Kaos polo premium berbahan cotton combed 30s dengan bordir logo BEM eksklusif. Tersedia ukuran S, M, L, XL.',
+ 85000, NULL, NULL, 1, 'Uploads/Products/20260514_kaos_bem.jpg'),
+
+(2, 2, 'Ganci Akrilik HIMATIF',
+ 'Gantungan kunci akrilik custom desain maskot HIMATIF. Cocok untuk koleksi atau hadiah.',
+ 15000, 12000, 50, 2, 'Uploads/Products/20260514_ganci_himatif.jpg'),
+
+(3, 3, 'Tumblr Aesthetic BPM',
+ 'Tumblr stainless steel 500ml dengan desain estetik logo BPM. Tahan panas hingga 12 jam.',
+ 45000, NULL, NULL, 1, 'Uploads/Products/20260514_tumblr_bpm.jpg');
 
 INSERT INTO transactions (id_koordinator, tanggal_transaksi, total_bayar_grup, status_pesanan, bukti_bayar, is_valid) VALUES
 (2, '2026-05-15 10:30:00', 30000, 'Diproses', 'Uploads/Payments/20260515_resi_nabila_tf.jpg', TRUE),

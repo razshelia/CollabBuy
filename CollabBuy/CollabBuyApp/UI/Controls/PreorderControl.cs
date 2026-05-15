@@ -14,15 +14,24 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            // Set batas waktu default 2 minggu ke depan
             dtpBatasWaktu.MinDate = DateTime.Now.AddDays(1);
             dtpBatasWaktu.Value = DateTime.Now.AddDays(14);
         }
 
+        // Dipanggil setiap kali ukuran kontrol berubah → card selalu di tengah
+        private void PreorderControl_Resize(object sender, EventArgs e)
+        {
+            pnlCard.Location = new Point(
+                (this.ClientSize.Width - pnlCard.Width) / 2,
+                (this.ClientSize.Height - pnlCard.Height) / 2
+            );
+        }
+
         private void cmbJenis_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Tampilkan/sembunyikan input target kuota khusus gotong royong
-            lblTargetKuota.Visible = txtTargetKuota.Visible = cmbJenis.Text == "Gotong Royong";
+            bool isGotong = cmbJenis.Text == "Gotong Royong";
+            lblTargetKuota.Visible = isGotong;
+            txtTargetKuota.Visible = isGotong;
         }
 
         private void btnBuat_Click(object sender, EventArgs e)

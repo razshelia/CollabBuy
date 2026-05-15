@@ -21,6 +21,7 @@
             flowPanel.Dock = DockStyle.Fill;
             flowPanel.Location = new Point(0, 70);
             flowPanel.Name = "flowPanel";
+            flowPanel.Padding = new Padding(10);
             flowPanel.Size = new Size(1046, 206);
             flowPanel.TabIndex = 0;
             // 
@@ -40,7 +41,7 @@
             lblJudul.ForeColor = Color.FromArgb(253, 224, 71);
             lblJudul.Location = new Point(20, 20);
             lblJudul.Name = "lblJudul";
-            lblJudul.Size = new Size(100, 23);
+            lblJudul.Size = new Size(500, 35);
             lblJudul.TabIndex = 0;
             lblJudul.Text = "RIWAYAT ADUAN 📩";
             // 

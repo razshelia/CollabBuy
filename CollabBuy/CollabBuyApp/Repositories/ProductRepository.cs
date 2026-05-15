@@ -25,8 +25,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
             try
             {
                 conn.Open();
-                string sql = @"INSERT INTO products (id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk)
-                               VALUES (@po, @kat, @nama, @harga, @diskon, @target, @min, @foto)";
+                string sql = @"INSERT INTO products
+                               (id_po, id_kategori, nama_produk, harga_dasar, harga_diskon,
+                                target_kuota, min_order, foto_produk, deskripsi)
+                               VALUES (@po, @kat, @nama, @harga, @diskon, @target, @min, @foto, @desk)";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("po", produk.IdPo);
@@ -37,6 +39,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     cmd.Parameters.AddWithValue("target", (object)produk.TargetKuota ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("min", produk.MinOrder);
                     cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("desk", (object)produk.Deskripsi ?? DBNull.Value);
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
@@ -47,8 +50,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             finally
             {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
 
@@ -61,16 +63,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             try
             {
                 conn.Open();
-                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk
+                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar,
+                                      harga_diskon, target_kuota, min_order, foto_produk, deskripsi
                                FROM products WHERE id_po = @po";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("po", idPo);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
                         while (reader.Read())
                             list.Add(BuatProdukDariReader(reader));
-                    }
                 }
             }
             catch (Exception ex)
@@ -79,8 +80,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             finally
             {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
             return list;
         }
@@ -93,16 +93,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             try
             {
                 conn.Open();
-                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk
+                string sql = @"SELECT id_produk, id_po, id_kategori, nama_produk, harga_dasar,
+                                      harga_diskon, target_kuota, min_order, foto_produk, deskripsi
                                FROM products WHERE id_produk = @id";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", idProduk);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
                         if (reader.Read())
                             return BuatProdukDariReader(reader);
-                    }
                 }
             }
             catch (Exception ex)
@@ -111,8 +110,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             finally
             {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
             return null;
         }
@@ -125,8 +123,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             try
             {
                 conn.Open();
-                string sql = @"UPDATE products SET nama_produk = @nama, harga_dasar = @harga, harga_diskon = @diskon,
-                               target_kuota = @target, min_order = @min, foto_produk = @foto, id_kategori = @kat
+                string sql = @"UPDATE products
+                               SET nama_produk  = @nama,
+                                   harga_dasar  = @harga,
+                                   harga_diskon = @diskon,
+                                   target_kuota = @target,
+                                   min_order    = @min,
+                                   foto_produk  = @foto,
+                                   id_kategori  = @kat,
+                                   deskripsi    = @desk
                                WHERE id_produk = @id";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
@@ -137,6 +142,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     cmd.Parameters.AddWithValue("min", produk.MinOrder);
                     cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("kat", (object)produk.IdKategori ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("desk", (object)produk.Deskripsi ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("id", produk.IdProduk);
                     return cmd.ExecuteNonQuery() > 0;
                 }
@@ -148,8 +154,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             finally
             {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
 
@@ -175,8 +180,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             finally
             {
-                if (conn.State == System.Data.ConnectionState.Open)
-                    conn.Close();
+                if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
 
@@ -192,18 +196,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 HargaDiskon = reader.IsDBNull(5) ? (int?)null : reader.GetInt32(5),
                 TargetKuota = reader.IsDBNull(6) ? (int?)null : reader.GetInt32(6),
                 MinOrder = reader.GetInt32(7),
-                FotoProduk = reader.IsDBNull(8) ? null : reader.GetString(8)
+                FotoProduk = reader.IsDBNull(8) ? null : reader.GetString(8),
+                Deskripsi = reader.IsDBNull(9) ? null : reader.GetString(9),
             };
         }
+
         public int HitungHargaAktual(int idProduk)
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
             if (conn == null) return 0;
-
             try
             {
                 conn.Open();
-                // Memanggil function cek_harga_saat_ini
                 string sql = "SELECT cek_harga_saat_ini(@id)";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
@@ -222,6 +226,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 if (conn.State == ConnectionState.Open) conn.Close();
             }
         }
+
         public int AmbilJumlahProduk()
         {
             NpgsqlConnection conn = _db.AmbilKoneksi();
