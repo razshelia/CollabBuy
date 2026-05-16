@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class TransactionService
     {
         private readonly ITransactionRepository _transRepo;
-
-        public TransactionService()
+        public TransactionService(ITransactionRepository transRepo)
         {
-            _transRepo = new TransactionRepository();
+            _transRepo = transRepo;
         }
 
         public int BuatTransaksi(int idKoordinator, int totalBayarGrup, List<TransactionDetail> details)

@@ -11,68 +11,73 @@
 
         private void InitializeComponent()
         {
-            pnlHeader = new Panel();
-            lblJudul = new Label();
-            btnTambah = new Button();
-            flowPanelKategori = new FlowLayoutPanel();
-            pnlHeader.SuspendLayout();
-            SuspendLayout();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.lblJudul = new System.Windows.Forms.Label();
+            this.btnTambah = new System.Windows.Forms.Button();
+            this.flowPanelKategori = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlHeader
             // 
-            pnlHeader.BackColor = Color.FromArgb(45, 27, 79);
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(btnTambah);
-            pnlHeader.Dock = DockStyle.Top;
-            pnlHeader.Location = new Point(0, 0);
-            pnlHeader.Name = "pnlHeader";
-            pnlHeader.Size = new Size(1046, 80);
-            pnlHeader.TabIndex = 1;
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlHeader.Controls.Add(this.lblJudul);
+            this.pnlHeader.Controls.Add(this.btnTambah);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1046, 80);
+            this.pnlHeader.TabIndex = 1;
             // 
             // lblJudul
             // 
-            lblJudul.Font = new Font("Segoe UI Black", 16F);
-            lblJudul.ForeColor = Color.FromArgb(253, 224, 71);
-            lblJudul.Location = new Point(20, 20);
-            lblJudul.Name = "lblJudul";
-            lblJudul.Size = new Size(300, 35);
-            lblJudul.TabIndex = 0;
-            lblJudul.Text = "KELOLA KATEGORI 📂";
+            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblJudul.Location = new System.Drawing.Point(20, 20);
+            this.lblJudul.Name = "lblJudul";
+            this.lblJudul.Size = new System.Drawing.Size(350, 40);
+            this.lblJudul.TabIndex = 0;
+            this.lblJudul.Text = "KELOLA KATEGORI 📂";
             // 
             // btnTambah
             // 
-            btnTambah.BackColor = Color.FromArgb(167, 139, 250);
-            btnTambah.FlatStyle = FlatStyle.Flat;
-            btnTambah.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnTambah.ForeColor = Color.White;
-            btnTambah.Location = new Point(500, 25);
-            btnTambah.Name = "btnTambah";
-            btnTambah.Size = new Size(150, 30);
-            btnTambah.TabIndex = 1;
-            btnTambah.Text = "➕ Tambah Kategori";
-            btnTambah.UseVisualStyleBackColor = false;
-            btnTambah.Click += btnTambah_Click;
+            this.btnTambah.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTambah.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnTambah.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnTambah.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnTambah.FlatAppearance.BorderSize = 2;
+            this.btnTambah.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTambah.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnTambah.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnTambah.Location = new System.Drawing.Point(840, 20);
+            this.btnTambah.Name = "btnTambah";
+            this.btnTambah.Size = new System.Drawing.Size(180, 40);
+            this.btnTambah.TabIndex = 1;
+            this.btnTambah.Text = "➕ Tambah Kategori";
+            this.btnTambah.UseVisualStyleBackColor = false;
+            this.btnTambah.Click += new System.EventHandler(this.btnTambah_Click);
             // 
             // flowPanelKategori
             // 
-            flowPanelKategori.AutoScroll = true;
-            flowPanelKategori.BackColor = Color.FromArgb(255, 249, 230);
-            flowPanelKategori.Dock = DockStyle.Fill;
-            flowPanelKategori.Location = new Point(0, 80);
-            flowPanelKategori.Name = "flowPanelKategori";
-            flowPanelKategori.Padding = new Padding(10);
-            flowPanelKategori.Size = new Size(1046, 196);
-            flowPanelKategori.TabIndex = 0;
+            this.flowPanelKategori.AutoScroll = true;
+            this.flowPanelKategori.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelKategori.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelKategori.Location = new System.Drawing.Point(0, 80);
+            this.flowPanelKategori.Name = "flowPanelKategori";
+            this.flowPanelKategori.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelKategori.Size = new System.Drawing.Size(1046, 196);
+            this.flowPanelKategori.TabIndex = 0;
             // 
             // AdminCategoryControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelKategori);
-            Controls.Add(pnlHeader);
-            Name = "AdminCategoryControl";
-            Size = new Size(1046, 276);
-            pnlHeader.ResumeLayout(false);
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelKategori);
+            this.Controls.Add(this.pnlHeader);
+            this.Name = "AdminCategoryControl";
+            this.Size = new System.Drawing.Size(1046, 276);
+            this.pnlHeader.ResumeLayout(false);
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlHeader;

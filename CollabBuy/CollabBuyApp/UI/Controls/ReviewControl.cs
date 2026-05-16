@@ -5,19 +5,23 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class ReviewControl : UserControl
     {
-        private int _idPenjual;
-        private ReviewService _reviewService;
+        private readonly int _idPenjual;
+        private readonly ReviewService _reviewService;
 
         public ReviewControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            _reviewService = new ReviewService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _reviewService = new ReviewService(new ReviewRepository());
+
             LoadData();
         }
 
@@ -40,12 +44,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             if (daftar.Count == 0)
             {
-                Label lblKosong = new Label();
-                lblKosong.Text = "Belum ada ulasan, bestie! 🥺\nSemoga cepet dapet bintang 5~";
-                lblKosong.Font = new Font("Segoe UI", 14F);
-                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
-                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
-                lblKosong.Dock = DockStyle.Fill;
+                Label lblKosong = new Label()
+                {
+                    Text = "Belum ada ulasan, bestie! 🥺\nSemoga cepet dapet bintang 5~",
+                    Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
+                    Dock = DockStyle.Fill
+                };
                 flowPanel.Controls.Add(lblKosong);
                 return;
             }
@@ -59,57 +66,77 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardReview(Review review)
         {
-            Panel card = new Panel();
-            card.Size = new Size(680, 120);
-            card.BackColor = Color.White;
-            card.Margin = new Padding(5);
-            card.Padding = new Padding(15);
+            // Desain Card Review bergaya Flat Neo-Retro
+            Panel card = new Panel()
+            {
+                Size = new Size(850, 130), // Lebar untuk full screen
+                BackColor = Color.White,
+                Margin = new Padding(10),
+                Padding = new Padding(15),
+                BorderStyle = BorderStyle.FixedSingle // Garis pinggir tegas
+            };
 
             // Rating
             string bintang = new string('⭐', review.Rating);
-            Label lblRating = new Label();
-            lblRating.Text = bintang;
-            lblRating.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblRating.ForeColor = Color.FromArgb(253, 224, 71);
-            lblRating.Size = new Size(200, 30);
-            lblRating.Location = new Point(15, 10);
+            Label lblRating = new Label()
+            {
+                Text = bintang,
+                Font = new Font("Segoe UI", 16F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(253, 224, 71), // Kuning cerah
+                Size = new Size(200, 35),
+                Location = new Point(15, 10)
+            };
 
             // Komentar
-            Label lblKomentar = new Label();
-            lblKomentar.Text = review.Komentar ?? "Tidak ada komentar.";
-            lblKomentar.Font = new Font("Segoe UI", 9F);
-            lblKomentar.ForeColor = Color.Gray;
-            lblKomentar.Size = new Size(500, 40);
-            lblKomentar.Location = new Point(15, 45);
+            Label lblKomentar = new Label()
+            {
+                Text = review.Komentar ?? "Tidak ada komentar tertulis.",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                Size = new Size(600, 45),
+                Location = new Point(15, 50)
+            };
 
             card.Controls.Add(lblRating);
             card.Controls.Add(lblKomentar);
 
-            // Balasan atau tombol balas
+            // Jika ada balasan atau tombol balas
             if (!string.IsNullOrEmpty(review.BalasanPenjual))
             {
-                Label lblBalasan = new Label();
-                lblBalasan.Text = $"Balasan kamu: {review.BalasanPenjual}";
-                lblBalasan.Font = new Font("Segoe UI", 8F, FontStyle.Italic);
-                lblBalasan.ForeColor = Color.DarkGreen;
-                lblBalasan.Size = new Size(300, 20);
-                lblBalasan.Location = new Point(15, 85);
+                card.Size = new Size(850, 170); // Perbesar card jika ada balasan
+
+                Label lblBalasan = new Label()
+                {
+                    Text = $"💬 Balasan Kamu: {review.BalasanPenjual}",
+                    Font = new Font("Segoe UI", 10F, FontStyle.Italic | FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70),
+                    BackColor = Color.FromArgb(253, 255, 182), // Kuning pastel bubble
+                    Size = new Size(800, 45),
+                    Location = new Point(15, 100),
+                    Padding = new Padding(10, 5, 5, 5),
+                    BorderStyle = BorderStyle.FixedSingle
+                };
                 card.Controls.Add(lblBalasan);
             }
             else
             {
-                Button btnBalas = new Button();
-                btnBalas.Text = "💬 Balas";
-                btnBalas.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-                btnBalas.BackColor = Color.FromArgb(167, 139, 250);
-                btnBalas.ForeColor = Color.White;
-                btnBalas.FlatStyle = FlatStyle.Flat;
-                btnBalas.Size = new Size(80, 28);
-                btnBalas.Location = new Point(400, 70);
+                Button btnBalas = new Button()
+                {
+                    Text = "💬 Balas Ulasan",
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                    BackColor = Color.FromArgb(200, 182, 255), // Ungu pastel
+                    ForeColor = Color.FromArgb(36, 0, 70),
+                    FlatStyle = FlatStyle.Flat,
+                    Size = new Size(130, 35),
+                    Location = new Point(690, 45),
+                    Cursor = Cursors.Hand
+                };
+                btnBalas.FlatAppearance.BorderSize = 1;
+                btnBalas.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
+
                 btnBalas.Click += (s, e) =>
                 {
-                    string balasan = InputDialog.Show(
-                        "Tulis balasanmu:", "Balas Ulasan", "");
+                    string balasan = InputDialog.Show("Tulis balasanmu buat customer ini:", "Balas Ulasan", "");
                     if (!string.IsNullOrWhiteSpace(balasan))
                     {
                         if (_reviewService.BalasUlasan(review.IdUlasan, balasan))

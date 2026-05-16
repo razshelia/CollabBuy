@@ -11,79 +11,93 @@
 
         private void InitializeComponent()
         {
-            pnlHeader = new System.Windows.Forms.Panel();
-            lblJudul = new System.Windows.Forms.Label();
-            btnBuatPO = new System.Windows.Forms.Button();
-            btnRefresh = new System.Windows.Forms.Button();
-            flowPanelPO = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.lblJudul = new System.Windows.Forms.Label();
+            this.btnBuatPO = new System.Windows.Forms.Button();
+            this.btnRefresh = new System.Windows.Forms.Button();
+            this.flowPanelPO = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // pnlHeader
+            // 
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlHeader.Controls.Add(this.lblJudul);
+            this.pnlHeader.Controls.Add(this.btnBuatPO);
+            this.pnlHeader.Controls.Add(this.btnRefresh);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1046, 80);
+            this.pnlHeader.TabIndex = 1;
+            // 
+            // lblJudul
+            // 
+            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
+            this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblJudul.Location = new System.Drawing.Point(20, 20);
+            this.lblJudul.Name = "lblJudul";
+            this.lblJudul.Size = new System.Drawing.Size(350, 40);
+            this.lblJudul.TabIndex = 0;
+            this.lblJudul.Text = "PREORDER KAMU 📦";
+            // 
+            // btnBuatPO
+            // 
+            this.btnBuatPO.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBuatPO.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnBuatPO.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnBuatPO.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnBuatPO.FlatAppearance.BorderSize = 2;
+            this.btnBuatPO.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBuatPO.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnBuatPO.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnBuatPO.Location = new System.Drawing.Point(700, 20);
+            this.btnBuatPO.Name = "btnBuatPO";
+            this.btnBuatPO.Size = new System.Drawing.Size(160, 40);
+            this.btnBuatPO.TabIndex = 1;
+            this.btnBuatPO.Text = "➕ Buka PO Baru";
+            this.btnBuatPO.UseVisualStyleBackColor = false;
+            this.btnBuatPO.Click += new System.EventHandler(this.btnBuatPO_Click);
+            // 
+            // btnRefresh
+            // 
+            this.btnRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnRefresh.FlatAppearance.BorderSize = 2;
+            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.Location = new System.Drawing.Point(880, 20);
+            this.btnRefresh.Name = "btnRefresh";
+            this.btnRefresh.Size = new System.Drawing.Size(140, 40);
+            this.btnRefresh.TabIndex = 2;
+            this.btnRefresh.Text = "🔄 Refresh";
+            this.btnRefresh.UseVisualStyleBackColor = false;
+            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
+            // 
+            // flowPanelPO
+            // 
+            this.flowPanelPO.AutoScroll = true;
+            this.flowPanelPO.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelPO.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelPO.Location = new System.Drawing.Point(0, 80);
+            this.flowPanelPO.Name = "flowPanelPO";
+            this.flowPanelPO.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelPO.Size = new System.Drawing.Size(1046, 620);
+            this.flowPanelPO.TabIndex = 0;
+            // 
+            // SellerPOListControl
+            // 
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelPO);
+            this.Controls.Add(this.pnlHeader);
+            this.Name = "SellerPOListControl";
+            this.Size = new System.Drawing.Size(1046, 700);
+            this.pnlHeader.ResumeLayout(false);
+            this.ResumeLayout(false);
 
-            pnlHeader.SuspendLayout();
-            SuspendLayout();
-
-            // ── pnlHeader ─────────────────────────────────────
-            pnlHeader.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(btnBuatPO);
-            pnlHeader.Controls.Add(btnRefresh);
-            pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            pnlHeader.Name = "pnlHeader";
-            pnlHeader.Size = new System.Drawing.Size(1046, 80);
-            pnlHeader.TabIndex = 1;
-
-            // ── lblJudul ──────────────────────────────────────
-            lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
-            lblJudul.ForeColor = System.Drawing.Color.FromArgb(253, 224, 71);
-            lblJudul.Location = new System.Drawing.Point(20, 20);
-            lblJudul.Name = "lblJudul";
-            lblJudul.Size = new System.Drawing.Size(350, 35);
-            lblJudul.TabIndex = 0;
-            lblJudul.Text = "PREORDER KAMU 📦";
-
-            // ── btnBuatPO ─────────────────────────────────────
-            btnBuatPO.BackColor = System.Drawing.Color.FromArgb(167, 139, 250);
-            btnBuatPO.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnBuatPO.FlatAppearance.BorderSize = 0;
-            btnBuatPO.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            btnBuatPO.ForeColor = System.Drawing.Color.White;
-            btnBuatPO.Location = new System.Drawing.Point(750, 25);
-            btnBuatPO.Name = "btnBuatPO";
-            btnBuatPO.Size = new System.Drawing.Size(140, 30);
-            btnBuatPO.TabIndex = 1;
-            btnBuatPO.Text = "➕ Buka PO Baru";
-            btnBuatPO.UseVisualStyleBackColor = false;
-            btnBuatPO.Click += btnBuatPO_Click;
-
-            // ── btnRefresh ────────────────────────────────────
-            btnRefresh.BackColor = System.Drawing.Color.FromArgb(167, 139, 250);
-            btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnRefresh.FlatAppearance.BorderSize = 0;
-            btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            btnRefresh.ForeColor = System.Drawing.Color.White;
-            btnRefresh.Location = new System.Drawing.Point(900, 25);
-            btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new System.Drawing.Size(120, 30);
-            btnRefresh.TabIndex = 2;
-            btnRefresh.Text = "🔄 Refresh";
-            btnRefresh.UseVisualStyleBackColor = false;
-            btnRefresh.Click += btnRefresh_Click;
-
-            // ── flowPanelPO ───────────────────────────────────
-            flowPanelPO.AutoScroll = true;
-            flowPanelPO.BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
-            flowPanelPO.Dock = System.Windows.Forms.DockStyle.Fill;
-            flowPanelPO.Name = "flowPanelPO";
-            flowPanelPO.Padding = new System.Windows.Forms.Padding(10);
-            flowPanelPO.TabIndex = 0;
-
-            // ── UserControl root ──────────────────────────────
-            BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelPO);
-            Controls.Add(pnlHeader);
-            Name = "SellerPOListControl";
-            Size = new System.Drawing.Size(1046, 700);
-
-            pnlHeader.ResumeLayout(false);
-            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlHeader;

@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
@@ -15,12 +16,12 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         private int _idProduk;
         private Product _produk;
         private Preorder _po;
-        private List<dynamic> _daftarPenitip; // simpan sebagai list objek anonymous
+        private List<dynamic> _daftarPenitip;
         private string _pathBukti;
 
-        private ProductService _productService;
-        private PreorderService _preorderService;
-        private TransactionService _transactionService;
+        private readonly ProductService _productService;
+        private readonly PreorderService _preorderService;
+        private readonly TransactionService _transactionService;
 
         public CheckoutControl(int idUser, int idProduk)
         {
@@ -28,9 +29,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             _idUser = idUser;
             _idProduk = idProduk;
             _daftarPenitip = new List<dynamic>();
-            _productService = new ProductService();
-            _preorderService = new PreorderService();
-            _transactionService = new TransactionService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _productService = new ProductService(new ProductRepository());
+            _preorderService = new PreorderService(new PreorderRepository());
+            _transactionService = new TransactionService(new TransactionRepository());
 
             LoadData();
         }
@@ -45,18 +48,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            // 1. Cek dulu apakah produk ini punya ID PO atau tidak
             if (!_produk.IdPo.HasValue)
             {
                 UXHelper.TampilkanError("Produk ini belum dimasukkan ke dalam sesi Pre-Order.");
-                Kembali(); // Mengasumsikan method ini untuk menutup form/kembali ke list
+                Kembali();
                 return;
             }
 
-            // 2. Jika ada (HasValue), panggil service dengan menggunakan .Value
             _po = _preorderService.AmbilPOById(_produk.IdPo.Value);
 
-            // 3. Cek apakah datanya benar-benar ada di database
             if (_po == null)
             {
                 UXHelper.TampilkanError("Data Pre-Order tidak ditemukan di sistem.");
@@ -65,14 +65,13 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             }
 
             // Tampilkan info produk di header
-            lblNamaProduk.Text = _produk.NamaProduk;
+            lblNamaProduk.Text = _produk.NamaProduk.ToUpper();
             lblHargaSatuan.Text = $"Rp {_produk.HargaDasar:N0}";
             lblMinOrder.Text = $"Minimal order: {_produk.MinOrder} pcs";
-            lblInfoPO.Text = $"PO: {_po.JudulPo} • Jenis: {_po.JenisPo}";
+            lblInfoPO.Text = $"PO: {_po.JudulPo}   •   Jenis: {_po.JenisPo}";
             lblInfoRekening.Text = $"Rekening: {_po.InfoRekening}";
         }
 
-        // ── STEP 1: Tambah penitip ──
         private void btnTambahPenitip_Click(object sender, EventArgs e)
         {
             string nama = txtNamaPenitip.Text.Trim();
@@ -90,7 +89,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             string catatan = txtCatatan.Text.Trim();
 
-            // Simpan ke list
             _daftarPenitip.Add(new
             {
                 Nama = nama,
@@ -98,10 +96,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 Catatan = string.IsNullOrEmpty(catatan) ? null : catatan
             });
 
-            // Refresh listbox
             RefreshListPenitip();
 
-            // Bersihkan input
             txtNamaPenitip.Clear();
             txtJumlah.Clear();
             txtCatatan.Clear();
@@ -113,13 +109,13 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             listBoxPenitip.Items.Clear();
             foreach (var item in _daftarPenitip)
             {
-                string teks = $"{item.Nama} — {item.Jumlah} pcs";
+                string teks = $"👤 {item.Nama}  —  📦 {item.Jumlah} pcs";
                 if (!string.IsNullOrEmpty(item.Catatan))
-                    teks += $" ({item.Catatan})";
+                    teks += $"   (📝 {item.Catatan})";
                 listBoxPenitip.Items.Add(teks);
             }
 
-            lblTotalPenitip.Text = $"{_daftarPenitip.Count} penitip";
+            lblTotalPenitip.Text = $"Total: {_daftarPenitip.Count} penitip";
         }
 
         private void btnHapusPenitip_Click(object sender, EventArgs e)
@@ -131,13 +127,12 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             }
             else
             {
-                UXHelper.TampilkanError("Pilih dulu penitip yang mau dihapus.");
+                UXHelper.TampilkanError("Pilih dulu penitip yang mau dihapus dari list.");
             }
         }
 
         private void btnLanjutkan_Click(object sender, EventArgs e)
         {
-            // Validasi minimal order
             int totalJumlah = 0;
             foreach (var item in _daftarPenitip)
                 totalJumlah += item.Jumlah;
@@ -154,28 +149,21 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            // Hitung total bayar (harga aktual dari function)
             int hargaSatuan = _productService.HitungHargaAktual(_idProduk);
             int totalBayar = totalJumlah * hargaSatuan;
 
-            // Tampilkan di step 2
-            lblRingkasanProduk.Text = $"{_produk.NamaProduk}";
-            lblRingkasanJumlah.Text = $"{_daftarPenitip.Count} penitip • {totalJumlah} pcs";
-            lblRingkasanHargaSatuan.Text = $"Rp {hargaSatuan:N0}";
+            lblRingkasanProduk.Text = $"📦 {_produk.NamaProduk.ToUpper()}";
+            lblRingkasanJumlah.Text = $"👥 {_daftarPenitip.Count} penitip   •   📝 {totalJumlah} pcs";
+            lblRingkasanHargaSatuan.Text = $"Satuan: Rp {hargaSatuan:N0}";
             lblRingkasanTotal.Text = $"Rp {totalBayar:N0}";
 
-            // Tampilkan info rekening
-            lblStep2Rekening.Text = $"Transfer ke rekening penjual:\n{_po.InfoRekening}";
-
-            // Simpan total bayar untuk digunakan nanti
+            lblStep2Rekening.Text = $"💳 Transfer ke rekening penjual:\n{_po.InfoRekening}";
             lblRingkasanTotal.Tag = totalBayar;
 
-            // Tukar panel
             pnlStep1.Visible = false;
             pnlStep2.Visible = true;
         }
 
-        // ── STEP 2: Upload & Konfirmasi ──
         private void btnUploadBukti_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog dlg = new OpenFileDialog())
@@ -187,10 +175,9 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                     try
                     {
                         _pathBukti = FileHelper.SimpanFile(dlg.FileName, "Bukti");
-                        // Tampilkan preview
                         pictureBoxBukti.Image = Image.FromFile(FileHelper.DapatkanFullPath(_pathBukti));
                         lblStatusUpload.Text = "Bukti berhasil diunggah ✨";
-                        lblStatusUpload.ForeColor = Color.Green;
+                        lblStatusUpload.ForeColor = Color.FromArgb(0, 150, 0); // Green
                     }
                     catch (Exception ex)
                     {
@@ -208,7 +195,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            // Buat list TransactionDetail
             List<TransactionDetail> details = new List<TransactionDetail>();
             foreach (var item in _daftarPenitip)
             {
@@ -225,9 +211,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             int idTransaksi = _transactionService.BuatTransaksi(_idUser, totalBayar, details);
             if (idTransaksi > 0)
             {
-                // Update bukti bayar
                 _transactionService.ValidasiPembayaran(idTransaksi, _pathBukti);
-
                 UXHelper.TampilkanSukses("Pesanan berhasil dibuat! Tunggu konfirmasi penjual ya. 🎉");
                 Kembali();
             }
@@ -245,7 +229,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             {
                 var user = main.AmbilUserAktif();
                 if (user != null)
-                    main.GantiHalaman(new UserDashboardControl(user));
+                    main.GantiHalaman(new UserDashboardControl(user)); // Asumsikan kembali ke User Dashboard
             }
         }
     }

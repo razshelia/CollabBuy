@@ -4,20 +4,36 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class EditProfileControl : UserControl
     {
-        private User _user;
-        private UserService _userService;
+        private readonly User _user;
+        private readonly UserService _userService;
 
         public EditProfileControl(User user)
         {
             InitializeComponent();
             _user = user;
-            _userService = new UserService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _userService = new UserService(new UserRepository());
+
+            // CenterCard dipanggil otomatis saat layar diubah ukurannya
+            this.Resize += (s, e) => CenterCard();
+
             LoadProfile();
+        }
+
+        private void CenterCard()
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void LoadProfile()
@@ -26,6 +42,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             txtTelepon.Text = _user.NomorTelepon ?? "";
             txtEmail.Text = _user.Email;
             txtUsername.Text = _user.Username;
+
             // Username tidak bisa diedit
             txtUsername.Enabled = false;
         }
@@ -69,12 +86,12 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             _user.NomorTelepon = telepon;
             _user.Email = email;
 
-            // Jika password diisi, kirim password baru (akan di‑hash oleh service)
+            // Memanggil service yang sudah diinjeksi
             bool sukses = _userService.UpdateProfil(_user, string.IsNullOrEmpty(passBaru) ? null : passBaru);
             if (sukses)
             {
                 UXHelper.TampilkanSukses("Profil berhasil diperbarui! ✨");
-                // Kembali ke halaman sebelumnya (dashboard)
+                // Kembali ke halaman sebelumnya
                 if (ParentForm is MainForm main)
                 {
                     main.GantiHalaman(new UserDashboardControl(_user));

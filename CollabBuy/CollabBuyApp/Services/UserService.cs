@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
@@ -11,9 +10,11 @@ namespace CollabBuy.CollabBuyApp.Services
     {
         private readonly IUserRepository _userRepo;
 
-        public UserService()
+        // TAHAP 3: INJEKSI DEPENDENSI (Dependency Injection)
+        // Menerima IUserRepository dari luar
+        public UserService(IUserRepository userRepo)
         {
-            _userRepo = new UserRepository();
+            _userRepo = userRepo;
         }
 
         public User AmbilUserById(int idUser)

@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class CategoryService
     {
         private readonly ICategoryRepository _katRepo;
-
-        public CategoryService()
+        public CategoryService(ICategoryRepository katRepo)
         {
-            _katRepo = new CategoryRepository();
+            _katRepo = katRepo;
         }
 
         public List<Category> AmbilSemua()

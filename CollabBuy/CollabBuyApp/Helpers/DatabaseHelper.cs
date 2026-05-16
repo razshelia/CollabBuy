@@ -12,18 +12,15 @@ namespace CollabBuy.CollabBuyApp.Helpers
         {
             try
             {
-                // Baca dari App.config
+                // Catatan: Pastikan penulisan "CollabBuyDB" sama persis besar-kecilnya dengan yang di App.config
                 var connStringSetting = ConfigurationManager.ConnectionStrings["CollabBuyDB"];
                 if (connStringSetting == null || string.IsNullOrWhiteSpace(connStringSetting.ConnectionString))
-                    throw new InvalidOperationException("Connection string 'CollabBuyDB' tidak ditemukan di App.config.");
+                    throw new Exception("Connection string 'CollabBuyDB' tidak ditemukan di App.config.");
 
                 _connectionString = connStringSetting.ConnectionString;
             }
             catch (Exception ex)
             {
-                // Jika terjadi error fatal, bisa log atau lempar exception
-                // UXHelper akan digunakan untuk menampilkan pesan, namun karena ini constructor,
-                // kita simpan error dan biarkan pemanggil mengecek.
                 _connectionString = null;
                 System.Diagnostics.Debug.WriteLine("Gagal membaca connection string: " + ex.Message);
             }
@@ -33,19 +30,18 @@ namespace CollabBuy.CollabBuyApp.Helpers
         {
             if (string.IsNullOrEmpty(_connectionString))
             {
-                UXHelper.TampilkanError("Konfigurasi database tidak ditemukan. Hubungi administrator.");
-                return null;
+                // Lempar error, jangan pakai UXHelper di sini
+                throw new Exception("Konfigurasi database tidak ditemukan. Hubungi administrator.");
             }
 
             try
             {
-                var koneksi = new NpgsqlConnection(_connectionString);
-                return koneksi;
+                return new NpgsqlConnection(_connectionString);
             }
             catch (Exception ex)
             {
-                UXHelper.TampilkanError("Gagal membuat koneksi ke database: " + ex.Message);
-                return null;
+                // Lempar error ke atas
+                throw new Exception("Gagal membuat koneksi ke database: " + ex.Message);
             }
         }
     }

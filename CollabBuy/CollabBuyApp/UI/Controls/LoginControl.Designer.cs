@@ -11,121 +11,128 @@
 
         private void InitializeComponent()
         {
-            pnlCard = new Panel();
-            lblTitle = new Label();
-            lblSubtitle = new Label();
-            txtUsername = new TextBox();
-            txtPassword = new TextBox();
-            chkLihatPassword = new CheckBox();
-            btnLogin = new Button();
-            lblRegisterLink = new Label();
-            pnlCard.SuspendLayout();
-            SuspendLayout();
+            this.pnlCard = new System.Windows.Forms.Panel();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.lblSubtitle = new System.Windows.Forms.Label();
+            this.txtUsername = new System.Windows.Forms.TextBox();
+            this.txtPassword = new System.Windows.Forms.TextBox();
+            this.chkLihatPassword = new System.Windows.Forms.CheckBox();
+            this.btnLogin = new System.Windows.Forms.Button();
+            this.lblRegisterLink = new System.Windows.Forms.Label();
+            this.pnlCard.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlCard
             // 
-            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
-            pnlCard.Controls.Add(lblTitle);
-            pnlCard.Controls.Add(lblSubtitle);
-            pnlCard.Controls.Add(txtUsername);
-            pnlCard.Controls.Add(txtPassword);
-            pnlCard.Controls.Add(chkLihatPassword);
-            pnlCard.Controls.Add(btnLogin);
-            pnlCard.Controls.Add(lblRegisterLink);
-            pnlCard.Location = new Point(0, 0);
-            pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(440, 520);
-            pnlCard.TabIndex = 0;
+            this.pnlCard.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.lblTitle);
+            this.pnlCard.Controls.Add(this.lblSubtitle);
+            this.pnlCard.Controls.Add(this.txtUsername);
+            this.pnlCard.Controls.Add(this.txtPassword);
+            this.pnlCard.Controls.Add(this.chkLihatPassword);
+            this.pnlCard.Controls.Add(this.btnLogin);
+            this.pnlCard.Controls.Add(this.lblRegisterLink);
+            this.pnlCard.Location = new System.Drawing.Point(300, 100);
+            this.pnlCard.Name = "pnlCard";
+            this.pnlCard.Size = new System.Drawing.Size(440, 460);
+            this.pnlCard.TabIndex = 0;
             // 
             // lblTitle
             // 
-            lblTitle.Font = new Font("Segoe UI Black", 24F, FontStyle.Bold);
-            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
-            lblTitle.Location = new Point(40, 40);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(360, 50);
-            lblTitle.TabIndex = 0;
-            lblTitle.Text = "COLLABBUY ✨";
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 26F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblTitle.Location = new System.Drawing.Point(0, 40);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(440, 50);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "COLLABBUY ✨";
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblSubtitle
             // 
-            lblSubtitle.Font = new Font("Segoe UI", 11F);
-            lblSubtitle.ForeColor = Color.FromArgb(167, 139, 250);
-            lblSubtitle.Location = new Point(40, 95);
-            lblSubtitle.Name = "lblSubtitle";
-            lblSubtitle.Size = new Size(360, 30);
-            lblSubtitle.TabIndex = 1;
-            lblSubtitle.Text = "Login dulu, bestie! 🚀";
-            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblSubtitle.Location = new System.Drawing.Point(0, 100);
+            this.lblSubtitle.Name = "lblSubtitle";
+            this.lblSubtitle.Size = new System.Drawing.Size(440, 30);
+            this.lblSubtitle.TabIndex = 1;
+            this.lblSubtitle.Text = "Login dulu, bestie! 🚀";
+            this.lblSubtitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // txtUsername
             // 
-            txtUsername.Font = new Font("Segoe UI", 11F);
-            txtUsername.Location = new Point(55, 150);
-            txtUsername.Name = "txtUsername";
-            txtUsername.PlaceholderText = "Username kamu...";
-            txtUsername.Size = new Size(330, 27);
-            txtUsername.TabIndex = 2;
-            // 
+            this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.txtUsername.Location = new System.Drawing.Point(55, 160);
+            this.txtUsername.Name = "txtUsername";
+            this.txtUsername.Size = new System.Drawing.Size(330, 29);
+            this.txtUsername.TabIndex = 2;
+            this.txtUsername.PlaceholderText = "Username kamu...";
+            //
             // txtPassword
-            // 
-            txtPassword.Font = new Font("Segoe UI", 11F);
-            txtPassword.Location = new Point(55, 200);
-            txtPassword.Name = "txtPassword";
-            txtPassword.PlaceholderText = "Password rahasia \U0001f92b";
-            txtPassword.Size = new Size(330, 27);
-            txtPassword.TabIndex = 3;
-            txtPassword.UseSystemPasswordChar = true;
+            //
+            this.txtPassword.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.txtPassword.Location = new System.Drawing.Point(55, 210);
+            this.txtPassword.Name = "txtPassword";
+            this.txtPassword.Size = new System.Drawing.Size(330, 29);
+            this.txtPassword.TabIndex = 3;
+            this.txtPassword.UseSystemPasswordChar = true;
+            this.txtPassword.PlaceholderText = "Password rahasia 🤫"; 
             // 
             // chkLihatPassword
             // 
-            chkLihatPassword.Font = new Font("Segoe UI", 9F);
-            chkLihatPassword.ForeColor = Color.FromArgb(167, 139, 250);
-            chkLihatPassword.Location = new Point(55, 240);
-            chkLihatPassword.Name = "chkLihatPassword";
-            chkLihatPassword.Size = new Size(200, 20);
-            chkLihatPassword.TabIndex = 4;
-            chkLihatPassword.Text = "Lihat Password 👀";
-            chkLihatPassword.CheckedChanged += chkLihatPassword_CheckedChanged;
+            this.chkLihatPassword.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.chkLihatPassword.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.chkLihatPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.chkLihatPassword.Location = new System.Drawing.Point(55, 250);
+            this.chkLihatPassword.Name = "chkLihatPassword";
+            this.chkLihatPassword.Size = new System.Drawing.Size(200, 25);
+            this.chkLihatPassword.TabIndex = 4;
+            this.chkLihatPassword.Text = "Lihat Password 👀";
+            this.chkLihatPassword.CheckedChanged += new System.EventHandler(this.chkLihatPassword_CheckedChanged);
             // 
             // btnLogin
             // 
-            btnLogin.BackColor = Color.FromArgb(167, 139, 250);
-            btnLogin.FlatAppearance.BorderSize = 0;
-            btnLogin.FlatStyle = FlatStyle.Flat;
-            btnLogin.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
-            btnLogin.ForeColor = Color.White;
-            btnLogin.Location = new Point(55, 290);
-            btnLogin.Name = "btnLogin";
-            btnLogin.Size = new Size(330, 45);
-            btnLogin.TabIndex = 5;
-            btnLogin.Text = "MASUK SEKARANG 💜";
-            btnLogin.UseVisualStyleBackColor = false;
-            btnLogin.Click += btnLogin_Click;
+            this.btnLogin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnLogin.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnLogin.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnLogin.FlatAppearance.BorderSize = 2;
+            this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLogin.Font = new System.Drawing.Font("Segoe UI Black", 14F, System.Drawing.FontStyle.Bold);
+            this.btnLogin.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnLogin.Location = new System.Drawing.Point(55, 300);
+            this.btnLogin.Name = "btnLogin";
+            this.btnLogin.Size = new System.Drawing.Size(330, 50);
+            this.btnLogin.TabIndex = 5;
+            this.btnLogin.Text = "MASUK SEKARANG 💜";
+            this.btnLogin.UseVisualStyleBackColor = false;
+            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
             // 
             // lblRegisterLink
             // 
-            lblRegisterLink.Cursor = Cursors.Hand;
-            lblRegisterLink.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
-            lblRegisterLink.ForeColor = Color.FromArgb(253, 224, 71);
-            lblRegisterLink.Location = new Point(55, 350);
-            lblRegisterLink.Name = "lblRegisterLink";
-            lblRegisterLink.Size = new Size(330, 25);
-            lblRegisterLink.TabIndex = 6;
-            lblRegisterLink.Text = "Belum punya akun? Gabung sini, gengs! 🌟";
-            lblRegisterLink.TextAlign = ContentAlignment.MiddleCenter;
-            lblRegisterLink.Click += lblRegisterLink_Click;
+            this.lblRegisterLink.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblRegisterLink.Font = new System.Drawing.Font("Segoe UI", 10F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))));
+            this.lblRegisterLink.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblRegisterLink.Location = new System.Drawing.Point(0, 370);
+            this.lblRegisterLink.Name = "lblRegisterLink";
+            this.lblRegisterLink.Size = new System.Drawing.Size(440, 30);
+            this.lblRegisterLink.TabIndex = 6;
+            this.lblRegisterLink.Text = "Belum punya akun? Gabung sini, gengs! 🌟";
+            this.lblRegisterLink.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblRegisterLink.Click += new System.EventHandler(this.lblRegisterLink_Click);
             // 
             // LoginControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(pnlCard);
-            Name = "LoginControl";
-            Size = new Size(1046, 333);
-            pnlCard.ResumeLayout(false);
-            pnlCard.PerformLayout();
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.pnlCard);
+            this.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Name = "LoginControl";
+            this.Size = new System.Drawing.Size(1046, 730);
+            this.pnlCard.ResumeLayout(false);
+            this.pnlCard.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlCard;

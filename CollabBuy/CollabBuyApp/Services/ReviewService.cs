@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
@@ -11,9 +10,11 @@ namespace CollabBuy.CollabBuyApp.Services
     {
         private readonly IReviewRepository _reviewRepo;
 
-        public ReviewService()
+        // TAHAP 3: INJEKSI DEPENDENSI (Dependency Injection)
+        // Menerima implementasi objek repositori ulasan melalui parameter constructor
+        public ReviewService(IReviewRepository reviewRepo)
         {
-            _reviewRepo = new ReviewRepository();
+            _reviewRepo = reviewRepo;
         }
 
         public bool TambahUlasan(int idProduk, int idUser, int rating, string komentar)

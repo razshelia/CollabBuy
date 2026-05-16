@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Repositories;
 using CollabBuy.CollabBuyApp.Helpers;
 
 namespace CollabBuy.CollabBuyApp.Services
@@ -10,10 +9,9 @@ namespace CollabBuy.CollabBuyApp.Services
     public class ProductService
     {
         private readonly IProductRepository _productRepo;
-
-        public ProductService()
+        public ProductService(IProductRepository productRepo)
         {
-            _productRepo = new ProductRepository();
+            _productRepo = productRepo;
         }
 
         public bool TambahProduk(Product produkBaru)
@@ -99,7 +97,7 @@ namespace CollabBuy.CollabBuyApp.Services
         public int AmbilJumlahProduk()
         {
             try { return _productRepo.AmbilJumlahProduk(); }
-            catch { return 0; } // Untuk dashboard admin, biarkan 0 jika error
+            catch { return 0; }
         }
 
         public List<Product> AmbilProdukByPenjual(int idPenjual)

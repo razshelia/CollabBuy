@@ -5,15 +5,16 @@ using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
 using System.Collections.Generic;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class ProductFormControl : UserControl
     {
-        private int _idPenjual;
-        private Product _produkEdit;
-        private ProductService _productService;
-        private CategoryService _categoryService;
+        private readonly int _idPenjual;
+        private readonly Product _produkEdit;
+        private readonly ProductService _productService;
+        private readonly CategoryService _categoryService;
         private string _pathFotoTerpilih = "";
 
         public ProductFormControl(int idPenjual, Product produkEdit = null)
@@ -21,17 +22,32 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             InitializeComponent();
             _idPenjual = idPenjual;
             _produkEdit = produkEdit;
-            _productService = new ProductService();
-            _categoryService = new CategoryService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _productService = new ProductService(new ProductRepository());
+            _categoryService = new CategoryService(new CategoryRepository());
 
             LoadKategoriCombo();
 
             if (_produkEdit != null) PersiapkanModeEdit();
+
+            // Memastikan form selalu di tengah
+            this.Resize += (s, e) => CenterCard();
+            this.Load += (s, e) => CenterCard();
+        }
+
+        private void CenterCard()
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void PersiapkanModeEdit()
         {
-            lblTitle.Text = "Edit Produk Master";
+            lblTitle.Text = "EDIT PRODUK MASTER ✏️";
             txtNamaProduk.Text = _produkEdit.NamaProduk;
             txtDeskripsi.Text = _produkEdit.Deskripsi;
             numHargaDasar.Value = _produkEdit.HargaDasar;
@@ -41,7 +57,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             cmbKategori.SelectedValue = _produkEdit.IdKategori ?? 0;
             _pathFotoTerpilih = _produkEdit.FotoProduk;
             pbFotoProduk.ImageLocation = _pathFotoTerpilih;
-            btnSimpan.Text = "Simpan Perubahan";
+            btnSimpan.Text = "SIMPAN PERUBAHAN 💾";
         }
 
         private void LoadKategoriCombo()
@@ -52,6 +68,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             cmbKategori.DisplayMember = "NamaKategori";
             cmbKategori.ValueMember = "IdKategori";
         }
+
         private void btnPilihFoto_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
@@ -64,18 +81,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                     _pathFotoTerpilih = ofd.FileName;
                     pbFotoProduk.ImageLocation = _pathFotoTerpilih;
                 }
-            }
-        }
-
-        private void ProductFormControl_Resize(object sender, EventArgs e)
-        {
-            // Memastikan kotak form pnlCard selalu berada di tengah layar
-            if (pnlCard != null)
-            {
-                pnlCard.Location = new Point(
-                    (this.ClientSize.Width - pnlCard.Width) / 2,
-                    (this.ClientSize.Height - pnlCard.Height) / 2
-                );
             }
         }
 
@@ -93,7 +98,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 p.MinOrder = (int)numMinOrder.Value;
                 p.FotoProduk = _pathFotoTerpilih;
 
-                int idKat = (int)cmbKategori.SelectedValue;
+                int idKat = 0;
+                if (cmbKategori.SelectedValue != null)
+                {
+                    int.TryParse(cmbKategori.SelectedValue.ToString(), out idKat);
+                }
                 p.IdKategori = idKat > 0 ? (int?)idKat : null;
 
                 bool sukses = (_produkEdit == null)

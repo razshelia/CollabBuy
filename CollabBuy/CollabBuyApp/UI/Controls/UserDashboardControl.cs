@@ -1,5 +1,4 @@
-﻿// UserDashboardControl.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -8,24 +7,32 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib ditambahkan untuk memanggil Repository
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class UserDashboardControl : UserControl
     {
-        private User _user;
-        private CatalogService _catalogService;
-        private CategoryService _categoryService;
-        private ProductService _productService;
+        private readonly User _user;
+        private readonly CatalogService _catalogService;
+        private readonly CategoryService _categoryService;
+        private readonly ProductService _productService;
         private List<Catalog> _semuaProduk;
 
         public UserDashboardControl(User user)
         {
             InitializeComponent();
             _user = user;
-            _catalogService = new CatalogService();
-            _categoryService = new CategoryService();
-            _productService = new ProductService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            // Menyuntikkan masing-masing repositori ke dalam service terkait
+            _catalogService = new CatalogService(new CatalogRepository());
+            _categoryService = new CategoryService(new CategoryRepository());
+            _productService = new ProductService(new ProductRepository());
+
+            // Set sapaan nama secara dinamis dan kapital agar bergaya bold pop retro
+            lblGreeting.Text = $"HALO, {(_user?.Nama ?? "Bestie").ToUpper()}! 👋";
+
             MuatKatalog();
             MuatKategoriFilter();
         }
@@ -45,7 +52,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void MuatKategoriFilter()
         {
-            var listKategori = _categoryService.AmbilSemua();
+            var listKategori = _categoryService.AmbilSemua() ?? new List<Category>();
             listKategori.Insert(0, new Category { IdKategori = 0, NamaKategori = "Semua Kategori" });
 
             cmbKategori.DataSource = listKategori;
@@ -56,9 +63,10 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void FilterDanTampilkan()
         {
+            if (_semuaProduk == null) return;
+
             string keyword = txtSearch.Text.Trim().ToLower();
 
-            // Cek apakah SelectedValue null atau bukan int
             int selectedKategoriId = 0;
             if (cmbKategori.SelectedValue != null && cmbKategori.SelectedValue is int)
                 selectedKategoriId = (int)cmbKategori.SelectedValue;
@@ -83,7 +91,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             var listHasil = hasil.ToList();
             TampilkanCardProduk(listHasil);
-            lblCount.Text = $"Menampilkan {listHasil.Count} produk";
+            lblCount.Text = $"Menampilkan {listHasil.Count} produk spesial";
         }
 
         private void TampilkanCardProduk(List<Catalog> daftar)
@@ -92,13 +100,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             if (daftar.Count == 0)
             {
-                Label lblKosong = new Label();
-                lblKosong.Text = "Belum ada produk nih, bestie! 😴\nCoba cek lagi nanti~";
-                lblKosong.Font = new Font("Segoe UI", 14F, FontStyle.Regular);
-                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
-                lblKosong.Size = new Size(600, 80);
-                lblKosong.Location = new Point(150, 200);
-                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
+                Label lblKosong = new Label()
+                {
+                    Text = "Belum ada produk nih, bestie! 😴\nCoba cek katolog atau filter kategori lain ya~",
+                    Font = new Font("Segoe UI Black", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
+                    Dock = DockStyle.Fill
+                };
                 flowPanelProduk.Controls.Add(lblKosong);
                 return;
             }
@@ -112,20 +122,24 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCard(Catalog produk)
         {
-            Panel card = new Panel();
-            card.Size = new Size(280, 400);
-            card.BackColor = Color.White;
-            card.Margin = new Padding(10);
+            // Desain Card Katalog Luar Bergaya Flat Neo-Retro Box
+            Panel card = new Panel
+            {
+                Size = new Size(280, 420),
+                BackColor = Color.White,
+                Margin = new Padding(15),
+                Padding = new Padding(10),
+                BorderStyle = BorderStyle.FixedSingle // Garis border tegas retro
+            };
 
-            Panel content = new Panel();
-            content.Size = new Size(280, 400);
-            content.BackColor = Color.White;
-
-            PictureBox pic = new PictureBox();
-            pic.Size = new Size(256, 140);
-            pic.Location = new Point(12, 12);
-            pic.BackColor = Color.FromArgb(167, 139, 250);
-            pic.SizeMode = PictureBoxSizeMode.Zoom;
+            PictureBox pic = new PictureBox
+            {
+                Size = new Size(258, 140),
+                Location = new Point(10, 10),
+                BackColor = Color.FromArgb(200, 182, 255), // Ungu Pastel Placeholder
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BorderStyle = BorderStyle.FixedSingle
+            };
 
             try
             {
@@ -139,13 +153,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             }
             catch { }
 
-            Label lblJudulPO = new Label();
-            lblJudulPO.Text = $"📦 {produk.JudulPo}";
-            lblJudulPO.Font = new Font("Segoe UI Black", 10F, FontStyle.Bold);
-            lblJudulPO.ForeColor = Color.FromArgb(45, 27, 79);
-            lblJudulPO.Size = new Size(256, 35);
-            lblJudulPO.Location = new Point(12, 160);
-            lblJudulPO.Cursor = Cursors.Hand;
+            Label lblJudulPO = new Label
+            {
+                Text = $"📦 {produk.JudulPo.ToUpper()}",
+                Font = new Font("Segoe UI Black", 10.5F),
+                ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple
+                Size = new Size(258, 40),
+                Location = new Point(10, 165),
+                Cursor = Cursors.Hand
+            };
             lblJudulPO.Click += (s, e) =>
             {
                 if (ParentForm is MainForm main)
@@ -153,15 +169,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                     var user = main.AmbilUserAktif();
                     if (user != null)
                     {
-                        // 1. IdProduk langsung saja dipanggil tanpa GetValueOrDefault()
                         var produkDetail = _productService.AmbilProdukById(produk.IdProduk);
-
                         if (produkDetail != null)
                         {
-                            // 2. IdPo tetap dicek .HasValue karena tipenya int? (nullable)
                             if (produkDetail.IdPo.HasValue)
                             {
-                                // Ambil nilai aslinya dengan .Value
                                 main.GantiHalaman(new PODetailControl(user, produkDetail.IdPo.Value));
                             }
                             else
@@ -173,36 +185,48 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 }
             };
 
-            Label lblNama = new Label();
-            lblNama.Text = produk.NamaProduk;
-            lblNama.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            lblNama.ForeColor = Color.FromArgb(167, 139, 250);
-            lblNama.Size = new Size(256, 25);
-            lblNama.Location = new Point(12, 195);
+            Label lblNama = new Label
+            {
+                Text = produk.NamaProduk,
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Size = new Size(258, 25),
+                Location = new Point(10, 210)
+            };
 
-            Label lblHarga = new Label();
-            lblHarga.Text = $"Rp {produk.HargaDasar:N0}";
-            lblHarga.Font = new Font("Segoe UI Black", 14F, FontStyle.Bold);
-            lblHarga.ForeColor = Color.FromArgb(253, 224, 71);
-            lblHarga.Size = new Size(256, 30);
-            lblHarga.Location = new Point(12, 225);
+            Label lblHarga = new Label
+            {
+                Text = $"Rp {produk.HargaDasar:N0}",
+                Font = new Font("Segoe UI Black", 16F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 138, 138), // Soft Red Pastel Price
+                Size = new Size(258, 35),
+                Location = new Point(10, 240)
+            };
 
-            Label lblBatas = new Label();
-            lblBatas.Text = $"⏰ {produk.BatasWaktu:dd MMM yyyy HH:mm}";
-            lblBatas.Font = new Font("Segoe UI", 8F);
-            lblBatas.ForeColor = Color.Gray;
-            lblBatas.Size = new Size(256, 20);
-            lblBatas.Location = new Point(12, 260);
+            Label lblBatas = new Label
+            {
+                Text = $"⏳ Batas Waktu: {produk.BatasWaktu:dd MMM yyyy HH:mm}",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.DimGray,
+                Size = new Size(258, 20),
+                Location = new Point(10, 285)
+            };
 
-            Button btnTitip = new Button();
-            btnTitip.Text = "Titip Sekarang ✨";
-            btnTitip.BackColor = Color.FromArgb(167, 139, 250);
-            btnTitip.ForeColor = Color.White;
-            btnTitip.FlatStyle = FlatStyle.Flat;
-            btnTitip.FlatAppearance.BorderSize = 0;
-            btnTitip.Size = new Size(256, 35);
-            btnTitip.Location = new Point(12, 295);
-            btnTitip.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            // Tombol Titip Sekarang - Kuning Pastel Pop Out
+            Button btnTitip = new Button
+            {
+                Text = "TITIP SEKARANG ✨",
+                BackColor = Color.FromArgb(253, 255, 182), // Kuning Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
+                FlatStyle = FlatStyle.Flat,
+                Size = new Size(258, 45),
+                Location = new Point(10, 315),
+                Font = new Font("Segoe UI Black", 11F),
+                Cursor = Cursors.Hand
+            };
+            btnTitip.FlatAppearance.BorderSize = 2;
+            btnTitip.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
+
             btnTitip.Click += (s, e) =>
             {
                 if (ParentForm is MainForm main)
@@ -215,14 +239,12 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 }
             };
 
-            content.Controls.Add(pic);
-            content.Controls.Add(lblJudulPO);
-            content.Controls.Add(lblNama);
-            content.Controls.Add(lblHarga);
-            content.Controls.Add(lblBatas);
-            content.Controls.Add(btnTitip);
-
-            card.Controls.Add(content);
+            card.Controls.Add(pic);
+            card.Controls.Add(lblJudulPO);
+            card.Controls.Add(lblNama);
+            card.Controls.Add(lblHarga);
+            card.Controls.Add(lblBatas);
+            card.Controls.Add(btnTitip);
             return card;
         }
 

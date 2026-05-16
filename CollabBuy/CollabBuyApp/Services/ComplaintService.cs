@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class ComplaintService
     {
         private readonly IComplaintRepository _complaintRepo;
-
-        public ComplaintService()
+        public ComplaintService(IComplaintRepository complaintRepo)
         {
-            _complaintRepo = new ComplaintRepository();
+            _complaintRepo = complaintRepo;
         }
 
         public bool KirimAduan(int idUser, string subjek, string deskripsi)

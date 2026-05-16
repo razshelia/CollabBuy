@@ -5,19 +5,24 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib ditambahkan untuk memanggil Repository
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class SellerPOListControl : UserControl
     {
-        private int _idPenjual;
-        private PreorderService _poService;
+        private readonly int _idPenjual;
+        private readonly PreorderService _poService;
 
         public SellerPOListControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            _poService = new PreorderService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            // Kita menyuntikkan PreorderRepository ke dalam PreorderService
+            _poService = new PreorderService(new PreorderRepository());
+
             LoadData();
         }
 
@@ -42,10 +47,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             {
                 Label lblKosong = new Label
                 {
-                    Text = "Kamu belum punya PO, bestie! 🥺\nYuk buka PO pertama kamu~",
-                    Font = new Font("Segoe UI", 14F),
-                    ForeColor = Color.FromArgb(45, 27, 79),
+                    Text = "Kamu belum punya sesi PO nih, bestie! 🥺\nYuk buka sesi PO pertama kamu sekarang!",
+                    Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
                     TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
                     Dock = DockStyle.Fill
                 };
                 flowPanelPO.Controls.Add(lblKosong);
@@ -58,92 +64,103 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardPO(Preorder po)
         {
+            // Desain Card Gen-Z: Kotak tegas, warna pastel cerah, border solid hitam/gelap
             Panel card = new Panel
             {
-                Size = new Size(680, 130),
-                BackColor = Color.White,
-                Margin = new Padding(5),
-                Padding = new Padding(15)
+                Size = new Size(850, 130), // Diperlebar agar nyaman di mode fullscreen
+                BackColor = Color.FromArgb(253, 255, 182), // Kuning Pastel Cerah
+                Margin = new Padding(10),
+                Padding = new Padding(15),
+                BorderStyle = BorderStyle.FixedSingle // Kesan Neo-Retro Flat Box
             };
 
             Label lblJudul = new Label
             {
-                Text = $"📦 {po.JudulPo}",
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(45, 27, 79),
-                Size = new Size(400, 25),
-                Location = new Point(15, 10)
+                Text = $"📦 {po.JudulPo.ToUpper()}",
+                Font = new Font("Segoe UI Black", 12F),
+                ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple
+                Size = new Size(450, 25),
+                Location = new Point(15, 15)
             };
 
             Label lblJenis = new Label
             {
-                Text = $"Jenis: {po.JenisPo}",
-                Font = new Font("Segoe UI", 9F),
-                ForeColor = Color.FromArgb(167, 139, 250),
-                Size = new Size(200, 20),
-                Location = new Point(15, 40)
+                Text = $"🏷️ Jenis Sesi: {po.JenisPo}",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(167, 139, 250), // Purple Accent
+                Size = new Size(250, 20),
+                Location = new Point(15, 45)
             };
 
             Label lblBatas = new Label
             {
-                Text = $"⏰ Batas: {po.BatasWaktu:dd MMM yyyy HH:mm}",
-                Font = new Font("Segoe UI", 9F),
-                ForeColor = Color.Gray,
-                Size = new Size(250, 20),
-                Location = new Point(15, 65)
+                Text = $"⏰ Batas Waktu: {po.BatasWaktu:dd MMM yyyy HH:mm}",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.DimGray,
+                Size = new Size(300, 20),
+                Location = new Point(15, 70)
             };
 
+            // Status dengan indikator warna tegas
+            Color warnaStatus = po.IsAktif ? Color.FromArgb(0, 150, 0) : Color.FromArgb(225, 40, 40);
             Label lblStatus = new Label
             {
-                Text = po.IsAktif ? "🟢 Aktif" : "🔴 Tutup",
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = po.IsAktif ? Color.Green : Color.Red,
-                Size = new Size(100, 20),
-                Location = new Point(15, 90)
+                Text = po.IsAktif ? "● LAPAK AKTIF" : "● LAPAK DITUTUP",
+                Font = new Font("Segoe UI Black", 9.5F),
+                ForeColor = warnaStatus,
+                Size = new Size(150, 20),
+                Location = new Point(15, 95)
             };
 
-            // ── Tombol Kelola Produk → SellerProductListControl ──
+            // Susunan Tombol Aksi di Kanan Card
             Button btnProduk = new Button
             {
-                Text = "📦 Produk",
-                BackColor = Color.FromArgb(167, 139, 250),
-                ForeColor = Color.White,
+                Text = "📦 Kelola Produk",
+                BackColor = Color.FromArgb(200, 182, 255), // Ungu Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Size = new Size(110, 30),
-                Location = new Point(300, 85)
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Size = new Size(130, 36),
+                Location = new Point(550, 45),
+                Cursor = Cursors.Hand
             };
-            btnProduk.FlatAppearance.BorderSize = 0;
+            btnProduk.FlatAppearance.BorderSize = 1;
+            btnProduk.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnProduk.Click += (s, e) =>
             {
                 if (ParentForm is MainForm main)
                 {
-                    // Hapus po.IdPo dan po.JudulPo karena constructor-nya sekarang cuma butuh ID Penjual
                     main.GantiHalaman(new SellerProductListControl(_idPenjual));
                 }
             };
 
-            // ── Tombol Tutup PO ───────────────────────────────
             Button btnTutup = new Button
             {
-                Text = "🔒 Tutup",
-                BackColor = Color.Orange,
-                ForeColor = Color.White,
+                Text = "🔒 Tutup Lapak",
+                BackColor = Color.FromArgb(255, 138, 138), // Soft Red Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Size = new Size(100, 30),
-                Location = new Point(420, 85),
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Size = new Size(130, 36),
+                Location = new Point(695, 45),
+                Cursor = Cursors.Hand,
                 Visible = po.IsAktif
             };
-            btnTutup.FlatAppearance.BorderSize = 0;
+            btnTutup.FlatAppearance.BorderSize = 1;
+            btnTutup.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnTutup.Click += (s, e) =>
             {
-                if (UXHelper.TampilkanKonfirmasi($"Tutup PO \"{po.JudulPo}\"?"))
+                if (UXHelper.TampilkanKonfirmasi($"Yakin ingin menutup sesi PO \"{po.JudulPo}\"?"))
+                {
                     if (_poService.TutupPO(po.IdPo, _idPenjual))
                         LoadData();
+                }
             };
 
             card.Controls.AddRange(new Control[] {
                 lblJudul, lblJenis, lblBatas, lblStatus, btnProduk
             });
+
             if (po.IsAktif) card.Controls.Add(btnTutup);
             return card;
         }

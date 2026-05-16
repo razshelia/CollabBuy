@@ -5,6 +5,7 @@ using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.UI.Controls;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk menyuntikkan Repository
 
 namespace CollabBuy.CollabBuyApp.UI
 {
@@ -87,53 +88,52 @@ namespace CollabBuy.CollabBuyApp.UI
 
             if (_userAktif is RegularUser regUser)
             {
-                var verifService = new VerificationService();
+                // TAHAP 4: INJEKSI MANUAL DI SISI SIDEBAR
+                var verifService = new VerificationService(new VerificationRepository());
                 var verif = verifService.AmbilVerifikasiByUser(regUser.IdUser);
                 isSeller = verif != null && verif.IsVerifikasi;
             }
 
             lblUserInfo.Text = isAdmin
-                ? $"✨ Admin: {_userAktif.Nama}"
-                : $"🛍️ {_userAktif.Nama}";
+                ? $"👑 ADMIN: {_userAktif.Nama.ToUpper()}"
+                : $"✨ {_userAktif.Nama.ToUpper()}";
 
-            // Sembunyikan semua panel dulu
+            // Sembunyikan semua panel dulu sebelum diatur ulang posisinya
             pnlAdmin.Visible = false;
             pnlBuyer.Visible = false;
             pnlSeller.Visible = false;
 
-            int currentY = 100;
+            int currentY = 110;
 
             if (isAdmin)
             {
                 pnlAdmin.Top = currentY;
                 pnlAdmin.Visible = true;
-                currentY += pnlAdmin.Height + 10;
+                currentY += pnlAdmin.Height + 15;
             }
 
             if (isUser)
             {
-                // Tampilkan/sembunyikan tombol BukaLapak sebelum set tinggi panel
                 btnUserBukaLapak.Visible = !isSeller;
 
-                // Hitung tinggi panel buyer dinamis:
-                // Label judul (25) + 4 tombol tetap × 40 + BukaLapak jika tampil × 40
-                int jumlahTombolBuyer = 4 + (isSeller ? 0 : 1); // Katalog, Checkout, Riwayat, Aduan, (+BukaLapak)
-                pnlBuyer.Height = 25 + (jumlahTombolBuyer * 40) + 10;
+                // Hitung tinggi panel buyer secara dinamis
+                int jumlahTombolBuyer = 4 + (isSeller ? 0 : 1);
+                pnlBuyer.Height = 30 + (jumlahTombolBuyer * 40);
                 pnlBuyer.Top = currentY;
                 pnlBuyer.Visible = true;
-                currentY += pnlBuyer.Height + 10;
+                currentY += pnlBuyer.Height + 15;
             }
 
             if (isSeller)
             {
                 pnlSeller.Top = currentY;
                 pnlSeller.Visible = true;
-                currentY += pnlSeller.Height + 10;
+                currentY += pnlSeller.Height + 15;
             }
 
-            // Profil dan Logout selalu di bawah panel terakhir
+            // Reposisi tombol Profil & Logout agar selalu berada di bawah menu terakhir
             btnProfil.Top = currentY;
-            btnLogout.Top = currentY + 40;
+            btnLogout.Top = currentY + 45;
         }
 
         private void HighlightNav(Button btn)
@@ -146,17 +146,19 @@ namespace CollabBuy.CollabBuyApp.UI
                 btnProfil
             };
 
+            // Kembalikan semua tombol navigasi ke tema unselected retro
             foreach (var b in allNav)
             {
                 b.BackColor = Color.Transparent;
-                b.ForeColor = Color.FromArgb(210, 210, 230);
-                b.FlatAppearance.BorderSize = 0;
+                b.ForeColor = Color.FromArgb(200, 182, 255); // Teks Ungu Pastel saat tidak aktif
+                b.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             }
 
+            // Set tombol yang aktif dengan gaya pop-out Kuning Pastel kontras
             if (btn != null)
             {
-                btn.BackColor = Color.FromArgb(167, 139, 250);
-                btn.ForeColor = Color.White;
+                btn.BackColor = Color.FromArgb(253, 255, 182); // Kuning Pastel Menyala
+                btn.ForeColor = Color.FromArgb(36, 0, 70);       // Teks Ungu Gelap
                 _activeNavButton = btn;
             }
         }
@@ -200,7 +202,6 @@ namespace CollabBuy.CollabBuyApp.UI
             GantiHalaman(new UserDashboardControl(_userAktif));
         }
 
-        // Riwayat sekarang = Riwayat Checkout
         private void btnUserRiwayat_Click(object sender, EventArgs e)
         {
             HighlightNav(btnUserRiwayat);
@@ -219,7 +220,7 @@ namespace CollabBuy.CollabBuyApp.UI
             HighlightNav(btnUserBukaLapak);
             if (_userAktif is RegularUser reg)
             {
-                var verifService = new VerificationService();
+                var verifService = new VerificationService(new VerificationRepository());
                 var verif = verifService.AmbilVerifikasiByUser(reg.IdUser);
                 if (verif == null || !verif.IsVerifikasi)
                     GantiHalaman(new SellerVerificationControl(reg, RefreshSidebar));
@@ -261,7 +262,7 @@ namespace CollabBuy.CollabBuyApp.UI
             GantiHalaman(new ReviewControl(_userAktif.IdUser));
         }
 
-        // ── STATIC ──
+        // ── STATIC BUTTONS ──
         private void btnProfil_Click(object sender, EventArgs e)
         {
             HighlightNav(btnProfil);

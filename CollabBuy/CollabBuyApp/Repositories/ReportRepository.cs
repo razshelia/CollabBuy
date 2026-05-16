@@ -1,43 +1,31 @@
 ﻿using System;
 using System.Data;
 using Npgsql;
-using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ReportRepository : IReportRepository
+    public class ReportRepository : BaseRepository, IReportRepository
     {
-        private readonly DatabaseHelper _db;
-
-        public ReportRepository()
-        {
-            _db = new DatabaseHelper();
-        }
-
-        private DataTable EksekusiQuery(string sql)
+        private DataTable EksekusiDataTable(string sql)
         {
             DataTable dt = new DataTable();
-            NpgsqlConnection conn = _db.AmbilKoneksi();
-            if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
-
-            try
+            using (var conn = _db.AmbilKoneksi())
             {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                if (conn == null) throw new Exception("Tidak dapat terhubung ke database.");
+                try
                 {
-                    dt.Load(reader);
+                    conn.Open();
+                    using (var cmd = new NpgsqlCommand(sql, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                // Lempar error ke Service, jangan gunakan UXHelper di sini
-                throw new Exception("Gagal mengeksekusi kueri laporan.", ex);
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open) conn.Close();
+                catch (Exception ex)
+                {
+                    throw new Exception("Gagal mengeksekusi kueri laporan.", ex);
+                }
             }
             return dt;
         }
@@ -49,7 +37,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 FROM transaction_details td
                 JOIN products p ON td.id_produk = p.id_produk
                 GROUP BY p.nama_produk ORDER BY total_terjual DESC";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable CubeKategoriJenisPO()
@@ -61,7 +50,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 JOIN preorders po ON p.id_po = po.id_po
                 JOIN categories kat ON p.id_kategori = kat.id_kategori
                 GROUP BY CUBE (kat.nama_kategori, po.jenis_po)";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable RollupOmzetPerWaktu()
@@ -72,7 +62,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                        SUM(t.total_bayar_grup) AS omzet_kotor
                 FROM transactions t WHERE t.status_pesanan = 'Selesai'
                 GROUP BY ROLLUP (EXTRACT(YEAR FROM t.tanggal_transaksi), EXTRACT(MONTH FROM t.tanggal_transaksi))";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable GroupingSetsPenjualKategori()
@@ -86,7 +77,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 JOIN preorders po ON p.id_po = po.id_po
                 JOIN users u ON po.id_penjual = u.id_user
                 GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori))";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable SubqueryProdukKuotaMenipis()
@@ -96,7 +88,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 WHERE p.target_kuota IS NOT NULL AND (
                     p.target_kuota - (SELECT COALESCE(SUM(jumlah_pesanan), 0) FROM transaction_details td WHERE td.id_produk = p.id_produk)
                 ) <= 5";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable UnionTransaksiBerjalanSelesai()
@@ -105,7 +98,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Diproses'
                 UNION
                 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Selesai'";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable IntersectPenjualJugaPembeli()
@@ -114,7 +108,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 SELECT id_user FROM verifications WHERE is_verifikasi = TRUE
                 INTERSECT
                 SELECT id_koordinator FROM transactions";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
 
         public DataTable ExceptUserBelumTransaksi()
@@ -123,7 +118,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 SELECT id_user, nama FROM users
                 EXCEPT
                 SELECT u.id_user, u.nama FROM users u JOIN transactions t ON u.id_user = t.id_koordinator";
-            return EksekusiQuery(sql);
+
+            return EksekusiDataTable(sql);
         }
     }
 }

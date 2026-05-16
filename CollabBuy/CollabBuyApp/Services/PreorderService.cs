@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class PreorderService
     {
         private readonly IPreorderRepository _poRepo;
-
-        public PreorderService()
+        public PreorderService(IPreorderRepository poRepo)
         {
-            _poRepo = new PreorderRepository();
+            _poRepo = poRepo;
         }
 
         public bool BuatPO(int idPenjual, int idProduk, string judul, string jenis, string infoRekening, DateTime batasWaktu, int targetKuota = 0)
@@ -22,19 +20,15 @@ namespace CollabBuy.CollabBuyApp.Services
             if (string.IsNullOrWhiteSpace(judul)) { UXHelper.TampilkanError("Judul PO wajib diisi."); return false; }
             if (string.IsNullOrWhiteSpace(infoRekening)) { UXHelper.TampilkanError("Info rekening wajib diisi."); return false; }
             if (batasWaktu <= DateTime.Now) { UXHelper.TampilkanError("Batas waktu PO tidak boleh di masa lalu."); return false; }
-            if (jenis != TipePO.Biasa && jenis != TipePO.GotongRoyong) { UXHelper.TampilkanError("Jenis PO tidak valid."); return false;}
+            if (jenis != TipePO.Biasa && jenis != TipePO.GotongRoyong) { UXHelper.TampilkanError("Jenis PO tidak valid."); return false; }
 
-            Preorder po;
-            if (jenis == TipePO.GotongRoyong)
+            if (jenis == TipePO.GotongRoyong && targetKuota <= 0)
             {
-                var gr = new POGotongRoyong();
-                if (targetKuota <= 0) { UXHelper.TampilkanError("Target kuota harus > 0 untuk PO Gotong Royong."); return false; }
-                po = gr;
+                UXHelper.TampilkanError("Target kuota harus > 0 untuk PO Gotong Royong.");
+                return false;
             }
-            else
-            {
-                po = new POBiasa();
-            }
+
+            Preorder po = PreorderFactory.BuatPreorder(jenis);
 
             po.IdPenjual = idPenjual;
             po.JudulPo = judul;

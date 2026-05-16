@@ -3,23 +3,36 @@ using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class ComplaintControl : UserControl
     {
         private int _idUser;
+        private readonly ComplaintService _complaintService;
 
         public ComplaintControl()
         {
             InitializeComponent();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _complaintService = new ComplaintService(new ComplaintRepository());
+
+            // CenterCard dipanggil otomatis setiap ukuran layar berubah
             this.Resize += (s, e) => CenterCard();
-            if (ParentForm is MainForm main)
+
+            // Mengambil ID User saat form sudah dimuat (Load) agar ParentForm tidak null
+            this.Load += (s, e) =>
             {
-                var user = main.AmbilUserAktif();
-                if (user != null)
-                    _idUser = user.IdUser;
-            }
+                if (ParentForm is MainForm main)
+                {
+                    var user = main.AmbilUserAktif();
+                    if (user != null)
+                        _idUser = user.IdUser;
+                }
+                CenterCard();
+            };
         }
 
         private void CenterCard()
@@ -45,8 +58,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            var complaintService = new ComplaintService();
-            bool sukses = complaintService.KirimAduan(_idUser, subjek, deskripsi);
+            // Memanggil service yang sudah disuntikkan repository
+            bool sukses = _complaintService.KirimAduan(_idUser, subjek, deskripsi);
             if (sukses)
             {
                 txtSubjek.Clear();
@@ -54,7 +67,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             }
         }
 
-        // Tombol baru: lihat riwayat aduan
         private void btnLihatAduanSaya_Click(object sender, EventArgs e)
         {
             if (ParentForm is MainForm main)

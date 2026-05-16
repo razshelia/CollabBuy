@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Services;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
@@ -8,16 +10,26 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
     {
         public event EventHandler PindahKeLogin;
 
+        private readonly AuthService _authService;
+
         public RegisterControl()
         {
             InitializeComponent();
-            this.Resize += (s, e) => {
-                if (pnlCard != null)
-                {
-                    pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
-                    pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
-                }
-            };
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _authService = new AuthService(new UserRepository());
+
+            this.Resize += (s, e) => CenterCard();
+            this.Load += (s, e) => CenterCard();
+        }
+
+        private void CenterCard()
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void chkLihatPassword_CheckedChanged(object sender, EventArgs e)
@@ -60,8 +72,8 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 return;
             }
 
-            var auth = new AuthService();
-            bool sukses = auth.Register(nama, telp, email, user, pass);
+            // Panggil Service yang sudah disuntik Repository
+            bool sukses = _authService.Register(nama, telp, email, user, pass);
             if (sukses)
             {
                 MessageBox.Show("Akun kamu berhasil dibuat, bestie! Login sekarang ya. 🎉",
@@ -75,7 +87,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             PindahKeLogin?.Invoke(this, EventArgs.Empty);
         }
 
-        // 👇 EVENT BARU: menampilkan Syarat & Ketentuan
+        // EVENT: Menampilkan Syarat & Ketentuan
         private void lblSyaratKetentuan_Click(object sender, EventArgs e)
         {
             string teksSyarat =

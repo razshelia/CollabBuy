@@ -11,79 +11,92 @@
 
         private void InitializeComponent()
         {
-            pnlHeader = new System.Windows.Forms.Panel();
-            btnKembali = new System.Windows.Forms.Button();
-            lblJudul = new System.Windows.Forms.Label();
-            btnTambahProduk = new System.Windows.Forms.Button();
-            flowPanelProduk = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.btnKembali = new System.Windows.Forms.Button();
+            this.lblJudul = new System.Windows.Forms.Label();
+            this.btnTambahProduk = new System.Windows.Forms.Button();
+            this.flowPanelProduk = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // pnlHeader
+            // 
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlHeader.Controls.Add(this.btnKembali);
+            this.pnlHeader.Controls.Add(this.lblJudul);
+            this.pnlHeader.Controls.Add(this.btnTambahProduk);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1046, 80);
+            this.pnlHeader.TabIndex = 0;
+            // 
+            // btnKembali
+            // 
+            this.btnKembali.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnKembali.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnKembali.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnKembali.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKembali.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnKembali.ForeColor = System.Drawing.Color.White;
+            this.btnKembali.Location = new System.Drawing.Point(20, 20);
+            this.btnKembali.Name = "btnKembali";
+            this.btnKembali.Size = new System.Drawing.Size(140, 40);
+            this.btnKembali.TabIndex = 0;
+            this.btnKembali.Text = "◀ Kembali ke PO";
+            this.btnKembali.UseVisualStyleBackColor = false;
+            this.btnKembali.Click += new System.EventHandler(this.btnKembali_Click);
+            // 
+            // lblJudul
+            // 
+            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
+            this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblJudul.Location = new System.Drawing.Point(180, 20);
+            this.lblJudul.Name = "lblJudul";
+            this.lblJudul.Size = new System.Drawing.Size(500, 40);
+            this.lblJudul.TabIndex = 1;
+            this.lblJudul.Text = "PRODUK MASTER JUALAN 🛍️";
+            this.lblJudul.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // btnTambahProduk
+            // 
+            this.btnTambahProduk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTambahProduk.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnTambahProduk.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnTambahProduk.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnTambahProduk.FlatAppearance.BorderSize = 2;
+            this.btnTambahProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTambahProduk.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.btnTambahProduk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnTambahProduk.Location = new System.Drawing.Point(860, 20);
+            this.btnTambahProduk.Name = "btnTambahProduk";
+            this.btnTambahProduk.Size = new System.Drawing.Size(165, 40);
+            this.btnTambahProduk.TabIndex = 2;
+            this.btnTambahProduk.Text = "➕ TAMBAH PRODUK";
+            this.btnTambahProduk.UseVisualStyleBackColor = false;
+            this.btnTambahProduk.Click += new System.EventHandler(this.btnTambahProduk_Click);
+            // 
+            // flowPanelProduk
+            // 
+            this.flowPanelProduk.AutoScroll = true;
+            this.flowPanelProduk.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelProduk.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelProduk.Location = new System.Drawing.Point(0, 80);
+            this.flowPanelProduk.Name = "flowPanelProduk";
+            this.flowPanelProduk.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelProduk.Size = new System.Drawing.Size(1046, 620);
+            this.flowPanelProduk.TabIndex = 1;
+            // 
+            // SellerProductListControl
+            // 
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelProduk);
+            this.Controls.Add(this.pnlHeader);
+            this.Name = "SellerProductListControl";
+            this.Size = new System.Drawing.Size(1046, 700);
+            this.pnlHeader.ResumeLayout(false);
+            this.ResumeLayout(false);
 
-            pnlHeader.SuspendLayout();
-            SuspendLayout();
-
-            // ── pnlHeader ─────────────────────────────────────
-            pnlHeader.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
-            pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            pnlHeader.Height = 60;
-            pnlHeader.Name = "pnlHeader";
-            pnlHeader.TabIndex = 0;
-            pnlHeader.Controls.Add(btnKembali);
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(btnTambahProduk);
-
-            // ── btnKembali (kiri) ─────────────────────────────
-            btnKembali.BackColor = System.Drawing.Color.FromArgb(100, 100, 120);
-            btnKembali.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnKembali.FlatAppearance.BorderSize = 0;
-            btnKembali.Font = new System.Drawing.Font("Segoe UI", 9F);
-            btnKembali.ForeColor = System.Drawing.Color.White;
-            btnKembali.Location = new System.Drawing.Point(15, 14);
-            btnKembali.Name = "btnKembali";
-            btnKembali.Size = new System.Drawing.Size(130, 32);
-            btnKembali.TabIndex = 0;
-            btnKembali.Text = "◀ Kembali ke PO";
-            btnKembali.UseVisualStyleBackColor = false;
-            btnKembali.Click += btnKembali_Click;
-
-            // ── lblJudul (tengah) ─────────────────────────────
-            lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 13F, System.Drawing.FontStyle.Bold);
-            lblJudul.ForeColor = System.Drawing.Color.FromArgb(253, 224, 71);
-            lblJudul.Location = new System.Drawing.Point(160, 16);
-            lblJudul.Name = "lblJudul";
-            lblJudul.Size = new System.Drawing.Size(560, 28);
-            lblJudul.TabIndex = 1;
-            lblJudul.Text = "🛍️ Daftar Produk";
-
-            // ── btnTambahProduk (kanan) ───────────────────────
-            btnTambahProduk.BackColor = System.Drawing.Color.FromArgb(167, 139, 250);
-            btnTambahProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnTambahProduk.FlatAppearance.BorderSize = 0;
-            btnTambahProduk.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            btnTambahProduk.ForeColor = System.Drawing.Color.White;
-            btnTambahProduk.Location = new System.Drawing.Point(856, 13);
-            btnTambahProduk.Name = "btnTambahProduk";
-            btnTambahProduk.Size = new System.Drawing.Size(160, 34);
-            btnTambahProduk.TabIndex = 2;
-            btnTambahProduk.Text = "➕ Tambah Produk";
-            btnTambahProduk.UseVisualStyleBackColor = false;
-            btnTambahProduk.Click += btnTambahProduk_Click;
-
-            // ── flowPanelProduk ───────────────────────────────
-            flowPanelProduk.AutoScroll = true;
-            flowPanelProduk.BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
-            flowPanelProduk.Dock = System.Windows.Forms.DockStyle.Fill;
-            flowPanelProduk.Name = "flowPanelProduk";
-            flowPanelProduk.Padding = new System.Windows.Forms.Padding(10);
-            flowPanelProduk.TabIndex = 1;
-
-            // ── UserControl root ──────────────────────────────
-            BackColor = System.Drawing.Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelProduk);
-            Controls.Add(pnlHeader);
-            Name = "SellerProductListControl";
-            Size = new System.Drawing.Size(1046, 700);
-
-            pnlHeader.ResumeLayout(false);
-            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlHeader;

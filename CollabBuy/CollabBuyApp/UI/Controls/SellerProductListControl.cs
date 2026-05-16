@@ -6,22 +6,24 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib ditambahkan untuk memanggil Repository
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class SellerProductListControl : UserControl
     {
-        private int _idPenjual;
-        private int _idPo;
-        private string _judulPo;
-        private ProductService _productService;
+        private readonly int _idPenjual;
+        private readonly ProductService _productService;
         private List<Product> _daftarProduk;
 
         public SellerProductListControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            _productService = new ProductService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            // Menyuntikkan ProductRepository ke dalam ProductService
+            _productService = new ProductService(new ProductRepository());
 
             LoadProduk();
         }
@@ -36,14 +38,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
         {
             flowPanelProduk.Controls.Clear();
 
-            if (_daftarProduk.Count == 0)
+            if (_daftarProduk == null || _daftarProduk.Count == 0)
             {
                 Label lblKosong = new Label
                 {
-                    Text = "Belum ada produk di PO ini 🥺\nYuk tambah produk dulu~",
-                    Font = new Font("Segoe UI", 13F),
-                    ForeColor = Color.FromArgb(45, 27, 79),
+                    Text = "Belum ada produk master nih, bestie! 🥺\nYuk tambah produk jualanmu dulu~",
+                    Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
                     TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
                     Dock = DockStyle.Fill
                 };
                 flowPanelProduk.Controls.Add(lblKosong);
@@ -56,20 +59,23 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardProduk(Product produk)
         {
+            // Desain Card Produk bergaya Flat Neo-Retro
             Panel card = new Panel
             {
-                Size = new Size(220, 220),
+                Size = new Size(250, 310),
                 BackColor = Color.White,
-                Margin = new Padding(8),
-                Padding = new Padding(8)
+                Margin = new Padding(12),
+                Padding = new Padding(10),
+                BorderStyle = BorderStyle.FixedSingle // Bingkai kotak datar retro
             };
 
             PictureBox pic = new PictureBox
             {
-                Size = new Size(204, 100),
-                Location = new Point(8, 8),
+                Size = new Size(228, 120),
+                Location = new Point(10, 10),
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.FromArgb(167, 139, 250)
+                BackColor = Color.FromArgb(200, 182, 255), // Ungu Pastel sebagai placeholder
+                BorderStyle = BorderStyle.FixedSingle
             };
             if (!string.IsNullOrEmpty(produk.FotoProduk))
             {
@@ -79,49 +85,60 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             Label lblNama = new Label
             {
-                Text = produk.NamaProduk,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(45, 27, 79),
-                Size = new Size(204, 20),
-                Location = new Point(8, 115)
+                Text = produk.NamaProduk.ToUpper(), // Kapital untuk efek bold pop retro
+                Font = new Font("Segoe UI Black", 11F),
+                ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple
+                Size = new Size(228, 45),
+                Location = new Point(10, 140)
             };
 
             Label lblHarga = new Label
             {
                 Text = $"Rp {produk.HargaDasar:N0}",
-                Font = new Font("Segoe UI", 8F),
-                ForeColor = Color.FromArgb(100, 60, 180),
-                Size = new Size(204, 18),
-                Location = new Point(8, 137)
+                Font = new Font("Segoe UI Black", 11F),
+                ForeColor = Color.FromArgb(255, 138, 138), // Soft Red Pastel
+                Size = new Size(228, 22),
+                Location = new Point(10, 190)
             };
+            if (produk.HargaDiskon.HasValue && produk.HargaDiskon > 0)
+            {
+                lblHarga.Text = $"Rp {produk.HargaDiskon:N0}";
+                lblHarga.ForeColor = Color.FromArgb(0, 150, 0);
+            }
 
+            // Tombol Edit - Kuning Pastel
             Button btnEdit = new Button
             {
                 Text = "✏️ Edit",
-                BackColor = Color.FromArgb(167, 139, 250),
-                ForeColor = Color.White,
+                BackColor = Color.FromArgb(253, 255, 182), // Kuning Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 8F),
-                Size = new Size(90, 28),
-                Location = new Point(8, 162)
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Size = new Size(105, 36),
+                Location = new Point(10, 255),
+                Cursor = Cursors.Hand
             };
-            btnEdit.FlatAppearance.BorderSize = 0;
+            btnEdit.FlatAppearance.BorderSize = 1;
+            btnEdit.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnEdit.Click += (s, e) => NavigasiKeFormProduk(produk);
 
+            // Tombol Hapus - soft red pastel
             Button btnHapus = new Button
             {
                 Text = "🗑 Hapus",
-                BackColor = Color.FromArgb(220, 50, 50),
-                ForeColor = Color.White,
+                BackColor = Color.FromArgb(255, 138, 138), // Soft Red Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 8F),
-                Size = new Size(90, 28),
-                Location = new Point(106, 162)
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Size = new Size(105, 36),
+                Location = new Point(133, 255),
+                Cursor = Cursors.Hand
             };
-            btnHapus.FlatAppearance.BorderSize = 0;
+            btnHapus.FlatAppearance.BorderSize = 1;
+            btnHapus.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnHapus.Click += (s, e) =>
             {
-                if (UXHelper.TampilkanKonfirmasi($"Hapus produk \"{produk.NamaProduk}\"?"))
+                if (UXHelper.TampilkanKonfirmasi($"Hapus produk \"{produk.NamaProduk}\" dari katalog master?"))
                 {
                     if (_productService.HapusProduk(produk.IdProduk))
                         LoadProduk();
@@ -131,8 +148,6 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             card.Controls.AddRange(new Control[] { pic, lblNama, lblHarga, btnEdit, btnHapus });
             return card;
         }
-
-        // ── Event Handlers ────────────────────────────────────
 
         private void btnTambahProduk_Click(object sender, EventArgs e)
         {

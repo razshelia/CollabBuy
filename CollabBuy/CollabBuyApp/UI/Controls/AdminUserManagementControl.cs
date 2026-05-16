@@ -4,18 +4,23 @@ using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
+using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib ditambahkan untuk memanggil Repository
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class AdminUserManagementControl : UserControl
     {
-        private VerificationService _verifService;
+        private readonly VerificationService _verifService;
         private List<Verification> _daftarPengajuan;
 
         public AdminUserManagementControl()
         {
             InitializeComponent();
-            _verifService = new VerificationService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _verifService = new VerificationService(new VerificationRepository());
+
             LoadData();
         }
 
@@ -30,12 +35,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             flowPanelVerif.Controls.Clear();
             if (_daftarPengajuan.Count == 0)
             {
-                Label lblKosong = new Label();
-                lblKosong.Text = "Belum ada pengajuan verifikasi, bestie! 😴";
-                lblKosong.Font = new Font("Segoe UI", 14F);
-                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
-                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
-                lblKosong.Dock = DockStyle.Fill;
+                Label lblKosong = new Label()
+                {
+                    Text = "Belum ada pengajuan verifikasi nih, bestie! 😴",
+                    Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
+                    Dock = DockStyle.Fill
+                };
                 flowPanelVerif.Controls.Add(lblKosong);
                 return;
             }
@@ -49,63 +57,77 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardVerifikasi(Verification v)
         {
-            Panel card = new Panel();
-            card.Size = new Size(680, 110);
-            card.BackColor = Color.White;
-            card.Margin = new Padding(5);
-            card.Padding = new Padding(15);
+            // Desain Card Verifikasi Neo-Retro
+            Panel card = new Panel()
+            {
+                Size = new Size(850, 110), // Diperlebar agar cocok untuk full screen
+                BackColor = Color.FromArgb(253, 255, 182), // Pastel Yellow
+                Margin = new Padding(10),
+                Padding = new Padding(15),
+                BorderStyle = BorderStyle.FixedSingle // Gaya kotak datar
+            };
 
             Label lblNamaToko = new Label()
             {
-                Text = $"🏪 {v.NamaToko}",
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(45, 27, 79),
-                Size = new Size(300, 25),
-                Location = new Point(15, 10)
+                Text = $"🏪 {v.NamaToko.ToUpper()}",
+                Font = new Font("Segoe UI Black", 12F),
+                ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple
+                Size = new Size(400, 25),
+                Location = new Point(15, 15)
             };
 
             Label lblNIM = new Label()
             {
-                Text = $"🎓 NIM: {v.Nim} • Tahun Masuk: {v.TahunMasuk}",
-                Font = new Font("Segoe UI", 9F),
-                ForeColor = Color.Gray,
-                Size = new Size(300, 20),
-                Location = new Point(15, 40)
+                Text = $"🎓 NIM: {v.Nim}   •   📅 Tahun Masuk: {v.TahunMasuk}",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(100, 100, 100),
+                Size = new Size(400, 20),
+                Location = new Point(15, 45)
             };
 
             Label lblStatus = new Label()
             {
-                Text = v.IsVerifikasi ? "✅ Disetujui" : "⏳ Menunggu",
-                Font = new Font("Segoe UI", 9F),
-                ForeColor = v.IsVerifikasi ? Color.Green : Color.Orange,
+                Text = v.IsVerifikasi ? "✅ DISETUJUI" : "⏳ MENUNGGU",
+                Font = new Font("Segoe UI Black", 10F),
+                ForeColor = v.IsVerifikasi ? Color.FromArgb(0, 150, 0) : Color.FromArgb(220, 120, 0),
                 Size = new Size(150, 20),
-                Location = new Point(15, 65)
+                Location = new Point(15, 70)
             };
 
+            // Tombol Setujui - Pastel Green
             Button btnSetujui = new Button()
             {
                 Text = "✅ Setujui",
-                BackColor = Color.Green,
-                ForeColor = Color.White,
+                BackColor = Color.FromArgb(182, 255, 200), // Soft Green
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Size = new Size(100, 30),
-                Location = new Point(400, 55)
+                Size = new Size(110, 40),
+                Location = new Point(600, 35),
+                Cursor = Cursors.Hand,
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
             };
+            btnSetujui.FlatAppearance.BorderSize = 1;
+            btnSetujui.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnSetujui.Click += (s, e) =>
             {
                 if (_verifService.SetujuiVerifikasi(v.IdVerifikasi))
                     LoadData();
             };
 
+            // Tombol Tolak - Pastel Red
             Button btnTolak = new Button()
             {
                 Text = "❌ Tolak",
-                BackColor = Color.Red,
-                ForeColor = Color.White,
+                BackColor = Color.FromArgb(255, 138, 138), // Soft Red
+                ForeColor = Color.FromArgb(36, 0, 70),
                 FlatStyle = FlatStyle.Flat,
-                Size = new Size(100, 30),
-                Location = new Point(510, 55)
+                Size = new Size(110, 40),
+                Location = new Point(720, 35),
+                Cursor = Cursors.Hand,
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
             };
+            btnTolak.FlatAppearance.BorderSize = 1;
+            btnTolak.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
             btnTolak.Click += (s, e) =>
             {
                 if (_verifService.TolakVerifikasi(v.IdVerifikasi))

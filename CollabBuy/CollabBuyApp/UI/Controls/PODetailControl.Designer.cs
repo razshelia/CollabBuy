@@ -11,105 +11,109 @@
 
         private void InitializeComponent()
         {
-            pnlHeader = new Panel();
-            lblJudulPO = new Label();
-            lblJenisPO = new Label();
-            lblRekening = new Label();
-            lblBatasWaktu = new Label();
-            btnKembali = new Button();
-            flowPanelProduk = new FlowLayoutPanel();
-            pnlHeader.SuspendLayout();
-            SuspendLayout();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.lblJudulPO = new System.Windows.Forms.Label();
+            this.lblJenisPO = new System.Windows.Forms.Label();
+            this.lblRekening = new System.Windows.Forms.Label();
+            this.lblBatasWaktu = new System.Windows.Forms.Label();
+            this.btnKembali = new System.Windows.Forms.Button();
+            this.flowPanelProduk = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlHeader
             // 
-            pnlHeader.BackColor = Color.FromArgb(45, 27, 79);
-            pnlHeader.Controls.Add(lblJudulPO);
-            pnlHeader.Controls.Add(lblJenisPO);
-            pnlHeader.Controls.Add(lblRekening);
-            pnlHeader.Controls.Add(lblBatasWaktu);
-            pnlHeader.Controls.Add(btnKembali);
-            pnlHeader.Dock = DockStyle.Top;
-            pnlHeader.Location = new Point(0, 0);
-            pnlHeader.Name = "pnlHeader";
-            pnlHeader.Size = new Size(1046, 160);
-            pnlHeader.TabIndex = 1;
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlHeader.Controls.Add(this.lblJudulPO);
+            this.pnlHeader.Controls.Add(this.lblJenisPO);
+            this.pnlHeader.Controls.Add(this.lblRekening);
+            this.pnlHeader.Controls.Add(this.lblBatasWaktu);
+            this.pnlHeader.Controls.Add(this.btnKembali);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1046, 140);
+            this.pnlHeader.TabIndex = 1;
             // 
             // lblJudulPO
             // 
-            lblJudulPO.Font = new Font("Segoe UI Black", 18F, FontStyle.Bold);
-            lblJudulPO.ForeColor = Color.FromArgb(253, 224, 71);
-            lblJudulPO.Location = new Point(20, 15);
-            lblJudulPO.Name = "lblJudulPO";
-            lblJudulPO.Size = new Size(700, 40);
-            lblJudulPO.TabIndex = 0;
-            lblJudulPO.Text = "Judul PO";
+            this.lblJudulPO.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblJudulPO.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblJudulPO.Location = new System.Drawing.Point(20, 15);
+            this.lblJudulPO.Name = "lblJudulPO";
+            this.lblJudulPO.Size = new System.Drawing.Size(700, 40);
+            this.lblJudulPO.TabIndex = 0;
+            this.lblJudulPO.Text = "JUDUL PO";
             // 
             // lblJenisPO
             // 
-            lblJenisPO.Font = new Font("Segoe UI", 10F);
-            lblJenisPO.ForeColor = Color.FromArgb(167, 139, 250);
-            lblJenisPO.Location = new Point(20, 60);
-            lblJenisPO.Name = "lblJenisPO";
-            lblJenisPO.Size = new Size(200, 25);
-            lblJenisPO.TabIndex = 1;
-            lblJenisPO.Text = "Jenis: Biasa";
+            this.lblJenisPO.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblJenisPO.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblJenisPO.Location = new System.Drawing.Point(25, 60);
+            this.lblJenisPO.Name = "lblJenisPO";
+            this.lblJenisPO.Size = new System.Drawing.Size(250, 25);
+            this.lblJenisPO.TabIndex = 1;
+            this.lblJenisPO.Text = "🏷️ Jenis: Biasa";
             // 
             // lblRekening
             // 
-            lblRekening.Font = new Font("Segoe UI", 10F);
-            lblRekening.ForeColor = Color.White;
-            lblRekening.Location = new Point(20, 90);
-            lblRekening.Name = "lblRekening";
-            lblRekening.Size = new Size(400, 25);
-            lblRekening.TabIndex = 2;
-            lblRekening.Text = "Rekening: -";
+            this.lblRekening.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblRekening.ForeColor = System.Drawing.Color.White;
+            this.lblRekening.Location = new System.Drawing.Point(25, 85);
+            this.lblRekening.Name = "lblRekening";
+            this.lblRekening.Size = new System.Drawing.Size(400, 25);
+            this.lblRekening.TabIndex = 2;
+            this.lblRekening.Text = "💳 Rekening: -";
             // 
             // lblBatasWaktu
             // 
-            lblBatasWaktu.Font = new Font("Segoe UI", 10F);
-            lblBatasWaktu.ForeColor = Color.White;
-            lblBatasWaktu.Location = new Point(20, 120);
-            lblBatasWaktu.Name = "lblBatasWaktu";
-            lblBatasWaktu.Size = new Size(300, 25);
-            lblBatasWaktu.TabIndex = 3;
-            lblBatasWaktu.Text = "Batas Waktu: -";
+            this.lblBatasWaktu.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblBatasWaktu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
+            this.lblBatasWaktu.Location = new System.Drawing.Point(25, 110);
+            this.lblBatasWaktu.Name = "lblBatasWaktu";
+            this.lblBatasWaktu.Size = new System.Drawing.Size(400, 25);
+            this.lblBatasWaktu.TabIndex = 3;
+            this.lblBatasWaktu.Text = "⏳ Batas Waktu: -";
             // 
             // btnKembali
             // 
-            btnKembali.BackColor = Color.FromArgb(167, 139, 250);
-            btnKembali.FlatAppearance.BorderSize = 0;
-            btnKembali.FlatStyle = FlatStyle.Flat;
-            btnKembali.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnKembali.ForeColor = Color.White;
-            btnKembali.Location = new Point(600, 110);
-            btnKembali.Name = "btnKembali";
-            btnKembali.Size = new Size(160, 35);
-            btnKembali.TabIndex = 4;
-            btnKembali.Text = "⬅ Kembali ke Katalog";
-            btnKembali.UseVisualStyleBackColor = false;
-            btnKembali.Click += btnKembali_Click;
+            this.btnKembali.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnKembali.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnKembali.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnKembali.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnKembali.FlatAppearance.BorderSize = 2;
+            this.btnKembali.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKembali.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnKembali.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnKembali.Location = new System.Drawing.Point(820, 20);
+            this.btnKembali.Name = "btnKembali";
+            this.btnKembali.Size = new System.Drawing.Size(200, 45);
+            this.btnKembali.TabIndex = 4;
+            this.btnKembali.Text = "⬅ Kembali ke Katalog";
+            this.btnKembali.UseVisualStyleBackColor = false;
+            this.btnKembali.Click += new System.EventHandler(this.btnKembali_Click);
             // 
             // flowPanelProduk
             // 
-            flowPanelProduk.AutoScroll = true;
-            flowPanelProduk.BackColor = Color.FromArgb(255, 249, 230);
-            flowPanelProduk.Dock = DockStyle.Fill;
-            flowPanelProduk.Location = new Point(0, 160);
-            flowPanelProduk.Name = "flowPanelProduk";
-            flowPanelProduk.Padding = new Padding(15);
-            flowPanelProduk.Size = new Size(1046, 173);
-            flowPanelProduk.TabIndex = 0;
+            this.flowPanelProduk.AutoScroll = true;
+            this.flowPanelProduk.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelProduk.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelProduk.Location = new System.Drawing.Point(0, 140);
+            this.flowPanelProduk.Name = "flowPanelProduk";
+            this.flowPanelProduk.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelProduk.Size = new System.Drawing.Size(1046, 590);
+            this.flowPanelProduk.TabIndex = 0;
             // 
             // PODetailControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelProduk);
-            Controls.Add(pnlHeader);
-            Name = "PODetailControl";
-            Size = new Size(1046, 333);
-            pnlHeader.ResumeLayout(false);
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelProduk);
+            this.Controls.Add(this.pnlHeader);
+            this.Name = "PODetailControl";
+            this.Size = new System.Drawing.Size(1046, 730);
+            this.pnlHeader.ResumeLayout(false);
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlHeader;

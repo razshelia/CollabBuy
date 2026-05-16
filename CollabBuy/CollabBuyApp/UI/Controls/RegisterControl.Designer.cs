@@ -11,195 +11,201 @@
 
         private void InitializeComponent()
         {
-            pnlCard = new Panel();
-            lblTitle = new Label();
-            lblSubtitle = new Label();
-            txtNama = new TextBox();
-            txtNomorTelepon = new TextBox();
-            txtEmail = new TextBox();
-            txtUsername = new TextBox();
-            txtPassword = new TextBox();
-            txtKonfirmasiPassword = new TextBox();
-            chkLihatPassword = new CheckBox();
-            chkSetuju = new CheckBox();
-            lblSyaratKetentuan = new Label();
-            btnDaftar = new Button();
-            lblLoginLink = new Label();
-            pnlCard.SuspendLayout();
-            SuspendLayout();
+            this.pnlCard = new System.Windows.Forms.Panel();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.lblSubtitle = new System.Windows.Forms.Label();
+            this.txtNama = new System.Windows.Forms.TextBox();
+            this.txtNomorTelepon = new System.Windows.Forms.TextBox();
+            this.txtEmail = new System.Windows.Forms.TextBox();
+            this.txtUsername = new System.Windows.Forms.TextBox();
+            this.txtPassword = new System.Windows.Forms.TextBox();
+            this.txtKonfirmasiPassword = new System.Windows.Forms.TextBox();
+            this.chkLihatPassword = new System.Windows.Forms.CheckBox();
+            this.chkSetuju = new System.Windows.Forms.CheckBox();
+            this.lblSyaratKetentuan = new System.Windows.Forms.Label();
+            this.btnDaftar = new System.Windows.Forms.Button();
+            this.lblLoginLink = new System.Windows.Forms.Label();
+            this.pnlCard.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlCard
             // 
-            pnlCard.Anchor = AnchorStyles.None;
-            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
-            pnlCard.Controls.Add(lblTitle);
-            pnlCard.Controls.Add(lblSubtitle);
-            pnlCard.Controls.Add(txtNama);
-            pnlCard.Controls.Add(txtNomorTelepon);
-            pnlCard.Controls.Add(txtEmail);
-            pnlCard.Controls.Add(txtUsername);
-            pnlCard.Controls.Add(txtPassword);
-            pnlCard.Controls.Add(txtKonfirmasiPassword);
-            pnlCard.Controls.Add(chkLihatPassword);
-            pnlCard.Controls.Add(chkSetuju);
-            pnlCard.Controls.Add(lblSyaratKetentuan);
-            pnlCard.Controls.Add(btnDaftar);
-            pnlCard.Controls.Add(lblLoginLink);
-            pnlCard.Location = new Point(673, 316);
-            pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(460, 660);
-            pnlCard.TabIndex = 0;
+            this.pnlCard.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.lblTitle);
+            this.pnlCard.Controls.Add(this.lblSubtitle);
+            this.pnlCard.Controls.Add(this.txtNama);
+            this.pnlCard.Controls.Add(this.txtNomorTelepon);
+            this.pnlCard.Controls.Add(this.txtEmail);
+            this.pnlCard.Controls.Add(this.txtUsername);
+            this.pnlCard.Controls.Add(this.txtPassword);
+            this.pnlCard.Controls.Add(this.txtKonfirmasiPassword);
+            this.pnlCard.Controls.Add(this.chkLihatPassword);
+            this.pnlCard.Controls.Add(this.chkSetuju);
+            this.pnlCard.Controls.Add(this.lblSyaratKetentuan);
+            this.pnlCard.Controls.Add(this.btnDaftar);
+            this.pnlCard.Controls.Add(this.lblLoginLink);
+            this.pnlCard.Location = new System.Drawing.Point(300, 30);
+            this.pnlCard.Name = "pnlCard";
+            this.pnlCard.Size = new System.Drawing.Size(460, 660);
+            this.pnlCard.TabIndex = 0;
             // 
             // lblTitle
             // 
-            lblTitle.Font = new Font("Segoe UI Black", 20F, FontStyle.Bold);
-            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
-            lblTitle.Location = new Point(40, 25);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(380, 45);
-            lblTitle.TabIndex = 0;
-            lblTitle.Text = "DAFTAR DULU, GENGS! 🌟";
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblTitle.Location = new System.Drawing.Point(0, 30);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(460, 45);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "DAFTAR DULU, GENGS! 🌟";
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblSubtitle
             // 
-            lblSubtitle.Font = new Font("Segoe UI", 9F);
-            lblSubtitle.ForeColor = Color.FromArgb(167, 139, 250);
-            lblSubtitle.Location = new Point(40, 70);
-            lblSubtitle.Name = "lblSubtitle";
-            lblSubtitle.Size = new Size(380, 25);
-            lblSubtitle.TabIndex = 1;
-            lblSubtitle.Text = "Gabung komunitas paling solid se-kampus!";
-            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblSubtitle.Location = new System.Drawing.Point(0, 75);
+            this.lblSubtitle.Name = "lblSubtitle";
+            this.lblSubtitle.Size = new System.Drawing.Size(460, 25);
+            this.lblSubtitle.TabIndex = 1;
+            this.lblSubtitle.Text = "Gabung komunitas paling solid se-kampus!";
+            this.lblSubtitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // txtNama
             // 
-            txtNama.Font = new Font("Segoe UI", 11F);
-            txtNama.Location = new Point(65, 105);
-            txtNama.Name = "txtNama";
-            txtNama.PlaceholderText = "Nama lengkap kamu...";
-            txtNama.Size = new Size(330, 27);
-            txtNama.TabIndex = 2;
+            this.txtNama.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtNama.Location = new System.Drawing.Point(55, 125);
+            this.txtNama.Name = "txtNama";
+            this.txtNama.Size = new System.Drawing.Size(350, 27);
+            this.txtNama.TabIndex = 2;
+            this.txtNama.PlaceholderText = "Nama lengkap kamu...";
             // 
             // txtNomorTelepon
             // 
-            txtNomorTelepon.Font = new Font("Segoe UI", 11F);
-            txtNomorTelepon.Location = new Point(65, 145);
-            txtNomorTelepon.Name = "txtNomorTelepon";
-            txtNomorTelepon.PlaceholderText = "Nomor telepon (angka aja)";
-            txtNomorTelepon.Size = new Size(330, 27);
-            txtNomorTelepon.TabIndex = 3;
-            txtNomorTelepon.KeyPress += txtNomorTelepon_KeyPress;
+            this.txtNomorTelepon.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtNomorTelepon.Location = new System.Drawing.Point(55, 170);
+            this.txtNomorTelepon.Name = "txtNomorTelepon";
+            this.txtNomorTelepon.Size = new System.Drawing.Size(350, 27);
+            this.txtNomorTelepon.TabIndex = 3;
+            this.txtNomorTelepon.PlaceholderText = "Nomor telepon (angka aja)";
+            this.txtNomorTelepon.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtNomorTelepon_KeyPress);
             // 
             // txtEmail
             // 
-            txtEmail.Font = new Font("Segoe UI", 11F);
-            txtEmail.Location = new Point(65, 185);
-            txtEmail.Name = "txtEmail";
-            txtEmail.PlaceholderText = "Email aktif kamu...";
-            txtEmail.Size = new Size(330, 27);
-            txtEmail.TabIndex = 4;
+            this.txtEmail.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtEmail.Location = new System.Drawing.Point(55, 215);
+            this.txtEmail.Name = "txtEmail";
+            this.txtEmail.Size = new System.Drawing.Size(350, 27);
+            this.txtEmail.TabIndex = 4;
+            this.txtEmail.PlaceholderText = "Email aktif kamu...";
             // 
             // txtUsername
             // 
-            txtUsername.Font = new Font("Segoe UI", 11F);
-            txtUsername.Location = new Point(65, 225);
-            txtUsername.Name = "txtUsername";
-            txtUsername.PlaceholderText = "Username kece (min 5 karakter)";
-            txtUsername.Size = new Size(330, 27);
-            txtUsername.TabIndex = 5;
+            this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtUsername.Location = new System.Drawing.Point(55, 260);
+            this.txtUsername.Name = "txtUsername";
+            this.txtUsername.Size = new System.Drawing.Size(350, 27);
+            this.txtUsername.TabIndex = 5;
+            this.txtUsername.PlaceholderText = "Username kece (min 5 karakter)";
             // 
             // txtPassword
             // 
-            txtPassword.Font = new Font("Segoe UI", 11F);
-            txtPassword.Location = new Point(65, 265);
-            txtPassword.Name = "txtPassword";
-            txtPassword.PlaceholderText = "Password (min 8 karakter) \U0001f92b";
-            txtPassword.Size = new Size(330, 27);
-            txtPassword.TabIndex = 6;
-            txtPassword.UseSystemPasswordChar = true;
+            this.txtPassword.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtPassword.Location = new System.Drawing.Point(55, 305);
+            this.txtPassword.Name = "txtPassword";
+            this.txtPassword.Size = new System.Drawing.Size(350, 27);
+            this.txtPassword.TabIndex = 6;
+            this.txtPassword.PlaceholderText = "Password (min 8 karakter) 🤫";
+            this.txtPassword.UseSystemPasswordChar = true;
             // 
             // txtKonfirmasiPassword
             // 
-            txtKonfirmasiPassword.Font = new Font("Segoe UI", 11F);
-            txtKonfirmasiPassword.Location = new Point(65, 305);
-            txtKonfirmasiPassword.Name = "txtKonfirmasiPassword";
-            txtKonfirmasiPassword.PlaceholderText = "Ulangi password tadi...";
-            txtKonfirmasiPassword.Size = new Size(330, 27);
-            txtKonfirmasiPassword.TabIndex = 7;
-            txtKonfirmasiPassword.UseSystemPasswordChar = true;
+            this.txtKonfirmasiPassword.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtKonfirmasiPassword.Location = new System.Drawing.Point(55, 350);
+            this.txtKonfirmasiPassword.Name = "txtKonfirmasiPassword";
+            this.txtKonfirmasiPassword.Size = new System.Drawing.Size(350, 27);
+            this.txtKonfirmasiPassword.TabIndex = 7;
+            this.txtKonfirmasiPassword.PlaceholderText = "Ulangi password tadi...";
+            this.txtKonfirmasiPassword.UseSystemPasswordChar = true;
             // 
             // chkLihatPassword
             // 
-            chkLihatPassword.Font = new Font("Segoe UI", 9F);
-            chkLihatPassword.ForeColor = Color.FromArgb(167, 139, 250);
-            chkLihatPassword.Location = new Point(65, 345);
-            chkLihatPassword.Name = "chkLihatPassword";
-            chkLihatPassword.Size = new Size(200, 20);
-            chkLihatPassword.TabIndex = 8;
-            chkLihatPassword.Text = "Lihat Password 👀";
-            chkLihatPassword.CheckedChanged += chkLihatPassword_CheckedChanged;
+            this.chkLihatPassword.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.chkLihatPassword.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.chkLihatPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.chkLihatPassword.Location = new System.Drawing.Point(55, 390);
+            this.chkLihatPassword.Name = "chkLihatPassword";
+            this.chkLihatPassword.Size = new System.Drawing.Size(200, 20);
+            this.chkLihatPassword.TabIndex = 8;
+            this.chkLihatPassword.Text = "Lihat Password 👀";
+            this.chkLihatPassword.CheckedChanged += new System.EventHandler(this.chkLihatPassword_CheckedChanged);
             // 
             // chkSetuju
             // 
-            chkSetuju.Font = new Font("Segoe UI", 9F);
-            chkSetuju.ForeColor = Color.FromArgb(167, 139, 250);
-            chkSetuju.Location = new Point(65, 375);
-            chkSetuju.Name = "chkSetuju";
-            chkSetuju.Size = new Size(330, 20);
-            chkSetuju.TabIndex = 9;
-            chkSetuju.Text = "Aku setuju sama Syarat & Ketentuan yang berlaku 📜";
+            this.chkSetuju.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.chkSetuju.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.chkSetuju.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.chkSetuju.Location = new System.Drawing.Point(55, 420);
+            this.chkSetuju.Name = "chkSetuju";
+            this.chkSetuju.Size = new System.Drawing.Size(350, 40);
+            this.chkSetuju.TabIndex = 9;
+            this.chkSetuju.Text = "Aku setuju sama Syarat & Ketentuan yang berlaku 📜";
             // 
             // lblSyaratKetentuan
             // 
-            lblSyaratKetentuan.Cursor = Cursors.Hand;
-            lblSyaratKetentuan.Font = new Font("Segoe UI", 8F, FontStyle.Underline);
-            lblSyaratKetentuan.ForeColor = Color.FromArgb(253, 224, 71);
-            lblSyaratKetentuan.Location = new Point(85, 395);
-            lblSyaratKetentuan.Name = "lblSyaratKetentuan";
-            lblSyaratKetentuan.Size = new Size(290, 18);
-            lblSyaratKetentuan.TabIndex = 10;
-            lblSyaratKetentuan.Text = "📋 Lihat Syarat & Ketentuan";
-            lblSyaratKetentuan.TextAlign = ContentAlignment.MiddleLeft;
-            lblSyaratKetentuan.Click += lblSyaratKetentuan_Click;
+            this.lblSyaratKetentuan.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblSyaratKetentuan.Font = new System.Drawing.Font("Segoe UI", 9F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))));
+            this.lblSyaratKetentuan.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblSyaratKetentuan.Location = new System.Drawing.Point(55, 465);
+            this.lblSyaratKetentuan.Name = "lblSyaratKetentuan";
+            this.lblSyaratKetentuan.Size = new System.Drawing.Size(350, 20);
+            this.lblSyaratKetentuan.TabIndex = 10;
+            this.lblSyaratKetentuan.Text = "📋 Lihat Syarat & Ketentuan";
+            this.lblSyaratKetentuan.Click += new System.EventHandler(this.lblSyaratKetentuan_Click);
             // 
             // btnDaftar
             // 
-            btnDaftar.BackColor = Color.FromArgb(167, 139, 250);
-            btnDaftar.FlatAppearance.BorderSize = 0;
-            btnDaftar.FlatStyle = FlatStyle.Flat;
-            btnDaftar.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
-            btnDaftar.ForeColor = Color.White;
-            btnDaftar.Location = new Point(65, 430);
-            btnDaftar.Name = "btnDaftar";
-            btnDaftar.Size = new Size(330, 45);
-            btnDaftar.TabIndex = 11;
-            btnDaftar.Text = "GABUNG SEKARANG 💜";
-            btnDaftar.UseVisualStyleBackColor = false;
-            btnDaftar.Click += btnDaftar_Click;
+            this.btnDaftar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnDaftar.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnDaftar.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnDaftar.FlatAppearance.BorderSize = 2;
+            this.btnDaftar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDaftar.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
+            this.btnDaftar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnDaftar.Location = new System.Drawing.Point(55, 510);
+            this.btnDaftar.Name = "btnDaftar";
+            this.btnDaftar.Size = new System.Drawing.Size(350, 50);
+            this.btnDaftar.TabIndex = 11;
+            this.btnDaftar.Text = "GABUNG SEKARANG 💜";
+            this.btnDaftar.UseVisualStyleBackColor = false;
+            this.btnDaftar.Click += new System.EventHandler(this.btnDaftar_Click);
             // 
             // lblLoginLink
             // 
-            lblLoginLink.Cursor = Cursors.Hand;
-            lblLoginLink.Font = new Font("Segoe UI", 9F, FontStyle.Underline);
-            lblLoginLink.ForeColor = Color.FromArgb(253, 224, 71);
-            lblLoginLink.Location = new Point(65, 490);
-            lblLoginLink.Name = "lblLoginLink";
-            lblLoginLink.Size = new Size(330, 25);
-            lblLoginLink.TabIndex = 12;
-            lblLoginLink.Text = "Udah punya akun? Login aja, bestie! 🔑";
-            lblLoginLink.TextAlign = ContentAlignment.MiddleCenter;
-            lblLoginLink.Click += lblLoginLink_Click;
+            this.lblLoginLink.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblLoginLink.Font = new System.Drawing.Font("Segoe UI", 10F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))));
+            this.lblLoginLink.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblLoginLink.Location = new System.Drawing.Point(0, 580);
+            this.lblLoginLink.Name = "lblLoginLink";
+            this.lblLoginLink.Size = new System.Drawing.Size(460, 30);
+            this.lblLoginLink.TabIndex = 12;
+            this.lblLoginLink.Text = "Udah punya akun? Login aja, bestie! 🔑";
+            this.lblLoginLink.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblLoginLink.Click += new System.EventHandler(this.lblLoginLink_Click);
             // 
             // RegisterControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(pnlCard);
-            Name = "RegisterControl";
-            Size = new Size(1046, 333);
-            pnlCard.ResumeLayout(false);
-            pnlCard.PerformLayout();
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.pnlCard);
+            this.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Name = "RegisterControl";
+            this.Size = new System.Drawing.Size(1046, 730);
+            this.pnlCard.ResumeLayout(false);
+            this.pnlCard.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlCard;

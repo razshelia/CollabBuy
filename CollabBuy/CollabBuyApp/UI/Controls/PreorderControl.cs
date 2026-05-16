@@ -5,24 +5,42 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class PreorderControl : UserControl
     {
-        private int _idPenjual;
-        private ProductService _productService;
+        private readonly int _idPenjual;
+        private readonly ProductService _productService;
+        private readonly PreorderService _poService;
 
         public PreorderControl(int idPenjual)
         {
             InitializeComponent();
             _idPenjual = idPenjual;
-            _productService = new ProductService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _productService = new ProductService(new ProductRepository());
+            _poService = new PreorderService(new PreorderRepository());
 
             dtpBatasWaktu.MinDate = DateTime.Now.AddDays(1);
             dtpBatasWaktu.Value = DateTime.Now.AddDays(14);
 
+            // Center card saat ukuran berubah atau pertama kali dimuat
+            this.Resize += (s, e) => CenterCard();
+            this.Load += (s, e) => CenterCard();
+
             LoadProdukCombo();
+        }
+
+        private void CenterCard()
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.ClientSize.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.ClientSize.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void LoadProdukCombo()
@@ -30,27 +48,21 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             try
             {
                 var listProduk = _productService.AmbilProdukByPenjual(_idPenjual) ?? new List<Product>();
-
-                // Tambahkan opsi default di indeks 0
-                listProduk.Insert(0, new Product { IdProduk = 0, NamaProduk = "-- Pilih Produk --" });
-
-                cmbProduk.DataSource = listProduk;
-                cmbProduk.DisplayMember = "NamaProduk"; // Teks yang tampil di antarmuka
-                cmbProduk.ValueMember = "IdProduk";     // ID yang digunakan di database
+                var itemsCombo = new List<dynamic>();
+                itemsCombo.Add(new { Id = 0, Nama = "Pilih Produk Master" });
+                foreach (var p in listProduk)
+                {
+                    itemsCombo.Add(new { Id = p.IdProduk, Nama = p.NamaProduk });
+                }
+                cmbProduk.DataSource = itemsCombo;
+                cmbProduk.DisplayMember = "Nama";
+                cmbProduk.ValueMember = "Id";
                 cmbProduk.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
                 UXHelper.TampilkanError("Gagal memuat daftar produk: " + ex.Message);
             }
-        }
-
-        private void PreorderControl_Resize(object sender, EventArgs e)
-        {
-            pnlCard.Location = new Point(
-                (this.ClientSize.Width - pnlCard.Width) / 2,
-                (this.ClientSize.Height - pnlCard.Height) / 2
-            );
         }
 
         private void cmbJenis_SelectedIndexChanged(object sender, EventArgs e)
@@ -68,11 +80,16 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             DateTime batas = dtpBatasWaktu.Value;
             int targetKuota = 0;
 
-            // Validasi ComboBox Produk dengan TryParse agar aman dari NullReferenceException
             int idProdukTerpilih = 0;
             if (cmbProduk.SelectedValue != null)
             {
                 int.TryParse(cmbProduk.SelectedValue.ToString(), out idProdukTerpilih);
+            }
+
+            if (idProdukTerpilih <= 0)
+            {
+                UXHelper.TampilkanError("Pilih produk master yang valid dulu ya, bestie! 📦");
+                return;
             }
 
             if (jenis == TipePO.GotongRoyong)
@@ -80,9 +97,7 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 int.TryParse(txtTargetKuota.Text, out targetKuota);
             }
 
-            var poService = new PreorderService();
-            // Lempar idProdukTerpilih ke Service
-            bool sukses = poService.BuatPO(_idPenjual, idProdukTerpilih, judul, jenis, rekening, batas, targetKuota);
+            bool sukses = _poService.BuatPO(_idPenjual, idProdukTerpilih, judul, jenis, rekening, batas, targetKuota);
 
             if (sukses)
             {

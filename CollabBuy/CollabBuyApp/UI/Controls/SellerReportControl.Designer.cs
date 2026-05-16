@@ -11,173 +11,111 @@
 
         private void InitializeComponent()
         {
-            pnlRingkasan = new Panel();
-            lblTotalProduk = new Label();
-            lblTotalPO = new Label();
-            lblTotalOmzet = new Label();
-            pnlNavigasi = new Panel();
-            btnBarangTerlaris = new Button();
-            btnKuotaMenipis = new Button();
-            btnOmzetBulanan = new Button();
-            btnRefresh = new Button();
-            dgvLaporan = new DataGridView();
-            pnlNavigasi.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvLaporan).BeginInit();
-            SuspendLayout();
+            this.pnlRingkasan = new System.Windows.Forms.Panel();
+            this.pnlNavigasi = new System.Windows.Forms.Panel();
+            this.btnRefresh = new System.Windows.Forms.Button();
+            this.btnBarangTerlaris = new System.Windows.Forms.Button();
+            this.btnCube = new System.Windows.Forms.Button();
+            this.btnOmzetBulanan = new System.Windows.Forms.Button();
+            this.btnGroupingSets = new System.Windows.Forms.Button();
+            this.btnKuotaMenipis = new System.Windows.Forms.Button();
+            this.btnUnion = new System.Windows.Forms.Button();
+            this.btnIntersect = new System.Windows.Forms.Button();
+            this.btnExcept = new System.Windows.Forms.Button();
+            this.dgvLaporan = new System.Windows.Forms.DataGridView();
+            this.pnlNavigasi.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).BeginInit();
+            this.SuspendLayout();
             // 
             // pnlRingkasan
             // 
-            pnlRingkasan.BackColor = Color.FromArgb(45, 27, 79);
-            pnlRingkasan.Dock = DockStyle.Top;
-            pnlRingkasan.Location = new Point(0, 0);
-            pnlRingkasan.Name = "pnlRingkasan";
-            pnlRingkasan.Size = new Size(1046, 100);
-            pnlRingkasan.TabIndex = 2;
-            // 
-            // lblTotalProduk
-            // 
-            lblTotalProduk.Location = new Point(0, 0);
-            lblTotalProduk.Name = "lblTotalProduk";
-            lblTotalProduk.Size = new Size(100, 23);
-            lblTotalProduk.TabIndex = 0;
-            // 
-            // lblTotalPO
-            // 
-            lblTotalPO.Location = new Point(0, 0);
-            lblTotalPO.Name = "lblTotalPO";
-            lblTotalPO.Size = new Size(100, 23);
-            lblTotalPO.TabIndex = 0;
-            // 
-            // lblTotalOmzet
-            // 
-            lblTotalOmzet.Location = new Point(0, 0);
-            lblTotalOmzet.Name = "lblTotalOmzet";
-            lblTotalOmzet.Size = new Size(100, 23);
-            lblTotalOmzet.TabIndex = 0;
+            this.pnlRingkasan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlRingkasan.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlRingkasan.Location = new System.Drawing.Point(0, 0);
+            this.pnlRingkasan.Size = new System.Drawing.Size(1046, 100);
             // 
             // pnlNavigasi
             // 
-            pnlNavigasi.BackColor = Color.FromArgb(167, 139, 250);
-            pnlNavigasi.Controls.Add(btnBarangTerlaris);
-            pnlNavigasi.Controls.Add(btnKuotaMenipis);
-            pnlNavigasi.Controls.Add(btnOmzetBulanan);
-            pnlNavigasi.Controls.Add(btnRefresh);
-            pnlNavigasi.Dock = DockStyle.Left;
-            pnlNavigasi.Location = new Point(0, 100);
-            pnlNavigasi.Name = "pnlNavigasi";
-            pnlNavigasi.Size = new Size(200, 176);
-            pnlNavigasi.TabIndex = 1;
+            this.pnlNavigasi.AutoScroll = true; // JAGA-JAGA BIAR BISA SCROLL KALAU LAYAR KECIL
+            this.pnlNavigasi.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlNavigasi.Width = 240;
+            this.pnlNavigasi.Dock = System.Windows.Forms.DockStyle.Left;
+            this.pnlNavigasi.Controls.Add(this.btnExcept);
+            this.pnlNavigasi.Controls.Add(this.btnIntersect);
+            this.pnlNavigasi.Controls.Add(this.btnUnion);
+            this.pnlNavigasi.Controls.Add(this.btnKuotaMenipis);
+            this.pnlNavigasi.Controls.Add(this.btnGroupingSets);
+            this.pnlNavigasi.Controls.Add(this.btnOmzetBulanan);
+            this.pnlNavigasi.Controls.Add(this.btnCube);
+            this.pnlNavigasi.Controls.Add(this.btnBarangTerlaris);
+            this.pnlNavigasi.Controls.Add(this.btnRefresh);
             // 
-            // btnBarangTerlaris
+            // TATA LETAK BUTTON BERURUTAN (Tinggi 42px per tombol, anti-menumpuk)
             // 
-            btnBarangTerlaris.BackColor = Color.FromArgb(167, 139, 250);
-            btnBarangTerlaris.Dock = DockStyle.Top;
-            btnBarangTerlaris.FlatStyle = FlatStyle.Flat;
-            btnBarangTerlaris.ForeColor = Color.White;
-            btnBarangTerlaris.Location = new Point(0, 90);
-            btnBarangTerlaris.Name = "btnBarangTerlaris";
-            btnBarangTerlaris.Size = new Size(200, 45);
-            btnBarangTerlaris.TabIndex = 0;
-            btnBarangTerlaris.Text = "📊 Barang Terlaris";
-            btnBarangTerlaris.UseVisualStyleBackColor = false;
-            btnBarangTerlaris.Click += btnBarangTerlaris_Click;
-            // 
-            // btnKuotaMenipis
-            // 
-            btnKuotaMenipis.BackColor = Color.FromArgb(167, 139, 250);
-            btnKuotaMenipis.Dock = DockStyle.Top;
-            btnKuotaMenipis.FlatStyle = FlatStyle.Flat;
-            btnKuotaMenipis.ForeColor = Color.White;
-            btnKuotaMenipis.Location = new Point(0, 45);
-            btnKuotaMenipis.Name = "btnKuotaMenipis";
-            btnKuotaMenipis.Size = new Size(200, 45);
-            btnKuotaMenipis.TabIndex = 1;
-            btnKuotaMenipis.Text = "⚠️ Kuota Menipis";
-            btnKuotaMenipis.UseVisualStyleBackColor = false;
-            btnKuotaMenipis.Click += btnKuotaMenipis_Click;
-            // 
-            // btnOmzetBulanan
-            // 
-            btnOmzetBulanan.BackColor = Color.FromArgb(167, 139, 250);
-            btnOmzetBulanan.Dock = DockStyle.Top;
-            btnOmzetBulanan.FlatStyle = FlatStyle.Flat;
-            btnOmzetBulanan.ForeColor = Color.White;
-            btnOmzetBulanan.Location = new Point(0, 0);
-            btnOmzetBulanan.Name = "btnOmzetBulanan";
-            btnOmzetBulanan.Size = new Size(200, 45);
-            btnOmzetBulanan.TabIndex = 2;
-            btnOmzetBulanan.Text = "📅 Omzet Bulanan";
-            btnOmzetBulanan.UseVisualStyleBackColor = false;
-            btnOmzetBulanan.Click += btnOmzetBulanan_Click;
+            int y = 10;
+            SetupBtn(this.btnBarangTerlaris, "📊 Produk Terlaris", ref y);
+            SetupBtn(this.btnCube, "🎲 Kombinasi Kategori", ref y);
+            SetupBtn(this.btnOmzetBulanan, "📈 Akumulasi Omzet", ref y);
+            SetupBtn(this.btnGroupingSets, "📋 Ringkasan Grup", ref y);
+            SetupBtn(this.btnKuotaMenipis, "⚠️ Sisa Kuota Menipis", ref y);
+            SetupBtn(this.btnUnion, "🔄 Semua Transaksi", ref y);
+            SetupBtn(this.btnIntersect, "🤝 Produk Populer Bersama", ref y);
+            SetupBtn(this.btnExcept, "👥 Daftar Akun Pasif", ref y);
+
+            this.btnBarangTerlaris.Click += new System.EventHandler(this.btnBarangTerlaris_Click);
+            this.btnCube.Click += new System.EventHandler(this.btnCube_Click);
+            this.btnOmzetBulanan.Click += new System.EventHandler(this.btnOmzetBulanan_Click);
+            this.btnGroupingSets.Click += new System.EventHandler(this.btnGroupingSets_Click);
+            this.btnKuotaMenipis.Click += new System.EventHandler(this.btnKuotaMenipis_Click);
+            this.btnUnion.Click += new System.EventHandler(this.btnUnion_Click);
+            this.btnIntersect.Click += new System.EventHandler(this.btnIntersect_Click);
+            this.btnExcept.Click += new System.EventHandler(this.btnExcept_Click);
             // 
             // btnRefresh
             // 
-            btnRefresh.BackColor = Color.FromArgb(167, 139, 250);
-            btnRefresh.Dock = DockStyle.Bottom;
-            btnRefresh.FlatStyle = FlatStyle.Flat;
-            btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(0, 131);
-            btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(200, 45);
-            btnRefresh.TabIndex = 3;
-            btnRefresh.Text = "🔄 Refresh";
-            btnRefresh.UseVisualStyleBackColor = false;
-            btnRefresh.Click += btnRefresh_Click;
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnRefresh.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI Black", 10F, FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.Size = new System.Drawing.Size(240, 50);
+            this.btnRefresh.Text = "🔄 REFRESH DATA";
+            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             // 
             // dgvLaporan
             // 
-            dgvLaporan.AllowUserToAddRows = false;
-            dgvLaporan.BackgroundColor = Color.White;
-            dgvLaporan.Dock = DockStyle.Fill;
-            dgvLaporan.Location = new Point(200, 100);
-            dgvLaporan.Name = "dgvLaporan";
-            dgvLaporan.ReadOnly = true;
-            dgvLaporan.Size = new Size(846, 176);
-            dgvLaporan.TabIndex = 0;
+            this.dgvLaporan.AllowUserToAddRows = false;
+            this.dgvLaporan.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvLaporan.Location = new System.Drawing.Point(240, 100);
+            this.dgvLaporan.ReadOnly = true;
             // 
             // SellerReportControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(dgvLaporan);
-            Controls.Add(pnlNavigasi);
-            Controls.Add(pnlRingkasan);
-            Name = "SellerReportControl";
-            Size = new Size(1046, 276);
-            pnlNavigasi.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvLaporan).EndInit();
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.dgvLaporan);
+            this.Controls.Add(this.pnlNavigasi);
+            this.Controls.Add(this.pnlRingkasan);
+            this.Size = new System.Drawing.Size(1046, 650);
+            this.pnlNavigasi.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).EndInit();
+            this.ResumeLayout(false);
         }
 
-        private System.Windows.Forms.Panel BuatCardRingkasan(string judul, ref System.Windows.Forms.Label lblValue, int x)
+        private void SetupBtn(System.Windows.Forms.Button btn, string text, ref int y)
         {
-            Panel card = new Panel();
-            card.Size = new System.Drawing.Size(150, 80);
-            card.BackColor = System.Drawing.Color.FromArgb(45, 27, 79);
-            card.Location = new System.Drawing.Point(x, 10);
-            Label lblJudul = new Label()
-            {
-                Text = judul,
-                ForeColor = System.Drawing.Color.White,
-                Font = new System.Drawing.Font("Segoe UI", 9F),
-                Size = new System.Drawing.Size(130, 25),
-                Location = new System.Drawing.Point(10, 5)
-            };
-            lblValue = new Label()
-            {
-                Text = "0",
-                ForeColor = System.Drawing.Color.FromArgb(253, 224, 71),
-                Font = new System.Drawing.Font("Segoe UI Black", 18F),
-                Size = new System.Drawing.Size(130, 40),
-                Location = new System.Drawing.Point(10, 30)
-            };
-            card.Controls.Add(lblJudul);
-            card.Controls.Add(lblValue);
-            return card;
+            btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            btn.ForeColor = System.Drawing.Color.White;
+            btn.Size = new System.Drawing.Size(220, 38);
+            btn.Location = new System.Drawing.Point(10, y);
+            btn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            y += 42;
         }
 
         private System.Windows.Forms.Panel pnlRingkasan, pnlNavigasi;
-        private System.Windows.Forms.Label lblTotalProduk, lblTotalPO, lblTotalOmzet;
-        private System.Windows.Forms.Button btnBarangTerlaris, btnKuotaMenipis, btnOmzetBulanan, btnRefresh;
+        private System.Windows.Forms.Button btnBarangTerlaris, btnCube, btnOmzetBulanan, btnGroupingSets, btnKuotaMenipis, btnUnion, btnIntersect, btnExcept, btnRefresh;
         private System.Windows.Forms.DataGridView dgvLaporan;
+        private System.Windows.Forms.Label lblTotalProduk, lblTotalPO, lblTotalOmzet;
     }
 }

@@ -1,5 +1,4 @@
-﻿// UserDashboardControl.Designer.cs
-namespace CollabBuy.CollabBuyApp.UI.Controls
+﻿namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     partial class UserDashboardControl
     {
@@ -12,101 +11,100 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private void InitializeComponent()
         {
-            pnlTop = new Panel();
-            lblGreeting = new Label();
-            lblMotivasi = new Label();
-            txtSearch = new TextBox();
-            cmbKategori = new ComboBox();
-            lblCount = new Label();
-            flowPanelProduk = new FlowLayoutPanel();
-            pnlTop.SuspendLayout();
-            SuspendLayout();
+            this.pnlTop = new System.Windows.Forms.Panel();
+            this.lblGreeting = new System.Windows.Forms.Label();
+            this.lblMotivasi = new System.Windows.Forms.Label();
+            this.txtSearch = new System.Windows.Forms.TextBox();
+            this.cmbKategori = new System.Windows.Forms.ComboBox();
+            this.lblCount = new System.Windows.Forms.Label();
+            this.flowPanelProduk = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlTop.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlTop
             // 
-            pnlTop.BackColor = Color.FromArgb(45, 27, 79);
-            pnlTop.Controls.Add(lblGreeting);
-            pnlTop.Controls.Add(lblMotivasi);
-            pnlTop.Controls.Add(txtSearch);
-            pnlTop.Controls.Add(cmbKategori);
-            pnlTop.Controls.Add(lblCount);
-            pnlTop.Dock = DockStyle.Top;
-            pnlTop.Location = new Point(0, 0);
-            pnlTop.Name = "pnlTop";
-            pnlTop.Size = new Size(1046, 130);
-            pnlTop.TabIndex = 1;
+            this.pnlTop.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlTop.Controls.Add(this.lblGreeting);
+            this.pnlTop.Controls.Add(this.lblMotivasi);
+            this.pnlTop.Controls.Add(this.txtSearch);
+            this.pnlTop.Controls.Add(this.cmbKategori);
+            this.pnlTop.Controls.Add(this.lblCount);
+            this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTop.Location = new System.Drawing.Point(0, 0);
+            this.pnlTop.Name = "pnlTop";
+            this.pnlTop.Size = new System.Drawing.Size(1046, 140);
+            this.pnlTop.TabIndex = 1;
             // 
             // lblGreeting
             // 
-            lblGreeting.Font = new Font("Segoe UI Black", 18F, FontStyle.Bold);
-            lblGreeting.ForeColor = Color.FromArgb(253, 224, 71);
-            lblGreeting.Location = new Point(20, 15);
-            lblGreeting.Name = "lblGreeting";
-            lblGreeting.Size = new Size(400, 35);
-            lblGreeting.TabIndex = 0;
-            lblGreeting.Text = "Halo, Bestie! 👋";
+            this.lblGreeting.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblGreeting.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblGreeting.Location = new System.Drawing.Point(20, 15);
+            this.lblGreeting.Name = "lblGreeting";
+            this.lblGreeting.Size = new System.Drawing.Size(500, 38);
+            this.lblGreeting.TabIndex = 0;
+            this.lblGreeting.Text = "HALO, BESTIE! 👋";
             // 
             // lblMotivasi
             // 
-            lblMotivasi.Font = new Font("Segoe UI", 10F);
-            lblMotivasi.ForeColor = Color.FromArgb(167, 139, 250);
-            lblMotivasi.Location = new Point(20, 50);
-            lblMotivasi.Name = "lblMotivasi";
-            lblMotivasi.Size = new Size(400, 25);
-            lblMotivasi.TabIndex = 1;
-            lblMotivasi.Text = "Yuk temukan produk solid buat danus kampus!";
+            this.lblMotivasi.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+            this.lblMotivasi.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblMotivasi.Location = new System.Drawing.Point(20, 53);
+            this.lblMotivasi.Name = "lblMotivasi";
+            this.lblMotivasi.Size = new System.Drawing.Size(500, 25);
+            this.lblMotivasi.TabIndex = 1;
+            this.lblMotivasi.Text = "Yuk temukan produk solid buat danus kampus!";
             // 
             // txtSearch
             // 
-            txtSearch.Font = new Font("Segoe UI", 11F);
-            txtSearch.Location = new Point(20, 85);
-            txtSearch.Name = "txtSearch";
-            txtSearch.PlaceholderText = "Cari produk atau PO...";
-            txtSearch.Size = new Size(250, 27);
-            txtSearch.TabIndex = 2;
-            txtSearch.TextChanged += txtSearch_TextChanged;
+            this.txtSearch.Font = new System.Drawing.Font("Segoe UI", 11.5F);
+            this.txtSearch.Location = new System.Drawing.Point(20, 92);
+            this.txtSearch.Name = "txtSearch";
+            this.txtSearch.Size = new System.Drawing.Size(260, 28);
+            this.txtSearch.TabIndex = 2;
+            this.txtSearch.PlaceholderText = "Cari produk atau PO...";
             // 
             // cmbKategori
             // 
-            cmbKategori.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbKategori.Font = new Font("Segoe UI", 11F);
-            cmbKategori.Location = new Point(285, 85);
-            cmbKategori.Name = "cmbKategori";
-            cmbKategori.Size = new Size(200, 28);
-            cmbKategori.TabIndex = 3;
-            cmbKategori.SelectedIndexChanged += cmbKategori_SelectedIndexChanged;
+            this.cmbKategori.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbKategori.Font = new System.Drawing.Font("Segoe UI", 11.5F);
+            this.cmbKategori.Location = new System.Drawing.Point(295, 92);
+            this.cmbKategori.Name = "cmbKategori";
+            this.cmbKategori.Size = new System.Drawing.Size(210, 28);
+            this.cmbKategori.TabIndex = 3;
             // 
             // lblCount
             // 
-            lblCount.Font = new Font("Segoe UI", 9F);
-            lblCount.ForeColor = Color.White;
-            lblCount.Location = new Point(500, 95);
-            lblCount.Name = "lblCount";
-            lblCount.Size = new Size(200, 20);
-            lblCount.TabIndex = 4;
-            lblCount.Text = "Memuat...";
+            this.lblCount.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblCount.ForeColor = System.Drawing.Color.White;
+            this.lblCount.Location = new System.Drawing.Point(520, 96);
+            this.lblCount.Name = "lblCount";
+            this.lblCount.Size = new System.Drawing.Size(300, 23);
+            this.lblCount.TabIndex = 4;
+            this.lblCount.Text = "Memuat produk...";
             // 
             // flowPanelProduk
             // 
-            flowPanelProduk.AutoScroll = true;
-            flowPanelProduk.BackColor = Color.FromArgb(255, 249, 230);
-            flowPanelProduk.Dock = DockStyle.Fill;
-            flowPanelProduk.Location = new Point(0, 130);
-            flowPanelProduk.Name = "flowPanelProduk";
-            flowPanelProduk.Padding = new Padding(10);
-            flowPanelProduk.Size = new Size(1046, 203);
-            flowPanelProduk.TabIndex = 0;
+            this.flowPanelProduk.AutoScroll = true;
+            this.flowPanelProduk.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelProduk.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelProduk.Location = new System.Drawing.Point(0, 140);
+            this.flowPanelProduk.Name = "flowPanelProduk";
+            this.flowPanelProduk.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelProduk.Size = new System.Drawing.Size(1046, 590);
+            this.flowPanelProduk.TabIndex = 0;
             // 
             // UserDashboardControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelProduk);
-            Controls.Add(pnlTop);
-            Name = "UserDashboardControl";
-            Size = new Size(1046, 333);
-            pnlTop.ResumeLayout(false);
-            pnlTop.PerformLayout();
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelProduk);
+            this.Controls.Add(this.pnlTop);
+            this.Name = "UserDashboardControl";
+            this.Size = new System.Drawing.Size(1046, 730);
+            this.pnlTop.ResumeLayout(false);
+            this.pnlTop.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlTop;

@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class VerificationService
     {
         private readonly IVerificationRepository _verifRepo;
-
-        public VerificationService()
+        public VerificationService(IVerificationRepository verifRepo)
         {
-            _verifRepo = new VerificationRepository();
+            _verifRepo = verifRepo;
         }
 
         public bool AjukanVerifikasi(int idUser, string nim, string namaToko, string pathKTM, int tahunMasuk)

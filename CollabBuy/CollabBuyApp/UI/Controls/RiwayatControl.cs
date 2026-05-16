@@ -5,21 +5,25 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Services;
 using CollabBuy.CollabBuyApp.Helpers;
+using CollabBuy.CollabBuyApp.Repositories; // Wajib untuk DI
 
 namespace CollabBuy.CollabBuyApp.UI.Controls
 {
     public partial class RiwayatControl : UserControl
     {
-        private int _idUser;
-        private TransactionService _transactionService;
-        private ProductService _productService;
+        private readonly int _idUser;
+        private readonly TransactionService _transactionService;
+        private readonly ProductService _productService;
 
         public RiwayatControl(int idUser)
         {
             InitializeComponent();
             _idUser = idUser;
-            _transactionService = new TransactionService();
-            _productService = new ProductService();
+
+            // TAHAP 4: INJEKSI MANUAL DI UI
+            _transactionService = new TransactionService(new TransactionRepository());
+            _productService = new ProductService(new ProductRepository());
+
             LoadRiwayat();
         }
 
@@ -42,12 +46,15 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
             if (daftar.Count == 0)
             {
-                Label lblKosong = new Label();
-                lblKosong.Text = "Kamu belum pernah transaksi, bestie! 🥺\nYuk titip sesuatu di katalog~";
-                lblKosong.Font = new Font("Segoe UI", 14F, FontStyle.Regular);
-                lblKosong.ForeColor = Color.FromArgb(45, 27, 79);
-                lblKosong.TextAlign = ContentAlignment.MiddleCenter;
-                lblKosong.Dock = DockStyle.Fill;
+                Label lblKosong = new Label()
+                {
+                    Text = "Kamu belum pernah transaksi nih, bestie! 🥺\nYuk titip sesuatu di katalog~",
+                    Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(36, 0, 70), // Dark Purple Neo-Retro
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = false,
+                    Dock = DockStyle.Fill
+                };
                 flowPanelRiwayat.Controls.Add(lblKosong);
                 return;
             }
@@ -61,61 +68,79 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardTransaksi(Transaction trans)
         {
-            Panel card = new Panel();
-            card.Size = new Size(680, 130);
-            card.BackColor = Color.White;
-            card.Margin = new Padding(5);
-            card.Padding = new Padding(15);
+            // Desain Card Riwayat bergaya Flat Neo-Retro
+            Panel card = new Panel()
+            {
+                Size = new Size(850, 130), // Lebar untuk full screen
+                BackColor = Color.FromArgb(200, 182, 255), // Pastel Purple Muda
+                Margin = new Padding(10),
+                Padding = new Padding(15),
+                BorderStyle = BorderStyle.FixedSingle // Garis pinggir retro
+            };
 
             // ID Transaksi
-            Label lblID = new Label();
-            lblID.Text = $"Transaksi #{trans.IdTransaksi}";
-            lblID.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblID.ForeColor = Color.FromArgb(167, 139, 250);
-            lblID.Size = new Size(200, 20);
-            lblID.Location = new Point(15, 10);
+            Label lblID = new Label()
+            {
+                Text = $"#TRX-{trans.IdTransaksi}",
+                Font = new Font("Segoe UI Black", 11F),
+                ForeColor = Color.FromArgb(36, 0, 70),
+                Size = new Size(200, 20),
+                Location = new Point(15, 15)
+            };
 
             // Tanggal
-            Label lblTanggal = new Label();
-            lblTanggal.Text = $"📅 {trans.TanggalTransaksi:dd MMM yyyy HH:mm}";
-            lblTanggal.Font = new Font("Segoe UI", 9F);
-            lblTanggal.ForeColor = Color.Gray;
-            lblTanggal.Size = new Size(250, 20);
-            lblTanggal.Location = new Point(15, 35);
+            Label lblTanggal = new Label()
+            {
+                Text = $"📅 {trans.TanggalTransaksi:dd MMM yyyy HH:mm}",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                Size = new Size(250, 20),
+                Location = new Point(15, 45)
+            };
 
             // Total bayar
-            Label lblTotal = new Label();
-            lblTotal.Text = $"💰 Rp {trans.TotalBayarGrup:N0}";
-            lblTotal.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            lblTotal.ForeColor = Color.FromArgb(253, 224, 71);
-            lblTotal.Size = new Size(200, 25);
-            lblTotal.Location = new Point(15, 60);
+            Label lblTotal = new Label()
+            {
+                Text = $"💰 Rp {trans.TotalBayarGrup:N0}",
+                Font = new Font("Segoe UI Black", 14F),
+                ForeColor = Color.FromArgb(36, 0, 70),
+                Size = new Size(250, 30),
+                Location = new Point(15, 75)
+            };
 
-            // Status
-            Label lblStatus = new Label();
-            lblStatus.Text = $"Status: {trans.StatusPesanan}";
-            lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            // Status dengan warna khusus Gen-Z
             Color statusColor = trans.StatusPesanan switch
             {
-                StatusTransaksi.Menunggu => Color.Orange,
-                StatusTransaksi.Diproses => Color.Blue,
-                StatusTransaksi.Selesai => Color.Green,
+                StatusTransaksi.Menunggu => Color.FromArgb(220, 120, 0), // Dark Orange
+                StatusTransaksi.Diproses => Color.FromArgb(0, 0, 180),   // Dark Blue
+                StatusTransaksi.Selesai => Color.FromArgb(0, 150, 0),    // Dark Green
                 _ => Color.Gray
             };
-            lblStatus.ForeColor = statusColor;
-            lblStatus.Size = new Size(150, 20);
-            lblStatus.Location = new Point(230, 60);
+
+            Label lblStatus = new Label()
+            {
+                Text = $"STATUS: {trans.StatusPesanan.ToUpper()}",
+                Font = new Font("Segoe UI Black", 10F),
+                ForeColor = statusColor,
+                Size = new Size(250, 20),
+                Location = new Point(350, 45)
+            };
 
             // Tombol detail
-            Button btnDetail = new Button();
-            btnDetail.Text = "Detail 👀";
-            btnDetail.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            btnDetail.BackColor = Color.FromArgb(167, 139, 250);
-            btnDetail.ForeColor = Color.White;
-            btnDetail.FlatStyle = FlatStyle.Flat;
-            btnDetail.FlatAppearance.BorderSize = 0;
-            btnDetail.Size = new Size(80, 28);
-            btnDetail.Location = new Point(550, 55);
+            Button btnDetail = new Button()
+            {
+                Text = "Detail 👀",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                BackColor = Color.FromArgb(253, 255, 182), // Kuning Pastel
+                ForeColor = Color.FromArgb(36, 0, 70),
+                FlatStyle = FlatStyle.Flat,
+                Size = new Size(130, 40),
+                Location = new Point(680, 45),
+                Cursor = Cursors.Hand
+            };
+            btnDetail.FlatAppearance.BorderSize = 1;
+            btnDetail.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
+
             btnDetail.Click += (s, e) =>
             {
                 var detailList = _transactionService.AmbilDetailTransaksi(trans.IdTransaksi);
@@ -124,9 +149,9 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 {
                     var produk = _productService.AmbilProdukById(d.IdProduk);
                     string namaProduk = produk != null ? produk.NamaProduk : "(tidak diketahui)";
-                    info += $"• {d.NamaPenitip} — {namaProduk} x{d.JumlahPesanan}";
+                    info += $"• {d.NamaPenitip}  —  {namaProduk} x{d.JumlahPesanan}";
                     if (!string.IsNullOrEmpty(d.Catatan))
-                        info += $" (catatan: {d.Catatan})";
+                        info += $"  (Catatan: {d.Catatan})";
                     info += "\n";
                 }
                 MessageBox.Show(info, $"Detail Transaksi #{trans.IdTransaksi}", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -2,17 +2,15 @@
 using System.Data;
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class ReportService
     {
         private readonly IReportRepository _reportRepo;
-
-        public ReportService()
+        public ReportService(IReportRepository reportRepo)
         {
-            _reportRepo = new ReportRepository();
+            _reportRepo = reportRepo;
         }
 
         public DataTable BarangTerjualPerProduk()

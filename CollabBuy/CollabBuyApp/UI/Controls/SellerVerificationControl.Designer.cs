@@ -11,161 +11,172 @@
 
         private void InitializeComponent()
         {
-            pnlCard = new Panel();
-            lblTitle = new Label();
-            lblSubtitle = new Label();
-            lblNIM = new Label();
-            txtNIM = new TextBox();
-            lblNamaToko = new Label();
-            txtNamaToko = new TextBox();
-            lblTahunMasuk = new Label();
-            txtTahunMasuk = new TextBox();
-            btnUploadKTM = new Button();
-            lblStatusKTM = new Label();
-            btnKirim = new Button();
-            pnlCard.SuspendLayout();
-            SuspendLayout();
+            this.pnlCard = new System.Windows.Forms.Panel();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.lblSubtitle = new System.Windows.Forms.Label();
+            this.lblNIM = new System.Windows.Forms.Label();
+            this.txtNIM = new System.Windows.Forms.TextBox();
+            this.lblNamaToko = new System.Windows.Forms.Label();
+            this.txtNamaToko = new System.Windows.Forms.TextBox();
+            this.lblTahunMasuk = new System.Windows.Forms.Label();
+            this.txtTahunMasuk = new System.Windows.Forms.TextBox();
+            this.btnUploadKTM = new System.Windows.Forms.Button();
+            this.lblStatusKTM = new System.Windows.Forms.Label();
+            this.btnKirim = new System.Windows.Forms.Button();
+            this.pnlCard.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlCard
             // 
-            pnlCard.Anchor = AnchorStyles.None;
-            pnlCard.BackColor = Color.FromArgb(45, 27, 79);
-            pnlCard.Controls.Add(lblTitle);
-            pnlCard.Controls.Add(lblSubtitle);
-            pnlCard.Controls.Add(lblNIM);
-            pnlCard.Controls.Add(txtNIM);
-            pnlCard.Controls.Add(lblNamaToko);
-            pnlCard.Controls.Add(txtNamaToko);
-            pnlCard.Controls.Add(lblTahunMasuk);
-            pnlCard.Controls.Add(txtTahunMasuk);
-            pnlCard.Controls.Add(btnUploadKTM);
-            pnlCard.Controls.Add(lblStatusKTM);
-            pnlCard.Controls.Add(btnKirim);
-            pnlCard.Location = new Point(523, 166);
-            pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(500, 490);
-            pnlCard.TabIndex = 0;
+            this.pnlCard.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pnlCard.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.lblTitle);
+            this.pnlCard.Controls.Add(this.lblSubtitle);
+            this.pnlCard.Controls.Add(this.lblNIM);
+            this.pnlCard.Controls.Add(this.txtNIM);
+            this.pnlCard.Controls.Add(this.lblNamaToko);
+            this.pnlCard.Controls.Add(this.txtNamaToko);
+            this.pnlCard.Controls.Add(this.lblTahunMasuk);
+            this.pnlCard.Controls.Add(this.txtTahunMasuk);
+            this.pnlCard.Controls.Add(this.btnUploadKTM);
+            this.pnlCard.Controls.Add(this.lblStatusKTM);
+            this.pnlCard.Controls.Add(this.btnKirim);
+            this.pnlCard.Location = new System.Drawing.Point(293, 40);
+            this.pnlCard.Name = "pnlCard";
+            this.pnlCard.Size = new System.Drawing.Size(500, 560);
+            this.pnlCard.TabIndex = 0;
             // 
             // lblTitle
             // 
-            lblTitle.Font = new Font("Segoe UI Black", 18F);
-            lblTitle.ForeColor = Color.FromArgb(253, 224, 71);
-            lblTitle.Location = new Point(35, 30);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(430, 40);
-            lblTitle.TabIndex = 0;
-            lblTitle.Text = "BUKA LAPAK, BESTIE! 🚀";
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblTitle.Location = new System.Drawing.Point(0, 30);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(500, 45);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "BUKA LAPAK, BESTIE! 🚀";
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblSubtitle
             // 
-            lblSubtitle.Font = new Font("Segoe UI", 10F);
-            lblSubtitle.ForeColor = Color.FromArgb(167, 139, 250);
-            lblSubtitle.Location = new Point(35, 75);
-            lblSubtitle.Name = "lblSubtitle";
-            lblSubtitle.Size = new Size(430, 25);
-            lblSubtitle.TabIndex = 1;
-            lblSubtitle.Text = "Isi data di bawah buat daftar jadi penjual~";
-            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblSubtitle.Location = new System.Drawing.Point(0, 75);
+            this.lblSubtitle.Name = "lblSubtitle";
+            this.lblSubtitle.Size = new System.Drawing.Size(500, 25);
+            this.lblSubtitle.TabIndex = 1;
+            this.lblSubtitle.Text = "Isi data di bawah buat daftar jadi penjual~";
+            this.lblSubtitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblNIM
             // 
-            lblNIM.ForeColor = Color.White;
-            lblNIM.Location = new Point(40, 115);
-            lblNIM.Name = "lblNIM";
-            lblNIM.Size = new Size(420, 20);
-            lblNIM.TabIndex = 2;
-            lblNIM.Text = "NIM:";
+            this.lblNIM.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblNIM.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblNIM.Location = new System.Drawing.Point(40, 120);
+            this.lblNIM.Name = "lblNIM";
+            this.lblNIM.Size = new System.Drawing.Size(420, 20);
+            this.lblNIM.TabIndex = 2;
+            this.lblNIM.Text = "Nomor Induk Mahasiswa (NIM):";
             // 
             // txtNIM
             // 
-            txtNIM.Location = new Point(40, 135);
-            txtNIM.Name = "txtNIM";
-            txtNIM.PlaceholderText = "cth: 220411100001";
-            txtNIM.Size = new Size(420, 23);
-            txtNIM.TabIndex = 3;
+            this.txtNIM.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtNIM.Location = new System.Drawing.Point(40, 145);
+            this.txtNIM.Name = "txtNIM";
+            this.txtNIM.Size = new System.Drawing.Size(420, 27);
+            this.txtNIM.TabIndex = 3;
             // 
             // lblNamaToko
             // 
-            lblNamaToko.ForeColor = Color.White;
-            lblNamaToko.Location = new Point(40, 170);
-            lblNamaToko.Name = "lblNamaToko";
-            lblNamaToko.Size = new Size(420, 20);
-            lblNamaToko.TabIndex = 4;
-            lblNamaToko.Text = "Nama Toko / Danus:";
+            this.lblNamaToko.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblNamaToko.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblNamaToko.Location = new System.Drawing.Point(40, 190);
+            this.lblNamaToko.Name = "lblNamaToko";
+            this.lblNamaToko.Size = new System.Drawing.Size(420, 20);
+            this.lblNamaToko.TabIndex = 4;
+            this.lblNamaToko.Text = "Nama Toko / Organisasi Danus:";
             // 
             // txtNamaToko
             // 
-            txtNamaToko.Location = new Point(40, 190);
-            txtNamaToko.Name = "txtNamaToko";
-            txtNamaToko.PlaceholderText = "cth: Danus Teknik 2024";
-            txtNamaToko.Size = new Size(420, 23);
-            txtNamaToko.TabIndex = 5;
+            this.txtNamaToko.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtNamaToko.Location = new System.Drawing.Point(40, 215);
+            this.txtNamaToko.Name = "txtNamaToko";
+            this.txtNamaToko.Size = new System.Drawing.Size(420, 27);
+            this.txtNamaToko.TabIndex = 5;
             // 
             // lblTahunMasuk
             // 
-            lblTahunMasuk.ForeColor = Color.White;
-            lblTahunMasuk.Location = new Point(40, 225);
-            lblTahunMasuk.Name = "lblTahunMasuk";
-            lblTahunMasuk.Size = new Size(420, 20);
-            lblTahunMasuk.TabIndex = 6;
-            lblTahunMasuk.Text = "Tahun Masuk Kuliah:";
+            this.lblTahunMasuk.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblTahunMasuk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblTahunMasuk.Location = new System.Drawing.Point(40, 260);
+            this.lblTahunMasuk.Name = "lblTahunMasuk";
+            this.lblTahunMasuk.Size = new System.Drawing.Size(420, 20);
+            this.lblTahunMasuk.TabIndex = 6;
+            this.lblTahunMasuk.Text = "Tahun Masuk Angkatan:";
             // 
             // txtTahunMasuk
             // 
-            txtTahunMasuk.Location = new Point(40, 245);
-            txtTahunMasuk.Name = "txtTahunMasuk";
-            txtTahunMasuk.PlaceholderText = "cth: 2022";
-            txtTahunMasuk.Size = new Size(120, 23);
-            txtTahunMasuk.TabIndex = 7;
+            this.txtTahunMasuk.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.txtTahunMasuk.Location = new System.Drawing.Point(40, 285);
+            this.txtTahunMasuk.Name = "txtTahunMasuk";
+            this.txtTahunMasuk.Size = new System.Drawing.Size(140, 27);
+            this.txtTahunMasuk.TabIndex = 7;
             // 
             // btnUploadKTM
             // 
-            btnUploadKTM.BackColor = Color.FromArgb(167, 139, 250);
-            btnUploadKTM.FlatStyle = FlatStyle.Flat;
-            btnUploadKTM.FlatAppearance.BorderSize = 0;
-            btnUploadKTM.ForeColor = Color.White;
-            btnUploadKTM.Location = new Point(40, 290);
-            btnUploadKTM.Name = "btnUploadKTM";
-            btnUploadKTM.Size = new Size(200, 35);
-            btnUploadKTM.TabIndex = 8;
-            btnUploadKTM.Text = "📸 Upload Foto KTM";
-            btnUploadKTM.UseVisualStyleBackColor = false;
-            btnUploadKTM.Click += btnUploadKTM_Click;
+            this.btnUploadKTM.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnUploadKTM.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnUploadKTM.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnUploadKTM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnUploadKTM.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnUploadKTM.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnUploadKTM.Location = new System.Drawing.Point(40, 335);
+            this.btnUploadKTM.Name = "btnUploadKTM";
+            this.btnUploadKTM.Size = new System.Drawing.Size(200, 40);
+            this.btnUploadKTM.TabIndex = 8;
+            this.btnUploadKTM.Text = "📸 Upload Foto KTM";
+            this.btnUploadKTM.UseVisualStyleBackColor = false;
+            this.btnUploadKTM.Click += new System.EventHandler(this.btnUploadKTM_Click);
             // 
             // lblStatusKTM
             // 
-            lblStatusKTM.ForeColor = Color.FromArgb(167, 139, 250);
-            lblStatusKTM.Location = new Point(40, 335);
-            lblStatusKTM.Name = "lblStatusKTM";
-            lblStatusKTM.Size = new Size(420, 20);
-            lblStatusKTM.TabIndex = 9;
-            lblStatusKTM.Text = "Belum ada file dipilih";
+            this.lblStatusKTM.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.lblStatusKTM.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.lblStatusKTM.Location = new System.Drawing.Point(40, 390);
+            this.lblStatusKTM.Name = "lblStatusKTM";
+            this.lblStatusKTM.Size = new System.Drawing.Size(420, 25);
+            this.lblStatusKTM.TabIndex = 9;
+            this.lblStatusKTM.Text = "Belum ada file dipilih";
             // 
             // btnKirim
             // 
-            btnKirim.BackColor = Color.FromArgb(167, 139, 250);
-            btnKirim.FlatStyle = FlatStyle.Flat;
-            btnKirim.FlatAppearance.BorderSize = 0;
-            btnKirim.Font = new Font("Segoe UI Black", 12F);
-            btnKirim.ForeColor = Color.White;
-            btnKirim.Location = new Point(40, 375);
-            btnKirim.Name = "btnKirim";
-            btnKirim.Size = new Size(420, 45);
-            btnKirim.TabIndex = 10;
-            btnKirim.Text = "KIRIM PENGAJUAN ✨";
-            btnKirim.UseVisualStyleBackColor = false;
-            btnKirim.Click += btnKirim_Click;
+            this.btnKirim.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnKirim.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnKirim.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnKirim.FlatAppearance.BorderSize = 2;
+            this.btnKirim.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKirim.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
+            this.btnKirim.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnKirim.Location = new System.Drawing.Point(40, 445);
+            this.btnKirim.Name = "btnKirim";
+            this.btnKirim.Size = new System.Drawing.Size(420, 50);
+            this.btnKirim.TabIndex = 10;
+            this.btnKirim.Text = "KIRIM PENGAJUAN VERIFIKASI ✨";
+            this.btnKirim.UseVisualStyleBackColor = false;
+            this.btnKirim.Click += new System.EventHandler(this.btnKirim_Click);
             // 
             // SellerVerificationControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(pnlCard);
-            Name = "SellerVerificationControl";
-            Size = new Size(1046, 333);
-            pnlCard.ResumeLayout(false);
-            pnlCard.PerformLayout();
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.pnlCard);
+            this.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Name = "SellerVerificationControl";
+            this.Size = new System.Drawing.Size(1046, 730);
+            this.pnlCard.ResumeLayout(false);
+            this.pnlCard.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlCard;

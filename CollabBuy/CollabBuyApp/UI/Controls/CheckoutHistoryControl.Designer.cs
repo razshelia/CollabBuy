@@ -11,69 +11,73 @@
 
         private void InitializeComponent()
         {
-            pnlHeader = new Panel();
-            lblJudul = new Label();
-            btnRefresh = new Button();
-            flowPanelCheckout = new FlowLayoutPanel();
-            pnlHeader.SuspendLayout();
-            SuspendLayout();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.lblJudul = new System.Windows.Forms.Label();
+            this.btnRefresh = new System.Windows.Forms.Button();
+            this.flowPanelCheckout = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlHeader.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlHeader
             // 
-            pnlHeader.BackColor = Color.FromArgb(45, 27, 79);
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(btnRefresh);
-            pnlHeader.Dock = DockStyle.Top;
-            pnlHeader.Location = new Point(0, 0);
-            pnlHeader.Name = "pnlHeader";
-            pnlHeader.Size = new Size(1046, 80);
-            pnlHeader.TabIndex = 1;
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.pnlHeader.Controls.Add(this.lblJudul);
+            this.pnlHeader.Controls.Add(this.btnRefresh);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1046, 80);
+            this.pnlHeader.TabIndex = 1;
             // 
             // lblJudul
             // 
-            lblJudul.Font = new Font("Segoe UI Black", 16F, FontStyle.Bold);
-            lblJudul.ForeColor = Color.FromArgb(253, 224, 71);
-            lblJudul.Location = new Point(20, 20);
-            lblJudul.Name = "lblJudul";
-            lblJudul.Size = new Size(500, 35);
-            lblJudul.TabIndex = 0;
-            lblJudul.Text = "RIWAYAT CHECKOUT KAMU 🧾";
+            this.lblJudul.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
+            this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.lblJudul.Location = new System.Drawing.Point(20, 20);
+            this.lblJudul.Name = "lblJudul";
+            this.lblJudul.Size = new System.Drawing.Size(500, 40);
+            this.lblJudul.TabIndex = 0;
+            this.lblJudul.Text = "RIWAYAT CHECKOUT KAMU 🧾";
             // 
             // btnRefresh
             // 
-            btnRefresh.BackColor = Color.FromArgb(167, 139, 250);
-            btnRefresh.FlatAppearance.BorderSize = 0;
-            btnRefresh.FlatStyle = FlatStyle.Flat;
-            btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(600, 25);
-            btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(100, 30);
-            btnRefresh.TabIndex = 1;
-            btnRefresh.Text = "🔄 Refresh";
-            btnRefresh.UseVisualStyleBackColor = false;
-            btnRefresh.Click += btnRefresh_Click;
+            this.btnRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnRefresh.FlatAppearance.BorderSize = 2;
+            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.Location = new System.Drawing.Point(880, 20);
+            this.btnRefresh.Name = "btnRefresh";
+            this.btnRefresh.Size = new System.Drawing.Size(140, 40);
+            this.btnRefresh.TabIndex = 1;
+            this.btnRefresh.Text = "🔄 Refresh";
+            this.btnRefresh.UseVisualStyleBackColor = false;
+            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             // 
             // flowPanelCheckout
             // 
-            flowPanelCheckout.AutoScroll = true;
-            flowPanelCheckout.BackColor = Color.FromArgb(255, 249, 230);
-            flowPanelCheckout.Dock = DockStyle.Fill;
-            flowPanelCheckout.Location = new Point(0, 80);
-            flowPanelCheckout.Name = "flowPanelCheckout";
-            flowPanelCheckout.Padding = new Padding(10);
-            flowPanelCheckout.Size = new Size(1046, 253);
-            flowPanelCheckout.TabIndex = 0;
+            this.flowPanelCheckout.AutoScroll = true;
+            this.flowPanelCheckout.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.flowPanelCheckout.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowPanelCheckout.Location = new System.Drawing.Point(0, 80);
+            this.flowPanelCheckout.Name = "flowPanelCheckout";
+            this.flowPanelCheckout.Padding = new System.Windows.Forms.Padding(15);
+            this.flowPanelCheckout.Size = new System.Drawing.Size(1046, 253);
+            this.flowPanelCheckout.TabIndex = 0;
             // 
             // CheckoutHistoryControl
             // 
-            BackColor = Color.FromArgb(255, 249, 230);
-            Controls.Add(flowPanelCheckout);
-            Controls.Add(pnlHeader);
-            Name = "CheckoutHistoryControl";
-            Size = new Size(1046, 333);
-            pnlHeader.ResumeLayout(false);
-            ResumeLayout(false);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.flowPanelCheckout);
+            this.Controls.Add(this.pnlHeader);
+            this.Name = "CheckoutHistoryControl";
+            this.Size = new System.Drawing.Size(1046, 333);
+            this.pnlHeader.ResumeLayout(false);
+            this.ResumeLayout(false);
+
         }
 
         private System.Windows.Forms.Panel pnlHeader;

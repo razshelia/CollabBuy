@@ -2,17 +2,15 @@
 using CollabBuy.CollabBuyApp.Helpers;
 using CollabBuy.CollabBuyApp.Interfaces;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Services
 {
     public class AuthService
     {
         private readonly IUserRepository _userRepo;
-
-        public AuthService()
+        public AuthService(IUserRepository userRepo)
         {
-            _userRepo = new UserRepository();
+            _userRepo = userRepo;
         }
 
         public User Login(string username, string password)
@@ -44,7 +42,6 @@ namespace CollabBuy.CollabBuyApp.Services
             }
             catch (Exception ex)
             {
-                // Menangkap error jika database bermasalah
                 UXHelper.TampilkanError(ex.Message);
                 return null;
             }
@@ -58,13 +55,12 @@ namespace CollabBuy.CollabBuyApp.Services
             if (string.IsNullOrWhiteSpace(username) || username.Length < 5) { UXHelper.TampilkanError("Username minimal 5 karakter."); return false; }
             if (string.IsNullOrWhiteSpace(password) || password.Length < 8) { UXHelper.TampilkanError("Password minimal 8 karakter."); return false; }
 
-            // Buat objek RegularUser
             RegularUser userBaru = new RegularUser();
             userBaru.Nama = nama;
             userBaru.NomorTelepon = nomorTelepon;
             userBaru.Email = email;
             userBaru.Username = username;
-            userBaru.Password = PasswordHelper.HashPassword(password); // Hash password
+            userBaru.Password = PasswordHelper.HashPassword(password);
 
             try
             {
@@ -74,7 +70,6 @@ namespace CollabBuy.CollabBuyApp.Services
             }
             catch (Exception ex)
             {
-                // Menangkap error dari UserRepository (misal: "Username sudah digunakan")
                 UXHelper.TampilkanError(ex.Message);
                 return false;
             }
