@@ -53,7 +53,12 @@ namespace CollabBuy.CollabBuyApp.Models
         public int SelisihRefund
         {
             get => _selisihRefund;
-            set { if (value < 0) _selisihRefund = 0; else _selisihRefund = value; }
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Selisih refund tidak boleh negatif.");
+                _selisihRefund = value;
+            }
         }
     }
 }

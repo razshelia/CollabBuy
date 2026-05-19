@@ -12,4 +12,9 @@
         public const string Diproses = "Diproses";
         public const string Selesai = "Selesai";
     }
+    public enum JenisPO
+    {
+        Biasa,
+        GotongRoyong
+    }
 }

@@ -13,5 +13,12 @@ namespace CollabBuy.CollabBuyApp.Models
             }
             return new POBiasa();
         }
+
+        public static Preorder BuatPreorder(JenisPO jenis)
+        {
+            return jenis == JenisPO.GotongRoyong
+                ? (Preorder)new POGotongRoyong()
+                : new POBiasa();
+        }
     }
 }

@@ -67,9 +67,19 @@ namespace CollabBuy.CollabBuyApp.Models
             get => _email;
             set
             {
-                if (string.IsNullOrWhiteSpace(value) || !value.Contains("@"))
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Email wajib diisi.");
+
+                try
+                {
+                    // MailAddress akan throw jika format tidak valid
+                    var addr = new System.Net.Mail.MailAddress(value.Trim());
+                    _email = addr.Address.ToLower();
+                }
+                catch
+                {
                     throw new ArgumentException("Format email tidak valid.");
-                _email = value.Trim().ToLower();
+                }
             }
         }
 

@@ -48,10 +48,9 @@ namespace CollabBuy.CollabBuyApp.Models
             get => _batasWaktu;
             set
             {
-                if (value.Year < 2026)
-                    _batasWaktu = DateTime.Now;
-                else
-                    _batasWaktu = value;
+                if (value <= DateTime.Now)
+                    throw new ArgumentException("Batas waktu PO tidak boleh di masa lalu.");
+                _batasWaktu = value;
             }
         }
 

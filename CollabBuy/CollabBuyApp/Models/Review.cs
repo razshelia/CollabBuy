@@ -47,7 +47,11 @@ namespace CollabBuy.CollabBuyApp.Models
         public DateTime TanggalUlasan
         {
             get => _tanggalUlasan;
-            set { if (value.Year < 2026) throw new ArgumentException("Tanggal tidak valid."); _tanggalUlasan = value; }
+            set {
+                if (value > DateTime.Now.AddMinutes(5))
+                    throw new ArgumentException("Tanggal ulasan tidak valid.");
+                _tanggalUlasan = value;
+            }
         }
 
         public string BalasanPenjual

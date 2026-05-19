@@ -64,14 +64,14 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
 
         private Panel BuatCardAduan(Complaint aduan)
         {
-            // Desain Card Aduan (Admin View)
+            // Desain Card Aduan
             Panel card = new Panel()
             {
-                Size = new Size(850, 150), // Lebar untuk full screen
-                BackColor = Color.FromArgb(253, 255, 182), // Kuning pastel
+                Size = new Size(850, 140), // Ukuran awal jika tidak ada balasan
+                BackColor = Color.FromArgb(253, 255, 182),
                 Margin = new Padding(10),
                 Padding = new Padding(15),
-                BorderStyle = BorderStyle.FixedSingle // Garis pinggir tegas
+                BorderStyle = BorderStyle.FixedSingle
             };
 
             Label lblSubjek = new Label()
@@ -105,37 +105,18 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
             card.Controls.Add(lblDeskripsi);
             card.Controls.Add(lblStatus);
 
-            // Jika sudah ada balasan, tampilkan kotak balasan dan perbesar card
-            if (!string.IsNullOrEmpty(aduan.Balasan))
-            {
-                card.Size = new Size(850, 190);
-
-                Label lblBalasan = new Label()
-                {
-                    Text = $"💬 Balasan Anda: {aduan.Balasan}",
-                    Font = new Font("Segoe UI", 10F, FontStyle.Bold | FontStyle.Italic),
-                    ForeColor = Color.FromArgb(36, 0, 70),
-                    BackColor = Color.FromArgb(200, 182, 255), // Latar ungu pastel
-                    Size = new Size(800, 45),
-                    Location = new Point(15, 125),
-                    Padding = new Padding(10, 5, 5, 5),
-                    BorderStyle = BorderStyle.FixedSingle
-                };
-                card.Controls.Add(lblBalasan);
-            }
-
-            // Tombol aksi untuk admin jika belum selesai
+            // Tombol ditempatkan di koordinat Y = 90
             if (!aduan.IsSelesai)
             {
                 Button btnSelesai = new Button()
                 {
                     Text = "✅ Selesai",
                     Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                    BackColor = Color.FromArgb(182, 255, 200), // Soft Green
+                    BackColor = Color.FromArgb(182, 255, 200),
                     ForeColor = Color.FromArgb(36, 0, 70),
                     FlatStyle = FlatStyle.Flat,
                     Size = new Size(100, 35),
-                    Location = new Point(620, 95),
+                    Location = new Point(610, 90), // <-- Y = 90
                     Cursor = Cursors.Hand
                 };
                 btnSelesai.FlatAppearance.BorderSize = 1;
@@ -151,11 +132,11 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                 {
                     Text = "💬 Balas",
                     Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                    BackColor = Color.FromArgb(200, 182, 255), // Pastel Purple
+                    BackColor = Color.FromArgb(200, 182, 255),
                     ForeColor = Color.FromArgb(36, 0, 70),
                     FlatStyle = FlatStyle.Flat,
                     Size = new Size(100, 35),
-                    Location = new Point(730, 95),
+                    Location = new Point(720, 90), // <-- Y = 90
                     Cursor = Cursors.Hand
                 };
                 btnBalas.FlatAppearance.BorderSize = 1;
@@ -170,6 +151,25 @@ namespace CollabBuy.CollabBuyApp.UI.Controls
                     }
                 };
                 card.Controls.Add(btnBalas);
+            }
+
+            // Kotak Balasan ditempatkan di koordinat Y = 140
+            if (!string.IsNullOrEmpty(aduan.Balasan))
+            {
+                card.Size = new Size(850, 200); // <-- Kartu diperbesar agar tidak memotong kotak ungu
+
+                Label lblBalasan = new Label()
+                {
+                    Text = $"💬 Balasan Anda: {aduan.Balasan}",
+                    Font = new Font("Segoe UI", 10F, FontStyle.Bold | FontStyle.Italic),
+                    ForeColor = Color.FromArgb(36, 0, 70),
+                    BackColor = Color.FromArgb(200, 182, 255),
+                    Size = new Size(800, 45),
+                    Location = new Point(15, 140), // <-- Y = 140 (turun jauh di bawah tombol)
+                    Padding = new Padding(10, 5, 5, 5),
+                    BorderStyle = BorderStyle.FixedSingle
+                };
+                card.Controls.Add(lblBalasan);
             }
 
             return card;

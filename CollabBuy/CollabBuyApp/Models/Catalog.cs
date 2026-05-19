@@ -67,7 +67,11 @@ namespace CollabBuy.CollabBuyApp.Models
         public DateTime BatasWaktu
         {
             get => _batasWaktu;
-            set { if (value.Year < 2026) _batasWaktu = DateTime.Now; else _batasWaktu = value; }
+            set {
+                if (value <= DateTime.Now)
+                    throw new ArgumentException("Batas waktu tidak valid.");
+                _batasWaktu = value;
+            }
         }
 
         public string InfoRekening
