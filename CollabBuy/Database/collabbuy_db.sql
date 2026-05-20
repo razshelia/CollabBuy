@@ -51,7 +51,7 @@ CREATE TABLE products (
     id_produk        SERIAL PRIMARY KEY,
     id_penjual       INTEGER REFERENCES users(id_user)          ON DELETE CASCADE,
     id_po            INTEGER REFERENCES preorders(id_po)        ON DELETE SET NULL,
-    id_kategori      INTEGER REFERENCES categories(id_kategori) ON DELETE SET NULL,
+    id_kategori      INTEGER REFERENCES categories(id_kategori) ON DELETE RESTRICT NOT NULL,
     nama_produk      VARCHAR(150) NOT NULL,
     deskripsi        TEXT,
     harga_dasar      INTEGER      NOT NULL,
