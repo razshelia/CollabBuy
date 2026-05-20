@@ -1,16 +1,10 @@
-﻿-- ========================================================================================
 -- INISIALISASI DATABASE COLLABBUY
--- RDBMS: PostgreSQL
 -- Dibuat pada: 20 Mei 2026
--- ========================================================================================
 
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
--- =========================================================
 -- BAGIAN 1: DDL (DATA DEFINITION LANGUAGE)
--- =========================================================
-
 CREATE TABLE users (
     id_user          SERIAL PRIMARY KEY,
     nama             VARCHAR(100) NOT NULL,
@@ -70,7 +64,6 @@ CREATE TABLE transactions (
     is_valid         BOOLEAN      DEFAULT FALSE
 );
 
--- [FIX-11] Tambah UNIQUE CONSTRAINT pada kombinasi (id_transaksi, id_produk, nama_penitip)
 CREATE TABLE transaction_details (
     id_detail              SERIAL PRIMARY KEY,
     id_transaksi           INTEGER REFERENCES transactions(id_transaksi) ON DELETE CASCADE,
@@ -104,9 +97,7 @@ CREATE TABLE reviews (
     balasan_penjual  TEXT
 );
 
--- =========================================================
--- [FIX-10] INDEX PERFORMA UNTUK FOREIGN KEY
--- =========================================================
+-- INDEX PERFORMA UNTUK FOREIGN KEY
 CREATE INDEX idx_products_id_penjual   ON products(id_penjual);
 CREATE INDEX idx_products_id_po        ON products(id_po);
 CREATE INDEX idx_products_id_kategori  ON products(id_kategori);
@@ -118,12 +109,7 @@ CREATE INDEX idx_verifications_id_user ON verifications(id_user);
 CREATE INDEX idx_reviews_id_produk     ON reviews(id_produk);
 CREATE INDEX idx_complaints_id_user    ON complaints(id_user);
 
-
--- =========================================================
 -- BAGIAN 2: DATA MANIPULATION LANGUAGE (MASIF DUMMY)
--- =========================================================
-
--- INSERT 10 USERS
 INSERT INTO users (nama, nomor_telepon, email, username, password, peran) VALUES
 ('Rangga Saputra',    '081200000001', 'admin@unej.ac.id', 'admin',  'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'Admin'),
 ('Nabila BEM',        '081200000002', 'nabila@unej.ac.id','nabila', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'User'),
@@ -136,14 +122,12 @@ INSERT INTO users (nama, nomor_telepon, email, username, password, peran) VALUES
 ('Andi (Buyer)',      '081200000009', 'andi@unej.ac.id',  'andi',   'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'User'),
 ('Maya (Buyer)',      '081200000010', 'maya@unej.ac.id',  'maya',   'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'User');
 
--- INSERT 4 PENJUAL (Verifikasi)
 INSERT INTO verifications (id_user, nim, nama_toko, bukti_ktm, tahun_masuk, is_verifikasi) VALUES
 (2, '23010101', 'BEM Store UNEJ', 'ktm_nabila.jpg', 2023, TRUE),
 (3, '24010102', 'HIMATIF Merch',  'ktm_daffa.jpg',  2024, TRUE),
 (4, '22010103', 'UKM Sport Danus','ktm_budi.jpg',   2022, TRUE),
 (5, '23010104', 'Kopma Jember',   'ktm_siti.jpg',   2023, TRUE);
 
--- INSERT 5 KATEGORI
 INSERT INTO categories (nama_kategori) VALUES
 ('Pakaian & Konveksi'),
 ('Aksesoris & Souvenir'),
@@ -151,7 +135,6 @@ INSERT INTO categories (nama_kategori) VALUES
 ('Peralatan Kuliah'),
 ('Merchandise Event');
 
--- INSERT 6 PO
 INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) VALUES
 (2, 'PO PDH BEM Batch 1',         'Biasa',         'BCA 12345 a.n Nabila',    '2026-05-10 23:59:00', FALSE),
 (2, 'PO Makanan Rapat BEM',       'Biasa',         'BCA 12345 a.n Nabila',    '2026-05-30 23:59:00', TRUE),
@@ -160,7 +143,6 @@ INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_wakt
 (4, 'PO Jersey UKM Olahraga',     'Gotong Royong', 'BRI 112233 a.n Budi',     '2026-05-28 23:59:00', TRUE),
 (5, 'PO Binder Kuliah Kopma',     'Biasa',         'BNI 445566 a.n Siti',     '2026-05-15 23:59:00', FALSE);
 
--- INSERT 20 PRODUK
 INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
 (2, 1, 1, 'PDH BEM Pengurus',       'Bahan nagata drill.',           120000, NULL,  NULL, 1,  'pdh_bem.jpg'),
 (2, 1, 1, 'Kaos Panitia',           'Cotton combed 30s.',             65000, NULL,  NULL, 1,  'kaos_panitia.jpg'),
@@ -186,12 +168,8 @@ INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, ha
 (5, NULL, 3, 'Keripik Singkong',    'Rasa balado.',                   8000,  NULL, NULL,  5, 'keripik.jpg'),
 (5, NULL, 5, 'Mug Wisuda',          'Custom foto.',                  25000,  NULL, NULL,  1, 'mug.jpg');
 
-
--- =========================================================
 -- BAGIAN 3: VIEWS
--- =========================================================
-
--- 1. VIEW: Katalog Aktif (LEFT JOIN untuk stok gudang)
+-- 1. VIEW: Katalog Aktif 
 CREATE OR REPLACE VIEW vw_katalog_aktif AS
 SELECT
     p.id_produk,
@@ -210,7 +188,7 @@ WHERE
     OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP);
 
 
--- 2. VIEW: Transaksi Lengkap (Sesuai Standar 3NF)
+-- 2. VIEW: Transaksi Lengkap 
 CREATE OR REPLACE VIEW vw_transaksi_lengkap AS
 SELECT
     t.id_transaksi,
@@ -227,16 +205,8 @@ JOIN users u ON t.id_koordinator = u.id_user
 GROUP BY t.id_transaksi, t.id_koordinator, u.nama,
          t.tanggal_transaksi, t.status_pesanan, t.is_valid;
 
-
--- =========================================================
 -- BAGIAN 4: PURE FUNCTION & PURE PROCEDURE
--- =========================================================
-
--- -------------------------------------------------------------
 -- 1. PURE FUNCTION: Mengembalikan harga saat ini
---    [FIX-12] Tambahan FOR UPDATE untuk mencegah Race Condition 
---    (pembeli bersamaan). Transaksi akan mengantre.
--- -------------------------------------------------------------
 CREATE OR REPLACE FUNCTION cek_harga_saat_ini(p_id_produk INT)
 RETURNS INT AS $$
 DECLARE
@@ -251,9 +221,7 @@ BEGIN
     INTO v_id_po, v_harga_dasar, v_harga_diskon, v_target_kuota
     FROM products
     WHERE id_produk = p_id_produk
-    FOR UPDATE; -- [Mencegah Race Condition]
-
-    -- Guard: produk stok gudang (tanpa PO)
+    FOR UPDATE;
     IF v_id_po IS NULL THEN
         RETURN v_harga_dasar;
     END IF;
@@ -273,7 +241,6 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- 2. PURE FUNCTION (Table): Statistik dashboard penjual
 CREATE OR REPLACE FUNCTION fn_statistik_dashboard_penjual(p_id_penjual INT)
@@ -313,23 +280,7 @@ BEGIN
 END;
 $$;
 
-
--- =========================================================
 -- BAGIAN 5: TRIGGERS DAN ARSIP PROCEDURE (TCL C#)
--- =========================================================
-
--- -------------------------------------------------------------
--- [FIX-9] KONTROL TRANSAKSI (TCL) DIPINDAHKAN KE C# (ADO.NET)
--- -------------------------------------------------------------
--- Catatan Implementasi:
--- Stored Procedure 'proses_checkout_lengkap' di bawah ini sengaja DINONAKTIFKAN
--- (dijadikan komentar historis) karena pemanggilan dari C# untuk banyak item 
--- sekaligus dalam satu keranjang (satu nota) jauh lebih efisien jika dikontrol 
--- menggunakan DbTransaction (BeginTransaction, Commit, Rollback) di level backend.
---
--- Berikut adalah rekam jejak (arsip) logika Stored Procedure jika sistem 
--- masih memaksa transaksi dilakukan untuk 1 jenis produk per checkout:
---
 /*
 CREATE OR REPLACE PROCEDURE proses_checkout_lengkap(
     p_id_koordinator INT,
@@ -358,9 +309,8 @@ EXCEPTION
 END;
 $$;
 */
--- -------------------------------------------------------------
 
--- 1. TRIGGER: Cegah produk nyasar ke PO milik orang lain
+-- 1. TRIGGER: Mencegah produk nyasar ke PO milik orang lain
 CREATE OR REPLACE FUNCTION cek_kepemilikan_po() RETURNS TRIGGER AS $$
 DECLARE
     v_pemilik_po INTEGER;
@@ -379,7 +329,6 @@ CREATE TRIGGER trg_cek_kepemilikan_po
 BEFORE INSERT OR UPDATE ON products
 FOR EACH ROW EXECUTE FUNCTION cek_kepemilikan_po();
 
-
 -- 2. TRIGGER: Otomatis mengisi harga historis saat beli
 CREATE OR REPLACE FUNCTION trg_set_harga_otomatis() RETURNS TRIGGER AS $$
 BEGIN
@@ -392,8 +341,7 @@ CREATE TRIGGER t_before_insert_detail
 BEFORE INSERT ON transaction_details
 FOR EACH ROW EXECUTE FUNCTION trg_set_harga_otomatis();
 
-
--- 3. TRIGGER: Tolak pesanan jika batas waktu PO habis
+-- 3. TRIGGER: Menolak pesanan jika batas waktu PO habis
 CREATE OR REPLACE FUNCTION cek_validitas_po_saat_beli() RETURNS TRIGGER AS $$
 DECLARE
     v_id_po       INT;
@@ -425,7 +373,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_cek_waktu_po
 BEFORE INSERT ON transaction_details
 FOR EACH ROW EXECUTE FUNCTION cek_validitas_po_saat_beli();
-
 
 -- 4. TRIGGER: Otomatis hitung refund sistem Gotong Royong
 CREATE OR REPLACE FUNCTION trg_hitung_refund_gotong_royong() RETURNS TRIGGER AS $$
@@ -470,10 +417,7 @@ CREATE TRIGGER t_after_insert_detail
 AFTER INSERT ON transaction_details
 FOR EACH ROW EXECUTE FUNCTION trg_hitung_refund_gotong_royong();
 
-
--- =========================================================
 -- INSERT TRANSAKSI & DETAIL
--- =========================================================
 INSERT INTO transactions (id_koordinator, tanggal_transaksi, status_pesanan, bukti_bayar, is_valid) VALUES
 (6, '2026-05-01 10:00:00', 'Selesai', 'resi1.jpg', TRUE),
 (6, '2026-05-02 11:30:00', 'Selesai', 'resi2.jpg', TRUE),
@@ -540,22 +484,10 @@ INSERT INTO complaints (id_user, subjek, deskripsi, tanggal, is_selesai, balasan
 (9,  'Fitur Keranjang Ngebug', 'Waktu saya nambah list titipan, kadang layarnya ngestuck.',       '2026-05-18 14:00:00', FALSE, NULL),
 (10, 'Salah Input Nominal',    'Min, saya salah transfer lebih 10 ribu ke BEM. Bisa di-refund?', '2026-05-19 15:30:00', FALSE, NULL);
 
-
--- ========================================================================================
 -- BAGIAN 6 & 7: KUERI ANALITIK ADVANCED & STATEMENTS
--- ========================================================================================
--- CATATAN PENTING UNTUK IMPLEMENTASI:
--- Kueri-kueri SELECT di bawah ini TIDAK DISIMPAN sebagai objek di dalam database,
--- melainkan ditaruh di dalam kode ADO.NET (C#) sebagai string CommandText 
--- (misal: di ReportRepository.cs) untuk menarik data laporan ke DataGridView.
--- Kueri ini dicantumkan di sini untuk keperluan pengujian dan demonstrasi (DQL).
--- ========================================================================================
-
-
--- ----------------------------------------------------------------------------------------
 -- 1. STATEMENT: Status Ketersediaan Kuota
 -- [IMPLEMENTASI C#]: Dipanggil di Dashboard Penjual (Monitor Kuota)
--- ----------------------------------------------------------------------------------------
+/*
 SELECT
     p.nama_produk,
     p.target_kuota,
@@ -572,11 +504,8 @@ LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
 WHERE p.target_kuota IS NOT NULL
 GROUP BY p.id_produk, p.nama_produk, p.target_kuota;
 
-
--- ----------------------------------------------------------------------------------------
 -- 2. STATEMENT: Klasifikasi Performa Penjual (Tier Penjual)
 -- [IMPLEMENTASI C#]: Dipanggil di Dashboard Admin (Leaderboard Penjual)
--- ----------------------------------------------------------------------------------------
 SELECT
     u.nama AS nama_penjual,
     SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli) AS total_omzet,
@@ -593,22 +522,16 @@ JOIN users u    ON p.id_penjual = u.id_user
 GROUP BY u.nama
 ORDER BY total_omzet DESC;
 
-
--- ----------------------------------------------------------------------------------------
 -- 3. GROUP BY: Total barang terjual tiap produk
 -- [IMPLEMENTASI C#]: Dipanggil di Analisis Item Populer
--- ----------------------------------------------------------------------------------------
 SELECT p.nama_produk, SUM(td.jumlah_pesanan) AS total_terjual
 FROM transaction_details td
 JOIN products p ON td.id_produk = p.id_produk
 GROUP BY p.nama_produk
 ORDER BY total_terjual DESC;
 
-
--- ----------------------------------------------------------------------------------------
 -- 4. CUBE: Kombinasi silang Kategori X Jenis PO
 -- [IMPLEMENTASI C#]: Dipanggil di fitur "Analisis Pasar" (Admin)
--- ----------------------------------------------------------------------------------------
 SELECT
     COALESCE(kat.nama_kategori, 'Semua Kategori') AS kategori,
     COALESCE(po.jenis_po,       'Tanpa PO / Semua Jenis') AS jenis_po,
@@ -619,11 +542,8 @@ LEFT JOIN preorders  po  ON p.id_po     = po.id_po
 LEFT JOIN categories kat ON p.id_kategori = kat.id_kategori
 GROUP BY CUBE (kat.nama_kategori, po.jenis_po);
 
-
--- ----------------------------------------------------------------------------------------
 -- 5. ROLL UP: Hierarki Waktu → Total Tahun → Total Bulan
 -- [IMPLEMENTASI C#]: Dipanggil di fitur "Laporan Keuangan Bulanan"
--- ----------------------------------------------------------------------------------------
 SELECT
     EXTRACT(YEAR  FROM t.tanggal_transaksi) AS tahun,
     EXTRACT(MONTH FROM t.tanggal_transaksi) AS bulan,
@@ -636,11 +556,8 @@ GROUP BY ROLLUP (
     EXTRACT(MONTH FROM t.tanggal_transaksi)
 );
 
-
--- ----------------------------------------------------------------------------------------
 -- 6. GROUPING SETS: Rekap per Penjual & per Kategori sekaligus
 -- [IMPLEMENTASI C#]: Dipanggil di fitur "Ringkasan Global"
--- ----------------------------------------------------------------------------------------
 SELECT
     u.nama            AS nama_penjual,
     kat.nama_kategori AS nama_kategori,
@@ -652,11 +569,8 @@ JOIN categories    kat ON p.id_kategori   = kat.id_kategori
 JOIN users         u   ON p.id_penjual    = u.id_user
 GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori));
 
-
--- ----------------------------------------------------------------------------------------
 -- 7. SUBQUERY: Deteksi produk dengan sisa kuota <= 5
 -- [IMPLEMENTASI C#]: Dipanggil di Dashboard Penjual (Peringatan Stok Tipis)
--- ----------------------------------------------------------------------------------------
 SELECT nama_produk, target_kuota
 FROM products p
 WHERE p.target_kuota IS NOT NULL
@@ -668,32 +582,24 @@ WHERE p.target_kuota IS NOT NULL
         )
       ) <= 5;
 
-
--- ----------------------------------------------------------------------------------------
 -- 8. UNION: Menggabungkan status Diproses dan Selesai
 -- [IMPLEMENTASI C#]: Dipanggil di "Log Aktivitas Transaksi"
--- ----------------------------------------------------------------------------------------
 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Diproses'
 UNION
 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Selesai';
 
-
--- ----------------------------------------------------------------------------------------
 -- 9. INTERSECT: Penjual yang juga pernah menjadi koordinator/pembeli
 -- [IMPLEMENTASI C#]: Dipanggil untuk filter "Sultan Member" di daftar pengguna
--- ----------------------------------------------------------------------------------------
 SELECT id_user, nama FROM users
 WHERE id_user IN (SELECT id_user FROM verifications WHERE is_verifikasi = TRUE)
 INTERSECT
 SELECT u.id_user, u.nama FROM users u
 JOIN transactions t ON u.id_user = t.id_koordinator;
 
-
--- ----------------------------------------------------------------------------------------
 -- 10. EXCEPT: User yang belum pernah melakukan transaksi (Pengguna Pasif)
 -- [IMPLEMENTASI C#]: Dipanggil di menu "Broadcast Promo" Admin
--- ----------------------------------------------------------------------------------------
 SELECT id_user, nama FROM users
 EXCEPT
 SELECT u.id_user, u.nama FROM users u
 JOIN transactions t ON u.id_user = t.id_koordinator;
+*/
