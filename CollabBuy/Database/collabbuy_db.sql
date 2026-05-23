@@ -531,6 +531,15 @@ INSERT INTO complaints (id_user, subjek, deskripsi, tanggal, is_selesai, balasan
 (9, 'Fitur Keranjang Ngebug', 'Waktu saya nambah list titipan, kadang layarnya ngestuck.', '2026-05-18 14:00:00', FALSE, NULL), 
 (10, 'Salah Input Nominal', 'Min, saya salah transfer lebih 10 ribu ke BEM. Bisa di-refund?', '2026-05-19 15:30:00', FALSE, NULL);
 
+-- DATA ACTIVITY LOGS
+INSERT INTO activity_logs (id_user, aktivitas, waktu_akses) VALUES 
+(1, 'Berhasil login ke sistem (Dashboard Admin)', '2026-05-20 08:00:00'), 
+(1, 'Mengunduh Laporan PDF (LPJ Danus PO BEM)', '2026-05-20 08:30:00'), 
+(2, 'Menambahkan produk baru ke PO BEM Batch 1', '2026-05-01 10:15:00'), 
+(7, 'Mengunduh Kuitansi Transaksi #1 (Format PDF)', '2026-05-12 10:20:00'), 
+(8, 'Berhasil melakukan checkout keranjang belanja', '2026-05-15 16:46:00'),
+(1, 'Memblokir akun pengguna akibat manipulasi pesanan', '2026-05-21 14:00:00');
+
 /*
 -- BAGIAN 6 & 7: KUERI ANALITIK ADVANCED & STATEMENTS
 -- 1. STATEMENT: Status Ketersediaan Kuota
