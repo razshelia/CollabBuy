@@ -146,12 +146,12 @@ INSERT INTO categories (nama_kategori) VALUES
 ('Merchandise Event');
 
 INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) VALUES
-(2, 'PO PDH BEM Batch 1', 'Biasa', 'BCA 12345 a.n Nabila', '2026-05-10 23:59:00', FALSE),
-(2, 'PO Makanan Rapat BEM', 'Biasa', 'BCA 12345 a.n Nabila', '2026-05-30 23:59:00', TRUE),
-(3, 'Danus HIMATIF Gotong Royong', 'Gotong Royong', 'Mandiri 98765 a.n Daffa', '2026-05-25 23:59:00', TRUE),
-(3, 'PO Lanyard Fasilkom', 'Biasa', 'Mandiri 98765 a.n Daffa', '2026-06-01 23:59:00', TRUE),
-(4, 'PO Jersey UKM Olahraga', 'Gotong Royong', 'BRI 112233 a.n Budi', '2026-05-28 23:59:00', TRUE),
-(5, 'PO Binder Kuliah Kopma', 'Biasa', 'BNI 445566 a.n Siti', '2026-05-15 23:59:00', FALSE);
+(2, 'PO PDH BEM Batch 1',         'Biasa',         'BCA 12345 a.n Nabila',    '2026-05-10 23:59:00', FALSE), 
+(2, 'PO Makanan Rapat BEM',        'Biasa',         'BCA 12345 a.n Nabila',    CURRENT_TIMESTAMP + INTERVAL '30 days', TRUE),
+(3, 'Danus HIMATIF Gotong Royong', 'Gotong Royong', 'Mandiri 98765 a.n Daffa', CURRENT_TIMESTAMP + INTERVAL '15 days', TRUE),
+(3, 'PO Lanyard Fasilkom',         'Biasa',         'Mandiri 98765 a.n Daffa', CURRENT_TIMESTAMP + INTERVAL '45 days', TRUE),
+(4, 'PO Jersey UKM Olahraga',      'Gotong Royong', 'BRI 112233 a.n Budi',     CURRENT_TIMESTAMP + INTERVAL '20 days', TRUE),
+(5, 'PO Binder Kuliah Kopma',      'Biasa',         'BNI 445566 a.n Siti',     '2026-05-15 23:59:00', FALSE);
 
 INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) VALUES
 (2, 1, 1, 'PDH BEM Pengurus',            'Bahan nagata drill.',            120000, NULL,   NULL,  1, '\x'),
