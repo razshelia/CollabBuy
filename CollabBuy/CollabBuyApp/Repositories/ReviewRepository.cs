@@ -1,89 +1,157 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 using Npgsql;
-using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ReviewRepository : BaseRepository, IReviewRepository
+    /// <summary>
+    /// Repository untuk mengakses data Ulasan (Review).
+    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
+    /// </summary>
+    public class ReviewRepository : IQueryRepository<Review>, ICommandRepository<Review>
     {
-        public bool TambahUlasan(Review ulasan)
-        {
-            string sql = @"INSERT INTO reviews (id_produk, id_user, rating, komentar)
-                           VALUES (@idProduk, @idUser, @rating, @komentar)";
-            int row = ExecuteNonQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("idProduk", ulasan.IdProduk);
-                cmd.Parameters.AddWithValue("idUser", ulasan.IdUser);
-                cmd.Parameters.AddWithValue("rating", ulasan.Rating);
-                cmd.Parameters.AddWithValue("komentar", (object)ulasan.Komentar ?? DBNull.Value);
-            });
+        // === PRIVATE FIELDS ===
+        private readonly string _connectionString;
 
-            return row > 0;
+        // === KONSTRUKTOR ===
+        public ReviewRepository()
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrEmpty(connStr))
+            {
+                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+            }
+            _connectionString = connStr;
         }
 
-        public List<Review> AmbilUlasanByProduk(int idProduk)
-        {
-            List<Review> list = new List<Review>();
-            string sql = @"SELECT r.id_ulasan, r.id_produk, r.id_user, r.rating, r.komentar, 
-                                  r.tanggal_ulasan, r.balasan_penjual, u.username
-                           FROM reviews r JOIN users u ON r.id_user = u.id_user
-                           WHERE r.id_produk = @idProduk
-                           ORDER BY r.tanggal_ulasan DESC";
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("idProduk", idProduk), reader =>
-            {
-                Review r = new Review();
-                r.IdUlasan = reader.GetInt32(0);
-                r.IdProduk = reader.GetInt32(1);
-                r.IdUser = reader.GetInt32(2);
-                r.Rating = reader.GetInt32(3);
-                r.Komentar = reader.IsDBNull(4) ? null : reader.GetString(4);
-                r.TanggalUlasan = reader.GetDateTime(5);
-                r.BalasanPenjual = reader.IsDBNull(6) ? null : reader.GetString(6);
-                list.Add(r);
-            });
 
-            return list;
+        // =======================================================
+        // IMPLEMENTASI IQueryRepository<Review>
+        // =======================================================
+
+        public Review GetById(int idUlasan)
+        {
+            Review review = null;
+
+            string query = "SELECT id_ulasan, id_produk, id_user, rating, komentar, balasan_penjual FROM reviews WHERE id_ulasan = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idUlasan);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int idProduk = reader.GetInt32(reader.GetOrdinal("id_produk"));
+                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+                            int rating = reader.GetInt32(reader.GetOrdinal("rating"));
+                            string komentar = reader.IsDBNull(reader.GetOrdinal("komentar")) ? "" : reader.GetString(reader.GetOrdinal("komentar"));
+
+                            review = new Review(idProduk, idUser, rating, komentar);
+                            review.SetIdUlasan(reader.GetInt32(reader.GetOrdinal("id_ulasan")));
+
+                            // Pemetaan Interface IResolvable dari DB ke RAM
+                            if (!reader.IsDBNull(reader.GetOrdinal("balasan_penjual")))
+                            {
+                                string balasanDb = reader.GetString(reader.GetOrdinal("balasan_penjual"));
+                                review.BeriTanggapan(balasanDb);
+                            }
+                        }
+                    }
+                }
+            }
+            return review;
         }
 
-        public List<Review> AmbilUlasanByPenjual(int idPenjual)
+        public List<Review> GetAll()
         {
-            List<Review> list = new List<Review>();
-            string sql = @"SELECT r.id_ulasan, r.id_produk, r.id_user, r.rating, r.komentar, 
-                                  r.tanggal_ulasan, r.balasan_penjual
-                           FROM reviews r
-                           JOIN products p ON r.id_produk = p.id_produk
-                           JOIN preorders po ON p.id_po = po.id_po
-                           WHERE po.id_penjual = @idPenjual
-                           ORDER BY r.tanggal_ulasan DESC";
+            List<Review> listReview = new List<Review>();
+            string query = "SELECT id_ulasan, id_produk, id_user, rating, komentar, balasan_penjual FROM reviews ORDER BY id_ulasan DESC;";
 
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("idPenjual", idPenjual), reader =>
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                Review r = new Review();
-                r.IdUlasan = reader.GetInt32(0);
-                r.IdProduk = reader.GetInt32(1);
-                r.IdUser = reader.GetInt32(2);
-                r.Rating = reader.GetInt32(3);
-                r.Komentar = reader.IsDBNull(4) ? null : reader.GetString(4);
-                r.TanggalUlasan = reader.GetDateTime(5);
-                r.BalasanPenjual = reader.IsDBNull(6) ? null : reader.GetString(6);
-                list.Add(r);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int idProduk = reader.GetInt32(reader.GetOrdinal("id_produk"));
+                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+                            int rating = reader.GetInt32(reader.GetOrdinal("rating"));
+                            string komentar = reader.IsDBNull(reader.GetOrdinal("komentar")) ? "" : reader.GetString(reader.GetOrdinal("komentar"));
 
-            return list;
+                            Review review = new Review(idProduk, idUser, rating, komentar);
+                            review.SetIdUlasan(reader.GetInt32(reader.GetOrdinal("id_ulasan")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("balasan_penjual")))
+                            {
+                                review.BeriTanggapan(reader.GetString(reader.GetOrdinal("balasan_penjual")));
+                            }
+
+                            listReview.Add(review);
+                        }
+                    }
+                }
+            }
+            return listReview;
         }
 
-        public bool BalasUlasan(int idUlasan, string balasan)
-        {
-            string sql = "UPDATE reviews SET balasan_penjual = @balasan WHERE id_ulasan = @id";
-            int row = ExecuteNonQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("balasan", balasan);
-                cmd.Parameters.AddWithValue("id", idUlasan);
-            });
 
-            return row > 0;
+        // =======================================================
+        // IMPLEMENTASI ICommandRepository<Review>
+        // =======================================================
+
+        public void Insert(Review entity)
+        {
+            if (entity == null) throw new ArgumentNullException("Entity review tidak boleh null.");
+
+            string query = "INSERT INTO reviews (id_produk, id_user, rating, komentar) VALUES (@idProduk, @idUser, @rating, @komentar);";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idProduk", entity.GetIdProduk());
+                    cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
+                    cmd.Parameters.AddWithValue("@rating", entity.GetRating());
+                    cmd.Parameters.AddWithValue("@komentar", string.IsNullOrEmpty(entity.GetKomentar()) ? (object)DBNull.Value : entity.GetKomentar());
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new InvalidOrderException("Gagal menyimpan review ke database.", "", "DB_INSERT_REVIEW_FAILED");
+                    }
+                }
+            }
+        }
+
+        public void Update(Review entity)
+        {
+            if (entity == null) throw new ArgumentNullException("Entity review tidak boleh null.");
+
+            // Update ini biasanya dipanggil saat Penjual membalas review (BeriTanggapan)
+            string query = "UPDATE reviews SET balasan_penjual = @balasan WHERE id_ulasan = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", entity.GetIdUlasan());
+                    cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.GetTanggapan()) ? (object)DBNull.Value : entity.GetTanggapan());
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

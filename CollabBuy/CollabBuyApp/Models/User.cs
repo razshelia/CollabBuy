@@ -1,9 +1,22 @@
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Models.Interfaces;
 using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public abstract class User
+    /// <summary>
+    /// Abstract class induk untuk semua jenis pengguna.
+    /// Mengimplementasikan IValidatable untuk data dasar.
+    /// Memindahkan logika IBlockable langsung ke sini karena kemampuan 
+    /// diblokir melekat pada level user (bisa Penjual maupun Pembeli).
+    /// 
+    /// Pemetaan Database:
+    /// - Tabel: users
+    /// - Kolom: is_diblokir, peran
+    /// </summary>
+    public abstract class User : IValidatable
     {
+        // === PRIVATE FIELDS ===
         private int _idUser;
         private string _nama;
         private string _nomorTelepon;
@@ -12,111 +25,114 @@ namespace CollabBuy.CollabBuyApp.Models
         private string _password;
         private string _peran;
         private bool _isDiblokir;
-        private Verification _verification;
+        private string _alasanBlokir;
 
-        public User()
+        // === KONSTRUKTOR ===
+        protected User(string nama, string username, string password, string peran)
+        {
+            SetNama(nama);
+            SetUsername(username);
+            SetPassword(password);
+            _peran = peran;
+            _isDiblokir = false;
+            _alasanBlokir = "";
+        }
+
+        // === GETTER & SETTER DENGAN VALIDASI ===
+        public int GetIdUser() { return _idUser; }
+        public void SetIdUser(int id) { _idUser = id; }
+
+        public string GetNama() { return _nama; }
+        public void SetNama(string nama)
+        {
+            if (string.IsNullOrEmpty(nama))
+            {
+                throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
+            }
+            _nama = nama;
+        }
+
+        public string GetUsername() { return _username; }
+        public void SetUsername(string username)
+        {
+            if (string.IsNullOrEmpty(username) || username.Length < 4)
+            {
+                throw new InvalidOrderException("Username minimal 4 karakter!", "username", "USER_UNAME_INVALID");
+            }
+            _username = username;
+        }
+
+        public string GetPassword() { return _password; }
+        public void SetPassword(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
+            }
+            _password = password;
+        }
+
+        public string GetNomorTelepon() { return _nomorTelepon; }
+        public void SetNomorTelepon(string telp) { _nomorTelepon = telp; }
+
+        public string GetEmail() { return _email; }
+        public void SetEmail(string email) { _email = email; }
+
+        public string GetPeran() { return _peran; }
+
+
+        // === METHOD ABSTRAK ===
+        /// <summary>
+        /// Setiap turunan User wajib mengimplementasi cara menampilkan peran spesifiknya.
+        /// Ini membuktikan Polimorfisme.
+        /// </summary>
+        public abstract string GetTipeUser();
+
+
+        // === METHOD KONKRET (LOGIKANYA DIMILIKI OLEH INDUK) ===
+
+        /// <summary>
+        /// Memblokir user karena pelanggaran.
+        /// Pemetaan DB: Diakses oleh Procedure sp_tindak_penjual_nakal
+        /// </summary>
+        public void Blokir(string alasan)
+        {
+            if (string.IsNullOrEmpty(alasan))
+            {
+                throw new InvalidOrderException("Alasan pemblokiran wajib diisi!", "alasan_blokir", "BLOKIR_INVALID");
+            }
+            _isDiblokir = true;
+            _alasanBlokir = alasan;
+        }
+
+        public void BukaBlokir()
         {
             _isDiblokir = false;
-            _verification = null;
+            _alasanBlokir = "";
         }
 
-        public int IdUser
+        public bool IsDiblokir()
         {
-            get => _idUser;
-            set { if (value <= 0) throw new ArgumentException("ID User harus positif."); _idUser = value; }
+            return _isDiblokir;
         }
 
-        public string Nama
+        public string GetAlasanBlokir()
         {
-            get => _nama;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Nama wajib diisi."); _nama = value.Trim(); }
+            return _alasanBlokir;
         }
 
-        public string NomorTelepon
+
+        // === IMPLEMENTASI IValidatable ===
+        public virtual void Validate()
         {
-            get => _nomorTelepon;
-            set
+            if (string.IsNullOrEmpty(_nama))
             {
-                // 1. Cek apakah kosong
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Nomor telepon wajib diisi untuk keperluan koordinasi Pre-Order.");
-                }
-
-                // 2. Logika Pembersihan (Sanitization)
-                // Membuang spasi atau tanda strip (-) jika user iseng mengetik "0812-3456-789"
-                string cleaned = value.Replace(" ", "").Replace("-", "").Replace("+", "");
-
-                // 3. Validasi Karakter
-                if (!long.TryParse(cleaned, out _))
-                {
-                    throw new ArgumentException("Nomor telepon hanya boleh berisi angka.");
-                }
-
-                // 4. Validasi Panjang (Standar Indonesia 10-15 digit)
-                if (cleaned.Length < 10 || cleaned.Length > 15)
-                {
-                    throw new ArgumentException("Panjang nomor telepon harus antara 10 sampai 15 digit.");
-                }
-
-                _nomorTelepon = cleaned;
+                throw new InvalidOrderException("Validasi gagal: Nama user kosong.", "nama", "USER_INVALID");
+            }
+            if (string.IsNullOrEmpty(_username))
+            {
+                throw new InvalidOrderException("Validasi gagal: Username kosong.", "username", "USER_INVALID");
             }
         }
-        public string Email
-        {
-            get => _email;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Email wajib diisi.");
-
-                try
-                {
-                    // MailAddress akan throw jika format tidak valid
-                    var addr = new System.Net.Mail.MailAddress(value.Trim());
-                    _email = addr.Address.ToLower();
-                }
-                catch
-                {
-                    throw new ArgumentException("Format email tidak valid.");
-                }
-            }
-        }
-
-        public string Username
-        {
-            get => _username;
-            set { if (string.IsNullOrWhiteSpace(value) || value.Length < 5) throw new ArgumentException("Username minimal 5 karakter."); _username = value.Trim(); }
-        }
-
-        public string Password
-        {
-            get => _password;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Password tidak boleh kosong."); _password = value; }
-        }
-
-        public string Peran
-        {
-            get => _peran;
-            protected set
-            {
-                if (value != "Admin" && value != "User") throw new ArgumentException("Peran tidak valid.");
-                _peran = value;
-            }
-        }
-
-        public bool IsDiblokir
-        {
-            get => _isDiblokir;
-            set { if (_isDiblokir != value) _isDiblokir = value; }
-        }
-
-        public Verification Verification
-        {
-            get => _verification;
-            set { if (_verification != value) _verification = value; }
-        }
-
-        public abstract string TampilkanDashboard();
     }
 }

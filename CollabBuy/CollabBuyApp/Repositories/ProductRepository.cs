@@ -1,143 +1,284 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using Npgsql;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Interfaces;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ProductRepository : BaseRepository, IProductRepository
+    /// <summary>
+    /// Repository untuk mengakses data Produk.
+    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
+    /// 
+    /// Fungsi utama: Menarik data Produk dari DB ke objek Model di RAM 
+    /// agar bisa dihitung logika bisnisnya (Harga Gotong Royong, Kuota).
+    /// </summary>
+    public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>
     {
-        public bool TambahProduk(Product produk)
-        {
-            string sql = @"INSERT INTO products 
-                           (id_penjual, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk)
-                           VALUES (@penjual, @kategori, @nama, @deskripsi, @harga, @diskon, @target, @min, @foto)";
-            int row = ExecuteNonQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("penjual", produk.IdPenjual);
-                cmd.Parameters.AddWithValue("kategori", (object)produk.IdKategori ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("nama", produk.NamaProduk);
-                cmd.Parameters.AddWithValue("deskripsi", (object)produk.Deskripsi ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("harga", produk.HargaDasar);
-                cmd.Parameters.AddWithValue("diskon", (object)produk.HargaDiskon ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("target", (object)produk.TargetKuota ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("min", produk.MinOrder);
-                cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
-            });
+        // === PRIVATE FIELDS ===
+        private readonly string _connectionString;
 
-            return row > 0;
+        // === KONSTRUKTOR ===
+        public ProductRepository()
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrEmpty(connStr))
+            {
+                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+            }
+            _connectionString = connStr;
         }
 
-        public List<Product> AmbilProdukByPo(int idPo)
-        {
-            List<Product> list = new List<Product>();
-            string sql = "SELECT * FROM products WHERE id_po = @id";
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("id", idPo), reader =>
-            {
-                list.Add(MapEntity(reader));
-            });
 
-            return list;
-        }
+        // =======================================================
+        // IMPLEMENTASI IQueryRepository<Product>
+        // =======================================================
 
-        public Product AmbilProdukById(int idProduk)
+        public Product GetById(int idProduk)
         {
             Product produk = null;
-            string sql = "SELECT * FROM products WHERE id_produk = @id";
 
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("id", idProduk), reader =>
+            // REVISI: Penambahan p.foto_produk
+            string query = @"
+                SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori, 
+                       p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon, 
+                       p.target_kuota, p.min_order, p.foto_produk, po.jenis_po
+                FROM products p
+                LEFT JOIN preorders po ON p.id_po = po.id_po
+                WHERE p.id_produk = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                produk = MapEntity(reader);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idProduk);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            produk = MappingReaderToProduct(reader);
+                        }
+                    }
+                }
+            }
+
+            // === PENTING UNTUK RAM (Sub-bab 3.1 Laporan) ===
+            if (produk != null && produk.GetTargetKuota() > 0)
+            {
+                IsiJumlahTerpesanDiRam(produk);
+            }
 
             return produk;
         }
 
-        public bool UpdateProduk(Product produk)
+        public List<Product> GetAll()
         {
-            string sql = @"UPDATE products 
-                           SET id_kategori = @kategori, nama_produk = @nama, deskripsi = @deskripsi,
-                               harga_dasar = @harga, harga_diskon = @diskon, target_kuota = @target, 
-                               min_order = @min, foto_produk = @foto
-                           WHERE id_produk = @id";
+            List<Product> listProduk = new List<Product>();
 
-            int row = ExecuteNonQuery(sql, cmd =>
+            // REVISI: Penambahan p.foto_produk
+            string query = @"
+                SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori, 
+                       p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon, 
+                       p.target_kuota, p.min_order, p.foto_produk, po.jenis_po
+                FROM products p
+                LEFT JOIN preorders po ON p.id_po = po.id_po
+                ORDER BY p.nama_produk;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("id", produk.IdProduk);
-                cmd.Parameters.AddWithValue("kategori", (object)produk.IdKategori ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("nama", produk.NamaProduk);
-                cmd.Parameters.AddWithValue("deskripsi", (object)produk.Deskripsi ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("harga", produk.HargaDasar);
-                cmd.Parameters.AddWithValue("diskon", (object)produk.HargaDiskon ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("target", (object)produk.TargetKuota ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("min", produk.MinOrder);
-                cmd.Parameters.AddWithValue("foto", (object)produk.FotoProduk ?? DBNull.Value);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            listProduk.Add(MappingReaderToProduct(reader));
+                        }
+                    }
+                }
+            }
 
-            return row > 0;
+            return listProduk;
         }
 
-        public bool HapusProduk(int idProduk)
+
+        // =======================================================
+        // IMPLEMENTASI ICommandRepository<Product>
+        // =======================================================
+
+        public void Insert(Product entity)
         {
-            string sql = "DELETE FROM products WHERE id_produk = @id";
-
-            int row = ExecuteNonQuery(sql, cmd => cmd.Parameters.AddWithValue("id", idProduk));
-
-            return row > 0;
-        }
-
-        public int HitungHargaAktual(int idProduk)
-        {
-            string sql = "SELECT cek_harga_saat_ini(@id)";
-            var result = ExecuteScalar(sql, cmd => cmd.Parameters.AddWithValue("id", idProduk));
-
-            if (result != DBNull.Value && result != null)
-                return Convert.ToInt32(result);
-
-            return 0;
-        }
-
-        public int AmbilJumlahProduk()
-        {
-            string sql = "SELECT COUNT(*) FROM products";
-
-            var result = ExecuteScalar(sql, null);
-
-            if (result != DBNull.Value && result != null)
-                return Convert.ToInt32(result);
-
-            return 0;
-        }
-
-        public List<Product> AmbilProdukByPenjual(int idPenjual)
-        {
-            List<Product> list = new List<Product>();
-            string sql = "SELECT * FROM products WHERE id_penjual = @id ORDER BY id_produk DESC";
-
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("id", idPenjual), reader =>
+            if (entity == null)
             {
-                list.Add(MapEntity(reader));
-            });
+                throw new ArgumentNullException("Entity produk tidak boleh null.");
+            }
 
-            return list;
-        }
-        private Product MapEntity(NpgsqlDataReader reader)
-        {
-            return new Product
+            // REVISI: Penambahan kolom foto_produk
+            string query = @"
+                INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) 
+                VALUES (@penjual, @po, @kategori, @nama, @deskripsi, @hargaDasar, @hargaDiskon, @targetKuota, @minOrder, @foto);";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                IdProduk = Convert.ToInt32(reader["id_produk"]),
-                IdPenjual = Convert.ToInt32(reader["id_penjual"]),
-                IdPo = reader["id_po"] != DBNull.Value ? Convert.ToInt32(reader["id_po"]) : (int?)null,
-                IdKategori = reader["id_kategori"] != DBNull.Value ? Convert.ToInt32(reader["id_kategori"]) : (int?)null,
-                NamaProduk = reader["nama_produk"].ToString(),
-                Deskripsi = reader["deskripsi"]?.ToString(),
-                HargaDasar = Convert.ToInt32(reader["harga_dasar"]),
-                HargaDiskon = reader["harga_diskon"] != DBNull.Value ? Convert.ToInt32(reader["harga_diskon"]) : (int?)null,
-                TargetKuota = reader["target_kuota"] != DBNull.Value ? Convert.ToInt32(reader["target_kuota"]) : (int?)null,
-                MinOrder = Convert.ToInt32(reader["min_order"]),
-                FotoProduk = reader["foto_produk"]?.ToString()
-            };
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    MappingProductToParameters(cmd, entity);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new InvalidOrderException("Gagal menyimpan produk baru ke database.", "", "DB_INSERT_PRODUCT_FAILED");
+                    }
+                }
+            }
+        }
+
+        public void Update(Product entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException("Entity produk tidak boleh null.");
+            }
+
+            // REVISI: Penambahan kolom foto_produk
+            string query = @"
+                UPDATE products SET id_po = @po, id_kategori = @kategori, nama_produk = @nama, 
+                deskripsi = @deskripsi, harga_dasar = @hargaDasar, harga_diskon = @hargaDiskon, 
+                target_kuota = @targetKuota, min_order = @minOrder, foto_produk = @foto
+                WHERE id_produk = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", entity.GetIdProduk());
+                    MappingProductToParameters(cmd, entity);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new InvalidOrderException("Gagal mengupdate produk, ID tidak ditemukan.", "id_produk", "DB_UPDATE_PRODUCT_FAILED");
+                    }
+                }
+            }
+        }
+
+
+        // =======================================================
+        // HELPER METHOD UNTUK MENGHINDARI REDUNDANSI KODE (DRY)
+        // =======================================================
+
+        /// <summary>
+        /// Method bantuan untuk memetakan data dari NpgsqlDataReader ke objek Product.
+        /// Menghindari penulisan kode yang sama di GetById dan GetAll.
+        /// </summary>
+        private Product MappingReaderToProduct(NpgsqlDataReader reader)
+        {
+            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
+            int idKategori = reader.GetInt32(reader.GetOrdinal("id_kategori"));
+            string namaProduk = reader.GetString(reader.GetOrdinal("nama_produk"));
+            int hargaDasar = reader.GetInt32(reader.GetOrdinal("harga_dasar"));
+
+            Product produk = new Product(idPenjual, idKategori, namaProduk, hargaDasar);
+            produk.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
+
+            if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
+            {
+                produk.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
+            }
+            if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
+            {
+                produk.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
+            }
+            if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
+            {
+                produk.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
+            }
+            if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
+            {
+                produk.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
+            }
+            if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
+            {
+                produk.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
+            }
+
+            // REVISI: Pembacaan BYTEA foto_produk dari Database
+            if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
+            {
+                byte[] fotoBytes = (byte[])reader["foto_produk"];
+                produk.SetFotoProduk(fotoBytes);
+            }
+
+            if (!reader.IsDBNull(reader.GetOrdinal("jenis_po")))
+            {
+                produk.SetJenisPo(reader.GetString(reader.GetOrdinal("jenis_po")));
+            }
+            else
+            {
+                produk.SetJenisPo("Biasa");
+            }
+
+            return produk;
+        }
+
+        /// <summary>
+        /// Method bantuan untuk memetakan objek Product ke parameter NpgsqlCommand.
+        /// Menghindari penulisan kode yang sama di Insert dan Update.
+        /// </summary>
+        private void MappingProductToParameters(NpgsqlCommand cmd, Product entity)
+        {
+            cmd.Parameters.AddWithValue("@penjual", entity.GetIdPenjual());
+            cmd.Parameters.AddWithValue("@kategori", entity.GetIdKategori());
+            cmd.Parameters.AddWithValue("@nama", entity.GetNamaProduk());
+            cmd.Parameters.AddWithValue("@hargaDasar", entity.GetHargaDasar());
+
+            // Handle nullable DB parameters
+            cmd.Parameters.AddWithValue("@po", entity.GetIdPo().HasValue ? (object)entity.GetIdPo().Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@deskripsi", string.IsNullOrEmpty(entity.GetDeskripsi()) ? (object)DBNull.Value : entity.GetDeskripsi());
+            cmd.Parameters.AddWithValue("@hargaDiskon", entity.GetHargaDiskon().HasValue ? (object)entity.GetHargaDiskon().Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@targetKuota", entity.GetTargetKuota() > 0 ? (object)entity.GetTargetKuota() : DBNull.Value);
+            cmd.Parameters.AddWithValue("@minOrder", entity.GetMinOrder());
+
+            // REVISI: Penyimpanan BYTEA foto_produk ke Database
+            cmd.Parameters.AddWithValue("@foto", (object)entity.GetFotoProduk() ?? DBNull.Value);
+        }
+
+
+        // =======================================================
+        // METHOD PRIVATE BANTUAN RAM (SUB-BAB 3.1 LAPORAN)
+        // =======================================================
+
+        /// <summary>
+        /// Method khusus untuk mengisi jumlah pesanan yang sudah ada di DB 
+        /// ke dalam properti In-Memory objek Product di RAM.
+        /// Tanpa ini, perhitungan Kuota Gotong Royong di Model akan salah.
+        /// </summary>
+        private void IsiJumlahTerpesanDiRam(Product produk)
+        {
+            string query = "SELECT COALESCE(SUM(jumlah_pesanan), 0) FROM transaction_details WHERE id_produk = @idProduk;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idProduk", produk.GetIdProduk());
+                    object result = cmd.ExecuteScalar();
+
+                    if (result != null && result != DBNull.Value)
+                    {
+                        int totalTerpesan = Convert.ToInt32(result);
+                        // Sinkronisasi data DB ke RAM
+                        produk.TambahPesanan(totalTerpesan);
+                    }
+                }
+            }
         }
     }
 }

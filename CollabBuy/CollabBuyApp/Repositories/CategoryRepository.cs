@@ -1,77 +1,135 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 using Npgsql;
-using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class CategoryRepository : BaseRepository, ICategoryRepository
+    /// <summary>
+    /// Repository untuk mengakses data Kategori Produk.
+    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
+    /// </summary>
+    public class CategoryRepository : IQueryRepository<Category>, ICommandRepository<Category>
     {
-        public List<Category> AmbilSemua()
-        {
-            List<Category> list = new List<Category>();
-            string sql = "SELECT id_kategori, nama_kategori FROM categories ORDER BY nama_kategori";
-            ExecuteQuery(sql, null, reader =>
-            {
-                Category kat = new Category();
-                kat.IdKategori = reader.GetInt32(0);
-                kat.NamaKategori = reader.GetString(1);
-                list.Add(kat);
-            });
+        // === PRIVATE FIELDS ===
+        private readonly string _connectionString;
 
-            return list;
+        // === KONSTRUKTOR ===
+        public CategoryRepository()
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrEmpty(connStr))
+            {
+                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+            }
+            _connectionString = connStr;
         }
 
-        public Category AmbilById(int id)
+
+        // =======================================================
+        // IMPLEMENTASI IQueryRepository<Category>
+        // =======================================================
+
+        public Category GetById(int idKategori)
         {
-            Category kat = null;
-            string sql = "SELECT id_kategori, nama_kategori FROM categories WHERE id_kategori = @id";
+            Category kategori = null;
 
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("id", id), reader =>
+            string query = "SELECT id_kategori, nama_kategori FROM categories WHERE id_kategori = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                kat = new Category();
-                kat.IdKategori = reader.GetInt32(0);
-                kat.NamaKategori = reader.GetString(1);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idKategori);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string namaKategori = reader.GetString(reader.GetOrdinal("nama_kategori"));
 
-            return kat;
+                            kategori = new Category(namaKategori);
+                            kategori.SetIdKategori(reader.GetInt32(reader.GetOrdinal("id_kategori")));
+                        }
+                    }
+                }
+            }
+            return kategori;
         }
 
-        public bool Tambah(Category kategori)
+        public List<Category> GetAll()
         {
-            string sql = "INSERT INTO categories (nama_kategori) VALUES (@nama)";
-            int row = ExecuteNonQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("nama", kategori.NamaKategori);
-            });
+            List<Category> listKategori = new List<Category>();
+            string query = "SELECT id_kategori, nama_kategori FROM categories ORDER BY nama_kategori;";
 
-            return row > 0;
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string namaKategori = reader.GetString(reader.GetOrdinal("nama_kategori"));
+
+                            Category kategori = new Category(namaKategori);
+                            kategori.SetIdKategori(reader.GetInt32(reader.GetOrdinal("id_kategori")));
+
+                            listKategori.Add(kategori);
+                        }
+                    }
+                }
+            }
+            return listKategori;
         }
 
-        public bool Update(Category kategori)
+
+        // =======================================================
+        // IMPLEMENTASI ICommandRepository<Category>
+        // =======================================================
+
+        public void Insert(Category entity)
         {
-            string sql = "UPDATE categories SET nama_kategori = @nama WHERE id_kategori = @id";
+            if (entity == null) throw new ArgumentNullException("Entity kategori tidak boleh null.");
 
-            int row = ExecuteNonQuery(sql, cmd =>
+            string query = "INSERT INTO categories (nama_kategori) VALUES (@nama);";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("nama", kategori.NamaKategori);
-                cmd.Parameters.AddWithValue("id", kategori.IdKategori);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@nama", entity.GetNamaKategori());
 
-            return row > 0;
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new InvalidOrderException("Gagal menyimpan kategori baru ke database.", "", "DB_INSERT_CATEGORY_FAILED");
+                    }
+                }
+            }
         }
 
-        public bool Hapus(int id)
+        public void Update(Category entity)
         {
-            string sql = "DELETE FROM categories WHERE id_kategori = @id";
+            if (entity == null) throw new ArgumentNullException("Entity kategori tidak boleh null.");
 
-            int row = ExecuteNonQuery(sql, cmd =>
+            string query = "UPDATE categories SET nama_kategori = @nama WHERE id_kategori = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("id", id);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", entity.GetIdKategori());
+                    cmd.Parameters.AddWithValue("@nama", entity.GetNamaKategori());
 
-            return row > 0;
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

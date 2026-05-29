@@ -1,91 +1,155 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 using Npgsql;
-using CollabBuy.CollabBuyApp.Interfaces;
-using CollabBuy.CollabBuyApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ComplaintRepository : BaseRepository, IComplaintRepository
+    /// <summary>
+    /// Repository untuk mengakses data Aduan (Complaint).
+    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
+    /// </summary>
+    public class ComplaintRepository : IQueryRepository<Complaint>, ICommandRepository<Complaint>
     {
-        public bool KirimAduan(Complaint aduan)
-        {
-            string sql = "INSERT INTO complaints (id_user, subjek, deskripsi) VALUES (@idUser, @subjek, @deskripsi)";
-            int row = ExecuteNonQuery(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("idUser", aduan.IdUser);
-                cmd.Parameters.AddWithValue("subjek", aduan.Subjek);
-                cmd.Parameters.AddWithValue("deskripsi", aduan.Deskripsi);
-            });
+        // === PRIVATE FIELDS ===
+        private readonly string _connectionString;
 
-            return row > 0;
+        // === KONSTRUKTOR ===
+        public ComplaintRepository()
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrEmpty(connStr))
+            {
+                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+            }
+            _connectionString = connStr;
         }
 
-        public List<Complaint> AmbilSemuaAduan()
-        {
-            List<Complaint> list = new List<Complaint>();
-            string sql = @"SELECT c.id_aduan, c.id_user, c.subjek, c.deskripsi, c.tanggal, c.is_selesai, c.balasan, u.username
-                           FROM complaints c JOIN users u ON c.id_user = u.id_user
-                           ORDER BY c.tanggal DESC";
-            ExecuteQuery(sql, null, reader =>
-            {
-                Complaint aduan = new Complaint();
-                aduan.IdAduan = reader.GetInt32(0);
-                aduan.IdUser = reader.GetInt32(1);
-                aduan.Subjek = reader.GetString(2);
-                aduan.Deskripsi = reader.GetString(3);
-                aduan.Tanggal = reader.GetDateTime(4);
-                aduan.IsSelesai = reader.GetBoolean(5);
-                aduan.Balasan = reader.IsDBNull(6) ? null : reader.GetString(6);
-                list.Add(aduan);
-            });
 
-            return list;
+        // =======================================================
+        // IMPLEMENTASI IQueryRepository<Complaint>
+        // =======================================================
+
+        public Complaint GetById(int idAduan)
+        {
+            Complaint aduan = null;
+
+            string query = "SELECT id_aduan, id_user, subjek, deskripsi, tanggal, is_selesai, balasan FROM complaints WHERE id_aduan = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idAduan);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+                            string subjek = reader.GetString(reader.GetOrdinal("subjek"));
+                            string deskripsi = reader.GetString(reader.GetOrdinal("deskripsi"));
+
+                            aduan = new Complaint(idUser, subjek, deskripsi);
+                            aduan.SetIdAduan(reader.GetInt32(reader.GetOrdinal("id_aduan")));
+
+                            // Pemetaan Interface IResolvable dari DB ke RAM
+                            if (!reader.IsDBNull(reader.GetOrdinal("balasan")))
+                            {
+                                string balasanDb = reader.GetString(reader.GetOrdinal("balasan"));
+                                aduan.BeriTanggapan(balasanDb); // Ini akan otomatis set is_selesai = true di Model
+                            }
+                        }
+                    }
+                }
+            }
+            return aduan;
         }
 
-        public List<Complaint> AmbilAduanByUser(int idUser)
+        public List<Complaint> GetAll()
         {
-            List<Complaint> list = new List<Complaint>();
-            string sql = @"SELECT id_aduan, id_user, subjek, deskripsi, tanggal, is_selesai, balasan
-                           FROM complaints WHERE id_user = @idUser
-                           ORDER BY tanggal DESC";
+            List<Complaint> listAduan = new List<Complaint>();
+            string query = "SELECT id_aduan, id_user, subjek, deskripsi, tanggal, is_selesai, balasan FROM complaints ORDER BY tanggal DESC;";
 
-            ExecuteQuery(sql, cmd => cmd.Parameters.AddWithValue("idUser", idUser), reader =>
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                Complaint aduan = new Complaint();
-                aduan.IdAduan = reader.GetInt32(0);
-                aduan.IdUser = reader.GetInt32(1);
-                aduan.Subjek = reader.GetString(2);
-                aduan.Deskripsi = reader.GetString(3);
-                aduan.Tanggal = reader.GetDateTime(4);
-                aduan.IsSelesai = reader.GetBoolean(5);
-                aduan.Balasan = reader.IsDBNull(6) ? null : reader.GetString(6);
-                list.Add(aduan);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+                            string subjek = reader.GetString(reader.GetOrdinal("subjek"));
+                            string deskripsi = reader.GetString(reader.GetOrdinal("deskripsi"));
 
-            return list;
+                            Complaint aduan = new Complaint(idUser, subjek, deskripsi);
+                            aduan.SetIdAduan(reader.GetInt32(reader.GetOrdinal("id_aduan")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("balasan")))
+                            {
+                                aduan.BeriTanggapan(reader.GetString(reader.GetOrdinal("balasan")));
+                            }
+
+                            listAduan.Add(aduan);
+                        }
+                    }
+                }
+            }
+            return listAduan;
         }
 
-        public bool TandaiSelesai(int idAduan)
+
+        // =======================================================
+        // IMPLEMENTASI ICommandRepository<Complaint>
+        // =======================================================
+
+        public void Insert(Complaint entity)
         {
-            string sql = "UPDATE complaints SET is_selesai = true WHERE id_aduan = @id";
+            if (entity == null) throw new ArgumentNullException("Entity aduan tidak boleh null.");
 
-            int row = ExecuteNonQuery(sql, cmd => cmd.Parameters.AddWithValue("id", idAduan));
+            string query = "INSERT INTO complaints (id_user, subjek, deskripsi) VALUES (@idUser, @subjek, @deskripsi);";
 
-            return row > 0;
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
+                    cmd.Parameters.AddWithValue("@subjek", entity.GetSubjek());
+                    cmd.Parameters.AddWithValue("@deskripsi", entity.GetDeskripsi());
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new InvalidOrderException("Gagal menyimpan aduan ke database.", "", "DB_INSERT_COMPLAINT_FAILED");
+                    }
+                }
+            }
         }
 
-        public bool BalasAduan(int idAduan, string balasan)
+        public void Update(Complaint entity)
         {
-            string sql = "UPDATE complaints SET balasan = @balasan, is_selesai = true WHERE id_aduan = @id";
+            if (entity == null) throw new ArgumentNullException("Entity aduan tidak boleh null.");
 
-            int row = ExecuteNonQuery(sql, cmd =>
+            // Update ini biasanya dipanggil saat Admin memberikan tanggapan (BeriTanggapan)
+            string query = "UPDATE complaints SET is_selesai = @isSelesai, balasan = @balasan WHERE id_aduan = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("balasan", balasan);
-                cmd.Parameters.AddWithValue("id", idAduan);
-            });
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", entity.GetIdAduan());
+                    cmd.Parameters.AddWithValue("@isSelesai", entity.IsSelesai());
+                    cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.GetTanggapan()) ? (object)DBNull.Value : entity.GetTanggapan());
 
-            return row > 0;
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

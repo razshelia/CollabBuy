@@ -1,57 +1,107 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Models.Interfaces;
+using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Verification
+    /// <summary>
+    /// Kelas Model untuk permohonan verifikasi menjadi Penjual.
+    /// Mengimplementasikan IValidatable dan IApprovable.
+    /// 
+    /// Pemetaan Database:
+    /// - Tabel: verifications
+    /// - Kolom: is_verifikasi, bukti_ktm
+    /// </summary>
+    public class Verification : IValidatable, IApprovable
     {
+        // === PRIVATE FIELDS ===
         private int _idVerifikasi;
         private int _idUser;
         private string _nim;
         private string _namaToko;
-        private string _buktiKtm;
+        private byte[] _buktiKtm; // Menggunakan byte[] untuk tipe BYTEA di PostgreSQL
         private int _tahunMasuk;
         private bool _isVerifikasi;
 
-        public int IdVerifikasi
+        // === KONSTRUKTOR ===
+        public Verification(int idUser, string nim, string namaToko, byte[] buktiKtm, int tahunMasuk)
         {
-            get => _idVerifikasi;
-            set { if (value <= 0) throw new ArgumentException("ID Verifikasi tidak valid."); _idVerifikasi = value; }
+            _idUser = idUser;
+            SetNim(nim);
+            SetNamaToko(namaToko);
+            SetBuktiKtm(buktiKtm);
+            SetTahunMasuk(tahunMasuk);
+            _isVerifikasi = false;
         }
 
-        public int IdUser
+        // === GETTER & SETTER ===
+        public int GetIdVerifikasi() { return _idVerifikasi; }
+        public void SetIdVerifikasi(int id) { _idVerifikasi = id; }
+
+        public int GetIdUser() { return _idUser; }
+
+        public string GetNim() { return _nim; }
+        public void SetNim(string nim)
         {
-            get => _idUser;
-            set { if (value <= 0) throw new ArgumentException("ID User tidak valid."); _idUser = value; }
+            if (string.IsNullOrEmpty(nim))
+            {
+                throw new InvalidOrderException("NIM wajib diisi untuk verifikasi!", "nim", "NIM_KOSONG");
+            }
+            _nim = nim;
         }
 
-        public string Nim
+        public string GetNamaToko() { return _namaToko; }
+        public void SetNamaToko(string namaToko)
         {
-            get => _nim;
-            set { if (string.IsNullOrWhiteSpace(value) || !long.TryParse(value, out _)) throw new ArgumentException("NIM tidak valid."); _nim = value.Trim(); }
+            if (string.IsNullOrEmpty(namaToko))
+            {
+                throw new InvalidOrderException("Nama toko wajib diisi!", "nama_toko", "TOKO_KOSONG");
+            }
+            _namaToko = namaToko;
         }
 
-        public string NamaToko
+        public byte[] GetBuktiKtm() { return _buktiKtm; }
+        public void SetBuktiKtm(byte[] bukti)
         {
-            get => _namaToko;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Nama toko wajib diisi."); _namaToko = value.Trim(); }
+            if (bukti == null || bukti.Length == 0)
+            {
+                throw new InvalidOrderException("Bukti KTM wajib di-upload!", "bukti_ktm", "KTM_KOSONG");
+            }
+            _buktiKtm = bukti;
         }
 
-        public string BuktiKtm
+        public int GetTahunMasuk() { return _tahunMasuk; }
+        public void SetTahunMasuk(int tahun)
         {
-            get => _buktiKtm;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Bukti KTM wajib ada."); _buktiKtm = value; }
+            if (tahun < 2000 || tahun > DateTime.Now.Year)
+            {
+                throw new InvalidOrderException("Tahun masuk tidak valid!", "tahun_masuk", "TAHUN_INVALID");
+            }
+            _tahunMasuk = tahun;
         }
 
-        public int TahunMasuk
+        // === IMPLEMENTASI IValidatable ===
+        public void Validate()
         {
-            get => _tahunMasuk;
-            set { int now = DateTime.Now.Year; if (value < now - 7 || value > now) throw new ArgumentException("Tahun masuk tidak logis."); _tahunMasuk = value; }
+            if (string.IsNullOrEmpty(_nim)) { throw new InvalidOrderException("Verifikasi gagal: NIM kosong.", "nim", "VERIF_INVALID"); }
+            if (_buktiKtm == null || _buktiKtm.Length == 0) { throw new InvalidOrderException("Verifikasi gagal: KTM belum di-upload.", "bukti_ktm", "VERIF_INVALID"); }
         }
 
-        public bool IsVerifikasi
+        // === IMPLEMENTASI IApprovable ===
+        public void Approve()
         {
-            get => _isVerifikasi;
-            set { if (_isVerifikasi != value) _isVerifikasi = value; }
+            _isVerifikasi = true;
+        }
+
+        public void Reject(string alasan)
+        {
+            _isVerifikasi = false;
+            // Alasan penolakan verifikasi bisa dicatat di log atau tabel terpisah jika perlu
+        }
+
+        public bool GetStatusPersetujuan()
+        {
+            return _isVerifikasi;
         }
     }
 }

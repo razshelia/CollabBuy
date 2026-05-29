@@ -1,9 +1,20 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Models.Interfaces;
+using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Review
+    /// <summary>
+    /// Kelas Model untuk Ulasan Produk.
+    /// Mengimplementasikan IValidatable dan IResolvable.
+    /// 
+    /// Pemetaan Database:
+    /// - Tabel: reviews
+    /// - Kolom: rating (CHECK >=1 AND <=5), balasan_penjual
+    /// </summary>
+    public class Review : IValidatable, IResolvable
     {
+        // === PRIVATE FIELDS ===
         private int _idUlasan;
         private int _idProduk;
         private int _idUser;
@@ -12,52 +23,80 @@ namespace CollabBuy.CollabBuyApp.Models
         private DateTime _tanggalUlasan;
         private string _balasanPenjual;
 
-        public Review() { _tanggalUlasan = DateTime.Now; }
-
-        public int IdUlasan
+        // === KONSTRUKTOR ===
+        public Review(int idProduk, int idUser, int rating, string komentar)
         {
-            get => _idUlasan;
-            set { if (value <= 0) throw new ArgumentException("ID Ulasan tidak valid."); _idUlasan = value; }
+            _idProduk = idProduk;
+            _idUser = idUser;
+            SetRating(rating);
+            SetKomentar(komentar);
+            _tanggalUlasan = DateTime.Now;
+            _balasanPenjual = "";
         }
 
-        public int IdProduk
+        // === GETTER & SETTER ===
+        public int GetIdUlasan() { return _idUlasan; }
+        public void SetIdUlasan(int id) { _idUlasan = id; }
+
+        public int GetIdProduk() { return _idProduk; }
+        public int GetIdUser() { return _idUser; }
+
+        public int GetRating() { return _rating; }
+        public void SetRating(int rating)
         {
-            get => _idProduk;
-            set { if (value <= 0) throw new ArgumentException("ID Produk tidak valid."); _idProduk = value; }
+            // Pemetaan CHECK Constraint Database: rating >= 1 AND rating <= 5
+            if (rating < 1 || rating > 5)
+            {
+                throw new InvalidOrderException("Rating harus di antara 1 sampai 5!", "rating", "RATING_INVALID");
+            }
+            _rating = rating;
         }
 
-        public int IdUser
+        public string GetKomentar() { return _komentar; }
+        public void SetKomentar(string komentar)
         {
-            get => _idUser;
-            set { if (value <= 0) throw new ArgumentException("ID User tidak valid."); _idUser = value; }
+            // Boleh kosong (NULL di DB), tapi jika diisi harus lebih dari 0 karakter
+            if (komentar != null && komentar.Length == 0)
+            {
+                throw new InvalidOrderException("Komentar tidak boleh string kosong!", "komentar", "KOMENTAR_INVALID");
+            }
+            _komentar = komentar;
         }
 
-        public int Rating
-        {
-            get => _rating;
-            set { if (value < 1 || value > 5) throw new ArgumentException("Rating harus 1-5."); _rating = value; }
-        }
+        public DateTime GetTanggalUlasan() { return _tanggalUlasan; }
 
-        public string Komentar
+        // === IMPLEMENTASI IValidatable ===
+        public void Validate()
         {
-            get => _komentar;
-            set => _komentar = string.IsNullOrWhiteSpace(value) ? "User tidak memberikan komentar." : value.Trim();
-        }
-
-        public DateTime TanggalUlasan
-        {
-            get => _tanggalUlasan;
-            set {
-                if (value > DateTime.Now.AddMinutes(5))
-                    throw new ArgumentException("Tanggal ulasan tidak valid.");
-                _tanggalUlasan = value;
+            if (_rating < 1 || _rating > 5)
+            {
+                throw new InvalidOrderException("Review tidak valid: Rating di luar jangkauan.", "rating", "REVIEW_INVALID");
             }
         }
 
-        public string BalasanPenjual
+        // === IMPLEMENTASI IResolvable ===
+        /// <summary>
+        /// Penjual memberikan balasan terhadap review pembeli.
+        /// Pemetaan DB: reviews.balasan_penjual
+        /// </summary>
+        public void BeriTanggapan(string tanggapan)
         {
-            get => _balasanPenjual;
-            set => _balasanPenjual = string.IsNullOrWhiteSpace(value) ? "Belum dibalas oleh penjual." : value.Trim();
+            if (string.IsNullOrEmpty(tanggapan))
+            {
+                throw new InvalidOrderException("Balasan penjual tidak boleh kosong!", "balasan_penjual", "REVIEW_BALAS_KOSONG");
+            }
+            _balasanPenjual = tanggapan;
+        }
+
+        public bool IsSelesai()
+        {
+            // Review dianggap "selesai/resolusi" jika sudah dibalas penjual
+            return !string.IsNullOrEmpty(_balasanPenjual);
+        }
+
+        public string GetTanggapan()
+        {
+            return _balasanPenjual;
         }
     }
 }

@@ -1,29 +1,50 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Models.Interfaces;
+using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Category
+    /// <summary>
+    /// Kelas Model untuk Kategori Produk.
+    /// Mengimplementasikan IValidatable.
+    /// 
+    /// Pemetaan Database:
+    /// - Tabel: categories
+    /// - Relasi: Akan digunakan sebagai referensi di Product
+    /// </summary>
+    public class Category : IValidatable
     {
+        // === PRIVATE FIELDS ===
         private int _idKategori;
         private string _namaKategori;
-        private string _deskripsi;
 
-        public int IdKategori
+        // === KONSTRUKTOR ===
+        public Category(string namaKategori)
         {
-            get => _idKategori;
-            set { if (value < 0) _idKategori = 0; else _idKategori = value; }
+            SetNamaKategori(namaKategori);
         }
 
-        public string NamaKategori
+        // === GETTER & SETTER DENGAN VALIDASI ===
+        public int GetIdKategori() { return _idKategori; }
+        public void SetIdKategori(int id) { _idKategori = id; }
+
+        public string GetNamaKategori() { return _namaKategori; }
+        public void SetNamaKategori(string nama)
         {
-            get => _namaKategori;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Nama kategori wajib diisi."); _namaKategori = value.Trim(); }
+            if (string.IsNullOrEmpty(nama))
+            {
+                throw new InvalidOrderException("Nama kategori tidak boleh kosong!", "nama_kategori", "KATEGORI_KOSONG");
+            }
+            _namaKategori = nama;
         }
 
-        public string Deskripsi
+        // === IMPLEMENTASI IValidatable ===
+        public void Validate()
         {
-            get => _deskripsi;
-            set => _deskripsi = string.IsNullOrWhiteSpace(value) ? "Tidak ada deskripsi untuk kategori ini." : value.Trim();
+            if (string.IsNullOrEmpty(_namaKategori))
+            {
+                throw new InvalidOrderException("Validasi gagal: Kategori tidak punya nama.", "nama_kategori", "KATEGORI_INVALID");
+            }
         }
     }
 }

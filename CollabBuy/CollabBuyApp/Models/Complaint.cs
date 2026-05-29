@@ -1,9 +1,20 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Models.Interfaces;
+using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
-    public class Complaint
+    /// <summary>
+    /// Kelas Model untuk Aduan/Pengaduan dari pengguna.
+    /// Mengimplementasikan IValidatable dan IResolvable.
+    /// 
+    /// Pemetaan Database:
+    /// - Tabel: complaints
+    /// - Kolom: is_selesai, balasan
+    /// </summary>
+    public class Complaint : IValidatable, IResolvable
     {
+        // === PRIVATE FIELDS ===
         private int _idAduan;
         private int _idUser;
         private string _subjek;
@@ -12,57 +23,71 @@ namespace CollabBuy.CollabBuyApp.Models
         private bool _isSelesai;
         private string _balasan;
 
-        public Complaint()
+        // === KONSTRUKTOR ===
+        public Complaint(int idUser, string subjek, string deskripsi)
         {
+            _idUser = idUser;
+            SetSubjek(subjek);
+            SetDeskripsi(deskripsi);
             _tanggal = DateTime.Now;
             _isSelesai = false;
+            _balasan = "";
         }
 
-        public int IdAduan
-        {
-            get => _idAduan;
-            set { if (value <= 0) throw new ArgumentException("ID Aduan tidak valid."); _idAduan = value; }
-        }
+        // === GETTER & SETTER ===
+        public int GetIdAduan() { return _idAduan; }
+        public void SetIdAduan(int id) { _idAduan = id; }
 
-        public int IdUser
-        {
-            get => _idUser;
-            set { if (value <= 0) throw new ArgumentException("ID User tidak valid."); _idUser = value; }
-        }
+        public int GetIdUser() { return _idUser; }
 
-        public string Subjek
+        public string GetSubjek() { return _subjek; }
+        public void SetSubjek(string subjek)
         {
-            get => _subjek;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Subjek wajib diisi."); _subjek = value.Trim(); }
-        }
-
-        public string Deskripsi
-        {
-            get => _deskripsi;
-            set { if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Deskripsi wajib diisi."); _deskripsi = value.Trim(); }
-        }
-
-        public DateTime Tanggal
-        {
-            get => _tanggal;
-            set
+            if (string.IsNullOrEmpty(subjek))
             {
-                if (value > DateTime.Now.AddMinutes(5))
-                    throw new ArgumentException("Tanggal aduan tidak valid.");
-                _tanggal = value;
+                throw new InvalidOrderException("Subjek aduan tidak boleh kosong!", "subjek", "ADUAN_SUBJEK_KOSONG");
             }
+            _subjek = subjek;
         }
 
-        public bool IsSelesai
+        public string GetDeskripsi() { return _deskripsi; }
+        public void SetDeskripsi(string deskripsi)
         {
-            get => _isSelesai;
-            set { if (_isSelesai != value) _isSelesai = value; }
+            if (string.IsNullOrEmpty(deskripsi))
+            {
+                throw new InvalidOrderException("Deskripsi aduan wajib diisi lengkap!", "deskripsi", "ADUAN_DESK_KOSONG");
+            }
+            _deskripsi = deskripsi;
         }
 
-        public string Balasan
+        public DateTime GetTanggal() { return _tanggal; }
+
+        // === IMPLEMENTASI IValidatable ===
+        public void Validate()
         {
-            get => _balasan;
-            set => _balasan = string.IsNullOrWhiteSpace(value) ? "Belum ada balasan dari admin." : value.Trim();
+            if (string.IsNullOrEmpty(_subjek)) { throw new InvalidOrderException("Aduan tidak valid: Subjek kosong.", "subjek", "ADUAN_INVALID"); }
+            if (string.IsNullOrEmpty(_deskripsi)) { throw new InvalidOrderException("Aduan tidak valid: Deskripsi kosong.", "deskripsi", "ADUAN_INVALID"); }
+        }
+
+        // === IMPLEMENTASI IResolvable ===
+        public void BeriTanggapan(string tanggapan)
+        {
+            if (string.IsNullOrEmpty(tanggapan))
+            {
+                throw new InvalidOrderException("Balasan admin tidak boleh kosong!", "balasan", "ADUAN_BALAS_KOSONG");
+            }
+            _balasan = tanggapan;
+            _isSelesai = true;
+        }
+
+        public bool IsSelesai()
+        {
+            return _isSelesai;
+        }
+
+        public string GetTanggapan()
+        {
+            return _balasan;
         }
     }
 }
