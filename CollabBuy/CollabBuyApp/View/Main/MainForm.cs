@@ -376,8 +376,4 @@ namespace CollabBuy.CollabBuyApp.View.Main
         }
     }
 
-    // === CUSTOM EVENT DELEGATE ===
-    // Digunakan untuk komunikasi dari LoginControl ke MainForm
-    // Alternatif modern: gunakan event dengan EventArgs
-    public delegate void LoginSuccessEventHandler(User user);
 }
