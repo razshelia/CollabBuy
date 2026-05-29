@@ -74,7 +74,7 @@ CREATE TABLE transaction_details (
     catatan VARCHAR(255),
     harga_satuan_saat_beli INTEGER NOT NULL DEFAULT 0,
     harga_diskon_saat_beli INTEGER,
-    selisih_refund INTEGER DEFAULT 0
+    selisih_refund INTEGER DEFAULT 0,
     CONSTRAINT uq_detail_transaksi_produk_penitip 
         UNIQUE (id_transaksi, id_produk, nama_penitip)
 );
