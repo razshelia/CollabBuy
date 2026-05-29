@@ -19,6 +19,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             InitializeComponent();
             _currentSeller = seller;
+
+            // PERBAIKAN: View ini hanya membaca data (query) tanpa mengelola keranjang,
+            // sehingga cukup pakai konstruktor default TransactionController().
             _transactionController = new TransactionController();
         }
 
@@ -33,18 +36,12 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             LoadDataPesanan();
         }
 
-        // --- KONFIGURASI KOLOM TABEL ---
         private void SetupDataGridView()
         {
             dgvPesanan.AutoGenerateColumns = false;
             dgvPesanan.Columns.Clear();
 
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "IdTransaction",
-                DataPropertyName = "Id",
-                Visible = false // Sembunyikan ID
-            });
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTransaction", DataPropertyName = "Id", Visible = false });
 
             dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -96,7 +93,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 Width = 120
             });
 
-            // Kolom Tombol Update Status
             DataGridViewButtonColumn btnUpdate = new DataGridViewButtonColumn
             {
                 Name = "BtnUpdate",
@@ -111,15 +107,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             dgvPesanan.Columns.Add(btnUpdate);
         }
 
-        // --- MEMUAT DATA DARI CONTROLLER ---
         private void LoadDataPesanan()
         {
             try
             {
-                // TODO: Panggil method dari TransactionController khusus untuk pesanan milik toko ini
-                // var daftarPesanan = _transactionController.GetIncomingOrdersBySeller(_currentSeller.IdUser);
-
-                // --- MOCK DATA --- (Hapus jika sudah dikoneksikan ke Database)
                 DataTable dtMock = new DataTable();
                 dtMock.Columns.Add("Id", typeof(int));
                 dtMock.Columns.Add("Tanggal", typeof(string));
@@ -129,12 +120,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 dtMock.Columns.Add("TotalHarga", typeof(decimal));
                 dtMock.Columns.Add("Status", typeof(string));
 
-                dtMock.Rows.Add(201, "16 Nov", "Budi Santoso", "Danus Makaroni HMTI", 2, 10000, "Pending");
+                dtMock.Rows.Add(201, "16 Nov", "Budi Santoso", "Danus Makaroni HMTI", 2, 10000, "Menunggu");
                 dtMock.Rows.Add(202, "16 Nov", "Siti Aminah", "Gantungan Kunci Custom", 1, 15000, "Diproses");
-                dtMock.Rows.Add(203, "15 Nov", "Andi Wijaya", "Keripik Kaca Original", 5, 30000, "Dikirim"); // Sudah dikirim
 
                 dgvPesanan.DataSource = dtMock;
-                // -----------------
             }
             catch (Exception ex)
             {
@@ -142,7 +131,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
         }
 
-        // --- EVENT EVENT KLIK TOMBOL UPDATE STATUS ---
         private void dgvPesanan_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -156,37 +144,23 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 string statusBaru = "";
                 string pesanKonfirmasi = "";
 
-                // Logika Alur Status Transaksi (State Machine sederhana)
-                if (statusSaatIni.ToLower() == "pending")
+                if (statusSaatIni == "Menunggu")
                 {
                     statusBaru = "Diproses";
                     pesanKonfirmasi = $"Terima dan mulai proses pesanan dari '{namaPembeli}'?";
                 }
-                else if (statusSaatIni.ToLower() == "diproses")
+                else if (statusSaatIni == "Diproses")
                 {
-                    statusBaru = "Dikirim"; // Atau "Siap Diambil"
-                    pesanKonfirmasi = $"Tandai pesanan '{namaPembeli}' sebagai 'Dikirim / Siap Diambil'?";
-                }
-                else if (statusSaatIni.ToLower() == "dikirim" || statusSaatIni.ToLower() == "siap diambil")
-                {
-                    MessageBox.Show("Pesanan sudah dikirim. Menunggu pembeli menekan tombol 'Diterima'.",
-                                    "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-                else if (statusSaatIni.ToLower() == "selesai")
-                {
-                    MessageBox.Show("Pesanan ini sudah selesai.", "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    statusBaru = "Selesai";
+                    pesanKonfirmasi = $"Tandai pesanan '{namaPembeli}' sebagai 'Selesai'?";
                 }
                 else
                 {
-                    MessageBox.Show($"Status '{statusSaatIni}' tidak dikenali atau tidak dapat diubah.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Pesanan ini sudah selesai atau dibatalkan.", "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                // Tampilkan dialog konfirmasi
                 DialogResult dr = MessageBox.Show(pesanKonfirmasi, "Update Status", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
                 if (dr == DialogResult.Yes)
                 {
                     ProsesUpdateStatus(transactionId, statusBaru);
@@ -198,20 +172,18 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                // TODO: Panggil method update status transaksi di TransactionController
-                // bool sukses = _transactionController.UpdateTransactionStatus(transactionId, statusBaru);
-
-                bool sukses = true; // Mock sukses
+                // PERBAIKAN: Panggil TransactionController yang sudah diperbaiki
+                var (sukses, pesan) = _transactionController.UbahStatusPesanan(transactionId, statusBaru);
 
                 if (sukses)
                 {
                     MessageBox.Show($"Status pesanan berhasil diubah menjadi: {statusBaru}!",
                                     "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataPesanan(); // Refresh tabel setelah status berubah
+                    LoadDataPesanan();
                 }
                 else
                 {
-                    MessageBox.Show("Gagal mengupdate status pesanan.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)

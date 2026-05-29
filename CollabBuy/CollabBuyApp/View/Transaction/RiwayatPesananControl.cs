@@ -19,6 +19,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             InitializeComponent();
             _currentUser = currentUser;
+
+            // PERBAIKAN: View ini hanya membaca riwayat (query), bukan mengelola keranjang.
+            // Cukup gunakan konstruktor default TransactionController().
             _transactionController = new TransactionController();
         }
 
@@ -33,18 +36,12 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             LoadDataRiwayat();
         }
 
-        // --- KONFIGURASI KOLOM TABEL ---
         private void SetupDataGridView()
         {
             dgvRiwayat.AutoGenerateColumns = false;
             dgvRiwayat.Columns.Clear();
 
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "IdTransaction",
-                DataPropertyName = "Id", // Sesuaikan nama property ID model di DB
-                Visible = false
-            });
+            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTransaction", DataPropertyName = "Id", Visible = false });
 
             dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -79,7 +76,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
 
-            // Kolom Tombol Konfirmasi Diterima
             DataGridViewButtonColumn btnAksi = new DataGridViewButtonColumn
             {
                 Name = "BtnSelesai",
@@ -89,22 +85,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 Width = 120,
                 FlatStyle = FlatStyle.Flat
             };
-            btnAksi.DefaultCellStyle.BackColor = Color.FromArgb(200, 182, 255); // Ungu pastel
+            btnAksi.DefaultCellStyle.BackColor = Color.FromArgb(200, 182, 255);
             btnAksi.DefaultCellStyle.ForeColor = Color.FromArgb(36, 0, 70);
             dgvRiwayat.Columns.Add(btnAksi);
         }
 
-        // --- MEMUAT DATA DARI CONTROLLER ---
         private void LoadDataRiwayat()
         {
             try
             {
                 if (_currentUser == null) return;
 
-                // TODO: Panggil method di TransactionController untuk mengambil riwayat berdasarkan Id User
-                // List<Models.Transaction> listHistory = _transactionController.GetTransactionHistoryByUser(_currentUser.IdUser);
-
-                // --- MOCK DATA --- (Hapus jika repository terikat penuh)
                 DataTable dtMock = new DataTable();
                 dtMock.Columns.Add("Id", typeof(int));
                 dtMock.Columns.Add("Tanggal", typeof(string));
@@ -112,12 +103,11 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 dtMock.Columns.Add("Status", typeof(string));
                 dtMock.Columns.Add("Catatan", typeof(string));
 
-                dtMock.Rows.Add(101, "20 May 2026", 10000, "Dikirim", "Titipan Makaroni HMTI sedang di selasar");
+                dtMock.Rows.Add(101, "20 May 2026", 10000, "Diproses", "Titipan Makaroni HMTI");
                 dtMock.Rows.Add(102, "18 May 2026", 120000, "Selesai", "PDH Angkatan selesai diambil");
-                dtMock.Rows.Add(103, "25 May 2026", 6000, "Pending", "Menunggu konfirmasi pembayaran lapak");
+                dtMock.Rows.Add(103, "25 May 2026", 6000, "Menunggu", "Menunggu konfirmasi pembayaran");
 
                 dgvRiwayat.DataSource = dtMock;
-                // -----------------
             }
             catch (Exception ex)
             {
@@ -125,7 +115,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
         }
 
-        // --- EVENT EVENT KLIK TOMBOL DITERIMA ---
         private void dgvRiwayat_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -134,19 +123,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             {
                 string statusSaatIni = dgvRiwayat.Rows[e.RowIndex].Cells["Status"].Value.ToString();
 
-                // Validasi: Hanya pesanan dengan status 'Dikirim' atau 'Siap Diambil' yang bisa dikonfirmasi
-                if (statusSaatIni.ToLower() != "dikirim" && statusSaatIni.ToLower() != "siap diambil")
+                if (statusSaatIni != "Diproses" && statusSaatIni != "Dikirim")
                 {
-                    MessageBox.Show("Konfirmasi hanya dapat dilakukan jika barang dalam status 'Dikirim'.",
+                    MessageBox.Show("Konfirmasi hanya dapat dilakukan jika pesanan dalam status 'Diproses' atau 'Dikirim'.",
                                     "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
                 int transactionId = Convert.ToInt32(dgvRiwayat.Rows[e.RowIndex].Cells["IdTransaction"].Value);
-
-                DialogResult dr = MessageBox.Show("Apakah Anda menyatakan bahwa pesanan/barang ini sudah Anda terima dengan baik?",
+                DialogResult dr = MessageBox.Show("Apakah Anda menyatakan bahwa pesanan ini sudah Anda terima dengan baik?",
                                                   "Konfirmasi Penerimaan", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
                 if (dr == DialogResult.Yes)
                 {
                     ProsesKonfirmasiDiterima(transactionId);
@@ -158,19 +144,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                // TODO: Panggil method update status transaksi di TransactionController
-                // bool sukses = _transactionController.UpdateTransactionStatus(transactionId, "Selesai");
-
-                bool sukses = true; // Mock sukses
+                var (sukses, pesan) = _transactionController.UbahStatusPesanan(transactionId, "Selesai");
 
                 if (sukses)
                 {
                     MessageBox.Show("Terima kasih! Transaksi selesai ditandai.", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataRiwayat(); // Refresh data
+                    LoadDataRiwayat();
                 }
                 else
                 {
-                    MessageBox.Show("Gagal mengonfirmasi status transaksi.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)

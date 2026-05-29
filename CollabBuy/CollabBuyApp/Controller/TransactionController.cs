@@ -9,10 +9,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
     /// <summary>
     /// Controller yang bertindak sebagai Mandor alur transaksi dan keranjang belanja.
     /// 
-    /// Tugas Utama (Sub-bab 2.1 & 3.3 Laporan):
-    /// 1. Menghubungkan View (UI) dengan Repository & Manager.
-    /// 2. Menangkap Exception dari Model/Repository agar aplikasi tidak crash (Force Close).
-    /// 3. Tidak memuat logika bisnis (perhitungan/validasi), semuanya didelegasikan ke Model/Manager.
+    /// PERBAIKAN OOP:
+    /// - Konstruktor dipecah menjadi dua: default (tanpa parameter) untuk query/admin,
+    ///   dan overload (int idPembeli) untuk keranjang belanja.
+    /// - Ini memungkinkan View seperti PesananMasukControl dan RiwayatPesananControl
+    ///   membuat instance tanpa harus tahu idPembeli saat konstruksi.
+    /// - CartManager hanya dibuat jika idPembeli diberikan (Lazy initialization pattern).
     /// </summary>
     public class TransactionController
     {
@@ -20,65 +22,79 @@ namespace CollabBuy.CollabBuyApp.Controllers
         private readonly TransactionRepository _transactionRepo;
         private readonly ProductRepository _productRepo;
         private readonly ActivityLogRepository _logRepo;
-        private readonly CartManager _cartManager;
+        private CartManager _cartManager; // Nullable: hanya diinisialisasi jika ada sesi pembeli
 
-        // === KONSTRUKTOR ===
-        public TransactionController(int idPembeli)
+        // === KONSTRUKTOR TANPA PARAMETER (untuk View yang hanya query/admin) ===
+        /// <summary>
+        /// Konstruktor default — cocok untuk View yang hanya membaca data transaksi
+        /// tanpa perlu mengelola keranjang belanja (misalnya PesananMasukControl,
+        /// RiwayatPesananControl, BeriUlasanControl).
+        /// CartManager tidak diinisialisasi.
+        /// </summary>
+        public TransactionController()
         {
-            // Inisialisasi Repository (Mengambil konfigurasi otomatis dari App.config)
             _transactionRepo = new TransactionRepository();
             _productRepo = new ProductRepository();
             _logRepo = new ActivityLogRepository();
+            _cartManager = null;
+        }
 
-            // Inisialisasi CartManager khusus untuk pembeli ini (In-Memory di RAM)
+        // === KONSTRUKTOR DENGAN PARAMETER (untuk sesi keranjang belanja) ===
+        /// <summary>
+        /// Konstruktor dengan idPembeli — dipakai oleh KeranjangBelanjaControl.
+        /// Menginisialisasi CartManager khusus untuk pembeli ini.
+        /// </summary>
+        public TransactionController(int idPembeli)
+        {
+            _transactionRepo = new TransactionRepository();
+            _productRepo = new ProductRepository();
+            _logRepo = new ActivityLogRepository();
             _cartManager = new CartManager(idPembeli);
         }
 
 
         // =======================================================
         // FITUR KERANJANG (MEMAKAI CartManager & IN-MEMORY RAM)
+        // Hanya tersedia jika diinisialisasi dengan idPembeli
         // =======================================================
 
         /// <summary>
         /// Menambahkan item titipan ke keranjang di RAM.
         /// View memanggil ini saat user klik tombol "Tambah ke Keranjang".
         /// </summary>
-        /// <returns>Tuple berisi status sukses dan pesan error (jika ada).</returns>
         public (bool sukses, string pesan) TambahItemKeKeranjang(int idProduk, string namaPenitip, int jumlah, string catatan)
         {
+            if (_cartManager == null)
+            {
+                return (false, "Sesi keranjang tidak tersedia. Gunakan konstruktor TransactionController(idPembeli).");
+            }
+
             try
             {
-                // 1. Ambil objek Product utuh dari DB ke RAM via Repository
                 Product produk = _productRepo.GetById(idProduk);
                 if (produk == null)
                 {
                     return (false, "Produk tidak ditemukan di database!");
                 }
 
-                // 2. Serahkan ke CartManager untuk divalidasi & dimasukkan ke Dictionary RAM
                 _cartManager.TambahItem(produk, namaPenitip, jumlah, catatan);
-
-                // 3. Jika sampai sini tanpa error, berarti sukses
                 return (true, "Item berhasil ditambahkan ke keranjang.");
             }
             catch (InvalidOrderException ex)
             {
-                // Tangkap exception dari Model (misal: PO sudah tutup, qty kurang dari min_order)
-                // Aplikasi tidak crash, kembalikan pesan ke View untuk ditampilkan di MessageBox
                 return (false, ex.GetPesanLengkap());
             }
         }
 
         /// <summary>
-        /// Mengambil data keranjang dari RAM untuk ditampilkan di DataGridView View.
-        /// Mengubah struktur Dictionary menjadi List datar agar mudah di-bind ke Grid.
+        /// Mengambil data keranjang dari RAM untuk ditampilkan di DataGridView.
         /// </summary>
         public List<TransactionDetail> GetIsiKeranjang()
         {
             List<TransactionDetail> listFlat = new List<TransactionDetail>();
+            if (_cartManager == null) return listFlat;
 
             Dictionary<int, List<TransactionDetail>> keranjangDict = _cartManager.GetKeranjangDictionary();
-
             foreach (KeyValuePair<int, List<TransactionDetail>> entry in keranjangDict)
             {
                 foreach (TransactionDetail detail in entry.Value)
@@ -86,16 +102,15 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     listFlat.Add(detail);
                 }
             }
-
             return listFlat;
         }
 
         /// <summary>
         /// Menghitung total tagihan keranjang saat ini di RAM.
-        /// View memanggil ini untuk update Label "Total Harga" secara real-time.
         /// </summary>
         public long HitungTotalKeranjangSaatIni()
         {
+            if (_cartManager == null) return 0;
             try
             {
                 return _cartManager.HitungTotalKeranjang();
@@ -113,23 +128,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         /// <summary>
         /// Memproses seluruh isi keranjang menjadi satu transaksi di Database.
-        /// Menggunakan Database Transaction (BeginTransaction) di Repository.
         /// </summary>
         public (bool sukses, string pesan) ProsesCheckout()
         {
+            if (_cartManager == null)
+            {
+                return (false, "Sesi keranjang tidak tersedia. Gunakan konstruktor TransactionController(idPembeli).");
+            }
+
             try
             {
-                // 1. CartManager merangkai objek Transaction dari Dictionary di RAM
-                // Di dalam sini, logika Gotong Royong & validasi akhir dieksekusi
                 Transaction transaksiBaru = _cartManager.BuildTransaction();
-
-                // 2. Simpan ke Database secara atomik via Repository
                 int idTransaksi = _transactionRepo.Checkout(transaksiBaru);
 
-                // 3. Jika berhasil simpan, kosongkan keranjang di RAM
                 _cartManager.KosongkanKeranjang();
 
-                // 4. Catat aktivitas di log
                 ActivityLog log = new ActivityLog(transaksiBaru.GetIdPembeli(), "Berhasil melakukan checkout Transaksi #" + idTransaksi);
                 _logRepo.Insert(log);
 
@@ -137,19 +150,17 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (InvalidOrderException ex)
             {
-                // Tangkap validasi bisnis yang gagal (misal: kuota tiba-tiba habis)
                 return (false, "Checkout gagal: " + ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                // Tangkap error database (Rollback sudah otomatis dijalankan oleh Repository)
                 return (false, "Terjadi error sistem saat checkout: " + ex.Message);
             }
         }
 
 
         // =======================================================
-        // FITUR MANAJEMEN TRANSAKSI (ADMIN / PENJUAL)
+        // FITUR MANAJEMEN TRANSAKSI (QUERY - Tersedia tanpa idPembeli)
         // =======================================================
 
         /// <summary>
@@ -168,6 +179,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
         }
 
         /// <summary>
+        /// Mengambil seluruh daftar transaksi (untuk View admin/penjual).
+        /// </summary>
+        public List<Transaction> GetAllTransaksi()
+        {
+            try
+            {
+                return _transactionRepo.GetAll();
+            }
+            catch (Exception)
+            {
+                return new List<Transaction>();
+            }
+        }
+
+        /// <summary>
         /// Menyetujui bukti pembayaran transaksi.
         /// </summary>
         public (bool sukses, string pesan) ValidasiPembayaran(int idTransaksi)
@@ -180,10 +206,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     return (false, "Transaksi tidak ditemukan!");
                 }
 
-                // Panggil method bisnis di Model
                 transaksi.Approve();
-
-                // Simpan perubahan status ke DB
                 _transactionRepo.Update(transaksi);
 
                 return (true, "Pembayaran Transaksi #" + idTransaksi + " berhasil divalidasi.");
@@ -207,19 +230,20 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     return (false, "Transaksi tidak ditemukan!");
                 }
 
-                // Model yang mengatur state machine, bukan Controller
                 transaksi.UbahStatus(statusBaru);
-
                 _transactionRepo.Update(transaksi);
 
                 return (true, "Status Transaksi #" + idTransaksi + " berhasil diubah ke " + statusBaru + ".");
             }
             catch (InvalidOrderException ex)
             {
-                // Tangkap jika transisi status tidak valid (misal: dari Menunggu langsung Selesai)
                 return (false, "Gagal mengubah status: " + ex.GetPesanLengkap());
             }
         }
+
+        /// <summary>
+        /// Mengupload bukti bayar untuk sebuah transaksi.
+        /// </summary>
         public (bool sukses, string pesan) UploadBuktiBayar(int idTransaksi, byte[] buktiBayar, int idUserLog)
         {
             try
@@ -227,7 +251,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 Transaction transaksi = _transactionRepo.GetById(idTransaksi);
                 if (transaksi == null) return (false, "Transaksi tidak ditemukan!");
 
-                transaksi.SetBuktiBayar(buktiBayar); // Validasi ukuran ada di Model
+                transaksi.SetBuktiBayar(buktiBayar);
                 _transactionRepo.Update(transaksi);
 
                 ActivityLog log = new ActivityLog(idUserLog, "Mengupload bukti bayar Transaksi #" + idTransaksi);

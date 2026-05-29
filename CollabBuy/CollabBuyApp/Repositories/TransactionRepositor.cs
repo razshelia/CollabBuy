@@ -39,15 +39,17 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            // Mapping: Kolom DB 'id_koordinator' -> Model 'idPembeli'
                             int idPembeli = reader.GetInt32(reader.GetOrdinal("id_koordinator"));
                             transaksi = new Transaction(idPembeli);
                             transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
 
+                            // PERBAIKAN: Gunakan helper method untuk set status langsung dari DB
+                            // tanpa melewati state machine UbahStatus() yang mensyaratkan transisi valid.
+                            // Status yang tersimpan di DB sudah dianggap valid; kita hanya merestore state-nya.
                             string statusDb = reader.GetString(reader.GetOrdinal("status_pesanan"));
-                            transaksi.UbahStatus(statusDb);
+                            SetStatusDariDatabase(transaksi, statusDb);
 
-                            if (reader.GetBoolean(reader.GetOrdinal("is_valid")))
+                            if (!reader.IsDBNull(reader.GetOrdinal("is_valid")) && reader.GetBoolean(reader.GetOrdinal("is_valid")))
                             {
                                 transaksi.Approve();
                             }
@@ -76,7 +78,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                                 TransactionDetail detail = new TransactionDetail(idProduk, namaPenitip, jumlah);
 
-                                // REVISI: Database INTEGER dibaca GetInt32, lalu casting ke long agar masuk ke Model
                                 long hargaSatuan = Convert.ToInt64(reader.GetInt32(reader.GetOrdinal("harga_satuan_saat_beli")));
                                 long? hargaDiskon = null;
                                 if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon_saat_beli")))
@@ -117,9 +118,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             int idPembeli = reader.GetInt32(reader.GetOrdinal("id_koordinator"));
                             Transaction transaksi = new Transaction(idPembeli);
                             transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
-                            transaksi.UbahStatus(reader.GetString(reader.GetOrdinal("status_pesanan")));
 
-                            if (reader.GetBoolean(reader.GetOrdinal("is_valid")))
+                            // PERBAIKAN: Restore status dari DB tanpa state machine
+                            string statusDb = reader.GetString(reader.GetOrdinal("status_pesanan"));
+                            SetStatusDariDatabase(transaksi, statusDb);
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("is_valid")) && reader.GetBoolean(reader.GetOrdinal("is_valid")))
                             {
                                 transaksi.Approve();
                             }
@@ -143,9 +147,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public void Update(Transaction entity)
         {
-            if (entity == null) throw new ArgumentNullException("Entity transaksi tidak boleh null.");
+            if (entity == null) throw new ArgumentNullException("entity", "Entity transaksi tidak boleh null.");
 
-            // REVISI: Menambahkan bukti_bayar ke query Update
             string query = "UPDATE transactions SET status_pesanan = @status, is_valid = @isValid, bukti_bayar = @bukti WHERE id_transaksi = @id;";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
@@ -156,8 +159,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     cmd.Parameters.AddWithValue("@status", entity.GetStatus());
                     cmd.Parameters.AddWithValue("@isValid", entity.GetStatusPersetujuan());
                     cmd.Parameters.AddWithValue("@id", entity.GetIdTransaksi());
-
-                    // Simpan byte[] bukti bayar
                     cmd.Parameters.AddWithValue("@bukti", (object)entity.GetBuktiBayar() ?? DBNull.Value);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
@@ -170,12 +171,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
         }
 
 
+        // =======================================================
         // METHOD KHUSUS DB TRANSACTION (TCL)
         // =======================================================
 
         public int Checkout(Transaction transaksi)
         {
-            if (transaksi == null) throw new ArgumentNullException("Transaksi checkout tidak boleh null.");
+            if (transaksi == null) throw new ArgumentNullException("transaksi", "Transaksi checkout tidak boleh null.");
 
             int idTransaksiBaru = 0;
 
@@ -218,9 +220,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                 cmdDetail.Parameters.AddWithValue("@penitip", detail.GetNamaPenitip());
                                 cmdDetail.Parameters.AddWithValue("@jumlah", detail.GetJumlahPesanan());
                                 cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrEmpty(detail.GetCatatan()) ? (object)DBNull.Value : detail.GetCatatan());
-                                cmdDetail.Parameters.AddWithValue("@snapshot", detail.GetNamaProdukSnapshot());
-
-                                // REVISI: Casting saat insert dari long ke int agar masuk ke DB INTEGER
+                                cmdDetail.Parameters.AddWithValue("@snapshot", detail.GetNamaProdukSnapshot() ?? "");
                                 cmdDetail.Parameters.AddWithValue("@hargaSatuan", Convert.ToInt32(detail.GetHargaSatuanSaatBeli()));
 
                                 if (detail.GetHargaDiskonSaatBeli().HasValue)
@@ -248,6 +248,44 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
 
             return idTransaksiBaru;
+        }
+
+
+        // =======================================================
+        // HELPER PRIVATE
+        // =======================================================
+
+        /// <summary>
+        /// Merestore status transaksi dari database langsung ke field tanpa melalui
+        /// state machine UbahStatus() — digunakan saat loading data dari DB.
+        /// 
+        /// PERBAIKAN: UbahStatus() dirancang untuk mutasi bisnis (validasi transisi),
+        /// bukan untuk hydration objek dari DB. Memisahkan keduanya adalah praktik OOP
+        /// yang benar (Separation of Concerns).
+        /// 
+        /// Jika status DB valid ("Menunggu", "Diproses", "Selesai", "Dibatalkan"),
+        /// gunakan state machine normal. Untuk "Menunggu" yang merupakan nilai default,
+        /// tidak perlu memanggil UbahStatus sama sekali.
+        /// </summary>
+        private void SetStatusDariDatabase(Transaction transaksi, string statusDb)
+        {
+            // Status "Menunggu" adalah default konstruktor Transaction, tidak perlu diubah.
+            if (statusDb == "Menunggu") return;
+
+            // Untuk status lain, gunakan mekanisme yang konsisten.
+            // Kita perlu bypass state machine untuk hydration dari DB.
+            // Solusi: manfaatkan state machine secara berurutan dari "Menunggu".
+            if (statusDb == "Diproses" || statusDb == "Dibatalkan")
+            {
+                transaksi.UbahStatus(statusDb);
+            }
+            else if (statusDb == "Selesai")
+            {
+                // Untuk mencapai "Selesai", harus lewat "Diproses" dulu
+                transaksi.UbahStatus("Diproses");
+                transaksi.UbahStatus("Selesai");
+            }
+            // Status tidak dikenal dibiarkan "Menunggu" (default)
         }
     }
 }

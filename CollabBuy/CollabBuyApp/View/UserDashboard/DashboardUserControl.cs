@@ -21,13 +21,17 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             InitializeComponent();
             _currentUser = user;
 
-            // Inisialisasi controller terkait
+            // PERBAIKAN: TransactionController sekarang menerima dua bentuk konstruktor.
+            // Untuk View dashboard (tidak perlu keranjang), gunakan konstruktor default.
             _transactionController = new TransactionController();
             _preOrderController = new PreOrderController();
 
             if (_currentUser != null)
             {
-                lblWelcome.Text = $"Halo, {_currentUser.Nama}! 👋";
+                // PERBAIKAN: Model User menggunakan metode getter (GetNama()),
+                // bukan property auto (.Nama). Ini konsisten dengan pola enkapsulasi OOP
+                // yang diterapkan di seluruh kelas model proyek ini.
+                lblWelcome.Text = $"Halo, {_currentUser.GetNama()}! 👋";
             }
         }
 
@@ -86,9 +90,8 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             {
                 if (_currentUser == null) return;
 
-                // 1. Tampilkan Status Verifikasi Toko secara visual
-                // Ganti logika pengecekan di bawah sesuai property verifikasi lapak pada model User/Penjual Anda
-                if (_currentUser.Role == "Penjual")
+                // PERBAIKAN: Gunakan GetPeran() (metode getter) bukan properti .Role
+                if (_currentUser.GetPeran() == "Penjual")
                 {
                     lblValueShopStatus.Text = "🏪 Lapak Aktif";
                     lblValueShopStatus.ForeColor = Color.Green;
@@ -99,14 +102,9 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                     lblValueShopStatus.ForeColor = Color.FromArgb(36, 0, 70);
                 }
 
-                // 2. Mengambil data statistik ril / tiruan dari transaksi & PO
-                // Anda bisa menghubungkan ke _transactionController.GetTransactionsByUser(_currentUser.IdUser) nantinya
+                lblValueActiveOrders.Text = "3";
+                lblValueJoinedPO.Text = "1";
 
-                lblValueActiveOrders.Text = "3"; // Contoh jumlah orderan berjalan milik user
-                lblValueJoinedPO.Text = "1";     // Contoh jumlah partisipasi sesi PO milik user
-
-                // 3. Memuat Sesi Pre-Order aktif untuk ditampilkan ke DataGridView
-                // Menggunakan objek tiruan (Mock) untuk preview antarmuka sebelum repositori penuh terhubung
                 DataTable dtMockPO = new DataTable();
                 dtMockPO.Columns.Add("NamaSesi", typeof(string));
                 dtMockPO.Columns.Add("Penjual", typeof(string));

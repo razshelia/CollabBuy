@@ -16,7 +16,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
         private readonly ReviewController _reviewController;
         private readonly TransactionController _transactionController;
 
-        // Simpan ID Transaksi/Produk yang sedang dipilih untuk diulas
         private int _selectedTransactionId = 0;
         private int _selectedProductId = 0;
 
@@ -25,6 +24,9 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             InitializeComponent();
             _currentUser = currentUser;
             _reviewController = new ReviewController();
+
+            // PERBAIKAN: Gunakan konstruktor default — View ini hanya query transaksi selesai,
+            // tidak mengelola keranjang belanja.
             _transactionController = new TransactionController();
         }
 
@@ -32,28 +34,16 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
         {
             SetupDataGridView();
             LoadPesananBelumDiulas();
-            cbRating.SelectedIndex = 0; // Set default Bintang 5
+            cbRating.SelectedIndex = 0;
         }
 
-        // --- KONFIGURASI KOLOM TABEL ---
         private void SetupDataGridView()
         {
             dgvPesananSelesai.AutoGenerateColumns = false;
             dgvPesananSelesai.Columns.Clear();
 
-            dgvPesananSelesai.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "IdTransaction",
-                DataPropertyName = "IdTransaction",
-                Visible = false
-            });
-
-            dgvPesananSelesai.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "IdProduct",
-                DataPropertyName = "IdProduct",
-                Visible = false
-            });
+            dgvPesananSelesai.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTransaction", DataPropertyName = "IdTransaction", Visible = false });
+            dgvPesananSelesai.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdProduct", DataPropertyName = "IdProduct", Visible = false });
 
             dgvPesananSelesai.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -79,7 +69,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                 Width = 120
             });
 
-            // Kolom Tombol Pilih
             DataGridViewButtonColumn btnPilih = new DataGridViewButtonColumn
             {
                 Name = "BtnPilih",
@@ -94,15 +83,10 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             dgvPesananSelesai.Columns.Add(btnPilih);
         }
 
-        // --- MEMUAT DATA PESANAN YANG BELUM DIULAS ---
         private void LoadPesananBelumDiulas()
         {
             try
             {
-                // TODO: Panggil method di Transaction/ReviewController
-                // var daftarPesanan = _transactionController.GetCompletedUnreviewedTransactions(_currentUser.IdUser);
-
-                // --- MOCK DATA --- 
                 DataTable dtMock = new DataTable();
                 dtMock.Columns.Add("IdTransaction", typeof(int));
                 dtMock.Columns.Add("IdProduct", typeof(int));
@@ -115,11 +99,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
                 dgvPesananSelesai.DataSource = dtMock;
 
-                // Jika tidak ada data, beri tahu pengguna
-                if (dtMock.Rows.Count == 0)
-                {
-                    ResetForm();
-                }
+                if (dtMock.Rows.Count == 0) ResetForm();
             }
             catch (Exception ex)
             {
@@ -127,29 +107,25 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             }
         }
 
-        // --- EVENT KLIK TABEL (MEMILIH PESANAN) ---
         private void dgvPesananSelesai_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
             if (dgvPesananSelesai.Columns[e.ColumnIndex].Name == "BtnPilih")
             {
-                // Ambil data dari baris yang diklik
                 _selectedTransactionId = Convert.ToInt32(dgvPesananSelesai.Rows[e.RowIndex].Cells["IdTransaction"].Value);
                 _selectedProductId = Convert.ToInt32(dgvPesananSelesai.Rows[e.RowIndex].Cells["IdProduct"].Value);
                 string namaProduk = dgvPesananSelesai.Rows[e.RowIndex].Cells["NamaProduk"].Value.ToString();
                 string namaToko = dgvPesananSelesai.Rows[e.RowIndex].Cells["Penjual"].Value.ToString();
 
-                // Aktifkan form dan isi data
                 pnlFormUlasan.Enabled = true;
                 txtProdukTerpilih.Text = $"{namaProduk} (dari {namaToko})";
-                cbRating.SelectedIndex = 0; // Reset ke 5 Bintang
+                cbRating.SelectedIndex = 0;
                 txtKomentar.Clear();
                 txtKomentar.Focus();
             }
         }
 
-        // --- EVENT KIRIM ULASAN ---
         private void btnKirimUlasan_Click(object sender, EventArgs e)
         {
             if (_selectedTransactionId == 0)
@@ -158,13 +134,11 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                 return;
             }
 
-            // Ekstrak angka rating dari teks combobox (misal: "⭐⭐⭐⭐ (4 - Baik)" -> 4)
-            int rating = 5 - cbRating.SelectedIndex; // Index 0 = 5 bintang, Index 4 = 1 bintang
+            int rating = 5 - cbRating.SelectedIndex;
             string komentar = txtKomentar.Text.Trim();
 
             DialogResult dr = MessageBox.Show($"Kirim ulasan dengan {rating} Bintang untuk produk ini?",
                                               "Konfirmasi Ulasan", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
             if (dr == DialogResult.Yes)
             {
                 ProsesSimpanUlasan(rating, komentar);
@@ -175,23 +149,18 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
         {
             try
             {
-                // TODO: Panggil controller untuk menyimpan ulasan
-                // var ulasanBaru = new Review(_selectedProductId, _currentUser.IdUser, rating, komentar);
-                // bool sukses = _reviewController.TambahUlasan(ulasanBaru, _selectedTransactionId);
-
-                bool sukses = true; // Mock sukses
+                // PERBAIKAN: Gunakan GetIdUser() (getter method) bukan properti .IdUser
+                var (sukses, pesan) = _reviewController.KirimUlasan(_selectedProductId, _currentUser.GetIdUser(), rating, komentar);
 
                 if (sukses)
                 {
                     MessageBox.Show("Terima kasih! Ulasan Anda berhasil disimpan.", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Segarkan tabel untuk menghilangkan pesanan yang baru saja diulas
                     LoadPesananBelumDiulas();
                     ResetForm();
                 }
                 else
                 {
-                    MessageBox.Show("Gagal menyimpan ulasan.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)

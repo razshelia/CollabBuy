@@ -6,63 +6,99 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.View.Admin
 {
     public partial class DashboardAdminControl : UserControl
     {
-        // Mendeklarasikan controller (gunakan Dependency Injection jika sistem Anda mendukungnya)
         private AdminController _adminController;
 
         public DashboardAdminControl()
         {
             InitializeComponent();
-
-            // Inisialisasi controller (sesuaikan dengan implementasi Anda saat ini)
             _adminController = new AdminController();
         }
 
         private void DashboardAdminControl_Load(object sender, EventArgs e)
         {
-            // Panggil fungsi load saat User Control dirender di MainForm
+            // PERBAIKAN: Setup kolom grid SEBELUM memuat data dan mengakses nama kolom.
+            // Sebelumnya, kode mengakses dgvRecentActivity.Columns["Waktu"] setelah data diload
+            // tanpa menjamin kolom bernama "Waktu" benar-benar ada, menyebabkan NullReferenceException.
+            SetupRecentActivityGrid();
             LoadDashboardData();
+        }
+
+        /// <summary>
+        /// Mendefinisikan kolom DataGridView secara eksplisit agar nama kolom dapat diandalkan.
+        /// PERBAIKAN OOP: Setup kolom dipisahkan ke method sendiri (Single Responsibility).
+        /// </summary>
+        private void SetupRecentActivityGrid()
+        {
+            dgvRecentActivity.AutoGenerateColumns = false;
+            dgvRecentActivity.Columns.Clear();
+
+            dgvRecentActivity.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Waktu",
+                HeaderText = "Waktu",
+                DataPropertyName = "Waktu",
+                Width = 150
+            });
+
+            DataGridViewTextBoxColumn colAktivitas = new DataGridViewTextBoxColumn
+            {
+                Name = "Aktivitas",
+                HeaderText = "Aktivitas",
+                DataPropertyName = "Aktivitas",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            };
+            dgvRecentActivity.Columns.Add(colAktivitas);
+
+            dgvRecentActivity.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "User",
+                HeaderText = "User",
+                DataPropertyName = "User",
+                Width = 200
+            });
         }
 
         private void LoadDashboardData()
         {
             try
             {
-                /* * CATATAN: Kode di bawah ini adalah representasi dari Controller Anda.
-                 * Sesuaikan pemanggilan method dengan method yang sudah ada 
-                 * di dalam class AdminController Anda.
-                 */
+                // Ambil statistik dari controller
+                int totalUsers = _adminController.GetTotalUsersCount();
+                int pendingShops = _adminController.GetPendingShopVerificationsCount();
+                int openComplaints = _adminController.GetOpenComplaintsCount();
 
-                //1.Mengambil Jumlah Pengguna
-                // int totalUsers = _adminController.GetTotalUsers();
-                //lblValueUsers.Text = totalUsers.ToString();
+                // Update label statistik jika ada di form
+                // lblValueUsers.Text = totalUsers.ToString();
+                // lblValueShops.Text = pendingShops.ToString();
+                // lblValueComplaints.Text = openComplaints.ToString();
 
-                ////2.Mengambil Jumlah Toko yang Menunggu Verifikasi
-                // int pendingShops = _adminController.GetPendingShopVerificationsCount();
-                //lblValueShops.Text = pendingShops.ToString();
+                // Muat log aktivitas terbaru
+                List<ActivityLog> logs = _adminController.GetLogAktivitas();
+                DataTable dtLog = new DataTable();
+                dtLog.Columns.Add("Waktu", typeof(string));
+                dtLog.Columns.Add("Aktivitas", typeof(string));
+                dtLog.Columns.Add("User", typeof(string));
 
-                ////3.Mengambil Jumlah Aduan yang Belum Diselesaikan
-                // int openComplaints = _adminController.GetOpenComplaintsCount();
-                //lblValueComplaints.Text = openComplaints.ToString();
+                foreach (ActivityLog log in logs)
+                {
+                    dtLog.Rows.Add(
+                        log.GetWaktuAkses().ToString("dd MMM yyyy HH:mm"),
+                        log.GetAktivitas(),
+                        "User #" + log.GetIdUser()
+                    );
+                }
 
-                ////4.Load DataGridView untuk Aktivitas / Log Terbaru
-                //DataTable dtActivities = _adminController.GetRecentActivities(10); // Ambil 10 data terakhir
-                //dgvRecentActivity.DataSource = dtActivities;
-
-                // Merapikan kolom DataGridView
-                dgvRecentActivity.Columns["Waktu"].Width = 150;
-                dgvRecentActivity.Columns["Aktivitas"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                dgvRecentActivity.Columns["User"].Width = 200;
-                // ---------------------------------------------
+                dgvRecentActivity.DataSource = dtLog;
+                // Kolom sudah disetup di SetupRecentActivityGrid(), tidak perlu re-set lagi.
             }
             catch (Exception ex)
             {
-                // Gunakan NotifikasiUX yang dibuat sebelumnya untuk standardisasi error
-                // NotifikasiUX.Error("Gagal memuat data dashboard: " + ex.Message);
                 MessageBox.Show("Gagal memuat data dashboard: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

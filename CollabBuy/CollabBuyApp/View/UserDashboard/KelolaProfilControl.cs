@@ -31,37 +31,44 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             if (_currentUser != null)
             {
-                // Asumsi property model User: Nama, NIM, Email
-                // Sesuaikan dengan nama property yang benar di class User.cs Anda
-                txtNama.Text = _currentUser.Nama;
-                txtNIM.Text = _currentUser.NIM; // NIM dibuat ReadOnly di Designer
-                txtEmail.Text = _currentUser.Email;
+                // PERBAIKAN: Model User menggunakan metode getter (GetNama(), GetEmail()),
+                // bukan properti auto (.Nama, .Email). Sesuai pola enkapsulasi OOP proyek ini.
+                txtNama.Text = _currentUser.GetNama();
+                txtEmail.Text = _currentUser.GetEmail() ?? "";
 
-                // Kosongkan password agar tidak terekspos, user hanya mengisi jika ingin mengubah
+                // NIM hanya ada pada Penjual — cek dengan casting
+                Penjual penjual = _currentUser as Penjual;
+                if (penjual != null)
+                {
+                    txtNIM.Text = penjual.GetNim() ?? "";
+                }
+                else
+                {
+                    txtNIM.Text = "";
+                    txtNIM.Enabled = false; // Pembeli tidak punya NIM
+                }
+
+                // Kosongkan password agar tidak terekspos
                 txtPassword.Clear();
             }
         }
 
         private void btnSimpan_Click(object sender, EventArgs e)
         {
-            // 1. Validasi Input Dasar
             if (string.IsNullOrWhiteSpace(txtNama.Text) || string.IsNullOrWhiteSpace(txtEmail.Text))
             {
                 MessageBox.Show("Nama dan Email tidak boleh kosong!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Validasi format email sederhana
             if (!txtEmail.Text.Contains("@") || !txtEmail.Text.Contains("."))
             {
                 MessageBox.Show("Format email tidak valid!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Konfirmasi
             DialogResult dialog = MessageBox.Show("Apakah Anda yakin ingin menyimpan perubahan profil ini?",
                                                   "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
             if (dialog == DialogResult.Yes)
             {
                 ProsesSimpanProfil();
@@ -72,37 +79,36 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             try
             {
-                // Update object currentUser dengan data baru
-                _currentUser.Nama = txtNama.Text.Trim();
-                _currentUser.Email = txtEmail.Text.Trim();
+                // PERBAIKAN: Gunakan setter method (SetNama, SetEmail) bukan assignment property langsung.
+                // Ini melewati validasi yang didefinisikan di dalam kelas User (enkapsulasi).
+                _currentUser.SetNama(txtNama.Text.Trim());
+                _currentUser.SetEmail(txtEmail.Text.Trim());
 
-                // Jika user mengetikkan password baru, kita ubah passwordnya
+                // Jika user mengisi password baru
                 if (!string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
-                    _currentUser.Password = txtPassword.Text; // Pastikan controller/repository Anda menghandle hashing jika ada
+                    _currentUser.SetPassword(txtPassword.Text);
                 }
 
-                // PANGGIL CONTROLLER UNTUK UPDATE KE DATABASE
-                // TODO: Pastikan UserController memiliki method UpdateProfile atau EditUser
-                // bool success = _userController.UpdateProfile(_currentUser);
+                // TODO: Hubungkan ke UserController untuk menyimpan ke database
+                // var (sukses, pesan) = _userController.UpdateProfil(_currentUser);
 
-                // MOCK SUCCESS
-                bool success = true;
+                bool success = true; // Mock success sampai method controller dibuat
 
                 if (success)
                 {
                     MessageBox.Show("Profil berhasil diperbarui!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Bersihkan kolom password lagi setelah sukses menyimpan
                     txtPassword.Clear();
-
-                    // Opsional: Jika Nama berubah, Anda mungkin perlu memicu event untuk memperbarui 
-                    // label nama di Sidebar MainForm. 
                 }
                 else
                 {
-                    MessageBox.Show("Gagal menyimpan perubahan profil. Silakan coba lagi.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Gagal menyimpan perubahan profil.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+            catch (InvalidOrderException ex)
+            {
+                // Tangkap validasi dari setter model (misal nama terlalu pendek)
+                MessageBox.Show(ex.GetPesanLengkap(), "Validasi Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

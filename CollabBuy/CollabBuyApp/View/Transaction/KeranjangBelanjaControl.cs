@@ -1,5 +1,4 @@
-﻿using CollabBuy.CollabBuyApp.Controllers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,7 +20,12 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             InitializeComponent();
             _currentUser = currentUser;
-            _transactionController = new TransactionController();
+
+            // PERBAIKAN: Gunakan konstruktor overload TransactionController(int idPembeli)
+            // agar CartManager diinisialisasi dengan ID pembeli yang benar.
+            // Sebelumnya memakai new TransactionController() (tanpa parameter) yang menyebabkan
+            // CartManager = null dan NullReferenceException saat checkout.
+            _transactionController = new TransactionController(_currentUser.GetIdUser());
         }
 
         private void KeranjangBelanjaControl_Load(object sender, EventArgs e)
@@ -39,7 +43,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "IdItem",
-                DataPropertyName = "Id", // ID Produk/PO
+                DataPropertyName = "Id",
                 Visible = false
             });
 
@@ -78,7 +82,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Font = new Font("Segoe UI", 10F, FontStyle.Bold) }
             });
 
-            // Kolom Tombol Hapus
             DataGridViewButtonColumn btnHapus = new DataGridViewButtonColumn
             {
                 Name = "BtnHapus",
@@ -98,26 +101,20 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                // TODO: Ambil items dari CartManager
-                // var cartItems = CartManager.Instance.GetItems();
-
-                // --- MOCK DATA --- (Hapus ini jika CartManager sudah diimplementasi penuh)
                 DataTable dtMock = new DataTable();
                 dtMock.Columns.Add("Id", typeof(int));
                 dtMock.Columns.Add("Nama", typeof(string));
                 dtMock.Columns.Add("Harga", typeof(decimal));
                 dtMock.Columns.Add("Kuantitas", typeof(int));
-                dtMock.Columns.Add("Subtotal", typeof(decimal), "Harga * Kuantitas"); // Computed Column
+                dtMock.Columns.Add("Subtotal", typeof(decimal), "Harga * Kuantitas");
 
                 dtMock.Rows.Add(1, "Danus Makaroni HMTI", 5000, 2);
                 dtMock.Rows.Add(2, "Kemeja PDH Custom", 120000, 1);
 
                 dgvKeranjang.DataSource = dtMock;
-                // -----------------
 
                 HitungTotalPembayaran();
 
-                // Atur state tombol checkout
                 bool adaBarang = dgvKeranjang.Rows.Count > 0;
                 btnCheckout.Enabled = adaBarang;
                 btnCheckout.BackColor = adaBarang ? Color.FromArgb(36, 0, 70) : Color.Gray;
@@ -138,11 +135,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     total += Convert.ToDecimal(row.Cells["Subtotal"].Value);
                 }
             }
-
             lblTotalHarga.Text = $"Rp {total:N0}";
         }
 
-        // --- AKSI TABEL (MENGHAPUS ITEM) ---
         private void dgvKeranjang_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -150,20 +145,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             if (dgvKeranjang.Columns[e.ColumnIndex].Name == "BtnHapus")
             {
                 string namaItem = dgvKeranjang.Rows[e.RowIndex].Cells["NamaItem"].Value.ToString();
-                int idItem = Convert.ToInt32(dgvKeranjang.Rows[e.RowIndex].Cells["IdItem"].Value);
 
                 DialogResult dr = MessageBox.Show($"Keluarkan '{namaItem}' dari keranjang?",
                                                   "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
                 if (dr == DialogResult.Yes)
                 {
-                    // TODO: Panggil CartManager.Instance.RemoveItem(idItem);
-
-                    // Karena ini pakai Mock DataTable, kita hapus row-nya langsung dari Grid untuk visual
                     dgvKeranjang.Rows.RemoveAt(e.RowIndex);
                     HitungTotalPembayaran();
 
-                    // Cek jika kosong
                     if (dgvKeranjang.Rows.Count == 0)
                     {
                         btnCheckout.Enabled = false;
@@ -173,7 +162,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
         }
 
-        // --- AKSI KOSONGKAN KERANJANG ---
         private void btnKosongkan_Click(object sender, EventArgs e)
         {
             if (dgvKeranjang.Rows.Count == 0) return;
@@ -182,38 +170,28 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                                               "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (dr == DialogResult.Yes)
             {
-                // TODO: Panggil CartManager.Instance.Clear();
-
-                dgvKeranjang.DataSource = null; // Mock clear
+                dgvKeranjang.DataSource = null;
                 HitungTotalPembayaran();
                 btnCheckout.Enabled = false;
                 btnCheckout.BackColor = Color.Gray;
             }
         }
 
-        // --- AKSI CHECKOUT ---
         private void btnCheckout_Click(object sender, EventArgs e)
         {
             DialogResult dr = MessageBox.Show("Proses pembayaran untuk pesanan di keranjang Anda?\nPesanan akan diteruskan ke Penjual.",
                                               "Konfirmasi Checkout", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
             if (dr == DialogResult.Yes)
             {
                 try
                 {
-                    // TODO: Ambil data keranjang, lalu buat instance Transaction
-                    // Panggil _transactionController.CreateTransaction(newTransactionData);
-
-                    // MOCK SUCCESS
-                    bool sukses = true;
+                    // PERBAIKAN: Panggil TransactionController yang sudah diinisialisasi dengan idPembeli
+                    var (sukses, pesan) = _transactionController.ProsesCheckout();
 
                     if (sukses)
                     {
                         MessageBox.Show("Checkout Berhasil! 🎉\nSilakan cek tab 'Riwayat Pesanan' untuk melihat status pesanan Anda.",
                                         "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                        // Kosongkan keranjang setelah checkout sukses
-                        // CartManager.Instance.Clear();
                         dgvKeranjang.DataSource = null;
                         HitungTotalPembayaran();
                         btnCheckout.Enabled = false;
@@ -221,7 +199,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     }
                     else
                     {
-                        MessageBox.Show("Gagal melakukan checkout. Silakan coba lagi.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(pesan, "Gagal Checkout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 catch (Exception ex)

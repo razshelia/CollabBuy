@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CollabBuy.CollabBuyApp.View.Main;
+using System;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.View;
 
 namespace CollabBuy.CollabBuyApp
 {
@@ -14,8 +12,8 @@ namespace CollabBuy.CollabBuyApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Jalankan MainForm kosongan sebagai wadah utama aplikasi
-            Application.Run(new View.MainForm());
+            // PERBAIKAN: Namespace MainForm diubah ke CollabBuy.CollabBuyApp.View.Main
+            Application.Run(new MainForm());
         }
     }
 }
