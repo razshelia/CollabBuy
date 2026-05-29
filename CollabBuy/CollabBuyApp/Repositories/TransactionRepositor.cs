@@ -136,6 +136,104 @@ namespace CollabBuy.CollabBuyApp.Repositories
         }
 
 
+        /// <summary>
+        /// Mengambil semua transaksi milik satu pembeli (id_koordinator).
+        /// Digunakan oleh RiwayatPesananControl.
+        /// Catatan: Detail setiap transaksi juga di-hydrate agar HitungTotal() akurat.
+        /// </summary>
+        public List<Transaction> GetByIdPembeli(int idPembeli)
+        {
+            List<Transaction> listTransaksi = new List<Transaction>();
+            string query = @"SELECT id_transaksi, id_koordinator, tanggal_transaksi, status_pesanan, is_valid
+                             FROM transactions
+                             WHERE id_koordinator = @idPembeli
+                             ORDER BY tanggal_transaksi DESC;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idPembeli", idPembeli);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int idPembeliDb = reader.GetInt32(reader.GetOrdinal("id_koordinator"));
+                            Transaction transaksi = new Transaction(idPembeliDb);
+                            transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
+
+                            string statusDb = reader.GetString(reader.GetOrdinal("status_pesanan"));
+                            SetStatusDariDatabase(transaksi, statusDb);
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("is_valid")) && reader.GetBoolean(reader.GetOrdinal("is_valid")))
+                            {
+                                transaksi.Approve();
+                            }
+
+                            // Set tanggal dari DB
+                            if (!reader.IsDBNull(reader.GetOrdinal("tanggal_transaksi")))
+                            {
+                                transaksi.SetTanggalTransaksi(reader.GetDateTime(reader.GetOrdinal("tanggal_transaksi")));
+                            }
+
+                            // Simpan tanggal menggunakan reflection-free approach
+                            // (tanggal sudah di-set oleh konstruktor; kita set ulang melalui GetById jika perlu)
+                            listTransaksi.Add(transaksi);
+                        }
+                    }
+                }
+            }
+
+            // Hydrate detail setiap transaksi agar JumlahItem dan HitungTotal() akurat
+            string queryDetail = @"SELECT id_produk, nama_penitip, jumlah_pesanan, catatan,
+                                          nama_produk_snapshot, harga_satuan_saat_beli,
+                                          harga_diskon_saat_beli, selisih_refund
+                                   FROM transaction_details
+                                   WHERE id_transaksi = @idTrx;";
+
+            foreach (Transaction trx in listTransaksi)
+            {
+                using (NpgsqlConnection conn2 = new NpgsqlConnection(_connectionString))
+                {
+                    conn2.Open();
+                    using (NpgsqlCommand cmd2 = new NpgsqlCommand(queryDetail, conn2))
+                    {
+                        cmd2.Parameters.AddWithValue("@idTrx", trx.GetIdTransaksi());
+                        using (NpgsqlDataReader reader2 = cmd2.ExecuteReader())
+                        {
+                            while (reader2.Read())
+                            {
+                                int idProduk = reader2.GetInt32(reader2.GetOrdinal("id_produk"));
+                                string penitip = reader2.GetString(reader2.GetOrdinal("nama_penitip"));
+                                int jumlah = reader2.GetInt32(reader2.GetOrdinal("jumlah_pesanan"));
+
+                                TransactionDetail detail = new TransactionDetail(idProduk, penitip, jumlah);
+
+                                long hargaSatuan = Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_satuan_saat_beli")));
+                                long? hargaDiskon = null;
+                                if (!reader2.IsDBNull(reader2.GetOrdinal("harga_diskon_saat_beli")))
+                                    hargaDiskon = Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_diskon_saat_beli")));
+
+                                detail.FinalisasiHargaSaatCheckout(hargaSatuan, hargaDiskon);
+
+                                if (!reader2.IsDBNull(reader2.GetOrdinal("catatan")))
+                                    detail.SetCatatan(reader2.GetString(reader2.GetOrdinal("catatan")));
+
+                                if (!reader2.IsDBNull(reader2.GetOrdinal("nama_produk_snapshot")))
+                                    detail.SetNamaProdukSnapshot(reader2.GetString(reader2.GetOrdinal("nama_produk_snapshot")));
+
+                                trx.TambahDetail(detail);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return listTransaksi;
+        }
+
+
         // =======================================================
         // IMPLEMENTASI ICommandRepository<Transaction>
         // =======================================================

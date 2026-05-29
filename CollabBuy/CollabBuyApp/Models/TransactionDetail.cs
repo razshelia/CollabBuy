@@ -160,6 +160,18 @@ namespace CollabBuy.CollabBuyApp.Models
         }
 
         /// <summary>
+        /// Menetapkan snapshot nama produk secara langsung — digunakan saat hydration
+        /// objek dari database (setelah FinalisasiHargaSaatCheckout dipanggil).
+        /// </summary>
+        public void SetNamaProdukSnapshot(string nama)
+        {
+            if (!string.IsNullOrEmpty(nama))
+            {
+                _namaProdukSnapshot = nama;
+            }
+        }
+
+        /// <summary>
         /// Mengambil harga satuan saat proses checkout terjadi.
         /// </summary>
         public long GetHargaSatuanSaatBeli()

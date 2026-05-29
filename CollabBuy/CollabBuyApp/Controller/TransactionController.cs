@@ -194,6 +194,23 @@ namespace CollabBuy.CollabBuyApp.Controllers
         }
 
         /// <summary>
+        /// Mengambil daftar transaksi berdasarkan ID pembeli/koordinator.
+        /// Digunakan oleh RiwayatPesananControl agar hanya menampilkan
+        /// transaksi milik user yang sedang login.
+        /// </summary>
+        public List<Transaction> GetTransaksiByPembeli(int idPembeli)
+        {
+            try
+            {
+                return _transactionRepo.GetByIdPembeli(idPembeli);
+            }
+            catch (Exception)
+            {
+                return new List<Transaction>();
+            }
+        }
+
+        /// <summary>
         /// Menyetujui bukti pembayaran transaksi.
         /// </summary>
         public (bool sukses, string pesan) ValidasiPembayaran(int idTransaksi)

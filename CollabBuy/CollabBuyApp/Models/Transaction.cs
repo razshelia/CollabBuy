@@ -51,6 +51,12 @@ namespace CollabBuy.CollabBuyApp.Models
         public DateTime GetTanggalTransaksi() { return _tanggalTransaksi; }
 
         /// <summary>
+        /// Menetapkan tanggal transaksi saat hydration dari database.
+        /// Tidak untuk digunakan pada alur bisnis baru.
+        /// </summary>
+        public void SetTanggalTransaksi(DateTime tanggal) { _tanggalTransaksi = tanggal; }
+
+        /// <summary>
         /// Mengambil data bukti bayar dalam format byte[] (BYTEA).
         /// </summary>
         public byte[] GetBuktiBayar()
