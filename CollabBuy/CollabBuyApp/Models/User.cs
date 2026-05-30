@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.Models
             SetNama(nama);
             SetUsername(username);
             SetPassword(password);
-            _peran = peran;
+            SetPeran(peran);
             _isDiblokir = false;
             _alasanBlokir = "";
         }
@@ -73,12 +73,54 @@ namespace CollabBuy.CollabBuyApp.Models
         }
 
         public string GetNomorTelepon() { return _nomorTelepon; }
-        public void SetNomorTelepon(string telp) { _nomorTelepon = telp; }
+        public void SetNomorTelepon(string telp)
+        {
+            if (string.IsNullOrWhiteSpace(telp))
+            {
+                throw new InvalidOrderException("Nomor WhatsApp tidak boleh kosong!", "nomorTelepon", "USER_TELP_KOSONG");
+            }
+
+            // Validasi panjang standar nomor telepon (9 - 15 digit)
+            if (telp.Length < 9 || telp.Length > 15)
+            {
+                throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
+            }
+
+            _nomorTelepon = telp;
+        }
 
         public string GetEmail() { return _email; }
-        public void SetEmail(string email) { _email = email; }
+        public void SetEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new InvalidOrderException("Email tidak boleh kosong!", "email", "USER_EMAIL_KOSONG");
+            }
 
+            // Validasi email sederhana harus ada '@' dan '.'
+            if (!email.Contains("@") || !email.Contains("."))
+            {
+                throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
+            }
+
+            _email = email;
+        }
         public string GetPeran() { return _peran; }
+        protected void SetPeran(string peran)
+        {
+            if (string.IsNullOrWhiteSpace(peran))
+            {
+                throw new InvalidOrderException("Peran (Role) pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
+            }
+
+            // Validasi ketat sesuai dengan yang ada di Database
+            if (peran != "Admin" && peran != "Penjual" && peran != "User")
+            {
+                throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, atau User.", "peran", "USER_PERAN_INVALID");
+            }
+
+            _peran = peran;
+        }
 
 
         // === METHOD ABSTRAK ===
@@ -132,6 +174,14 @@ namespace CollabBuy.CollabBuyApp.Models
             if (string.IsNullOrEmpty(_username))
             {
                 throw new InvalidOrderException("Validasi gagal: Username kosong.", "username", "USER_INVALID");
+            }
+            if (string.IsNullOrEmpty(_email))
+            {
+                throw new InvalidOrderException("Validasi gagal: Email kosong.", "email", "USER_INVALID");
+            }
+            if (string.IsNullOrEmpty(_nomorTelepon))
+            {
+                throw new InvalidOrderException("Validasi gagal: Nomor telepon kosong.", "nomor_telepon", "USER_INVALID");
             }
         }
     }

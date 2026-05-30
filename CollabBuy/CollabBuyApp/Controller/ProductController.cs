@@ -2,6 +2,7 @@
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -39,6 +40,19 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception)
             {
                 return new List<Product>();
+            }
+        }
+        public DataTable GetKatalogAktifDashboard(int limit = 15)
+        {
+            try
+            {
+                // Panggil method dari Repository (gudang)
+                return _productRepo.GetKatalogAktif(limit);
+            }
+            catch (Exception)
+            {
+                // Kalau error, kembalikan tabel kosong biar grid di UI nggak error
+                return new DataTable();
             }
         }
 
@@ -112,6 +126,23 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 return ("Error: " + ex.Message, 0);
             }
+        }
+        public DataTable GetKatalogUtama()
+        {
+            try { return _productRepo.GetKatalogAktif(100); }
+            catch (Exception) { return new DataTable(); }
+        }
+
+        public DataTable GetProdukLapak(int idPenjual)
+        {
+            try { return _productRepo.GetProdukByPenjualDataTable(idPenjual); }
+            catch (Exception) { return new DataTable(); }
+        }
+
+        public Product GetProdukById(int idProduk)
+        {
+            try { return _productRepo.GetById(idProduk); }
+            catch (Exception) { return null; }
         }
     }
 }

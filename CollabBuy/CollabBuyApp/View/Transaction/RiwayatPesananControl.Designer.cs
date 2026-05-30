@@ -11,204 +11,121 @@
         }
 
         #region Component Designer generated code
-
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.lblJumlahData = new System.Windows.Forms.Label();
-
-            this.pnlSummary = new System.Windows.Forms.Panel();
-            this.lblSummarySelesai = new System.Windows.Forms.Label();
-            this.lblSummaryProses = new System.Windows.Forms.Label();
-            this.lblSummaryTunggu = new System.Windows.Forms.Label();
-            this.lblSummaryTotalLbl = new System.Windows.Forms.Label();
-            this.lblSummaryTotal = new System.Windows.Forms.Label();
-
-            this.pnlToolbar = new System.Windows.Forms.Panel();
-            this.lblFilterStatus = new System.Windows.Forms.Label();
-            this.cmbFilterStatus = new System.Windows.Forms.ComboBox();
+            this.pnlCard = new System.Windows.Forms.Panel();
             this.btnRefresh = new System.Windows.Forms.Button();
-
             this.dgvRiwayat = new System.Windows.Forms.DataGridView();
-
+            this.pnlCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).BeginInit();
-            this.pnlSummary.SuspendLayout();
-            this.pnlToolbar.SuspendLayout();
             this.SuspendLayout();
-
-            // =============================================
+            // 
             // lblTitle
-            // =============================================
+            // 
             this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTitle.Location = new System.Drawing.Point(30, 22);
-            this.lblTitle.Text = "Riwayat Pesanan";
-
-            // =============================================
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblTitle.Location = new System.Drawing.Point(30, 25);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(296, 37);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "Riwayat Jajan Kamu 📜";
+            // 
             // lblSubtitle
-            // =============================================
+            // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
-            this.lblSubtitle.Location = new System.Drawing.Point(34, 58);
-            this.lblSubtitle.Text = "Pantau seluruh riwayat dan status transaksi Anda.";
-
-            // =============================================
-            // PANEL SUMMARY (4 badge)
-            // =============================================
-            this.pnlSummary.BackColor = System.Drawing.Color.White;
-            this.pnlSummary.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlSummary.Location = new System.Drawing.Point(30, 85);
-            this.pnlSummary.Size = new System.Drawing.Size(940, 52);
-            this.pnlSummary.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblSummarySelesai, this.lblSummaryProses,
-                this.lblSummaryTunggu, this.lblSummaryTotalLbl, this.lblSummaryTotal
-            });
-
-            // Badge Selesai
-            this.lblSummarySelesai.AutoSize = true;
-            this.lblSummarySelesai.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblSummarySelesai.ForeColor = System.Drawing.Color.FromArgb(40, 167, 69);
-            this.lblSummarySelesai.Location = new System.Drawing.Point(16, 14);
-            this.lblSummarySelesai.Text = "✔ Selesai: 0";
-
-            // Badge Diproses
-            this.lblSummaryProses.AutoSize = true;
-            this.lblSummaryProses.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblSummaryProses.ForeColor = System.Drawing.Color.FromArgb(23, 162, 184);
-            this.lblSummaryProses.Location = new System.Drawing.Point(190, 14);
-            this.lblSummaryProses.Text = "🕐 Diproses: 0";
-
-            // Badge Menunggu
-            this.lblSummaryTunggu.AutoSize = true;
-            this.lblSummaryTunggu.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblSummaryTunggu.ForeColor = System.Drawing.Color.FromArgb(210, 150, 0);
-            this.lblSummaryTunggu.Location = new System.Drawing.Point(370, 14);
-            this.lblSummaryTunggu.Text = "⏳ Menunggu: 0";
-
-            // Total Belanja Label
-            this.lblSummaryTotalLbl.AutoSize = true;
-            this.lblSummaryTotalLbl.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.lblSummaryTotalLbl.ForeColor = System.Drawing.Color.Gray;
-            this.lblSummaryTotalLbl.Location = new System.Drawing.Point(600, 14);
-            this.lblSummaryTotalLbl.Text = "Total Belanja Selesai:";
-
-            // Total Belanja Nilai
-            this.lblSummaryTotal.AutoSize = true;
-            this.lblSummaryTotal.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblSummaryTotal.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblSummaryTotal.Location = new System.Drawing.Point(740, 14);
-            this.lblSummaryTotal.Text = "Rp 0";
-
-            // =============================================
-            // PANEL TOOLBAR (filter + refresh)
-            // =============================================
-            this.pnlToolbar.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.pnlToolbar.Location = new System.Drawing.Point(30, 148);
-            this.pnlToolbar.Size = new System.Drawing.Size(940, 44);
-            this.pnlToolbar.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblFilterStatus, this.cmbFilterStatus, this.btnRefresh
-            });
-
-            // Label filter
-            this.lblFilterStatus.AutoSize = true;
-            this.lblFilterStatus.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.lblFilterStatus.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblFilterStatus.Location = new System.Drawing.Point(0, 12);
-            this.lblFilterStatus.Text = "Filter Status:";
-
-            // ComboBox filter
-            this.cmbFilterStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbFilterStatus.Font = new System.Drawing.Font("Segoe UI", 9.5F);
-            this.cmbFilterStatus.Location = new System.Drawing.Point(88, 7);
-            this.cmbFilterStatus.Size = new System.Drawing.Size(180, 28);
-            this.cmbFilterStatus.SelectedIndexChanged += new System.EventHandler(this.cmbFilterStatus_SelectedIndexChanged);
-
-            // Tombol Refresh
-            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.FlatAppearance.BorderSize = 0;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnRefresh.Location = new System.Drawing.Point(808, 4);
-            this.btnRefresh.Size = new System.Drawing.Size(130, 36);
-            this.btnRefresh.Text = "🔄 Perbarui Data";
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
+            this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
+            this.lblSubtitle.Name = "lblSubtitle";
+            this.lblSubtitle.Size = new System.Drawing.Size(370, 20);
+            this.lblSubtitle.TabIndex = 1;
+            this.lblSubtitle.Text = "Pantau pesanan kamu sampai mendarat dengan selamat~";
+            // 
+            // pnlCard
+            // 
+            this.pnlCard.BackColor = System.Drawing.Color.White;
+            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.btnRefresh);
+            this.pnlCard.Controls.Add(this.dgvRiwayat);
+            this.pnlCard.Location = new System.Drawing.Point(36, 110);
+            this.pnlCard.Name = "pnlCard";
+            this.pnlCard.Size = new System.Drawing.Size(920, 500);
+            this.pnlCard.TabIndex = 2;
+            // 
+            // btnRefresh
+            // 
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnRefresh.FlatAppearance.BorderSize = 0;
+            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnRefresh.Location = new System.Drawing.Point(734, 435);
+            this.btnRefresh.Name = "btnRefresh";
+            this.btnRefresh.Size = new System.Drawing.Size(150, 40);
+            this.btnRefresh.TabIndex = 1;
+            this.btnRefresh.Text = "🔄 Refresh Data";
+            this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-
-            // =============================================
-            // lblJumlahData
-            // =============================================
-            this.lblJumlahData.AutoSize = true;
-            this.lblJumlahData.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Italic);
-            this.lblJumlahData.ForeColor = System.Drawing.Color.DimGray;
-            this.lblJumlahData.Location = new System.Drawing.Point(34, 198);
-            this.lblJumlahData.Text = "";
-
-            // =============================================
+            // 
             // dgvRiwayat
-            // =============================================
-            this.dgvRiwayat.Location = new System.Drawing.Point(30, 218);
-            this.dgvRiwayat.Size = new System.Drawing.Size(940, 390);
+            // 
             this.dgvRiwayat.AllowUserToAddRows = false;
             this.dgvRiwayat.AllowUserToDeleteRows = false;
             this.dgvRiwayat.BackgroundColor = System.Drawing.Color.White;
             this.dgvRiwayat.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.dgvRiwayat.RowHeadersVisible = false;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvRiwayat.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvRiwayat.ColumnHeadersHeight = 45;
+            this.dgvRiwayat.EnableHeadersVisualStyles = false;
+            this.dgvRiwayat.Location = new System.Drawing.Point(34, 30);
+            this.dgvRiwayat.MultiSelect = false;
+            this.dgvRiwayat.Name = "dgvRiwayat";
             this.dgvRiwayat.ReadOnly = true;
-            this.dgvRiwayat.AutoGenerateColumns = false;
-            this.dgvRiwayat.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvRiwayat_CellContentClick);
-
-            // =============================================
-            // lblStatus
-            // =============================================
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Font = new System.Drawing.Font("Segoe UI", 8.5F);
-            this.lblStatus.ForeColor = System.Drawing.Color.Gray;
-            this.lblStatus.Location = new System.Drawing.Point(34, 620);
-            this.lblStatus.Text = "Menunggu data...";
-
-            // =============================================
+            this.dgvRiwayat.RowHeadersVisible = false;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 10F);
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(235)))), ((int)(((byte)(230)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(5);
+            this.dgvRiwayat.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvRiwayat.RowTemplate.Height = 45;
+            this.dgvRiwayat.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvRiwayat.Size = new System.Drawing.Size(850, 380);
+            this.dgvRiwayat.TabIndex = 0;
+            // 
             // RiwayatPesananControl
-            // =============================================
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.Size = new System.Drawing.Size(1010, 650);
-            this.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblTitle, this.lblSubtitle,
-                this.pnlSummary, this.pnlToolbar,
-                this.lblJumlahData, this.dgvRiwayat,
-                this.lblStatus
-            });
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.pnlCard);
+            this.Controls.Add(this.lblSubtitle);
+            this.Controls.Add(this.lblTitle);
+            this.Name = "RiwayatPesananControl";
+            this.Size = new System.Drawing.Size(1000, 650);
             this.Load += new System.EventHandler(this.RiwayatPesananControl_Load);
-
+            this.pnlCard.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).EndInit();
-            this.pnlSummary.ResumeLayout(false);
-            this.pnlToolbar.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
         }
-
         #endregion
 
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblSubtitle;
-        private System.Windows.Forms.Label lblStatus;
-        private System.Windows.Forms.Label lblJumlahData;
-        private System.Windows.Forms.Panel pnlSummary;
-        private System.Windows.Forms.Label lblSummarySelesai;
-        private System.Windows.Forms.Label lblSummaryProses;
-        private System.Windows.Forms.Label lblSummaryTunggu;
-        private System.Windows.Forms.Label lblSummaryTotalLbl;
-        private System.Windows.Forms.Label lblSummaryTotal;
-        private System.Windows.Forms.Panel pnlToolbar;
-        private System.Windows.Forms.Label lblFilterStatus;
-        private System.Windows.Forms.ComboBox cmbFilterStatus;
-        private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.Panel pnlCard;
         private System.Windows.Forms.DataGridView dgvRiwayat;
+        private System.Windows.Forms.Button btnRefresh;
     }
 }

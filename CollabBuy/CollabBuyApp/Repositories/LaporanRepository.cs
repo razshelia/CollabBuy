@@ -3,7 +3,7 @@ using System.Data;
 using System.Configuration;
 using Npgsql;
 
-namespace CollabBuy.Repositories
+namespace CollabBuy.CollabBuyApp.Repositories
 {
     /// <summary>
     /// Repository khusus untuk mengakses View, Function, dan Kueri Analitik (Teori Himpunan).
@@ -27,27 +27,73 @@ namespace CollabBuy.Repositories
 
 
         // =======================================================
-        // 1. IMPLEMENTASI VIEW DATABASE
+        // 0. METHOD KHUSUS UNTUK ANALITIK PENJUALAN (SELLER UI)
         // =======================================================
 
-        public DataTable GetKatalogAktif()
+        /// <summary>
+        /// Mengambil total pendapatan dan jumlah pesanan yang sudah 'Selesai'.
+        /// </summary>
+        public (long totalPendapatan, int totalPesanan) GetRingkasanPenjualan(int idPenjual)
         {
-            DataTable dt = new DataTable();
-            string query = "SELECT * FROM vw_katalog_aktif ORDER BY nama_produk;";
+            long pendapatan = 0;
+            int pesanan = 0;
+
+            string query = @"
+                SELECT COUNT(id_transaksi) as total_pesanan, COALESCE(SUM(total_harga), 0) as total_pendapatan 
+                FROM transactions 
+                WHERE id_koordinator = @id AND status_pesanan = 'Selesai';";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
                 {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        adapter.Fill(dt);
+                        if (reader.Read())
+                        {
+                            pesanan = reader.GetInt32(reader.GetOrdinal("total_pesanan"));
+                            pendapatan = reader.GetInt64(reader.GetOrdinal("total_pendapatan"));
+                        }
+                    }
+                }
+            }
+            return (pendapatan, pesanan);
+        }
+
+        /// <summary>
+        /// Mengambil daftar riwayat transaksi 'Selesai' untuk laporan.
+        /// </summary>
+        public DataTable GetRiwayatCuanDataTable(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT u.nama AS nama_pembeli, t.tanggal_pesanan, t.total_harga
+                FROM transactions t
+                JOIN users u ON t.id_pembeli = u.id_user
+                WHERE t.id_koordinator = @id AND t.status_pesanan = 'Selesai'
+                ORDER BY t.tanggal_pesanan DESC;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
                     }
                 }
             }
             return dt;
         }
+
+
+        // =======================================================
+        // 1. IMPLEMENTASI VIEW DATABASE
+        // =======================================================
 
         public DataTable GetTransaksiLengkap()
         {
@@ -98,7 +144,6 @@ namespace CollabBuy.Repositories
 
         /// <summary>
         /// BUKTI PEMANGGILAN FUNCTION: Memanggil langsung cek_harga_saat_ini() di DB.
-        /// Meskipun logikanya sudah ada di C# Model, method ini membuktikan integrasi DB Function.
         /// </summary>
         public int CekHargaSaatIniViaDatabase(int idProduk)
         {
@@ -126,9 +171,6 @@ namespace CollabBuy.Repositories
         // 3. IMPLEMENTASI TEORI HIMPUAN (SET OPERATIONS)
         // =======================================================
 
-        /// <summary>
-        /// UNION: Menggabungkan transaksi Diproses dan Selesai.
-        /// </summary>
         public DataTable GetTransaksiAktifUnion()
         {
             DataTable dt = new DataTable();
@@ -151,9 +193,6 @@ namespace CollabBuy.Repositories
             return dt;
         }
 
-        /// <summary>
-        /// INTERSECT: Penjual yang juga pernah menjadi koordinator/pembeli.
-        /// </summary>
         public DataTable GetSultanMemberIntersect()
         {
             DataTable dt = new DataTable();
@@ -178,9 +217,6 @@ namespace CollabBuy.Repositories
             return dt;
         }
 
-        /// <summary>
-        /// EXCEPT: User yang belum pernah melakukan transaksi (Pengguna Pasif).
-        /// </summary>
         public DataTable GetPenggunaPasifExcept()
         {
             DataTable dt = new DataTable();
@@ -209,10 +245,6 @@ namespace CollabBuy.Repositories
         // 4. IMPLEMENTASI GROUP BY & CASE (KLASIFIKASI)
         // =======================================================
 
-        /// <summary>
-        /// STATEMENT 1: Status Ketersediaan Kuota (GROUP BY + CASE).
-        /// Persis sesuai kueri di Bagian 6 SQL.
-        /// </summary>
         public DataTable GetStatusKetersediaanKuota()
         {
             DataTable dt = new DataTable();
@@ -249,6 +281,7 @@ namespace CollabBuy.Repositories
 
         /// <summary>
         /// STATEMENT 2: Klasifikasi Performa Penjual (Tier Penjual).
+        /// DIPERBAIKI: Menggunakan hitungan Omzet Bersih sesuai SQL.
         /// </summary>
         public DataTable GetKlasifikasiPerformaPenjual()
         {
@@ -256,11 +289,11 @@ namespace CollabBuy.Repositories
             string query = @"
                 SELECT
                     u.nama AS nama_penjual,
-                    SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli) AS total_omzet,
+                    SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) AS total_omzet_bersih,
                     CASE
-                        WHEN SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli) >= 500000
+                        WHEN SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) >= 500000
                             THEN 'Seller Sultan (Top Tier)'
-                        WHEN SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli) >= 100000
+                        WHEN SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) >= 100000
                             THEN 'Seller Menengah (Mid Tier)'
                         ELSE 'Seller Pemula (Newbie)'
                     END AS tier_penjual
@@ -268,7 +301,7 @@ namespace CollabBuy.Repositories
                 JOIN products p ON td.id_produk = p.id_produk
                 JOIN users u    ON p.id_penjual = u.id_user
                 GROUP BY u.nama
-                ORDER BY total_omzet DESC;";
+                ORDER BY total_omzet_bersih DESC;";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {
@@ -284,10 +317,6 @@ namespace CollabBuy.Repositories
             return dt;
         }
 
-        /// <summary>
-        /// STATEMENT 3: Total barang terjual tiap produk (GROUP BY Simple).
-        /// Persis sesuai kueri di Bagian 6 SQL.
-        /// </summary>
         public DataTable GetTotalBarangTerjual()
         {
             DataTable dt = new DataTable();
@@ -317,9 +346,6 @@ namespace CollabBuy.Repositories
         // 5. IMPLEMENTASI CUBE, ROLLUP, GROUPING SETS, SUBQUERY
         // =======================================================
 
-        /// <summary>
-        /// CUBE: Kombinasi silang Kategori X Jenis PO.
-        /// </summary>
         public DataTable GetAnalisisPasarCube()
         {
             DataTable dt = new DataTable();
@@ -350,6 +376,7 @@ namespace CollabBuy.Repositories
 
         /// <summary>
         /// ROLLUP: Hierarki Waktu → Total Tahun → Total Bulan.
+        /// DIPERBAIKI: Mengambil kolom Refund dan Omzet Bersih sesuai SQL.
         /// </summary>
         public DataTable GetLaporanKeuanganRollup()
         {
@@ -358,7 +385,9 @@ namespace CollabBuy.Repositories
                 SELECT
                     EXTRACT(YEAR  FROM t.tanggal_transaksi) AS tahun,
                     EXTRACT(MONTH FROM t.tanggal_transaksi) AS bulan,
-                    SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli) AS omzet_kotor
+                    SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                                    AS omzet_kotor,
+                    SUM(COALESCE(td.selisih_refund, 0))                                                   AS total_refund,
+                    SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) AS omzet_bersih
                 FROM transactions t
                 JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
                 WHERE t.status_pesanan = 'Selesai'
@@ -381,9 +410,6 @@ namespace CollabBuy.Repositories
             return dt;
         }
 
-        /// <summary>
-        /// GROUPING SETS: Rekap per Penjual & per Kategori sekaligus.
-        /// </summary>
         public DataTable GetRingkasanGlobalGroupingSets()
         {
             DataTable dt = new DataTable();
@@ -413,9 +439,6 @@ namespace CollabBuy.Repositories
             return dt;
         }
 
-        /// <summary>
-        /// SUBQUERY: Deteksi produk dengan sisa kuota <= 5.
-        /// </summary>
         public DataTable GetProdukSisaKuotaKritis()
         {
             DataTable dt = new DataTable();
@@ -436,6 +459,28 @@ namespace CollabBuy.Repositories
                 conn.Open();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
                 {
+                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
+        public DataTable GetLpjDanusPerPo(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT v.* FROM vw_lpj_danus_per_po v
+                JOIN preorders po ON v.id_po = po.id_po
+                WHERE po.id_penjual = @idPenjual;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
                     using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
                     {
                         adapter.Fill(dt);

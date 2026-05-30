@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -12,17 +9,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 {
     public partial class PesananMasukControl : UserControl
     {
-        private readonly User _currentSeller;
+        private readonly User _currentUser;
         private readonly TransactionController _transactionController;
 
-        public PesananMasukControl(User seller)
+        public PesananMasukControl(User currentUser)
         {
             InitializeComponent();
-            _currentSeller = seller;
+            _currentUser = currentUser;
 
-            // PERBAIKAN: View ini hanya membaca data (query) tanpa mengelola keranjang,
-            // sehingga cukup pakai konstruktor default TransactionController().
-            _transactionController = new TransactionController();
+            // Inisialisasi controller
+            _transactionController = new TransactionController(_currentUser.GetIdUser());
         }
 
         private void PesananMasukControl_Load(object sender, EventArgs e)
@@ -31,165 +27,83 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             LoadDataPesanan();
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            LoadDataPesanan();
-        }
-
         private void SetupDataGridView()
         {
             dgvPesanan.AutoGenerateColumns = false;
             dgvPesanan.Columns.Clear();
 
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTransaction", DataPropertyName = "Id", Visible = false });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Tanggal",
-                HeaderText = "Tgl Order",
-                DataPropertyName = "Tanggal",
-                Width = 120
-            });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Pembeli",
-                HeaderText = "Nama Pembeli",
-                DataPropertyName = "NamaPembeli",
-                Width = 150
-            });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Produk",
-                HeaderText = "Barang / Sesi PO",
-                DataPropertyName = "NamaProduk",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Qty",
-                HeaderText = "Qty",
-                DataPropertyName = "Kuantitas",
-                Width = 60,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Total",
-                HeaderText = "Total (Rp)",
-                DataPropertyName = "TotalHarga",
-                Width = 110,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Font = new Font("Segoe UI", 9.75F, FontStyle.Bold) }
-            });
-
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Status",
-                HeaderText = "Status Saat Ini",
-                DataPropertyName = "Status",
-                Width = 120
-            });
-
-            DataGridViewButtonColumn btnUpdate = new DataGridViewButtonColumn
-            {
-                Name = "BtnUpdate",
-                HeaderText = "Aksi",
-                Text = "🚀 Update Status",
-                UseColumnTextForButtonValue = true,
-                Width = 130,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnUpdate.DefaultCellStyle.BackColor = Color.FromArgb(36, 0, 70);
-            btnUpdate.DefaultCellStyle.ForeColor = Color.FromArgb(253, 255, 182);
-            dgvPesanan.Columns.Add(btnUpdate);
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Nama Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Tanggal Order", DataPropertyName = "tanggal_transaksi", Width = 150 });
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga (Rp)", DataPropertyName = "total_harga_lapak", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
+            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Saat Ini", DataPropertyName = "status_pesanan", Width = 150 });
         }
 
         private void LoadDataPesanan()
         {
             try
             {
-                DataTable dtMock = new DataTable();
-                dtMock.Columns.Add("Id", typeof(int));
-                dtMock.Columns.Add("Tanggal", typeof(string));
-                dtMock.Columns.Add("NamaPembeli", typeof(string));
-                dtMock.Columns.Add("NamaProduk", typeof(string));
-                dtMock.Columns.Add("Kuantitas", typeof(int));
-                dtMock.Columns.Add("TotalHarga", typeof(decimal));
-                dtMock.Columns.Add("Status", typeof(string));
-
-                dtMock.Rows.Add(201, "16 Nov", "Budi Santoso", "Danus Makaroni HMTI", 2, 10000, "Menunggu");
-                dtMock.Rows.Add(202, "16 Nov", "Siti Aminah", "Gantungan Kunci Custom", 1, 15000, "Diproses");
-
-                dgvPesanan.DataSource = dtMock;
+                // Tarik data asli dari database
+                DataTable dt = _transactionController.GetPesananMasuk(_currentUser.GetIdUser());
+                dgvPesanan.DataSource = dt;
+                dgvPesanan.ClearSelection();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal memuat pesanan masuk:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal narik data pesanan: " + ex.Message, "Waduh Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void dgvPesanan_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        // Method Helper buat Update Status
+        private void ProsesUbahStatus(string statusBaru, string pertanyaan)
         {
-            if (e.RowIndex < 0) return;
-
-            if (dgvPesanan.Columns[e.ColumnIndex].Name == "BtnUpdate")
+            if (dgvPesanan.SelectedRows.Count == 0)
             {
-                int transactionId = Convert.ToInt32(dgvPesanan.Rows[e.RowIndex].Cells["IdTransaction"].Value);
-                string statusSaatIni = dgvPesanan.Rows[e.RowIndex].Cells["Status"].Value.ToString();
-                string namaPembeli = dgvPesanan.Rows[e.RowIndex].Cells["Pembeli"].Value.ToString();
-
-                string statusBaru = "";
-                string pesanKonfirmasi = "";
-
-                if (statusSaatIni == "Menunggu")
-                {
-                    statusBaru = "Diproses";
-                    pesanKonfirmasi = $"Terima dan mulai proses pesanan dari '{namaPembeli}'?";
-                }
-                else if (statusSaatIni == "Diproses")
-                {
-                    statusBaru = "Selesai";
-                    pesanKonfirmasi = $"Tandai pesanan '{namaPembeli}' sebagai 'Selesai'?";
-                }
-                else
-                {
-                    MessageBox.Show("Pesanan ini sudah selesai atau dibatalkan.", "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                DialogResult dr = MessageBox.Show(pesanKonfirmasi, "Update Status", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (dr == DialogResult.Yes)
-                {
-                    ProsesUpdateStatus(transactionId, statusBaru);
-                }
+                MessageBox.Show("Pilih dulu pesanan mana yang mau di-update bestie!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-        }
 
-        private void ProsesUpdateStatus(int transactionId, string statusBaru)
-        {
-            try
+            int idTrx = Convert.ToInt32(dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
+            string namaPembeli = dgvPesanan.SelectedRows[0].Cells["Pembeli"].Value.ToString();
+            string statusLama = dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
+
+            // Cegah ubah status kalau udah kelar atau batal
+            if (statusLama == "Selesai" || statusLama == "Dibatalkan")
             {
-                // PERBAIKAN: Panggil TransactionController yang sudah diperbaiki
-                var (sukses, pesan) = _transactionController.UbahStatusPesanan(transactionId, statusBaru);
+                MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            DialogResult dr = MessageBox.Show(pertanyaan + $"\n(Pembeli: {namaPembeli})", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                var (sukses, pesan) = _transactionController.UbahStatusPesanan(idTrx, statusBaru);
 
                 if (sukses)
                 {
-                    MessageBox.Show($"Status pesanan berhasil diubah menjadi: {statusBaru}!",
-                                    "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataPesanan();
+                    MessageBox.Show(pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadDataPesanan(); // Refresh Grid
                 }
                 else
                 {
-                    MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Terjadi kesalahan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        }
+
+        private void btnProses_Click(object sender, EventArgs e)
+        {
+            ProsesUbahStatus("Diproses", "Yakin mau mulai proses pesanan ini?");
+        }
+
+        private void btnSelesai_Click(object sender, EventArgs e)
+        {
+            ProsesUbahStatus("Selesai", "Udah kelar diproses dan barangnya udah dikasih ke pembeli kan?");
+        }
+
+        private void btnBatal_Click(object sender, EventArgs e)
+        {
+            ProsesUbahStatus("Dibatalkan", "Yakin banget nih mau ngebatalin pesanan orang? 🥺");
         }
     }
 }

@@ -1,71 +1,68 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 
 namespace CollabBuy.CollabBuyApp.View.Main
 {
-    /// <summary>
-    /// RegisterControl: UserControl untuk halaman pendaftaran akun baru.
-    ///
-    /// Tanggung Jawab:
-    /// - Menerima input data registrasi dari user.
-    /// - Mendelegasikan proses registrasi ke UserController.
-    /// - Mengirim notifikasi registrasi selesai ke MainForm melalui event OnRegistrationComplete.
-    ///
-    /// Pola yang diterapkan:
-    /// - Event-driven communication: RegisterControl tidak tahu siapa subscriber-nya.
-    /// - Separation of Concerns: Validasi bisnis di Controller/Model, bukan di View.
-    /// </summary>
     public partial class RegisterControl : UserControl
     {
-        // === EVENT ===
-
-        /// <summary>
-        /// Event yang di-raise saat registrasi berhasil.
-        /// MainForm akan merespons dengan menampilkan kembali LoginControl.
-        /// </summary>
         public event EventHandler OnRegistrationComplete;
-
-        // === DEPENDENCY ===
         private readonly UserController _userController;
 
-        // === KONSTRUKTOR ===
         public RegisterControl()
         {
             InitializeComponent();
             _userController = new UserController();
+            this.Resize += RegisterControl_Resize;
         }
 
-        // === EVENT HANDLERS ===
+        private void RegisterControl_Resize(object sender, EventArgs e)
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.Height - pnlCard.Height) / 2;
+            }
+        }
 
-        /// <summary>
-        /// Proses registrasi saat tombol Daftar diklik.
-        ///
-        /// Fix CS1061: UserController tidak punya method Register().
-        /// Method yang benar adalah RegistrasiPembeli(nama, username, password)
-        /// yang mengembalikan tuple (bool sukses, string pesan).
-        /// </summary>
+        // --- FITUR BARU: Nahan Input Huruf di No WA ---
+        private void txtNoTelepon_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Hanya izinkan angka (0-9) dan tombol kontrol (seperti Backspace)
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                // Batalkan input jika yang diketik bukan angka
+                e.Handled = true;
+            }
+        }
+        // ----------------------------------------------
+
+        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+        {
+            char pwChar = chkShowPassword.Checked ? '\0' : '●';
+            txtPassword.PasswordChar = pwChar;
+            txtKonfirmasiPassword.PasswordChar = pwChar;
+        }
+
         private void btnDaftar_Click(object sender, EventArgs e)
         {
             string nama = txtNama.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string noTelepon = txtNoTelepon.Text.Trim();
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
             string konfirmasiPassword = txtKonfirmasiPassword.Text;
 
-            // Validasi input dasar di View (sebelum menyentuh controller)
-            if (string.IsNullOrWhiteSpace(nama) ||
-                string.IsNullOrWhiteSpace(username) ||
-                string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(nama) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(noTelepon))
             {
-                MessageBox.Show("Nama, username, dan password tidak boleh kosong.",
-                    "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Nama, Email, No WA, Username, sama Password jangan ada yang dikosongin ya bestie.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (password != konfirmasiPassword)
             {
-                MessageBox.Show("Password dan konfirmasi password tidak sama.",
-                    "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Password atas bawah beda tuh, ketik ulang ya biar gak keliru!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtKonfirmasiPassword.Clear();
                 txtKonfirmasiPassword.Focus();
                 return;
@@ -73,33 +70,24 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             try
             {
-                // CS1061 FIX: Gunakan RegistrasiPembeli() — method yang benar di UserController.
-                // Mengembalikan tuple (bool sukses, string pesan).
-                var (sukses, pesan) = _userController.RegistrasiPembeli(nama, username, password);
+                var (sukses, pesan) = _userController.RegistrasiPembeli(nama, email, noTelepon, username, password);
 
                 if (sukses)
                 {
-                    MessageBox.Show(pesan, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Raise event ke MainForm agar kembali ke halaman Login
+                    MessageBox.Show(pesan, "Sukses Banget!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     OnRegistrationComplete?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
-                    // Tampilkan pesan error spesifik dari controller (misal: username duplikat)
-                    MessageBox.Show(pesan, "Registrasi Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Yah Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Terjadi kesalahan: " + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Waduh error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        /// <summary>
-        /// Kembali ke halaman Login tanpa mendaftar.
-        /// </summary>
         private void btnBatal_Click(object sender, EventArgs e)
         {
             OnRegistrationComplete?.Invoke(this, EventArgs.Empty);

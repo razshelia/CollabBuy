@@ -155,17 +155,23 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
-                        // 1. Update tabel users (nama, is_diblokir)
-                        string queryUser = "UPDATE users SET nama = @nama, is_diblokir = @isBlokir WHERE id_user = @id;";
+                        // 1. Update tabel users (sekarang update email, no telp, dan password juga)
+                        string queryUser = @"UPDATE users 
+                                             SET nama = @nama, email = @email, nomor_telepon = @telp, 
+                                                 password = @pass, is_diblokir = @isBlokir 
+                                             WHERE id_user = @id;";
                         using (NpgsqlCommand cmd = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
                             cmd.Parameters.AddWithValue("@id", entity.GetIdUser());
                             cmd.Parameters.AddWithValue("@nama", entity.GetNama());
+                            cmd.Parameters.AddWithValue("@email", string.IsNullOrEmpty(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
+                            cmd.Parameters.AddWithValue("@telp", string.IsNullOrEmpty(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
+                            cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
                             cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir());
                             cmd.ExecuteNonQuery();
                         }
 
-                        // 2. Jika Penjual, update tabel verifications juga
+                        // 2. Jika Penjual, update status verifikasinya
                         Penjual penjual = entity as Penjual;
                         if (penjual != null)
                         {
@@ -183,7 +189,62 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     catch (Exception ex)
                     {
                         dbTx.Rollback();
-                        throw new InvalidOrderException("Update user dibatalkan (Rollback): " + ex.Message, "", "DB_UPDATE_USER_FAILED", ex);
+                        throw new InvalidOrderException("Update user dibatalkan: " + ex.Message, "", "DB_UPDATE_USER_FAILED", ex);
+                    }
+                }
+            }
+        }
+
+        // =======================================================
+        // TAMBAHAN UNTUK FITUR DAFTAR TOKO
+        // =======================================================
+
+        public bool CheckPendingVerification(int idUser)
+        {
+            string query = "SELECT is_verifikasi FROM verifications WHERE id_user = @id";
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idUser);
+                    object result = cmd.ExecuteScalar();
+                    if (result != null)
+                    {
+                        // Jika ada datanya, cek apakah is_verifikasi masih false (artinya pending)
+                        return !(Convert.ToBoolean(result));
+                    }
+                    return false; // Belum pernah daftar
+                }
+            }
+        }
+
+        public void AjukanLapakBaru(int idUser, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
+        {
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlTransaction dbTx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // Insert ke tabel verifications (syarat database CollabBuy)
+                        string queryVerif = "INSERT INTO verifications (id_user, nim, nama_toko, tahun_masuk, bukti_ktm) VALUES (@id, @nim, @toko, @tahun, @ktm);";
+                        using (NpgsqlCommand cmd = new NpgsqlCommand(queryVerif, conn, dbTx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", idUser);
+                            cmd.Parameters.AddWithValue("@nim", nim);
+                            cmd.Parameters.AddWithValue("@toko", namaToko);
+                            cmd.Parameters.AddWithValue("@tahun", tahunMasuk);
+                            cmd.Parameters.AddWithValue("@ktm", buktiKtm ?? new byte[0]);
+                            cmd.ExecuteNonQuery();
+                        }
+                        dbTx.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        dbTx.Rollback();
+                        throw;
                     }
                 }
             }

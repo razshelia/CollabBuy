@@ -6,14 +6,9 @@
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
-
-        #region Component Designer generated code
 
         private void InitializeComponent()
         {
@@ -21,120 +16,114 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
-            this.btnTambahProduk = new System.Windows.Forms.Button();
+            this.pnlGrid = new System.Windows.Forms.Panel();
             this.btnRefresh = new System.Windows.Forms.Button();
-            this.dgvProduk = new System.Windows.Forms.DataGridView();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvProduk)).BeginInit();
+            this.dgvLapak = new System.Windows.Forms.DataGridView();
+            this.pnlGrid.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLapak)).BeginInit();
             this.SuspendLayout();
             // 
             // lblTitle
             // 
             this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblTitle.Location = new System.Drawing.Point(30, 30);
+            this.lblTitle.Location = new System.Drawing.Point(30, 25);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(242, 32);
+            this.lblTitle.Size = new System.Drawing.Size(326, 37);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "Manajemen Produk";
+            this.lblTitle.Text = "Gudang Lapak Kamu 📦";
             // 
             // lblSubtitle
             // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(359, 19);
+            this.lblSubtitle.Size = new System.Drawing.Size(364, 20);
             this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Kelola daftar produk reguler yang Anda jual di aplikasi ini.";
+            this.lblSubtitle.Text = "Pantau daftar barang yang kamu jual di sistem Danus!";
             // 
-            // btnTambahProduk
+            // pnlGrid
             // 
-            this.btnTambahProduk.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.btnTambahProduk.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnTambahProduk.FlatAppearance.BorderSize = 0;
-            this.btnTambahProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnTambahProduk.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnTambahProduk.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
-            this.btnTambahProduk.Location = new System.Drawing.Point(36, 110);
-            this.btnTambahProduk.Name = "btnTambahProduk";
-            this.btnTambahProduk.Size = new System.Drawing.Size(160, 35);
-            this.btnTambahProduk.TabIndex = 2;
-            this.btnTambahProduk.Text = "➕ Tambah Produk";
-            this.btnTambahProduk.UseVisualStyleBackColor = false;
-            this.btnTambahProduk.Click += new System.EventHandler(this.btnTambahProduk_Click);
+            this.pnlGrid.BackColor = System.Drawing.Color.White;
+            this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlGrid.Controls.Add(this.btnRefresh);
+            this.pnlGrid.Controls.Add(this.dgvLapak);
+            this.pnlGrid.Location = new System.Drawing.Point(36, 110);
+            this.pnlGrid.Name = "pnlGrid";
+            this.pnlGrid.Size = new System.Drawing.Size(920, 500);
+            this.pnlGrid.TabIndex = 2;
             // 
             // btnRefresh
             // 
-            this.btnRefresh.BackColor = System.Drawing.Color.White;
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.FlatAppearance.BorderSize = 0;
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.btnRefresh.Location = new System.Drawing.Point(210, 110);
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnRefresh.Location = new System.Drawing.Point(734, 435);
             this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(120, 35);
+            this.btnRefresh.Size = new System.Drawing.Size(150, 40);
             this.btnRefresh.TabIndex = 3;
             this.btnRefresh.Text = "🔄 Refresh";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             // 
-            // dgvProduk
+            // dgvLapak
             // 
-            this.dgvProduk.AllowUserToAddRows = false;
-            this.dgvProduk.AllowUserToDeleteRows = false;
-            this.dgvProduk.BackgroundColor = System.Drawing.Color.White;
-            this.dgvProduk.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvLapak.AllowUserToAddRows = false;
+            this.dgvLapak.AllowUserToDeleteRows = false;
+            this.dgvLapak.BackgroundColor = System.Drawing.Color.White;
+            this.dgvLapak.BorderStyle = System.Windows.Forms.BorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvProduk.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.dgvProduk.ColumnHeadersHeight = 40;
-            this.dgvProduk.EnableHeadersVisualStyles = false;
-            this.dgvProduk.Location = new System.Drawing.Point(36, 160);
-            this.dgvProduk.Name = "dgvProduk";
-            this.dgvProduk.ReadOnly = true;
-            this.dgvProduk.RowHeadersVisible = false;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dgvLapak.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvLapak.ColumnHeadersHeight = 45;
+            this.dgvLapak.EnableHeadersVisualStyles = false;
+            this.dgvLapak.Location = new System.Drawing.Point(34, 30);
+            this.dgvLapak.MultiSelect = false;
+            this.dgvLapak.Name = "dgvLapak";
+            this.dgvLapak.ReadOnly = true;
+            this.dgvLapak.RowHeadersVisible = false;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 10F);
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(235)))), ((int)(((byte)(230)))), ((int)(((byte)(255)))));
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
-            this.dgvProduk.RowsDefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvProduk.RowTemplate.Height = 35;
-            this.dgvProduk.Size = new System.Drawing.Size(900, 435);
-            this.dgvProduk.TabIndex = 4;
-            this.dgvProduk.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvProduk_CellContentClick);
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(5);
+            this.dgvLapak.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvLapak.RowTemplate.Height = 50;
+            this.dgvLapak.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvLapak.Size = new System.Drawing.Size(850, 380);
+            this.dgvLapak.TabIndex = 0;
             // 
             // ManajemenProdukControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
-            this.Controls.Add(this.dgvProduk);
-            this.Controls.Add(this.btnRefresh);
-            this.Controls.Add(this.btnTambahProduk);
+            this.Controls.Add(this.pnlGrid);
             this.Controls.Add(this.lblSubtitle);
             this.Controls.Add(this.lblTitle);
             this.Name = "ManajemenProdukControl";
             this.Size = new System.Drawing.Size(1000, 650);
             this.Load += new System.EventHandler(this.ManajemenProdukControl_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvProduk)).EndInit();
+            this.pnlGrid.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLapak)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
-
-        #endregion
 
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblSubtitle;
-        private System.Windows.Forms.Button btnTambahProduk;
+        private System.Windows.Forms.Panel pnlGrid;
+        private System.Windows.Forms.DataGridView dgvLapak;
         private System.Windows.Forms.Button btnRefresh;
-        private System.Windows.Forms.DataGridView dgvProduk;
     }
 }

@@ -82,20 +82,31 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// <summary>
         /// Mendaftarkan pembeli baru ke dalam sistem.
         /// </summary>
-        public (bool sukses, string pesan) RegistrasiPembeli(string nama, string username, string password)
+        // =======================================================
+        // FITUR REGISTRASI
+        // =======================================================
+
+        /// <summary>
+        /// Mendaftarkan pembeli baru ke dalam sistem.
+        /// </summary>
+        public (bool sukses, string pesan) RegistrasiPembeli(string nama, string email, string noTelepon, string username, string password)
         {
             try
             {
                 string hashPassword = HashSha256(password);
 
-                // Buat objek Model (Validasi data ada di dalam konstruktor & setter Model)
+                // Buat objek Model
                 Pembeli pembeliBaru = new Pembeli(nama, username, hashPassword);
+                pembeliBaru.SetEmail(email);
+                pembeliBaru.SetNomorTelepon(noTelepon);
+
+                // Validasi data ada di dalam konstruktor & setter Model
                 pembeliBaru.Validate();
 
                 // Simpan ke DB via Repository
                 _userRepo.Insert(pembeliBaru);
 
-                return (true, "Registrasi pembeli berhasil! Silakan login.");
+                return (true, "Yey! Akun kamu berhasil dibuat. Langsung login aja bestie!");
             }
             catch (InvalidOrderException ex)
             {
@@ -103,12 +114,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (Exception ex)
             {
-                // Tangkap error database (misal: UNIQUE constraint username duplikat)
+                // Tangkap error database (misal: UNIQUE constraint username atau email duplikat)
                 if (ex.Message.Contains("username"))
                 {
-                    return (false, "Username sudah digunakan, pilih username lain!");
+                    return (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
                 }
-                return (false, "Error sistem: " + ex.Message);
+                else if (ex.Message.Contains("email"))
+                {
+                    return (false, "Email ini udah pernah didaftarin. Lupa password kah?");
+                }
+                return (false, "Waduh error sistem nih: " + ex.Message);
             }
         }
         public (bool sukses, string pesan) RegistrasiPenjual(string nama, string username, string password, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
@@ -199,7 +214,55 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
+        public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru)
+        {
+            try
+            {
+                // Jika user mengisi password baru di form, hash dulu sebelum di-set
+                if (!string.IsNullOrEmpty(rawPasswordBaru))
+                {
+                    user.SetPassword(HashSha256(rawPasswordBaru));
+                }
 
+                user.Validate(); // Pastikan data valid
+                _userRepo.Update(user); // Lempar ke Repository
+
+                return (true, "Yey! Profil kamu berhasil diperbarui.");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                return (false, "Yah gagal update profil: " + ex.Message);
+            }
+        }
+
+        public bool CekPendingVerifikasi(int idUser)
+        {
+            return _userRepo.CheckPendingVerification(idUser);
+        }
+
+        public (bool sukses, string pesan) AjukanVerifikasiToko(int idUser, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
+        {
+            try
+            {
+                // Cek apakah file KTM beneran ada isinya
+                if (buktiKtm == null || buktiKtm.Length == 0)
+                {
+                    return (false, "Foto KTM wajib di-upload ya bestie buat bukti!");
+                }
+
+                _userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
+                return (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("nim")) return (false, "NIM ini udah dipakai untuk lapak lain!");
+                return (false, "Gagal mengajukan toko: " + ex.Message);
+            }
+        }
         // =======================================================
         // METHOD BANTUAN PRIVATE (HELPER)
         // =======================================================

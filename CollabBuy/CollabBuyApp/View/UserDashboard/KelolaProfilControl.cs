@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -20,6 +16,16 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             InitializeComponent();
             _currentUser = currentUser;
             _userController = new UserController();
+            this.Resize += KelolaProfilControl_Resize; // Auto Center
+        }
+
+        private void KelolaProfilControl_Resize(object sender, EventArgs e)
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void KelolaProfilControl_Load(object sender, EventArgs e)
@@ -27,16 +33,18 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             LoadDataProfil();
         }
 
+        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+        {
+            txtPassword.PasswordChar = chkShowPassword.Checked ? '\0' : '●';
+        }
+
         private void LoadDataProfil()
         {
             if (_currentUser != null)
             {
-                // PERBAIKAN: Model User menggunakan metode getter (GetNama(), GetEmail()),
-                // bukan properti auto (.Nama, .Email). Sesuai pola enkapsulasi OOP proyek ini.
                 txtNama.Text = _currentUser.GetNama();
                 txtEmail.Text = _currentUser.GetEmail() ?? "";
 
-                // NIM hanya ada pada Penjual — cek dengan casting
                 Penjual penjual = _currentUser as Penjual;
                 if (penjual != null)
                 {
@@ -44,75 +52,40 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 }
                 else
                 {
-                    txtNIM.Text = "";
-                    txtNIM.Enabled = false; // Pembeli tidak punya NIM
+                    txtNIM.Text = "User Reguler (Gak Butuh NIM)";
                 }
-
-                // Kosongkan password agar tidak terekspos
                 txtPassword.Clear();
             }
         }
 
         private void btnSimpan_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNama.Text) || string.IsNullOrWhiteSpace(txtEmail.Text))
-            {
-                MessageBox.Show("Nama dan Email tidak boleh kosong!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!txtEmail.Text.Contains("@") || !txtEmail.Text.Contains("."))
-            {
-                MessageBox.Show("Format email tidak valid!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            DialogResult dialog = MessageBox.Show("Apakah Anda yakin ingin menyimpan perubahan profil ini?",
-                                                  "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dialog = MessageBox.Show("Yakin mau simpan profil baru ini?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dialog == DialogResult.Yes)
             {
-                ProsesSimpanProfil();
-            }
-        }
-
-        private void ProsesSimpanProfil()
-        {
-            try
-            {
-                // PERBAIKAN: Gunakan setter method (SetNama, SetEmail) bukan assignment property langsung.
-                // Ini melewati validasi yang didefinisikan di dalam kelas User (enkapsulasi).
-                _currentUser.SetNama(txtNama.Text.Trim());
-                _currentUser.SetEmail(txtEmail.Text.Trim());
-
-                // Jika user mengisi password baru
-                if (!string.IsNullOrWhiteSpace(txtPassword.Text))
+                try
                 {
-                    _currentUser.SetPassword(txtPassword.Text);
+                    _currentUser.SetNama(txtNama.Text.Trim());
+                    _currentUser.SetEmail(txtEmail.Text.Trim());
+
+                    string passwordBaru = txtPassword.Text.Trim();
+                    var (sukses, pesan) = _userController.UpdateProfil(_currentUser, passwordBaru);
+
+                    if (sukses)
+                    {
+                        MessageBox.Show(pesan, "Sukses Banget", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        txtPassword.Clear();
+                    }
+                    else
+                    {
+                        MessageBox.Show(pesan, "Yah Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        LoadDataProfil();
+                    }
                 }
-
-                // TODO: Hubungkan ke UserController untuk menyimpan ke database
-                // var (sukses, pesan) = _userController.UpdateProfil(_currentUser);
-
-                bool success = true; // Mock success sampai method controller dibuat
-
-                if (success)
+                catch (InvalidOrderException ex)
                 {
-                    MessageBox.Show("Profil berhasil diperbarui!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    txtPassword.Clear();
+                    MessageBox.Show(ex.GetPesanLengkap(), "Validasi Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                else
-                {
-                    MessageBox.Show("Gagal menyimpan perubahan profil.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (InvalidOrderException ex)
-            {
-                // Tangkap validasi dari setter model (misal nama terlalu pendek)
-                MessageBox.Show(ex.GetPesanLengkap(), "Validasi Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Terjadi kesalahan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

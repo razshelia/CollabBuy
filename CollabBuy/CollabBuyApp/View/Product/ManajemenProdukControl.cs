@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -33,180 +30,68 @@ namespace CollabBuy.CollabBuyApp.View.Product
             LoadDataProduk();
         }
 
-        // --- KONFIGURASI TABEL ---
         private void SetupDataGridView()
         {
-            dgvProduk.AutoGenerateColumns = false;
-            dgvProduk.Columns.Clear();
+            dgvLapak.AutoGenerateColumns = false;
+            dgvLapak.Columns.Clear();
+            dgvLapak.RowTemplate.Height = 80; // Kasih space buat foto
 
-            dgvProduk.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "IdProduk",
-                DataPropertyName = "Id", // Ganti sesuai property ID di model Product Anda
-                Visible = false // Sembunyikan ID dari UI
-            });
+            // Kolom Gambar Baru
+            DataGridViewImageColumn colFoto = new DataGridViewImageColumn();
+            colFoto.Name = "Foto";
+            colFoto.HeaderText = "Foto";
+            colFoto.DataPropertyName = "foto_image";
+            colFoto.ImageLayout = DataGridViewImageCellLayout.Zoom;
+            colFoto.Width = 80;
+            dgvLapak.Columns.Add(colFoto);
 
-            dgvProduk.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "NamaProduk",
-                HeaderText = "Nama Produk",
-                DataPropertyName = "NamaProduk", // Ganti sesuai property di model
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
-
-            dgvProduk.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Kategori",
-                HeaderText = "Kategori",
-                DataPropertyName = "NamaKategori", // Ganti sesuai property di model
-                Width = 150
-            });
-
-            dgvProduk.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Harga",
-                HeaderText = "Harga (Rp)",
-                DataPropertyName = "Harga",
-                Width = 120,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } // Format uang
-            });
-
-            dgvProduk.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Stok",
-                HeaderText = "Stok",
-                DataPropertyName = "Stok",
-                Width = 80,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            });
-
-            // Kolom Tombol Edit
-            DataGridViewButtonColumn btnEdit = new DataGridViewButtonColumn
-            {
-                Name = "BtnEdit",
-                HeaderText = "Aksi",
-                Text = "✏️ Edit",
-                UseColumnTextForButtonValue = true,
-                Width = 80,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnEdit.DefaultCellStyle.BackColor = Color.LightSkyBlue;
-            btnEdit.DefaultCellStyle.ForeColor = Color.Black;
-            dgvProduk.Columns.Add(btnEdit);
-
-            // Kolom Tombol Hapus
-            DataGridViewButtonColumn btnHapus = new DataGridViewButtonColumn
-            {
-                Name = "BtnHapus",
-                HeaderText = "",
-                Text = "🗑️ Hapus",
-                UseColumnTextForButtonValue = true,
-                Width = 90,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnHapus.DefaultCellStyle.BackColor = Color.LightCoral;
-            btnHapus.DefaultCellStyle.ForeColor = Color.Black;
-            dgvProduk.Columns.Add(btnHapus);
+            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Barang", DataPropertyName = "nama_produk", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "nama_kategori", Width = 150 });
+            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "PO", HeaderText = "Sesi PO", DataPropertyName = "judul_po", Width = 150 });
+            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Harga", HeaderText = "Harga Jual", DataPropertyName = "harga_format", Width = 130 });
+            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kuota", HeaderText = "Target Kuota", DataPropertyName = "target_kuota", Width = 100 });
         }
 
-        // --- MEMUAT DATA ---
         private void LoadDataProduk()
         {
             try
             {
-                // TODO: Panggil method di ProductController untuk mengambil produk berdasarkan ID Penjual/Toko saat ini.
-                // var daftarProduk = _productController.GetProductsBySeller(_currentUser.IdUser);
+                DataTable dtRaw = _productController.GetProdukLapak(_currentUser.GetIdUser());
+                DataTable dtUI = new DataTable();
+                dtUI.Columns.Add("foto_image", typeof(Image));
+                dtUI.Columns.Add("nama_produk", typeof(string));
+                dtUI.Columns.Add("nama_kategori", typeof(string));
+                dtUI.Columns.Add("judul_po", typeof(string));
+                dtUI.Columns.Add("harga_format", typeof(string));
+                dtUI.Columns.Add("target_kuota", typeof(string));
 
-                // --- MOCK DATA UNTUK PREVIEW UI ---
-                DataTable dtMock = new DataTable();
-                dtMock.Columns.Add("Id", typeof(int));
-                dtMock.Columns.Add("NamaProduk", typeof(string));
-                dtMock.Columns.Add("NamaKategori", typeof(string));
-                dtMock.Columns.Add("Harga", typeof(decimal));
-                dtMock.Columns.Add("Stok", typeof(int));
+                foreach (DataRow row in dtRaw.Rows)
+                {
+                    string judulPo = row.IsNull("judul_po") ? "Reguler" : row["judul_po"].ToString();
+                    string kategori = row.IsNull("nama_kategori") ? "-" : row["nama_kategori"].ToString();
+                    string harga = "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0");
+                    string kuota = row.IsNull("target_kuota") ? "-" : row["target_kuota"].ToString();
 
-                dtMock.Rows.Add(1, "Makaroni Bantet Pedas", "Makanan & Minuman", 5000, 100);
-                dtMock.Rows.Add(2, "Keripik Kaca Original", "Makanan & Minuman", 6000, 50);
-                dtMock.Rows.Add(3, "Gantungan Kunci Custom", "Aksesoris", 15000, 20);
+                    // Konversi Byte to Image
+                    Image foto = null;
+                    if (row["foto_produk"] != DBNull.Value)
+                    {
+                        byte[] imgBytes = (byte[])row["foto_produk"];
+                        using (var ms = new System.IO.MemoryStream(imgBytes))
+                        {
+                            foto = Image.FromStream(ms);
+                        }
+                    }
 
-                dgvProduk.DataSource = dtMock;
-                // ---------------------------------
+                    dtUI.Rows.Add(foto, row["nama_produk"], kategori, judulPo, harga, kuota);
+                }
+
+                dgvLapak.DataSource = dtUI;
+                dgvLapak.ClearSelection();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal memuat data produk:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        // --- AKSI TOMBOL TAMBAH ---
-        private void btnTambahProduk_Click(object sender, EventArgs e)
-        {
-            // TODO: Tampilkan form/dialog untuk menambah produk baru.
-            // Contoh implementasi jika Anda punya Form TambahProdukForm:
-
-            /*
-            using (var formTambah = new FormTambahProduk(_currentUser.IdUser))
-            {
-                if (formTambah.ShowDialog() == DialogResult.OK)
-                {
-                    LoadDataProduk(); // Refresh data setelah berhasil tambah
-                }
-            }
-            */
-
-            MessageBox.Show("Form Tambah Produk belum diimplementasikan.\nSilakan buat Form dialog baru untuk input data produk.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        // --- AKSI TOMBOL TABEL (EDIT & HAPUS) ---
-        private void dgvProduk_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            // Abaikan klik pada Header
-            if (e.RowIndex < 0) return;
-
-            int idProduk = Convert.ToInt32(dgvProduk.Rows[e.RowIndex].Cells["IdProduk"].Value);
-            string namaProduk = dgvProduk.Rows[e.RowIndex].Cells["NamaProduk"].Value.ToString();
-
-            // AKSI EDIT
-            if (dgvProduk.Columns[e.ColumnIndex].Name == "BtnEdit")
-            {
-                // TODO: Buka Form Edit, passing ID Produk ke constructor form tersebut.
-                MessageBox.Show($"Buka Form Edit untuk produk: {namaProduk} (ID: {idProduk})", "Info Edit", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            // AKSI HAPUS
-            else if (dgvProduk.Columns[e.ColumnIndex].Name == "BtnHapus")
-            {
-                DialogResult dialog = MessageBox.Show($"Apakah Anda yakin ingin MENGHAPUS produk '{namaProduk}' secara permanen?",
-                                                      "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                if (dialog == DialogResult.Yes)
-                {
-                    ProsesHapusProduk(idProduk);
-                }
-            }
-        }
-
-        private void ProsesHapusProduk(int idProduk)
-        {
-            try
-            {
-                // TODO: Panggil method hapus di controller
-                // bool sukses = _productController.DeleteProduct(idProduk);
-
-                bool sukses = true; // Mock sukses
-
-                if (sukses)
-                {
-                    MessageBox.Show("Produk berhasil dihapus.", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataProduk(); // Segarkan tabel
-                }
-                else
-                {
-                    MessageBox.Show("Gagal menghapus produk.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Terjadi kesalahan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal load data lapak: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

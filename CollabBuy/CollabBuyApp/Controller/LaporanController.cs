@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using CollabBuy.Repositories;
+using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -25,24 +25,43 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
 
         // =======================================================
-        // FITUR VIEW DATABASE
+        // 0. FITUR ANALITIK PENJUALAN (SELLER UI)
         // =======================================================
 
         /// <summary>
-        /// Mengambil data dari View vw_katalog_aktif.
+        /// Mengambil ringkasan pendapatan dan total pesanan selesai untuk Dashboard Analitik Penjual.
         /// </summary>
-        public DataTable GetKatalogAktif()
+        public (long totalPendapatan, int totalPesanan) GetRingkasanLapak(int idPenjual)
         {
             try
             {
-                return _laporanRepo.GetKatalogAktif();
+                return _laporanRepo.GetRingkasanPenjualan(idPenjual);
             }
             catch (Exception)
             {
-                // Jika DB error, kembalikan DataTable kosong agar DataGridView tidak crash
+                return (0, 0); // Kembalikan 0 jika database error agar UI tetap aman
+            }
+        }
+
+        /// <summary>
+        /// Mengambil rincian riwayat transaksi yang sudah selesai untuk ditampilkan di tabel Analitik.
+        /// </summary>
+        public DataTable GetDetailRiwayatCuan(int idPenjual)
+        {
+            try
+            {
+                return _laporanRepo.GetRiwayatCuanDataTable(idPenjual);
+            }
+            catch (Exception)
+            {
                 return new DataTable();
             }
         }
+
+
+        // =======================================================
+        // 1. FITUR VIEW DATABASE (ADMIN UI)
+        // =======================================================
 
         /// <summary>
         /// Mengambil data dari View vw_transaksi_lengkap.
@@ -61,11 +80,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
 
         // =======================================================
-        // FITUR PURE FUNCTION DATABASE
+        // 2. FITUR PURE FUNCTION DATABASE
         // =======================================================
 
         /// <summary>
-        /// Mengambil statistik dashboard untuk penjual tertentu.
+        /// Mengambil statistik dashboard untuk penjual tertentu menggunakan Function DB.
         /// </summary>
         public DataTable GetStatistikDashboardPenjual(int idPenjual)
         {
@@ -96,7 +115,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
 
         // =======================================================
-        // FITUR TEORI HIMPUAN (SET OPERATIONS)
+        // 3. FITUR TEORI HIMPUAN (SET OPERATIONS)
         // =======================================================
 
         /// <summary>
@@ -146,7 +165,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
 
         // =======================================================
-        // FITUR GROUP BY & CASE (KLASIFIKASI)
+        // 4. FITUR GROUP BY & CASE (KLASIFIKASI)
         // =======================================================
 
         /// <summary>
@@ -196,7 +215,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
 
         // =======================================================
-        // FITUR CUBE, ROLLUP, GROUPING SETS, SUBQUERY
+        // 5. FITUR CUBE, ROLLUP, GROUPING SETS, SUBQUERY
         // =======================================================
 
         /// <summary>
@@ -252,6 +271,18 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try
             {
                 return _laporanRepo.GetProdukSisaKuotaKritis();
+            }
+            catch (Exception)
+            {
+                return new DataTable();
+            }
+        }
+        public DataTable GetLpjDanusPerPo(int idPenjual)
+        {
+            try
+            {
+                // Memanggil dari LaporanRepository yang sudah kita perbarui sebelumnya
+                return _laporanRepo.GetLpjDanusPerPo(idPenjual);
             }
             catch (Exception)
             {

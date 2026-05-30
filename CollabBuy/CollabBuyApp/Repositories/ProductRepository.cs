@@ -1,9 +1,10 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -103,7 +104,53 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             return listProduk;
         }
+        public DataTable GetKatalogAktif(int limit = 100)
+        {
+            DataTable dtKatalog = new DataTable();
+            // Tambahin foto_produk di query ini
+            string query = "SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar, harga_diskon, batas_waktu, foto_produk FROM vw_katalog_aktif ORDER BY batas_waktu ASC LIMIT @limit;";
 
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@limit", limit);
+                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dtKatalog);
+                    }
+                }
+            }
+            return dtKatalog;
+        }
+
+        public DataTable GetProdukByPenjualDataTable(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            // Tambahin p.foto_produk di sini juga
+            string query = @"
+                SELECT p.id_produk, p.nama_produk, c.nama_kategori, p.harga_dasar, p.target_kuota, po.judul_po, p.foto_produk
+                FROM products p
+                LEFT JOIN categories c ON p.id_kategori = c.id_kategori
+                LEFT JOIN preorders po ON p.id_po = po.id_po
+                WHERE p.id_penjual = @idPenjual
+                ORDER BY p.nama_produk;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
 
         // =======================================================
         // IMPLEMENTASI ICommandRepository<Product>

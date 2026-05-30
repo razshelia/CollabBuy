@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.IO;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -14,12 +11,23 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
     {
         private User _currentUser;
         private readonly UserController _userController;
+        private byte[] _buktiKtmBytes; // Buat nampung data foto
 
         public DaftarTokoControl(User currentUser)
         {
             InitializeComponent();
             _currentUser = currentUser;
             _userController = new UserController();
+            this.Resize += DaftarTokoControl_Resize;
+        }
+
+        private void DaftarTokoControl_Resize(object sender, EventArgs e)
+        {
+            if (pnlCard != null)
+            {
+                pnlCard.Left = (this.Width - pnlCard.Width) / 2;
+                pnlCard.Top = (this.Height - pnlCard.Height) / 2;
+            }
         }
 
         private void DaftarTokoControl_Load(object sender, EventArgs e)
@@ -27,105 +35,88 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             CekStatusVerifikasi();
         }
 
+        // Cegah input abjad di NIM dan Tahun Masuk
+        private void HanyaAngka_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        // Fitur Dialog Pilih Foto
+        private void btnUploadKTM_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Pilih Foto KTM Kamu";
+                ofd.Filter = "Image Files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    _buktiKtmBytes = File.ReadAllBytes(ofd.FileName);
+                    lblNamaFile.Text = Path.GetFileName(ofd.FileName);
+                    lblNamaFile.ForeColor = Color.Green;
+                }
+            }
+        }
+
         private void CekStatusVerifikasi()
         {
-            // Pengecekan status saat ini.
-            // Sesuaikan logika di bawah dengan status verifikasi di database Anda.
-            // Misalnya, cek tabel Verification atau properti User.Role / User.StatusVerifikasi
-
-            bool isVerifiedSeller = false; // Ganti dengan logika pengecekan dari model/database
-            bool isPendingVerification = false; // Ganti dengan logika pengecekan dari model/database
-
-            // *Contoh Dummy Logic*
-            // isVerifiedSeller = _currentUser.Role == "Penjual"; 
-            // isPendingVerification = _userController.CheckPendingVerification(_currentUser.IdUser);
+            bool isVerifiedSeller = _currentUser.GetPeran() == "Penjual";
+            bool isPendingVerification = _userController.CekPendingVerifikasi(_currentUser.GetIdUser());
 
             if (isVerifiedSeller)
             {
-                // Jika sudah menjadi penjual, form dinonaktifkan dan pesan diubah
-                pnlForm.Enabled = false;
+                pnlForm.Visible = false;
                 pnlStatus.Visible = true;
-                lblStatusVerifikasi.Text = "✅ Selamat! Anda sudah terverifikasi sebagai Penjual.";
-                pnlStatus.BackColor = System.Drawing.Color.LightGreen;
+                lblStatusVerifikasi.Text = "✅ Asyik! Lapak kamu udah terverifikasi.";
+                pnlStatus.BackColor = Color.LightGreen;
             }
             else if (isPendingVerification)
             {
-                // Jika pengajuan sudah masuk tapi belum di-acc admin
-                pnlForm.Enabled = false;
+                pnlForm.Visible = false;
                 pnlStatus.Visible = true;
-                lblStatusVerifikasi.Text = "⏳ Pengajuan lapak Anda sedang menunggu review Admin.";
-                pnlStatus.BackColor = System.Drawing.Color.FromArgb(253, 255, 182); // Kuning pastel
+                lblStatusVerifikasi.Text = "⏳ Pengajuan lagi antre dicek Admin nih. Sabar ya!";
+                pnlStatus.BackColor = Color.FromArgb(253, 255, 182);
             }
             else
             {
-                // Belum mengajukan sama sekali, form siap diisi
-                pnlForm.Enabled = true;
+                pnlForm.Visible = true;
                 pnlStatus.Visible = false;
             }
         }
 
         private void btnAjukan_Click(object sender, EventArgs e)
         {
-            // 1. Validasi Input
-            if (string.IsNullOrWhiteSpace(txtNamaToko.Text) || string.IsNullOrWhiteSpace(txtDeskripsi.Text))
+            if (string.IsNullOrWhiteSpace(txtNamaToko.Text) || string.IsNullOrWhiteSpace(txtNIM.Text) || string.IsNullOrWhiteSpace(txtTahunMasuk.Text))
             {
-                MessageBox.Show("Nama Toko dan Deskripsi harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Formnya diisi yang lengkap ya bestie!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Validasi Persetujuan Syarat
             if (!chkSyarat.Checked)
             {
-                MessageBox.Show("Anda harus menyetujui syarat dan ketentuan sebelum mengajukan verifikasi.",
-                                "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Centang dulu dong persyaratannya.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 3. Konfirmasi
-            DialogResult dialog = MessageBox.Show($"Ajukan pembuatan lapak dengan nama '{txtNamaToko.Text}'?",
-                                                  "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
+            DialogResult dialog = MessageBox.Show($"Yakin mau buka lapak dengan nama '{txtNamaToko.Text}'?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dialog == DialogResult.Yes)
             {
-                ProsesPengajuan();
-            }
-        }
+                int tahun = int.TryParse(txtTahunMasuk.Text, out int t) ? t : DateTime.Now.Year;
 
-        private void ProsesPengajuan()
-        {
-            try
-            {
-                string namaToko = txtNamaToko.Text.Trim();
-                string deskripsi = txtDeskripsi.Text.Trim();
+                // Kirim byte[] foto KTM ke Controller
+                var (sukses, pesan) = _userController.AjukanVerifikasiToko(_currentUser.GetIdUser(), txtNIM.Text.Trim(), txtNamaToko.Text.Trim(), tahun, _buktiKtmBytes);
 
-                // PANGGIL CONTROLLER UNTUK MENYIMPAN PENGAJUAN
-                // TODO: Pastikan ada metode di Controller untuk menyimpan pengajuan ini.
-                // bool success = _userController.AjukanVerifikasiToko(_currentUser.IdUser, namaToko, deskripsi);
-
-                // MOCK SUCCESS
-                bool success = true;
-
-                if (success)
+                if (sukses)
                 {
-                    MessageBox.Show("Pengajuan berhasil dikirim! Silakan tunggu konfirmasi dari Admin.",
-                                    "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Segarkan status UI
+                    MessageBox.Show(pesan, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     CekStatusVerifikasi();
-
-                    // Opsional: Paksa set status mock untuk melihat perubahan langsung
-                    pnlForm.Enabled = false;
-                    pnlStatus.Visible = true;
-                    lblStatusVerifikasi.Text = "⏳ Pengajuan lapak Anda sedang menunggu review Admin.";
                 }
                 else
                 {
-                    MessageBox.Show("Gagal mengirim pengajuan. Silakan coba lagi.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Terjadi kesalahan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

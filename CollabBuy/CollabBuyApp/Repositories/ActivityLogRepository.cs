@@ -68,7 +68,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             List<ActivityLog> listLog = new List<ActivityLog>();
             // Urutkan dari yang paling baru (wajib untuk tampilan Audit Trail)
-            string query = "SELECT id_log, id_user, aktivitas, waktu_akses FROM activity_logs ORDER BY waktu_akses DESC;";
+            string query = "SELECT * FROM vw_log_aktivitas ORDER BY waktu_akses DESC LIMIT 50;";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {

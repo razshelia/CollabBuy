@@ -11,240 +11,267 @@
         }
 
         #region Component Designer generated code
-
         private void InitializeComponent()
         {
-            // ---- instansiasi semua kontrol ----
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.lblDeskripsiTab = new System.Windows.Forms.Label();
+            this.pnlCuan = new System.Windows.Forms.Panel();
+            this.lblTotalCuan = new System.Windows.Forms.Label();
+            this.lblCuanTitle = new System.Windows.Forms.Label();
+            this.pnlOrder = new System.Windows.Forms.Panel();
+            this.lblTotalOrder = new System.Windows.Forms.Label();
+            this.lblOrderTitle = new System.Windows.Forms.Label();
+            this.pnlGrid = new System.Windows.Forms.Panel();
+            this.lblGridTitle = new System.Windows.Forms.Label();
             this.btnRefresh = new System.Windows.Forms.Button();
-
-            this.pnlKartuKPI = new System.Windows.Forms.Panel();
-            this.pnlPendapatan = new System.Windows.Forms.Panel();
-            this.pnlTransaksi = new System.Windows.Forms.Panel();
-            this.pnlProduk = new System.Windows.Forms.Panel();
-            this.pnlKuotaKritis = new System.Windows.Forms.Panel();
-
-            this.lblTitlePendapatan = new System.Windows.Forms.Label();
-            this.lblValPendapatan = new System.Windows.Forms.Label();
-            this.lblTitleTransaksi = new System.Windows.Forms.Label();
-            this.lblValTransaksi = new System.Windows.Forms.Label();
-            this.lblTitleProduk = new System.Windows.Forms.Label();
-            this.lblValProduk = new System.Windows.Forms.Label();
-            this.lblTitleKuotaKritis = new System.Windows.Forms.Label();
-            this.lblValKuotaKritis = new System.Windows.Forms.Label();
-
-            this.pnlTabBar = new System.Windows.Forms.Panel();
-            this.btnTab0 = new System.Windows.Forms.Button();
-            this.btnTab1 = new System.Windows.Forms.Button();
-            this.btnTab2 = new System.Windows.Forms.Button();
-            this.btnTab3 = new System.Windows.Forms.Button();
-
             this.dgvLaporan = new System.Windows.Forms.DataGridView();
-
+            this.chartPenjualan = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.btnUnduhPdf = new System.Windows.Forms.Button();
+            this.pnlCuan.SuspendLayout();
+            this.pnlOrder.SuspendLayout();
+            this.pnlGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).BeginInit();
-            this.pnlKartuKPI.SuspendLayout();
-            this.pnlTabBar.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartPenjualan)).BeginInit();
             this.SuspendLayout();
-
-            // =============================================
+            // 
             // lblTitle
-            // =============================================
+            // 
             this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTitle.Location = new System.Drawing.Point(30, 22);
-            this.lblTitle.Text = "Analitik Penjualan";
-
-            // =============================================
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblTitle.Location = new System.Drawing.Point(30, 25);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(296, 37);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "Analitik Cuan Kamu 💸";
+            // 
             // lblSubtitle
-            // =============================================
+            // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
-            this.lblSubtitle.Location = new System.Drawing.Point(34, 58);
-            this.lblSubtitle.Text = "Ringkasan performa, laporan keuangan, dan insight produk.";
-
-            // =============================================
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
+            this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
+            this.lblSubtitle.Name = "lblSubtitle";
+            this.lblSubtitle.Size = new System.Drawing.Size(434, 20);
+            this.lblSubtitle.TabIndex = 1;
+            this.lblSubtitle.Text = "Pantau terus pemasukan lapak kamu, biar makin semangat jualan!";
+            // 
+            // pnlCuan
+            // 
+            this.pnlCuan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(255)))), ((int)(((byte)(200)))));
+            this.pnlCuan.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCuan.Controls.Add(this.lblTotalCuan);
+            this.pnlCuan.Controls.Add(this.lblCuanTitle);
+            this.pnlCuan.Location = new System.Drawing.Point(36, 100);
+            this.pnlCuan.Name = "pnlCuan";
+            this.pnlCuan.Size = new System.Drawing.Size(340, 110);
+            this.pnlCuan.TabIndex = 2;
+            // 
+            // lblTotalCuan
+            // 
+            this.lblTotalCuan.AutoSize = true;
+            this.lblTotalCuan.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTotalCuan.ForeColor = System.Drawing.Color.ForestGreen;
+            this.lblTotalCuan.Location = new System.Drawing.Point(15, 45);
+            this.lblTotalCuan.Name = "lblTotalCuan";
+            this.lblTotalCuan.Size = new System.Drawing.Size(73, 37);
+            this.lblTotalCuan.TabIndex = 1;
+            this.lblTotalCuan.Text = "Rp 0";
+            // 
+            // lblCuanTitle
+            // 
+            this.lblCuanTitle.AutoSize = true;
+            this.lblCuanTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblCuanTitle.ForeColor = System.Drawing.Color.DarkGreen;
+            this.lblCuanTitle.Location = new System.Drawing.Point(19, 15);
+            this.lblCuanTitle.Name = "lblCuanTitle";
+            this.lblCuanTitle.Size = new System.Drawing.Size(161, 19);
+            this.lblCuanTitle.TabIndex = 0;
+            this.lblCuanTitle.Text = "TOTAL CUAN MASUK 🤑";
+            // 
+            // pnlOrder
+            // 
+            this.pnlOrder.BackColor = System.Drawing.Color.White;
+            this.pnlOrder.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlOrder.Controls.Add(this.lblTotalOrder);
+            this.pnlOrder.Controls.Add(this.lblOrderTitle);
+            this.pnlOrder.Location = new System.Drawing.Point(390, 100);
+            this.pnlOrder.Name = "pnlOrder";
+            this.pnlOrder.Size = new System.Drawing.Size(300, 110);
+            this.pnlOrder.TabIndex = 3;
+            // 
+            // lblTotalOrder
+            // 
+            this.lblTotalOrder.AutoSize = true;
+            this.lblTotalOrder.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTotalOrder.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblTotalOrder.Location = new System.Drawing.Point(15, 45);
+            this.lblTotalOrder.Name = "lblTotalOrder";
+            this.lblTotalOrder.Size = new System.Drawing.Size(33, 37);
+            this.lblTotalOrder.TabIndex = 1;
+            this.lblTotalOrder.Text = "0";
+            // 
+            // lblOrderTitle
+            // 
+            this.lblOrderTitle.AutoSize = true;
+            this.lblOrderTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblOrderTitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblOrderTitle.Location = new System.Drawing.Point(19, 15);
+            this.lblOrderTitle.Name = "lblOrderTitle";
+            this.lblOrderTitle.Size = new System.Drawing.Size(148, 19);
+            this.lblOrderTitle.TabIndex = 0;
+            this.lblOrderTitle.Text = "ORDERAN KELAR ✅";
+            // 
+            // btnUnduhPdf
+            // 
+            this.btnUnduhPdf.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnUnduhPdf.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnUnduhPdf.FlatAppearance.BorderSize = 0;
+            this.btnUnduhPdf.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnUnduhPdf.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnUnduhPdf.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnUnduhPdf.Location = new System.Drawing.Point(710, 100);
+            this.btnUnduhPdf.Name = "btnUnduhPdf";
+            this.btnUnduhPdf.Size = new System.Drawing.Size(240, 110);
+            this.btnUnduhPdf.TabIndex = 5;
+            this.btnUnduhPdf.Text = "📄 Unduh Laporan (PDF)";
+            this.btnUnduhPdf.UseVisualStyleBackColor = false;
+            this.btnUnduhPdf.Click += new System.EventHandler(this.btnUnduhPdf_Click);
+            // 
+            // pnlGrid
+            // 
+            this.pnlGrid.BackColor = System.Drawing.Color.White;
+            this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlGrid.Controls.Add(this.chartPenjualan);
+            this.pnlGrid.Controls.Add(this.lblGridTitle);
+            this.pnlGrid.Controls.Add(this.btnRefresh);
+            this.pnlGrid.Controls.Add(this.dgvLaporan);
+            this.pnlGrid.Location = new System.Drawing.Point(36, 230);
+            this.pnlGrid.Name = "pnlGrid";
+            this.pnlGrid.Size = new System.Drawing.Size(914, 400);
+            this.pnlGrid.TabIndex = 4;
+            // 
+            // lblGridTitle
+            // 
+            this.lblGridTitle.AutoSize = true;
+            this.lblGridTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblGridTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblGridTitle.Location = new System.Drawing.Point(20, 20);
+            this.lblGridTitle.Name = "lblGridTitle";
+            this.lblGridTitle.Size = new System.Drawing.Size(257, 21);
+            this.lblGridTitle.TabIndex = 2;
+            this.lblGridTitle.Text = "Riwayat Transaksi Berhasil (Done)";
+            // 
             // btnRefresh
-            // =============================================
-            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.FlatAppearance.BorderSize = 0;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnRefresh.Location = new System.Drawing.Point(836, 30);
-            this.btnRefresh.Size = new System.Drawing.Size(130, 36);
-            this.btnRefresh.Text = "🔄 Perbarui";
+            // 
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.Location = new System.Drawing.Point(744, 15);
+            this.btnRefresh.Name = "btnRefresh";
+            this.btnRefresh.Size = new System.Drawing.Size(150, 30);
+            this.btnRefresh.TabIndex = 1;
+            this.btnRefresh.Text = "🔄 Refresh Data";
+            this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-
-            // =============================================
-            // KARTU KPI — Panel induk
-            // =============================================
-            this.pnlKartuKPI.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.pnlKartuKPI.Location = new System.Drawing.Point(30, 82);
-            this.pnlKartuKPI.Size = new System.Drawing.Size(940, 110);
-            this.pnlKartuKPI.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.pnlPendapatan, this.pnlTransaksi, this.pnlProduk, this.pnlKuotaKritis
-            });
-
-            // Helper lokal untuk membuat panel kartu
-            BuildKartuPanel(this.pnlPendapatan, this.lblTitlePendapatan, "💰 Total Pendapatan",
-                            this.lblValPendapatan, "Rp 0",
-                            System.Drawing.Color.FromArgb(225, 215, 255), 0);
-
-            BuildKartuPanel(this.pnlTransaksi, this.lblTitleTransaksi, "📦 Transaksi Selesai",
-                            this.lblValTransaksi, "0 Transaksi",
-                            System.Drawing.Color.FromArgb(215, 240, 255), 1);
-
-            BuildKartuPanel(this.pnlProduk, this.lblTitleProduk, "🛍 Produk Aktif",
-                            this.lblValProduk, "0 Produk",
-                            System.Drawing.Color.FromArgb(215, 255, 228), 2);
-
-            BuildKartuPanel(this.pnlKuotaKritis, this.lblTitleKuotaKritis, "⚠ Kuota Kritis",
-                            this.lblValKuotaKritis, "0 Produk",
-                            System.Drawing.Color.FromArgb(255, 235, 215), 3);
-
-            // =============================================
-            // TAB BAR
-            // =============================================
-            this.pnlTabBar.BackColor = System.Drawing.Color.White;
-            this.pnlTabBar.Location = new System.Drawing.Point(30, 205);
-            this.pnlTabBar.Size = new System.Drawing.Size(940, 44);
-            this.pnlTabBar.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.btnTab0, this.btnTab1, this.btnTab2, this.btnTab3
-            });
-
-            BuildTabButton(this.btnTab0, "⚠ Kuota Kritis", 0, true);
-            BuildTabButton(this.btnTab1, "📊 Laporan Keuangan", 238, false);
-            BuildTabButton(this.btnTab2, "🏆 Top Produk", 476, false);
-            BuildTabButton(this.btnTab3, "🥇 Leaderboard", 714, false);
-
-            this.btnTab0.Click += new System.EventHandler(this.btnTab0_Click);
-            this.btnTab1.Click += new System.EventHandler(this.btnTab1_Click);
-            this.btnTab2.Click += new System.EventHandler(this.btnTab2_Click);
-            this.btnTab3.Click += new System.EventHandler(this.btnTab3_Click);
-
-            // =============================================
-            // lblDeskripsiTab
-            // =============================================
-            this.lblDeskripsiTab.AutoSize = true;
-            this.lblDeskripsiTab.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
-            this.lblDeskripsiTab.ForeColor = System.Drawing.Color.DimGray;
-            this.lblDeskripsiTab.Location = new System.Drawing.Point(34, 258);
-            this.lblDeskripsiTab.Size = new System.Drawing.Size(800, 18);
-            this.lblDeskripsiTab.Text = "";
-
-            // =============================================
+            // 
             // dgvLaporan
-            // =============================================
-            this.dgvLaporan.Location = new System.Drawing.Point(30, 282);
-            this.dgvLaporan.Size = new System.Drawing.Size(940, 330);
+            // 
             this.dgvLaporan.AllowUserToAddRows = false;
             this.dgvLaporan.AllowUserToDeleteRows = false;
             this.dgvLaporan.BackgroundColor = System.Drawing.Color.White;
             this.dgvLaporan.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.dgvLaporan.RowHeadersVisible = false;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvLaporan.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvLaporan.ColumnHeadersHeight = 40;
+            this.dgvLaporan.EnableHeadersVisualStyles = false;
+            this.dgvLaporan.Location = new System.Drawing.Point(24, 60);
+            this.dgvLaporan.MultiSelect = false;
+            this.dgvLaporan.Name = "dgvLaporan";
             this.dgvLaporan.ReadOnly = true;
-            this.dgvLaporan.RowTemplate.Height = 38;
-            this.dgvLaporan.AutoGenerateColumns = false;
-
-            // =============================================
-            // lblStatus
-            // =============================================
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Font = new System.Drawing.Font("Segoe UI", 8.5F);
-            this.lblStatus.ForeColor = System.Drawing.Color.Gray;
-            this.lblStatus.Location = new System.Drawing.Point(34, 626);
-            this.lblStatus.Text = "Menunggu data...";
-
-            // =============================================
+            this.dgvLaporan.RowHeadersVisible = false;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(235)))), ((int)(((byte)(230)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(5);
+            this.dgvLaporan.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvLaporan.RowTemplate.Height = 40;
+            this.dgvLaporan.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvLaporan.Size = new System.Drawing.Size(430, 315);
+            this.dgvLaporan.TabIndex = 0;
+            // 
+            // chartPenjualan
+            // 
+            chartArea1.Name = "ChartArea1";
+            this.chartPenjualan.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.chartPenjualan.Legends.Add(legend1);
+            this.chartPenjualan.Location = new System.Drawing.Point(470, 60);
+            this.chartPenjualan.Name = "chartPenjualan";
+            this.chartPenjualan.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Pastel;
+            series1.ChartArea = "ChartArea1";
+            series1.Legend = "Legend1";
+            series1.Name = "Pendapatan (Rp)";
+            this.chartPenjualan.Series.Add(series1);
+            this.chartPenjualan.Size = new System.Drawing.Size(424, 315);
+            this.chartPenjualan.TabIndex = 3;
+            this.chartPenjualan.Text = "Grafik Pendapatan";
+            // 
             // AnalitikPenjualanControl
-            // =============================================
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.Size = new System.Drawing.Size(1010, 650);
-            this.Controls.AddRange(new System.Windows.Forms.Control[] {
-                this.lblTitle, this.lblSubtitle, this.btnRefresh,
-                this.pnlKartuKPI, this.pnlTabBar,
-                this.lblDeskripsiTab, this.dgvLaporan, this.lblStatus
-            });
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.Controls.Add(this.btnUnduhPdf);
+            this.Controls.Add(this.pnlGrid);
+            this.Controls.Add(this.pnlOrder);
+            this.Controls.Add(this.pnlCuan);
+            this.Controls.Add(this.lblSubtitle);
+            this.Controls.Add(this.lblTitle);
+            this.Name = "AnalitikPenjualanControl";
+            this.Size = new System.Drawing.Size(1000, 650);
             this.Load += new System.EventHandler(this.AnalitikPenjualanControl_Load);
-
+            this.pnlCuan.ResumeLayout(false);
+            this.pnlCuan.PerformLayout();
+            this.pnlOrder.ResumeLayout(false);
+            this.pnlOrder.PerformLayout();
+            this.pnlGrid.ResumeLayout(false);
+            this.pnlGrid.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).EndInit();
-            this.pnlKartuKPI.ResumeLayout(false);
-            this.pnlTabBar.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chartPenjualan)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
-
-        // =============================================
-        // HELPER BUILDER — agar InitializeComponent tetap bersih
-        // =============================================
-
-        private void BuildKartuPanel(
-            System.Windows.Forms.Panel panel,
-            System.Windows.Forms.Label lblTitle,
-            string titleText,
-            System.Windows.Forms.Label lblVal,
-            string valDefault,
-            System.Drawing.Color bgColor,
-            int index)
-        {
-            int w = 225, gap = 10;
-            panel.BackColor = bgColor;
-            panel.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            panel.Size = new System.Drawing.Size(w, 95);
-            panel.Location = new System.Drawing.Point(index * (w + gap), 7);
-
-            lblTitle.AutoSize = true;
-            lblTitle.Font = new System.Drawing.Font("Segoe UI", 9F);
-            lblTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            lblTitle.Location = new System.Drawing.Point(12, 12);
-            lblTitle.Text = titleText;
-
-            lblVal.AutoSize = true;
-            lblVal.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            lblVal.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            lblVal.Location = new System.Drawing.Point(12, 38);
-            lblVal.Text = valDefault;
-
-            panel.Controls.Add(lblTitle);
-            panel.Controls.Add(lblVal);
-        }
-
-        private void BuildTabButton(
-            System.Windows.Forms.Button btn,
-            string text,
-            int x,
-            bool active)
-        {
-            btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btn.FlatAppearance.BorderSize = 0;
-            btn.Size = new System.Drawing.Size(228, 38);
-            btn.Location = new System.Drawing.Point(x, 3);
-            btn.Text = text;
-            btn.Cursor = System.Windows.Forms.Cursors.Hand;
-            btn.UseVisualStyleBackColor = false;
-
-            if (active)
-            {
-                btn.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-                btn.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-                btn.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            }
-            else
-            {
-                btn.BackColor = System.Drawing.Color.FromArgb(200, 182, 255);
-                btn.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-                btn.Font = new System.Drawing.Font("Segoe UI", 9F);
-            }
-        }
-
         #endregion
+
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Label lblSubtitle;
+        private System.Windows.Forms.Panel pnlCuan;
+        private System.Windows.Forms.Label lblTotalCuan;
+        private System.Windows.Forms.Label lblCuanTitle;
+        private System.Windows.Forms.Panel pnlOrder;
+        private System.Windows.Forms.Label lblTotalOrder;
+        private System.Windows.Forms.Label lblOrderTitle;
+        private System.Windows.Forms.Panel pnlGrid;
+        private System.Windows.Forms.Label lblGridTitle;
+        private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.DataGridView dgvLaporan;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartPenjualan;
+        private System.Windows.Forms.Button btnUnduhPdf;
     }
 }

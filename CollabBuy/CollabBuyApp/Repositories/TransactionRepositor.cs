@@ -1,9 +1,10 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
-using Npgsql;
-using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -287,6 +288,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
+                        // 1. Insert Header Transaksi
                         string queryHeader = "INSERT INTO transactions (id_koordinator, bukti_bayar, status_pesanan) VALUES (@koord, @bukti, @status) RETURNING id_transaksi;";
 
                         using (NpgsqlCommand cmdHeader = new NpgsqlCommand(queryHeader, conn, dbTx))
@@ -307,7 +309,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             }
                         }
 
-                        string queryDetail = "INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan, nama_produk_snapshot, harga_satuan_saat_beli, harga_diskon_saat_beli) VALUES (@trx, @produk, @penitip, @jumlah, @catatan, @snapshot, @hargaSatuan, @hargaDiskon);";
+                        // 2. Insert Detail Transaksi 
+                        // PERBAIKAN: Hanya insert kolom bisnis utama! 
+                        // Snapshot harga dan nama akan OTOMATIS diisi oleh Trigger PostgreSQL (t_before_insert_detail)
+                        string queryDetail = "INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan) VALUES (@trx, @produk, @penitip, @jumlah, @catatan);";
 
                         foreach (TransactionDetail detail in transaksi.GetSemuaDetail())
                         {
@@ -318,17 +323,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                 cmdDetail.Parameters.AddWithValue("@penitip", detail.GetNamaPenitip());
                                 cmdDetail.Parameters.AddWithValue("@jumlah", detail.GetJumlahPesanan());
                                 cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrEmpty(detail.GetCatatan()) ? (object)DBNull.Value : detail.GetCatatan());
-                                cmdDetail.Parameters.AddWithValue("@snapshot", detail.GetNamaProdukSnapshot() ?? "");
-                                cmdDetail.Parameters.AddWithValue("@hargaSatuan", Convert.ToInt32(detail.GetHargaSatuanSaatBeli()));
 
-                                if (detail.GetHargaDiskonSaatBeli().HasValue)
-                                {
-                                    cmdDetail.Parameters.AddWithValue("@hargaDiskon", Convert.ToInt32(detail.GetHargaDiskonSaatBeli().Value));
-                                }
-                                else
-                                {
-                                    cmdDetail.Parameters.AddWithValue("@hargaDiskon", DBNull.Value);
-                                }
+                                // Parameter snapshot di-HAPUS dari sini karena sudah diserahkan ke Trigger Database.
 
                                 int rowDetail = cmdDetail.ExecuteNonQuery();
                                 if (rowDetail == 0) throw new InvalidOrderException("Gagal menyimpan detail item transaksi.", "details", "DB_INSERT_DETAIL_FAILED");
@@ -384,6 +380,94 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 transaksi.UbahStatus("Selesai");
             }
             // Status tidak dikenal dibiarkan "Menunggu" (default)
+        }
+        public int GetActiveTransactionCount(int idKoordinator)
+        {
+            string query = "SELECT COUNT(*) FROM transactions WHERE id_koordinator = @id AND status_pesanan != 'Selesai';";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idKoordinator);
+                    object result = cmd.ExecuteScalar();
+
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+        }
+        public DataTable GetPesananMasukDataTable(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT DISTINCT t.id_transaksi, u.nama AS nama_pembeli, t.tanggal_transaksi, t.status_pesanan,
+                       (SELECT COALESCE(SUM(td2.jumlah_pesanan * td2.harga_satuan_saat_beli), 0)
+                        FROM transaction_details td2
+                        JOIN products p2 ON td2.id_produk = p2.id_produk
+                        WHERE td2.id_transaksi = t.id_transaksi AND p2.id_penjual = @idPenjual) AS total_harga_lapak
+                FROM transactions t
+                JOIN users u ON t.id_koordinator = u.id_user
+                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+                JOIN products p ON td.id_produk = p.id_produk
+                WHERE p.id_penjual = @idPenjual
+                ORDER BY t.tanggal_transaksi DESC;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Mengupdate status pesanan di database.
+        /// </summary>
+        public bool UpdateStatusPesanan(int idTransaksi, string statusBaru)
+        {
+            string query = "UPDATE transactions SET status_pesanan = @status WHERE id_transaksi = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@status", statusBaru);
+                    cmd.Parameters.AddWithValue("@id", idTransaksi);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+        public DataTable GetRiwayatPesananDataTable(int idKoordinator)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT id_transaksi, tanggal_transaksi, total_tagihan, total_cashback, status_pesanan 
+                FROM vw_transaksi_lengkap 
+                WHERE id_koordinator = @id 
+                ORDER BY tanggal_transaksi DESC;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idKoordinator);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
         }
     }
 }

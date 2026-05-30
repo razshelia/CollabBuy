@@ -1,226 +1,130 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Services;
 
 namespace CollabBuy.CollabBuyApp.View.Product
 {
     public partial class KatalogProdukControl : UserControl
     {
+        private readonly User _currentUser;
         private readonly ProductController _productController;
-        private User _currentUser; // Opsional: Untuk mengetahui siapa yang menambahkan ke keranjang
+        private readonly CartManager _cartManager;
 
         public KatalogProdukControl(User currentUser)
         {
             InitializeComponent();
-            _productController = new ProductController();
             _currentUser = currentUser;
+            _productController = new ProductController();
+
+            // Inisialisasi Keranjang In-Memory
+            _cartManager = new CartManager(_currentUser.GetIdUser());
         }
 
         private void KatalogProdukControl_Load(object sender, EventArgs e)
         {
-            LoadKategori();
-            LoadKatalogProduk(""); // Muat semua produk saat awal
+            SetupDataGridView();
+            LoadKatalog();
         }
 
-        private void LoadKategori()
+        private void btnRefresh_Click(object sender, EventArgs e)
         {
-            // Dummy Kategori (Bisa diganti dengan mengambil dari AdminController.GetAllKategori)
-            cbKategori.Items.Add("Semua Kategori");
-            cbKategori.Items.Add("Makanan & Minuman");
-            cbKategori.Items.Add("Pakaian");
-            cbKategori.Items.Add("Jasa");
-            cbKategori.SelectedIndex = 0; // Default: Semua Kategori
+            LoadKatalog();
         }
 
-        private void LoadKatalogProduk(string kataKunci)
+        private void SetupDataGridView()
         {
-            flpKatalog.Controls.Clear(); // Bersihkan katalog sebelum memuat ulang
+            dgvKatalog.AutoGenerateColumns = false;
+            dgvKatalog.Columns.Clear();
+            dgvKatalog.RowTemplate.Height = 80; // Biar fotonya lega
 
+            dgvKatalog.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdProduk", DataPropertyName = "id_produk", Visible = false });
+
+            // Kolom Gambar Baru
+            DataGridViewImageColumn colFoto = new DataGridViewImageColumn();
+            colFoto.Name = "Foto";
+            colFoto.HeaderText = "Foto";
+            colFoto.DataPropertyName = "foto_image"; // Ngambil dari kolom buatan kita di LoadKatalog
+            colFoto.ImageLayout = DataGridViewImageCellLayout.Zoom; // Biar proporsional
+            colFoto.Width = 80;
+            dgvKatalog.Columns.Add(colFoto);
+
+            dgvKatalog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Barang", DataPropertyName = "nama_produk", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvKatalog.Columns.Add(new DataGridViewTextBoxColumn { Name = "PO", HeaderText = "Sesi PO", DataPropertyName = "judul_po", Width = 150 });
+            dgvKatalog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "nama_kategori", Width = 120 });
+            dgvKatalog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Harga", HeaderText = "Harga", DataPropertyName = "harga_format", Width = 120 });
+        }
+
+        private void LoadKatalog()
+        {
             try
             {
-                // TODO: Ambil List<Product> dari ProductController
-                // List<Models.Product> listProduk = _productController.GetAllProducts(kataKunci);
+                DataTable dtRaw = _productController.GetKatalogUtama();
+                DataTable dtUI = new DataTable();
+                dtUI.Columns.Add("id_produk", typeof(int));
+                dtUI.Columns.Add("foto_image", typeof(Image)); // Tipe Data Image!
+                dtUI.Columns.Add("nama_produk", typeof(string));
+                dtUI.Columns.Add("judul_po", typeof(string));
+                dtUI.Columns.Add("nama_kategori", typeof(string));
+                dtUI.Columns.Add("harga_format", typeof(string));
 
-                // --- MOCK DATA ---
-                List<dynamic> listProduk = new List<dynamic>
+                foreach (DataRow row in dtRaw.Rows)
                 {
-                    new { Id = 1, Nama = "Makaroni Bantet Pedas", Harga = 5000, Toko = "Danus HMTI", Kategori = "Makanan & Minuman" },
-                    new { Id = 2, Nama = "Kemeja PDH Custom", Harga = 120000, Toko = "BEM Fasilkom", Kategori = "Pakaian" },
-                    new { Id = 3, Nama = "Risol Mayo Lumer", Harga = 3000, Toko = "Siti Jajanan", Kategori = "Makanan & Minuman" },
-                    new { Id = 4, Nama = "Jasa Desain Poster", Harga = 35000, Toko = "Budi Studio", Kategori = "Jasa" },
-                    new { Id = 5, Nama = "Keripik Kaca Original", Harga = 6000, Toko = "Danus HMTI", Kategori = "Makanan & Minuman" }
-                };
-                // -----------------
+                    string judulPo = row.IsNull("judul_po") ? "Non-PO" : row["judul_po"].ToString();
+                    string kategori = row.IsNull("nama_kategori") ? "-" : row["nama_kategori"].ToString();
+                    string harga = "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0");
 
-                foreach (var prod in listProduk)
-                {
-                    // Filter Dummy berdasarkan Pencarian (Abaikan jika menggunakan Controller asli yg sudah mem-filter)
-                    if (!string.IsNullOrWhiteSpace(kataKunci) &&
-                        !prod.Nama.ToString().ToLower().Contains(kataKunci.ToLower()))
+                    // Konversi Byte to Image
+                    Image foto = null;
+                    if (row["foto_produk"] != DBNull.Value)
                     {
-                        continue;
+                        byte[] imgBytes = (byte[])row["foto_produk"];
+                        using (var ms = new System.IO.MemoryStream(imgBytes))
+                        {
+                            foto = Image.FromStream(ms);
+                        }
                     }
 
-                    // Buat Kartu Produk
-                    Panel pnlCard = BuatKartuProduk(prod.Id, prod.Nama, prod.Harga, prod.Toko);
-                    flpKatalog.Controls.Add(pnlCard);
+                    dtUI.Rows.Add(row["id_produk"], foto, row["nama_produk"], judulPo, kategori, harga);
                 }
 
-                if (flpKatalog.Controls.Count == 0)
-                {
-                    Label lblKosong = new Label
-                    {
-                        Text = "Produk tidak ditemukan.",
-                        Font = new Font("Segoe UI", 12F, FontStyle.Italic),
-                        AutoSize = true,
-                        ForeColor = Color.Gray,
-                        Margin = new Padding(10)
-                    };
-                    flpKatalog.Controls.Add(lblKosong);
-                }
+                dgvKatalog.DataSource = dtUI;
+                dgvKatalog.ClearSelection();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal memuat katalog: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal load katalog: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // --- METHOD PEMBUAT KARTU PRODUK (UI BUILDER) ---
-        private Panel BuatKartuProduk(int idProduk, string namaProduk, decimal harga, string namaToko)
+        private void btnTambahKeranjang_Click(object sender, EventArgs e)
         {
-            Panel card = new Panel
+            if (dgvKatalog.SelectedRows.Count == 0)
             {
-                Width = 200,
-                Height = 260,
-                BackColor = Color.White,
-                Margin = new Padding(10, 10, 15, 15),
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
-            // 1. Gambar Placeholder (Atas)
-            PictureBox picBox = new PictureBox
-            {
-                Width = 200,
-                Height = 120,
-                Top = 0,
-                Left = 0,
-                BackColor = Color.FromArgb(200, 182, 255), // Ungu Pastel
-                SizeMode = PictureBoxSizeMode.CenterImage
-            };
-            // picBox.Image = Properties.Resources.placeholder; // Opsional: Beri icon box
-
-            // 2. Label Nama Produk
-            Label lblNama = new Label
-            {
-                Text = namaProduk,
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(36, 0, 70), // Ungu Gelap
-                Top = 130,
-                Left = 10,
-                Width = 180,
-                AutoSize = false,
-                Height = 45 // Beri ruang jika teks panjang (2 baris)
-            };
-
-            // 3. Label Nama Toko
-            Label lblToko = new Label
-            {
-                Text = $"🏪 {namaToko}",
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
-                ForeColor = Color.Gray,
-                Top = 175,
-                Left = 10,
-                AutoSize = true
-            };
-
-            // 4. Label Harga
-            Label lblHarga = new Label
-            {
-                Text = $"Rp {harga:N0}",
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                ForeColor = Color.DarkOrange,
-                Top = 195,
-                Left = 10,
-                AutoSize = true
-            };
-
-            // 5. Tombol Tambah ke Keranjang
-            Button btnBeli = new Button
-            {
-                Text = "🛒 Beli",
-                Width = 180,
-                Height = 30,
-                Top = 220,
-                Left = 10,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(36, 0, 70),
-                ForeColor = Color.FromArgb(253, 255, 182),
-                Cursor = Cursors.Hand,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                Tag = idProduk // Simpan ID Produk di Tag tombol untuk kemudahan referensi
-            };
-            btnBeli.FlatAppearance.BorderSize = 0;
-            btnBeli.Click += BtnBeli_Click; // Daftarkan Event Click
-
-            // Masukkan semua elemen ke dalam card
-            card.Controls.Add(picBox);
-            card.Controls.Add(lblNama);
-            card.Controls.Add(lblToko);
-            card.Controls.Add(lblHarga);
-            card.Controls.Add(btnBeli);
-
-            return card;
-        }
-
-        // --- EVENT HANDLERS ---
-        private void BtnBeli_Click(object sender, EventArgs e)
-        {
-            Button btn = (Button)sender;
-            int idProduk = Convert.ToInt32(btn.Tag);
-
-            // TODO: Integrasikan ke CartManager / Sesi Keranjang Anda
-            // CartManager.Instance.AddToCart(idProduk, 1); // Contoh
-
-            MessageBox.Show($"Produk telah ditambahkan ke keranjang belanja Anda!",
-                            "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnCari_Click(object sender, EventArgs e)
-        {
-            string keyword = txtCari.Text;
-            if (keyword == "Cari produk...") keyword = "";
-            LoadKatalogProduk(keyword);
-        }
-
-        private void cbKategori_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            // Untuk kesederhanaan, saat ini pencarian di-trigger ulang tanpa filter kategori
-            // Jika mau diimplementasikan: LoadKatalogProduk dengan 2 parameter (keyword, kategori)
-            btnCari_Click(sender, e);
-        }
-
-        // UX Helper: Kosongkan teks "Cari produk..." saat diklik
-        private void txtCari_Enter(object sender, EventArgs e)
-        {
-            if (txtCari.Text == "Cari produk...")
-            {
-                txtCari.Text = "";
-                txtCari.ForeColor = Color.Black;
+                MessageBox.Show("Pilih dulu barang yang mau dibeli di tabel ya bestie!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-        }
 
-        private void txtCari_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtCari.Text))
+            int idProduk = Convert.ToInt32(dgvKatalog.SelectedRows[0].Cells["IdProduk"].Value);
+            string namaBarang = dgvKatalog.SelectedRows[0].Cells["Nama"].Value.ToString();
+
+            // Panggil Product Controller buat narik objek Product utuh (karena CartManager butuh objek Product)
+            Models.Product p = _productController.GetProdukById(idProduk);
+
+            if (p != null)
             {
-                txtCari.Text = "Cari produk...";
-                txtCari.ForeColor = Color.Gray;
+                try
+                {
+                    _cartManager.TambahItem(p, "Saya Sendiri", 1, "");
+                    MessageBox.Show($"Asyik! '{namaBarang}' berhasil masuk ke keranjang belanja kamu 🛒", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Gagal Masuk Keranjang", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
     }

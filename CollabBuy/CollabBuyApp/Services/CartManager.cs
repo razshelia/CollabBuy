@@ -153,6 +153,13 @@ namespace CollabBuy.CollabBuyApp.Services
         {
             _keranjangDict.Clear();
         }
+        public void HapusItem(int idProduk)
+        {
+            if (_keranjangDict.ContainsKey(idProduk))
+            {
+                _keranjangDict.Remove(idProduk);
+            }
+        }
 
 
         /// <summary>

@@ -186,7 +186,8 @@ SELECT
     p.harga_dasar,
     p.harga_diskon,
     po.batas_waktu,
-    po.info_rekening
+    po.info_rekening,
+    p.foto_produk
 FROM products p
 LEFT JOIN preorders   po  ON p.id_po       = po.id_po
 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori

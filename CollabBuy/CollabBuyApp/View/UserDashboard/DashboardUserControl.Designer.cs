@@ -6,210 +6,183 @@
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         #region Component Designer generated code
-
         private void InitializeComponent()
         {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblWelcome = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
-            this.flpStats = new System.Windows.Forms.FlowLayoutPanel();
-            this.pnlStatActiveOrders = new System.Windows.Forms.Panel();
-            this.lblValueActiveOrders = new System.Windows.Forms.Label();
-            this.lblTitleActiveOrders = new System.Windows.Forms.Label();
-            this.pnlStatJoinedPO = new System.Windows.Forms.Panel();
-            this.lblValueJoinedPO = new System.Windows.Forms.Label();
-            this.lblTitleJoinedPO = new System.Windows.Forms.Label();
-            this.pnlStatShopStatus = new System.Windows.Forms.Panel();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.pnlStatsCard1 = new System.Windows.Forms.Panel();
             this.lblValueShopStatus = new System.Windows.Forms.Label();
-            this.lblTitleShopStatus = new System.Windows.Forms.Label();
+            this.lblStatusTitle = new System.Windows.Forms.Label();
+            this.pnlStatsCard2 = new System.Windows.Forms.Panel();
+            this.lblValueActiveOrders = new System.Windows.Forms.Label();
+            this.lblStatsTitle = new System.Windows.Forms.Label();
             this.lblGridTitle = new System.Windows.Forms.Label();
             this.dgvActivePO = new System.Windows.Forms.DataGridView();
             this.btnRefresh = new System.Windows.Forms.Button();
-            this.flpStats.SuspendLayout();
-            this.pnlStatActiveOrders.SuspendLayout();
-            this.pnlStatJoinedPO.SuspendLayout();
-            this.pnlStatShopStatus.SuspendLayout();
+            this.pnlHeader.SuspendLayout();
+            this.pnlStatsCard1.SuspendLayout();
+            this.pnlStatsCard2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvActivePO)).BeginInit();
             this.SuspendLayout();
             // 
             // lblWelcome
             // 
             this.lblWelcome.AutoSize = true;
-            this.lblWelcome.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblWelcome.Font = new System.Drawing.Font("Segoe UI Black", 22F, System.Drawing.FontStyle.Bold);
             this.lblWelcome.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblWelcome.Location = new System.Drawing.Point(30, 30);
+            this.lblWelcome.Location = new System.Drawing.Point(30, 25);
             this.lblWelcome.Name = "lblWelcome";
-            this.lblWelcome.Size = new System.Drawing.Size(201, 32);
+            this.lblWelcome.Size = new System.Drawing.Size(262, 41);
             this.lblWelcome.TabIndex = 0;
-            this.lblWelcome.Text = "Halo, Pengguna!";
+            this.lblWelcome.Text = "Halo, Nama User!";
             // 
             // lblSubtitle
             // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
-            this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
+            this.lblSubtitle.Location = new System.Drawing.Point(33, 70);
             this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(393, 19);
+            this.lblSubtitle.Size = new System.Drawing.Size(394, 20);
             this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Pantau aktivitas belanja dan status verifikasi lapak jualan Anda.";
+            this.lblSubtitle.Text = "Cek katalog terbaru dan status pesanan kamu di sini bestie~";
             // 
-            // flpStats
+            // pnlHeader
             // 
-            this.flpStats.Controls.Add(this.pnlStatActiveOrders);
-            this.flpStats.Controls.Add(this.pnlStatJoinedPO);
-            this.flpStats.Controls.Add(this.pnlStatShopStatus);
-            this.flpStats.Location = new System.Drawing.Point(36, 100);
-            this.flpStats.Name = "flpStats";
-            this.flpStats.Size = new System.Drawing.Size(900, 130);
-            this.flpStats.TabIndex = 2;
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.pnlHeader.Controls.Add(this.lblSubtitle);
+            this.pnlHeader.Controls.Add(this.lblWelcome);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1020, 120);
+            this.pnlHeader.TabIndex = 2;
             // 
-            // pnlStatActiveOrders
+            // pnlStatsCard1
             // 
-            this.pnlStatActiveOrders.BackColor = System.Drawing.Color.White;
-            this.pnlStatActiveOrders.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlStatActiveOrders.Controls.Add(this.lblValueActiveOrders);
-            this.pnlStatActiveOrders.Controls.Add(this.lblTitleActiveOrders);
-            this.pnlStatActiveOrders.Location = new System.Drawing.Point(3, 3);
-            this.pnlStatActiveOrders.Name = "pnlStatActiveOrders";
-            this.pnlStatActiveOrders.Size = new System.Drawing.Size(250, 110);
-            this.pnlStatActiveOrders.TabIndex = 0;
+            this.pnlStatsCard1.BackColor = System.Drawing.Color.White;
+            this.pnlStatsCard1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlStatsCard1.Controls.Add(this.lblValueShopStatus);
+            this.pnlStatsCard1.Controls.Add(this.lblStatusTitle);
+            this.pnlStatsCard1.Location = new System.Drawing.Point(37, 150);
+            this.pnlStatsCard1.Name = "pnlStatsCard1";
+            this.pnlStatsCard1.Size = new System.Drawing.Size(280, 110);
+            this.pnlStatsCard1.TabIndex = 3;
+            // 
+            // lblValueShopStatus
+            // 
+            this.lblValueShopStatus.AutoSize = true;
+            this.lblValueShopStatus.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
+            this.lblValueShopStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblValueShopStatus.Location = new System.Drawing.Point(15, 55);
+            this.lblValueShopStatus.Name = "lblValueShopStatus";
+            this.lblValueShopStatus.Size = new System.Drawing.Size(225, 30);
+            this.lblValueShopStatus.TabIndex = 1;
+            this.lblValueShopStatus.Text = "🔒 Terkunci (Buyer)";
+            // 
+            // lblStatusTitle
+            // 
+            this.lblStatusTitle.AutoSize = true;
+            this.lblStatusTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblStatusTitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblStatusTitle.Location = new System.Drawing.Point(16, 20);
+            this.lblStatusTitle.Name = "lblStatusTitle";
+            this.lblStatusTitle.Size = new System.Drawing.Size(125, 19);
+            this.lblStatusTitle.TabIndex = 0;
+            this.lblStatusTitle.Text = "STATUS LAPAK 🏪";
+            // 
+            // pnlStatsCard2
+            // 
+            this.pnlStatsCard2.BackColor = System.Drawing.Color.White;
+            this.pnlStatsCard2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlStatsCard2.Controls.Add(this.lblValueActiveOrders);
+            this.pnlStatsCard2.Controls.Add(this.lblStatsTitle);
+            this.pnlStatsCard2.Location = new System.Drawing.Point(340, 150);
+            this.pnlStatsCard2.Name = "pnlStatsCard2";
+            this.pnlStatsCard2.Size = new System.Drawing.Size(280, 110);
+            this.pnlStatsCard2.TabIndex = 4;
             // 
             // lblValueActiveOrders
             // 
             this.lblValueActiveOrders.AutoSize = true;
-            this.lblValueActiveOrders.Font = new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblValueActiveOrders.Font = new System.Drawing.Font("Segoe UI Black", 24F, System.Drawing.FontStyle.Bold);
             this.lblValueActiveOrders.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblValueActiveOrders.Location = new System.Drawing.Point(15, 45);
+            this.lblValueActiveOrders.Location = new System.Drawing.Point(12, 45);
             this.lblValueActiveOrders.Name = "lblValueActiveOrders";
             this.lblValueActiveOrders.Size = new System.Drawing.Size(38, 45);
             this.lblValueActiveOrders.TabIndex = 1;
             this.lblValueActiveOrders.Text = "0";
             // 
-            // lblTitleActiveOrders
+            // lblStatsTitle
             // 
-            this.lblTitleActiveOrders.AutoSize = true;
-            this.lblTitleActiveOrders.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitleActiveOrders.ForeColor = System.Drawing.Color.Gray;
-            this.lblTitleActiveOrders.Location = new System.Drawing.Point(15, 15);
-            this.lblTitleActiveOrders.Name = "lblTitleActiveOrders";
-            this.lblTitleActiveOrders.Size = new System.Drawing.Size(95, 19);
-            this.lblTitleActiveOrders.TabIndex = 0;
-            this.lblTitleActiveOrders.Text = "Pesanan Aktif";
-            // 
-            // pnlStatJoinedPO
-            // 
-            this.pnlStatJoinedPO.BackColor = System.Drawing.Color.White;
-            this.pnlStatJoinedPO.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlStatJoinedPO.Controls.Add(this.lblValueJoinedPO);
-            this.pnlStatJoinedPO.Controls.Add(this.lblTitleJoinedPO);
-            this.pnlStatJoinedPO.Location = new System.Drawing.Point(276, 3);
-            this.pnlStatJoinedPO.Margin = new System.Windows.Forms.Padding(20, 3, 3, 3);
-            this.pnlStatJoinedPO.Name = "pnlStatJoinedPO";
-            this.pnlStatJoinedPO.Size = new System.Drawing.Size(250, 110);
-            this.pnlStatJoinedPO.TabIndex = 1;
-            // 
-            // lblValueJoinedPO
-            // 
-            this.lblValueJoinedPO.AutoSize = true;
-            this.lblValueJoinedPO.Font = new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblValueJoinedPO.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblValueJoinedPO.Location = new System.Drawing.Point(15, 45);
-            this.lblValueJoinedPO.Name = "lblValueJoinedPO";
-            this.lblValueJoinedPO.Size = new System.Drawing.Size(38, 45);
-            this.lblValueJoinedPO.TabIndex = 1;
-            this.lblValueJoinedPO.Text = "0";
-            // 
-            // lblTitleJoinedPO
-            // 
-            this.lblTitleJoinedPO.AutoSize = true;
-            this.lblTitleJoinedPO.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitleJoinedPO.ForeColor = System.Drawing.Color.Gray;
-            this.lblTitleJoinedPO.Location = new System.Drawing.Point(15, 15);
-            this.lblTitleJoinedPO.Name = "lblTitleJoinedPO";
-            this.lblTitleJoinedPO.Size = new System.Drawing.Size(107, 19);
-            this.lblTitleJoinedPO.TabIndex = 0;
-            this.lblTitleJoinedPO.Text = "Sesi PO Diikuti";
-            // 
-            // pnlStatShopStatus
-            // 
-            this.pnlStatShopStatus.BackColor = System.Drawing.Color.White;
-            this.pnlStatShopStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlStatShopStatus.Controls.Add(this.lblValueShopStatus);
-            this.pnlStatShopStatus.Controls.Add(this.lblTitleShopStatus);
-            this.pnlStatShopStatus.Location = new System.Drawing.Point(549, 3);
-            this.pnlStatShopStatus.Margin = new System.Windows.Forms.Padding(20, 3, 3, 3);
-            this.pnlStatShopStatus.Name = "pnlStatShopStatus";
-            this.pnlStatShopStatus.Size = new System.Drawing.Size(250, 110);
-            this.pnlStatShopStatus.TabIndex = 2;
-            // 
-            // lblValueShopStatus
-            // 
-            this.lblValueShopStatus.AutoSize = true;
-            this.lblValueShopStatus.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblValueShopStatus.ForeColor = System.Drawing.Color.DarkRed;
-            this.lblValueShopStatus.Location = new System.Drawing.Point(15, 55);
-            this.lblValueShopStatus.Name = "lblValueShopStatus";
-            this.lblValueShopStatus.Size = new System.Drawing.Size(175, 25);
-            this.lblValueShopStatus.TabIndex = 1;
-            this.lblValueShopStatus.Text = "Belum Terverifikasi";
-            // 
-            // lblTitleShopStatus
-            // 
-            this.lblTitleShopStatus.AutoSize = true;
-            this.lblTitleShopStatus.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitleShopStatus.ForeColor = System.Drawing.Color.Gray;
-            this.lblTitleShopStatus.Location = new System.Drawing.Point(15, 15);
-            this.lblTitleShopStatus.Name = "lblTitleShopStatus";
-            this.lblTitleShopStatus.Size = new System.Drawing.Size(127, 19);
-            this.lblTitleShopStatus.TabIndex = 0;
-            this.lblTitleShopStatus.Text = "Status Toko/Lapak";
+            this.lblStatsTitle.AutoSize = true;
+            this.lblStatsTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblStatsTitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblStatsTitle.Location = new System.Drawing.Point(16, 20);
+            this.lblStatsTitle.Name = "lblStatsTitle";
+            this.lblStatsTitle.Size = new System.Drawing.Size(242, 19);
+            this.lblStatsTitle.TabIndex = 0;
+            this.lblStatsTitle.Text = "PAKET YANG LAGI DITUNGGU 📦🏃";
             // 
             // lblGridTitle
             // 
             this.lblGridTitle.AutoSize = true;
-            this.lblGridTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblGridTitle.Font = new System.Drawing.Font("Segoe UI Black", 14F, System.Drawing.FontStyle.Bold);
             this.lblGridTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblGridTitle.Location = new System.Drawing.Point(32, 250);
+            this.lblGridTitle.Location = new System.Drawing.Point(32, 290);
             this.lblGridTitle.Name = "lblGridTitle";
-            this.lblGridTitle.Size = new System.Drawing.Size(236, 21);
-            this.lblGridTitle.TabIndex = 3;
-            this.lblGridTitle.Text = "Sesi Pre-Order / Danus Aktif";
+            this.lblGridTitle.Size = new System.Drawing.Size(332, 25);
+            this.lblGridTitle.TabIndex = 5;
+            this.lblGridTitle.Text = "Katalog PO yang Lagi Rame Nih 🔥";
             // 
             // dgvActivePO
             // 
             this.dgvActivePO.AllowUserToAddRows = false;
             this.dgvActivePO.AllowUserToDeleteRows = false;
+            this.dgvActivePO.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvActivePO.BackgroundColor = System.Drawing.Color.White;
             this.dgvActivePO.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvActivePO.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
+            this.dgvActivePO.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvActivePO.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.dgvActivePO.ColumnHeadersHeight = 35;
+            this.dgvActivePO.ColumnHeadersHeight = 40;
+            this.dgvActivePO.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 10F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(230)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvActivePO.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgvActivePO.EnableHeadersVisualStyles = false;
-            this.dgvActivePO.Location = new System.Drawing.Point(36, 285);
+            this.dgvActivePO.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.dgvActivePO.Location = new System.Drawing.Point(37, 335);
             this.dgvActivePO.Name = "dgvActivePO";
             this.dgvActivePO.ReadOnly = true;
             this.dgvActivePO.RowHeadersVisible = false;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dgvActivePO.RowsDefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvActivePO.RowTemplate.Height = 30;
-            this.dgvActivePO.Size = new System.Drawing.Size(900, 320);
-            this.dgvActivePO.TabIndex = 4;
+            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 5, 10, 5);
+            this.dgvActivePO.RowsDefaultCellStyle = dataGridViewCellStyle3;
+            this.dgvActivePO.RowTemplate.Height = 40;
+            this.dgvActivePO.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvActivePO.Size = new System.Drawing.Size(940, 350);
+            this.dgvActivePO.TabIndex = 6;
             // 
             // btnRefresh
             // 
@@ -217,13 +190,13 @@
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnRefresh.FlatAppearance.BorderSize = 0;
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
-            this.btnRefresh.Location = new System.Drawing.Point(816, 243);
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnRefresh.ForeColor = System.Drawing.Color.White;
+            this.btnRefresh.Location = new System.Drawing.Point(827, 285);
             this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(120, 30);
-            this.btnRefresh.TabIndex = 5;
-            this.btnRefresh.Text = "🔄 Refresh";
+            this.btnRefresh.Size = new System.Drawing.Size(150, 35);
+            this.btnRefresh.TabIndex = 7;
+            this.btnRefresh.Text = "Refresh Dulu Ngab 🔄";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             // 
@@ -235,39 +208,33 @@
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.dgvActivePO);
             this.Controls.Add(this.lblGridTitle);
-            this.Controls.Add(this.flpStats);
-            this.Controls.Add(this.lblSubtitle);
-            this.Controls.Add(this.lblWelcome);
+            this.Controls.Add(this.pnlStatsCard2);
+            this.Controls.Add(this.pnlStatsCard1);
+            this.Controls.Add(this.pnlHeader);
             this.Name = "DashboardUserControl";
-            this.Size = new System.Drawing.Size(1000, 650);
+            this.Size = new System.Drawing.Size(1020, 720);
             this.Load += new System.EventHandler(this.DashboardUserControl_Load);
-            this.flpStats.ResumeLayout(false);
-            this.pnlStatActiveOrders.ResumeLayout(false);
-            this.pnlStatActiveOrders.PerformLayout();
-            this.pnlStatJoinedPO.ResumeLayout(false);
-            this.pnlStatJoinedPO.PerformLayout();
-            this.pnlStatShopStatus.ResumeLayout(false);
-            this.pnlStatShopStatus.PerformLayout();
+            this.pnlHeader.ResumeLayout(false);
+            this.pnlHeader.PerformLayout();
+            this.pnlStatsCard1.ResumeLayout(false);
+            this.pnlStatsCard1.PerformLayout();
+            this.pnlStatsCard2.ResumeLayout(false);
+            this.pnlStatsCard2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvActivePO)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
-
         #endregion
 
         private System.Windows.Forms.Label lblWelcome;
         private System.Windows.Forms.Label lblSubtitle;
-        private System.Windows.Forms.FlowLayoutPanel flpStats;
-        private System.Windows.Forms.Panel pnlStatActiveOrders;
-        private System.Windows.Forms.Label lblValueActiveOrders;
-        private System.Windows.Forms.Label lblTitleActiveOrders;
-        private System.Windows.Forms.Panel pnlStatJoinedPO;
-        private System.Windows.Forms.Label lblValueJoinedPO;
-        private System.Windows.Forms.Label lblTitleJoinedPO;
-        private System.Windows.Forms.Panel pnlStatShopStatus;
+        private System.Windows.Forms.Panel pnlHeader;
+        private System.Windows.Forms.Panel pnlStatsCard1;
+        private System.Windows.Forms.Label lblStatusTitle;
         private System.Windows.Forms.Label lblValueShopStatus;
-        private System.Windows.Forms.Label lblTitleShopStatus;
+        private System.Windows.Forms.Panel pnlStatsCard2;
+        private System.Windows.Forms.Label lblValueActiveOrders;
+        private System.Windows.Forms.Label lblStatsTitle;
         private System.Windows.Forms.Label lblGridTitle;
         private System.Windows.Forms.DataGridView dgvActivePO;
         private System.Windows.Forms.Button btnRefresh;

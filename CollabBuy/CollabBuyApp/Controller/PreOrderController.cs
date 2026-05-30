@@ -1,111 +1,62 @@
-﻿using CollabBuy.CollabBuyApp.Models;
+﻿using System;
+using System.Data;
+using CollabBuy.CollabBuyApp.Models; // Wajib ada untuk akses class PreOrder
 using CollabBuy.CollabBuyApp.Repositories;
-using System;
-using System.Collections.Generic;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
-    /// <summary>
-    /// Controller yang bertindak sebagai Mandor alur sesi PreOrder.
-    /// Menangani pembukaan/tutup PO, dan update status massal (Stored Procedure).
-    /// </summary>
-    public class PreOrderController
+    public class PreorderController
     {
-        // === PRIVATE FIELDS (DEPENDENCIES) ===
         private readonly PreOrderRepository _poRepo;
-        private readonly ActivityLogRepository _logRepo;
 
-        // === KONSTRUKTOR ===
-        public PreOrderController()
+        public PreorderController()
         {
             _poRepo = new PreOrderRepository();
-            _logRepo = new ActivityLogRepository();
         }
 
-
-        // =======================================================
-        // FITUR MANAJEMEN SESI PO
-        // =======================================================
-
-        /// <summary>
-        /// Membuka sesi PreOrder baru.
-        /// </summary>
-        public (bool sukses, string pesan) BukaSesiPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
+        public DataTable GetDaftarPoLapak(int idPenjual)
         {
+            try { return _poRepo.GetPoByPenjual(idPenjual); }
+            catch (Exception) { return new DataTable(); }
+        }
+
+        public (bool sukses, string pesan) TambahSesiPo(int idPenjual, string judul, string jenis, DateTime batasWaktu, string rekening)
+        {
+            // Validasi Input
+            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
+            {
+                return (false, "Judul, Jenis PO, dan Rekening wajib diisi ya bestie!");
+            }
+
+            if (batasWaktu <= DateTime.Now)
+            {
+                return (false, "Batas waktu nggak boleh di masa lalu dong!");
+            }
+
             try
             {
-                PreOrder po = new PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
-                po.Validate();
+                // 1. Buat Objek Model PreOrder (sesuai kontrak Repository Insert)
+                PreOrder poBaru = new PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
+                poBaru.UbahStatus("Aktif"); // Karena baru dibuat, statusnya pasti Aktif
 
-                _poRepo.Insert(po);
+                // 2. Panggil Repository menggunakan method Insert
+                _poRepo.Insert(poBaru);
 
-                ActivityLog log = new ActivityLog(idPenjual, "Membuka sesi PO baru: " + judul);
-                _logRepo.Insert(log);
-
-                return (true, "Sesi PreOrder berhasil dibuka!");
-            }
-            catch (InvalidOrderException ex)
-            {
-                return (false, ex.GetPesanLengkap());
+                return (true, "Yey! Sesi PO baru berhasil dibuka! 🎉");
             }
             catch (Exception ex)
             {
-                return (false, "Error sistem: " + ex.Message);
+                return (false, "Gagal bikin PO: " + ex.Message);
             }
         }
 
-        /// <summary>
-        /// Menutup sesi PO secara manual oleh Penjual.
-        /// </summary>
-        public (bool sukses, string pesan) TutupSesiPO(int idPo, int idPenjual)
+        public (bool sukses, string pesan) ProsesMassalPo(int idPo, string statusBaru)
         {
             try
             {
-                PreOrder po = _poRepo.GetById(idPo);
-                if (po == null)
-                {
-                    return (false, "Sesi PO tidak ditemukan!");
-                }
-
-                // Hanya pemilik PO yang boleh menutup
-                if (po.GetIdPenjual() != idPenjual)
-                {
-                    return (false, "Anda bukan pemilik sesi PO ini!");
-                }
-
-                // Model yang mengatur state machine via IStatusTrackable
-                po.UbahStatus("Tutup");
-
-                _poRepo.Update(po);
-
-                ActivityLog log = new ActivityLog(idPenjual, "Menutup sesi PO: " + po.GetJudulPo());
-                _logRepo.Insert(log);
-
-                return (true, "Sesi PO berhasil ditutup.");
-            }
-            catch (InvalidOrderException ex)
-            {
-                return (false, "Gagal menutup PO: " + ex.GetPesanLengkap());
-            }
-        }
-
-        /// <summary>
-        /// Mengubah status pesanan secara massal berdasarkan Sesi PO.
-        /// Memanggil Stored Procedure sp_update_status_massal_po via Repository.
-        /// </summary>
-        public (bool sukses, string pesan) UpdateStatusMassal(int idPo, string statusBaru)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(statusBaru))
-                {
-                    return (false, "Status baru tidak boleh kosong!");
-                }
-
-                // Eksekusi Stored Procedure via Repository
+                // Manggil Stored Procedure via Repository
                 _poRepo.UpdateStatusMassal(idPo, statusBaru);
-
-                return (true, "Semua pesanan dalam PO berhasil diubah ke status '" + statusBaru + "'.");
+                return (true, $"Semua pesanan di PO ini berhasil diubah jadi '{statusBaru}'! 🚀");
             }
             catch (Exception ex)
             {
@@ -113,20 +64,17 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
-
-        // =======================================================
-        // FITUR LIHAT DATA PO
-        // =======================================================
-
-        public List<PreOrder> GetAllPreOrder()
+        public (bool sukses, string pesan) TutupPo(int idPo)
         {
             try
             {
-                return _poRepo.GetAll();
+                // Panggil method TutupSesiPo yang ada di Repository
+                _poRepo.TutupSesiPo(idPo);
+                return (true, "PO berhasil ditutup. Orang-orang udah ga bisa order lagi di sesi ini.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new List<PreOrder>();
+                return (false, "Gagal tutup PO: " + ex.Message);
             }
         }
     }
