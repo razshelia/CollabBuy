@@ -4,6 +4,7 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -249,7 +250,26 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
+        public DataTable GetPendingVerifikasi()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT v.id_user, u.nama AS nama_owner, v.nim, v.nama_toko, v.tahun_masuk, v.bukti_ktm 
+        FROM verifications v 
+        JOIN users u ON v.id_user = u.id_user 
+        WHERE v.is_verifikasi = FALSE 
+        ORDER BY v.id_verifikasi ASC;";
 
+            using (var conn = new Npgsql.NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new Npgsql.NpgsqlCommand(query, conn))
+                {
+                    using (var da = new Npgsql.NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
 
         // =======================================================
         // METHOD KHUSUS STORED PROCEDURE

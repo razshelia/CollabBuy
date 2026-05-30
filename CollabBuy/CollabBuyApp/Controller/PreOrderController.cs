@@ -1,80 +1,58 @@
 ﻿using System;
 using System.Data;
-using CollabBuy.CollabBuyApp.Models; // Wajib ada untuk akses class PreOrder
 using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
-    public class PreorderController
+    public class PreOrderController
     {
         private readonly PreOrderRepository _poRepo;
 
-        public PreorderController()
+        public PreOrderController()
         {
             _poRepo = new PreOrderRepository();
         }
 
-        public DataTable GetDaftarPoLapak(int idPenjual)
+        public DataTable GetActiveSesiPO(string keyword)
         {
-            try { return _poRepo.GetPoByPenjual(idPenjual); }
+            try { return _poRepo.GetSesiPOAktif(keyword); }
             catch (Exception) { return new DataTable(); }
         }
 
-        public (bool sukses, string pesan) TambahSesiPo(int idPenjual, string judul, string jenis, DateTime batasWaktu, string rekening)
+        public DataTable GetProdukTersedia(int idPenjual)
         {
-            // Validasi Input
+            try { return _poRepo.GetProdukTanpaPO(idPenjual); }
+            catch (Exception) { return new DataTable(); }
+        }
+
+        public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
+        {
+            // Validasi Input Gen-Z style
             if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
             {
-                return (false, "Judul, Jenis PO, dan Rekening wajib diisi ya bestie!");
+                return (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
             }
 
             if (batasWaktu <= DateTime.Now)
             {
-                return (false, "Batas waktu nggak boleh di masa lalu dong!");
+                return (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
+            }
+
+            if (idProduk <= 0)
+            {
+                return (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
             }
 
             try
             {
-                // 1. Buat Objek Model PreOrder (sesuai kontrak Repository Insert)
-                PreOrder poBaru = new PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
-                poBaru.UbahStatus("Aktif"); // Karena baru dibuat, statusnya pasti Aktif
+                bool result = _poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+                if (result) return (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
 
-                // 2. Panggil Repository menggunakan method Insert
-                _poRepo.Insert(poBaru);
-
-                return (true, "Yey! Sesi PO baru berhasil dibuka! 🎉");
+                return (false, "Hmm, gagal nyimpen ke database nih.");
             }
             catch (Exception ex)
             {
-                return (false, "Gagal bikin PO: " + ex.Message);
-            }
-        }
-
-        public (bool sukses, string pesan) ProsesMassalPo(int idPo, string statusBaru)
-        {
-            try
-            {
-                // Manggil Stored Procedure via Repository
-                _poRepo.UpdateStatusMassal(idPo, statusBaru);
-                return (true, $"Semua pesanan di PO ini berhasil diubah jadi '{statusBaru}'! 🚀");
-            }
-            catch (Exception ex)
-            {
-                return (false, "Gagal update massal: " + ex.Message);
-            }
-        }
-
-        public (bool sukses, string pesan) TutupPo(int idPo)
-        {
-            try
-            {
-                // Panggil method TutupSesiPo yang ada di Repository
-                _poRepo.TutupSesiPo(idPo);
-                return (true, "PO berhasil ditutup. Orang-orang udah ga bisa order lagi di sesi ini.");
-            }
-            catch (Exception ex)
-            {
-                return (false, "Gagal tutup PO: " + ex.Message);
+                return (false, "Waduh error server: " + ex.Message);
             }
         }
     }

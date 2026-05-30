@@ -210,6 +210,46 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 return new List<Transaction>();
             }
         }
+        public DataTable GetRiwayatPesanan(int idPembeli)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("id_transaksi", typeof(int));
+            dt.Columns.Add("waktu_pesan", typeof(DateTime));
+            dt.Columns.Add("total_tagihan", typeof(long));
+            dt.Columns.Add("status_pesanan", typeof(string));
+            dt.Columns.Add("status_bayar", typeof(string));
+
+            try
+            {
+                // Ambil data utuh lewat repository
+                List<Transaction> listTrx = _transactionRepo.GetByIdPembeli(idPembeli);
+
+                if (listTrx != null)
+                {
+                    foreach (Transaction trx in listTrx)
+                    {
+                        // Cek status bayar dari ada/tidaknya array bytes bukti bayar
+                        string statusBayar = (trx.GetBuktiBayar() != null && trx.GetBuktiBayar().Length > 0)
+                            ? "Sudah Upload" : "Belum Bayar";
+
+                        // Masukkan ke baris DataTable
+                        dt.Rows.Add(
+                            trx.GetIdTransaksi(),
+                            trx.GetTanggalTransaksi(),
+                            trx.HitungTotal(),
+                            trx.GetStatus(),
+                            statusBayar
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetRiwayatPesanan: " + ex.Message);
+                // Kembalikan datatable kosong agar grid di UI tidak crash
+            }
+            return dt;
+        }
 
         /// <summary>
         /// Menyetujui bukti pembayaran transaksi.
@@ -255,7 +295,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try
             {
                 bool berhasil = _transactionRepo.UpdateStatusPesanan(idTransaksi, statusBaru);
-
+                
                 if (berhasil) return (true, "Status pesanan berhasil di-update jadi " + statusBaru + "!");
                 else return (false, "Pesanan nggak ketemu di database.");
             }
@@ -302,75 +342,72 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public DataTable GetKeranjangDataTable()
         {
             DataTable dt = new DataTable();
-            dt.Columns.Add("IdItem", typeof(int));
+            dt.Columns.Add("IdProduk", typeof(int));
             dt.Columns.Add("NamaItem", typeof(string));
-            dt.Columns.Add("Harga", typeof(decimal));
+            dt.Columns.Add("NamaPenitip", typeof(string));
+            dt.Columns.Add("Catatan", typeof(string));
+            dt.Columns.Add("Harga", typeof(int));
             dt.Columns.Add("Kuantitas", typeof(int));
-            dt.Columns.Add("Subtotal", typeof(decimal));
+            dt.Columns.Add("Subtotal", typeof(int));
 
-            try
+            foreach (var entry in _cartManager.GetKeranjangDictionary())
             {
-                // 1. Dapatkan struktur Dictionary dari CartManager
-                Dictionary<int, List<TransactionDetail>> keranjangDict = _cartManager.GetKeranjangDictionary();
-
-                // 2. Lakukan kalkulasi untuk memastikan snapshot harga sudah ter-update
-                _cartManager.HitungTotalKeranjang();
-
-                // 3. Ekstrak data dari Dictionary ke DataTable (Flattening)
-                foreach (KeyValuePair<int, List<TransactionDetail>> entry in keranjangDict)
+                foreach (var detail in entry.Value)
                 {
-                    int idProduk = entry.Key;
+                    Product p = detail.GetProduk();
+                    int hargaSatuan = p != null ? p.GetHargaDasar() : 0;
+                    int subtotal = hargaSatuan * detail.GetJumlahPesanan();
 
-                    foreach (TransactionDetail detail in entry.Value)
-                    {
-                        Product produk = detail.GetProduk();
-
-                        // Menyiapkan nama produk (jika ini pesanan titipan, tambahkan nama penitipnya)
-                        string namaProduk = produk != null ? produk.GetNamaProduk() : "Produk";
-                        string namaPenitip = detail.GetNamaPenitip();
-
-                        if (!string.IsNullOrEmpty(namaPenitip) && namaPenitip.ToLower() != "saya sendiri")
-                        {
-                            namaProduk += $" (Titipan: {namaPenitip})";
-                        }
-
-                        // Mengambil nilai dari TransactionDetail
-                        long hargaSatuan = produk != null ? produk.HitungTotal() : 0;
-                        int kuantitas = detail.GetJumlahPesanan();
-                        long subtotal = detail.HitungTotal();
-
-                        // Masukkan ke baris DataTable
-                        dt.Rows.Add(idProduk, namaProduk, hargaSatuan, kuantitas, subtotal);
-                    }
+                    dt.Rows.Add(
+                        entry.Key,
+                        p != null ? p.GetNamaProduk() : "Produk Jastip",
+                        detail.GetNamaPenitip(),
+                        detail.GetCatatan() ?? "-",
+                        hargaSatuan,
+                        detail.GetJumlahPesanan(),
+                        subtotal
+                    );
                 }
             }
-            catch (Exception)
-            {
-                // Jika error, kembalikan tabel kosong agar grid UI tidak crash
-            }
-
             return dt;
         }
 
-        public void HapusItemKeranjang(int idProduk)
+        /// <summary>
+        /// Memperbarui rincian titipan temen yang sudah ada di dalam keranjang RAM.
+        /// </summary>
+        public void UpdateTitipan(int idProduk, string oldPenitip, string newPenitip, int jumlah, string catatan)
         {
-            _cartManager.HapusItem(idProduk);
+            _cartManager.UpdateDetailTitipan(idProduk, oldPenitip, newPenitip, jumlah, catatan);
         }
 
+        /// <summary>
+        /// Menambahkan slot baris titipan baru (Split) untuk produk yang sama di dalam keranjang.
+        /// </summary>
+        public void TambahTitipanBaru(int idProduk, string namaPenitip, int jumlah, string catatan)
+        {
+            var dict = _cartManager.GetKeranjangDictionary();
+            if (dict.ContainsKey(idProduk) && dict[idProduk].Count > 0)
+            {
+                Product p = dict[idProduk][0].GetProduk();
+                _cartManager.TambahItem(p, namaPenitip, jumlah, catatan);
+            }
+        }
+
+        /// <summary>
+        /// Menghapus spesifik nama penitip dari item jualan tertentu di dalam daftar keranjang.
+        /// </summary>
+        public void HapusItemKeranjang(int idProduk, string namaPenitip)
+        {
+            _cartManager.HapusDetailTitipan(idProduk, namaPenitip);
+        }
+
+        /// <summary>
+        /// Membersihkan seluruh daftar belanja kolektif di RAM.
+        /// </summary>
         public void KosongkanKeranjang()
         {
             _cartManager.KosongkanKeranjang();
         }
-        public DataTable GetRiwayatPesanan(int idPembeli)
-        {
-            try
-            {
-                return _transactionRepo.GetRiwayatPesananDataTable(idPembeli);
-            }
-            catch (Exception)
-            {
-                return new DataTable(); // Biar UI nggak error kalau gagal konek
-            }
-        }
+
     }
 }

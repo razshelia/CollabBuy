@@ -13,8 +13,6 @@
             base.Dispose(disposing);
         }
 
-        #region Component Designer generated code
-
         private void InitializeComponent()
         {
             this.lblTitle = new System.Windows.Forms.Label();
@@ -32,20 +30,20 @@
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             this.lblTitle.Location = new System.Drawing.Point(30, 30);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(252, 32);
+            this.lblTitle.Size = new System.Drawing.Size(325, 32);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "Sesi Pre-Order Aktif";
+            this.lblTitle.Text = "🔥 Info Danus & PO Terkini";
             // 
             // lblSubtitle
             // 
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(24)))), ((int)(((byte)(154)))));
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(431, 19);
+            this.lblSubtitle.Size = new System.Drawing.Size(534, 19);
             this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Ikuti sesi penitipan Danus atau PO sebelum kehabisan kuota dan waktu.";
+            this.lblSubtitle.Text = "Jangan sampai FOMO bestie! Buruan amankan titipanmu sebelum kehabisan slot 🚀";
             // 
             // txtCari
             // 
@@ -54,7 +52,7 @@
             this.txtCari.Name = "txtCari";
             this.txtCari.Size = new System.Drawing.Size(400, 27);
             this.txtCari.TabIndex = 2;
-            this.txtCari.Text = "Cari sesi PO...";
+            this.txtCari.Text = "Kepoin sesi PO...";
             this.txtCari.ForeColor = System.Drawing.Color.Gray;
             this.txtCari.Enter += new System.EventHandler(this.txtCari_Enter);
             this.txtCari.Leave += new System.EventHandler(this.txtCari_Leave);
@@ -65,29 +63,29 @@
             this.btnCari.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnCari.FlatAppearance.BorderSize = 0;
             this.btnCari.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnCari.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCari.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCari.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
             this.btnCari.Location = new System.Drawing.Point(445, 108);
             this.btnCari.Name = "btnCari";
             this.btnCari.Size = new System.Drawing.Size(100, 31);
             this.btnCari.TabIndex = 3;
-            this.btnCari.Text = "🔍 Cari";
+            this.btnCari.Text = "🔍 Kepoin";
             this.btnCari.UseVisualStyleBackColor = false;
             this.btnCari.Click += new System.EventHandler(this.btnCari_Click);
             // 
             // btnRefresh
             // 
-            this.btnRefresh.BackColor = System.Drawing.Color.White;
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.FlatAppearance.BorderSize = 0;
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             this.btnRefresh.Location = new System.Drawing.Point(555, 108);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(100, 31);
             this.btnRefresh.TabIndex = 4;
-            this.btnRefresh.Text = "🔄 Refresh";
+            this.btnRefresh.Text = "🔄 Update";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
             // 
@@ -103,7 +101,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.BackColor = System.Drawing.Color.White;
             this.Controls.Add(this.flpSesiPO);
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.btnCari);
@@ -115,10 +113,7 @@
             this.Load += new System.EventHandler(this.SesiPOAktifControl_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
-
-        #endregion
 
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblSubtitle;

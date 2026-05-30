@@ -36,42 +36,98 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // IMPLEMENTASI IQueryRepository<Product>
         // =======================================================
 
-        public Product GetById(int idProduk)
+        public Product GetById(int id)
         {
-            Product produk = null;
-
-            // REVISI: Penambahan p.foto_produk
+            Product p = null;
             string query = @"
-                SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori, 
-                       p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon, 
-                       p.target_kuota, p.min_order, p.foto_produk, po.jenis_po
-                FROM products p
-                LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.id_produk = @id;";
+                SELECT id_produk, id_penjual, id_po, id_kategori, nama_produk, 
+                       deskripsi, harga_dasar, harga_diskon, target_kuota, min_order 
+                FROM products 
+                WHERE id_produk = @id;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", idProduk);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    cmd.Parameters.AddWithValue("@id", id);
+                    using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            produk = MappingReaderToProduct(reader);
+                            // 1. Ambil data wajib untuk constructor Product
+                            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
+                            int idKategori = reader.GetInt32(reader.GetOrdinal("id_kategori"));
+                            string nama = reader.GetString(reader.GetOrdinal("nama_produk"));
+                            int hargaDasar = reader.GetInt32(reader.GetOrdinal("harga_dasar"));
+
+                            p = new Product(idPenjual, idKategori, nama, hargaDasar);
+                            p.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
+
+                            // 2. Ambil data opsional (Boleh Null di DB)
+                            if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
+                                p.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
+                                p.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
+                                p.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
+                                p.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
+                                p.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
                         }
                     }
                 }
             }
+            return p;
+        }
 
-            // === PENTING UNTUK RAM (Sub-bab 3.1 Laporan) ===
-            if (produk != null && produk.GetTargetKuota() > 0)
+        // =======================================================
+        // METHOD UNTUK UI (DATA TABLE)
+        // =======================================================
+        public DataTable GetKatalogUtama()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT * FROM vw_katalog_aktif 
+                ORDER BY batas_waktu ASC NULLS LAST;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
-                IsiJumlahTerpesanDiRam(produk);
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
             }
+            return dt;
+        }
 
-            return produk;
+        public DataTable GetProdukLapak(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT p.id_produk, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk 
+                FROM products p
+                JOIN categories k ON p.id_kategori = k.id_kategori
+                LEFT JOIN preorders po ON p.id_po = po.id_po
+                WHERE p.id_penjual = @id
+                ORDER BY p.id_produk DESC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
         }
 
         public List<Product> GetAll()

@@ -16,7 +16,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             InitializeComponent();
             _currentUser = currentUser;
-
+            
             // Inisialisasi controller
             _transactionController = new TransactionController(_currentUser.GetIdUser());
         }
@@ -50,7 +50,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             {
                 // Tarik data mentah dari database via Controller
                 DataTable dtRaw = _transactionController.GetRiwayatPesanan(_currentUser.GetIdUser());
-
+                
                 // Bikin tabel baru khusus buat nampilin format yang cantik di UI
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_transaksi", typeof(int));
@@ -61,16 +61,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 foreach (DataRow row in dtRaw.Rows)
                 {
-                    // Diubah dari tanggal_pesanan jadi tanggal_transaksi
-                    string tanggal = Convert.ToDateTime(row["tanggal_transaksi"]).ToString("dd MMM yyyy, HH:mm");
-                    // Diubah dari total_harga jadi total_tagihan
-                    string harga = "Rp " + Convert.ToInt32(row["total_tagihan"]).ToString("N0");
-
+                    string tanggal = Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM yyyy, HH:mm");
+                    string harga = "Rp " + Convert.ToInt32(row["total_harga"]).ToString("N0");
+                    
                     dtUI.Rows.Add(
-                        row["id_transaksi"],
-                        "Pesanan Kolektif", // 1 Transaksi bisa berisi dari banyak lapak penjual
-                        tanggal,
-                        harga,
+                        row["id_transaksi"], 
+                        row["nama_penjual"], 
+                        tanggal, 
+                        harga, 
                         row["status_pesanan"]
                     );
                 }

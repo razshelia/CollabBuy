@@ -2,14 +2,15 @@
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.View.Admin;
-using CollabBuy.CollabBuyApp.View.Feedback;
-using CollabBuy.CollabBuyApp.View.Main;
-using CollabBuy.CollabBuyApp.View.PreOrder;
-using CollabBuy.CollabBuyApp.View.Product;
-using CollabBuy.CollabBuyApp.View.Report;
-using CollabBuy.CollabBuyApp.View.Transaction;
-using CollabBuy.CollabBuyApp.View.UserDashboard;
+
+// MENGGUNAKAN ALIAS UNTUK MENGHINDARI BENTROK NAMA (AMBIGUITY)
+using ViewAdmin = CollabBuy.CollabBuyApp.View.Admin;
+using ViewFeedback = CollabBuy.CollabBuyApp.View.Feedback;
+using ViewPreOrder = CollabBuy.CollabBuyApp.View.PreOrder;
+using ViewProduct = CollabBuy.CollabBuyApp.View.Product;
+using ViewReport = CollabBuy.CollabBuyApp.View.Report;
+using ViewTransaction = CollabBuy.CollabBuyApp.View.Transaction;
+using ViewUser = CollabBuy.CollabBuyApp.View.UserDashboard;
 
 namespace CollabBuy.CollabBuyApp.View.Main
 {
@@ -110,19 +111,20 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             if (peran == "Admin")
             {
-                DashboardAdminControl adminDash = new DashboardAdminControl();
+                // PERBAIKAN: Menambahkan _currentUser sebagai parameter
+                ViewAdmin.DashboardAdminControl adminDash = new ViewAdmin.DashboardAdminControl(_currentUser);
                 adminDash.Dock = DockStyle.Fill;
                 pnlContent.Controls.Add(adminDash);
             }
             else if (peran == "Penjual")
             {
-                DashboardUserControl sellerDash = new DashboardUserControl(_currentUser);
+                ViewUser.DashboardUserControl sellerDash = new ViewUser.DashboardUserControl(_currentUser);
                 sellerDash.Dock = DockStyle.Fill;
                 pnlContent.Controls.Add(sellerDash);
             }
             else
             {
-                DashboardUserControl buyerDash = new DashboardUserControl(_currentUser);
+                ViewUser.DashboardUserControl buyerDash = new ViewUser.DashboardUserControl(_currentUser);
                 buyerDash.Dock = DockStyle.Fill;
                 pnlContent.Controls.Add(buyerDash);
             }
@@ -205,36 +207,37 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             // Menu Universal
             AddMenuButton("📊 Dashboard", ShowDashboard);
-            AddMenuButton("👤 Kelola Profil", () => ShowUserControl(new KelolaProfilControl(_currentUser)));
+            AddMenuButton("👤 Kelola Profil", () => ShowUserControl(new ViewUser.KelolaProfilControl(_currentUser)));
 
             // === MENU BERDASARKAN ROLE ===
             if (peran == "Admin")
             {
                 AddCategoryLabel("MANAGEMENT");
-                AddMenuButton("🏢 Verifikasi Toko", () => ShowUserControl(new VerifikasiTokoControl()));
-                AddMenuButton("📁 Kelola Kategori", () => ShowUserControl(new KelolaKategoriControl()));
-                AddMenuButton("📣 Tanggapan Aduan", () => ShowUserControl(new TanggapanAduanControl()));
-                AddMenuButton("📊 Laporan Sistem", () => ShowUserControl(new AnalitikPenjualanControl(_currentUser)));
+                AddMenuButton("🏢 Verifikasi Toko", () => ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
+                AddMenuButton("📁 Kelola Kategori", () => ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
+                // PERBAIKAN: Menambahkan _currentUser sebagai parameter
+                AddMenuButton("📣 Tanggapan Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
+                AddMenuButton("📊 Laporan Sistem", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
             }
             else if (peran == "Penjual")
             {
                 AddCategoryLabel("SELLER");
-                AddMenuButton("📦 Manajemen Produk", () => ShowUserControl(new ManajemenProdukControl(_currentUser)));
-                AddMenuButton("🎁 Buka Sesi PO", () => ShowUserControl(new BukaSesiPOControl(_currentUser)));
-                AddMenuButton("📋 Sesi PO Aktif", () => ShowUserControl(new SesiPOAktifControl(_currentUser)));
-                AddMenuButton("📥 Pesanan Masuk", () => ShowUserControl(new PesananMasukControl(_currentUser)));
-                AddMenuButton("⭐ Balas Ulasan", () => ShowUserControl(new UlasanLapakControl(_currentUser)));
-                AddMenuButton("📊 Analitik Penjualan", () => ShowUserControl(new AnalitikPenjualanControl(_currentUser)));
+                AddMenuButton("📦 Manajemen Produk", () => ShowUserControl(new ViewProduct.ManajemenProdukControl(_currentUser)));
+                AddMenuButton("🎁 Buka Sesi PO", () => ShowUserControl(new ViewPreOrder.BukaSesiPOControl(_currentUser)));
+                AddMenuButton("📋 Sesi PO Aktif", () => ShowUserControl(new ViewPreOrder.SesiPOAktifControl(_currentUser)));
+                AddMenuButton("📥 Pesanan Masuk", () => ShowUserControl(new ViewTransaction.PesananMasukControl(_currentUser)));
+                AddMenuButton("⭐ Balas Ulasan", () => ShowUserControl(new ViewFeedback.UlasanLapakControl(_currentUser)));
+                AddMenuButton("📊 Analitik Penjualan", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
             }
             else
             {
                 AddCategoryLabel("BUYER");
-                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new KatalogProdukControl(_currentUser)));
-                AddMenuButton("🛒 Keranjang Belanja", () => ShowUserControl(new KeranjangBelanjaControl(_currentUser)));
-                AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new RiwayatPesananControl(_currentUser)));
-                AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new BeriUlasanControl(_currentUser)));
-                AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new SpillKendalaControl(_currentUser)));
-                AddMenuButton("🏢 Daftar Toko", () => ShowUserControl(new DaftarTokoControl(_currentUser)));
+                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
+                AddMenuButton("🛒 Keranjang Belanja", () => ShowUserControl(new ViewTransaction.KeranjangBelanjaControl(_currentUser)));
+                AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
+                AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
+                AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
+                AddMenuButton("🏢 Daftar Toko", () => ShowUserControl(new ViewUser.DaftarTokoControl(_currentUser)));
             }
 
             // Tombol Logout dikunci ke bagian bawah (Bottom)

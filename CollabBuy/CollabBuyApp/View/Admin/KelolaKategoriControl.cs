@@ -1,111 +1,110 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
-using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.View.Admin
 {
     public partial class KelolaKategoriControl : UserControl
     {
-        private readonly AdminController _adminController;
+        private readonly AdminController _controller;
+        private int _selectedId = 0; // Menyimpan ID kategori yang sedang diklik
 
         public KelolaKategoriControl()
         {
             InitializeComponent();
-            _adminController = new AdminController();
+            _controller = new AdminController();
         }
 
         private void KelolaKategoriControl_Load(object sender, EventArgs e)
         {
-            SetupDataGridView();
-            LoadDataKategori();
+            LoadDataGrid();
         }
 
-        // --- KONFIGURASI KOLOM TABEL ---
-        private void SetupDataGridView()
+        private void LoadDataGrid()
         {
-            dgvKategori.AutoGenerateColumns = false;
-            dgvKategori.Columns.Clear();
-
-            // CATATAN: Pastikan 'DataPropertyName' sesuai dengan nama property di model Category.cs Anda
-            // Contoh jika di model ada property Id_Kategori dan Nama_Kategori
-
-            dgvKategori.Columns.Add(new DataGridViewTextBoxColumn
+            dgvKategori.DataSource = _controller.GetKategori();
+            if (dgvKategori.Columns.Count > 0)
             {
-                Name = "IdKategori",
-                HeaderText = "ID Kategori",
-                DataPropertyName = "Id_Kategori", // <-- Ganti sesuai nama property ID di model Category Anda
-                Width = 150
-            });
-
-            dgvKategori.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "NamaKategori",
-                HeaderText = "Nama Kategori",
-                DataPropertyName = "Nama_Kategori", // <-- Ganti sesuai nama property Nama di model Category Anda
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
-        }
-
-        // --- MEMUAT DATA KATEGORI ---
-        private void LoadDataKategori()
-        {
-            try
-            {
-                // Memanggil method GetAllKategori dari AdminController Anda
-                List<Category> listKategori = _adminController.GetAllKategori();
-
-                // Bind data ke GridView
-                dgvKategori.DataSource = null; // Reset binding
-                dgvKategori.DataSource = listKategori;
+                dgvKategori.Columns["id_kategori"].HeaderText = "ID";
+                dgvKategori.Columns["id_kategori"].Width = 50;
+                dgvKategori.Columns["nama_kategori"].HeaderText = "Nama Kategori Barang";
+                dgvKategori.Columns["nama_kategori"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             }
-            catch (Exception ex)
+            ResetForm();
+        }
+
+        private void ResetForm()
+        {
+            txtNama.Clear();
+            _selectedId = 0;
+            btnTambah.Enabled = true;
+            btnUpdate.Enabled = false;
+            btnHapus.Enabled = false;
+        }
+
+        private void dgvKategori_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
             {
-                MessageBox.Show("Gagal memuat data kategori:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                DataGridViewRow row = dgvKategori.Rows[e.RowIndex];
+                _selectedId = Convert.ToInt32(row.Cells["id_kategori"].Value);
+                txtNama.Text = row.Cells["nama_kategori"].Value.ToString();
+
+                btnTambah.Enabled = false;
+                btnUpdate.Enabled = true;
+                btnHapus.Enabled = true;
             }
         }
 
-        // --- EVENT KLIK TOMBOL TAMBAH ---
         private void btnTambah_Click(object sender, EventArgs e)
         {
-            string namaKategori = txtKategoriBaru.Text.Trim();
-
-            // 1. Validasi Input Kosong
-            if (string.IsNullOrWhiteSpace(namaKategori))
+            var res = _controller.TambahKategori(txtNama.Text);
+            if (res.sukses)
             {
-                MessageBox.Show("Nama kategori tidak boleh kosong!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtKategoriBaru.Focus();
-                return;
+                MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadDataGrid();
             }
+            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
 
-            // 2. Konfirmasi Tambah Data
-            DialogResult confirm = MessageBox.Show($"Apakah Anda yakin ingin menambahkan kategori '{namaKategori}'?",
-                                                   "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (_selectedId == 0) return;
+
+            var res = _controller.EditKategori(_selectedId, txtNama.Text);
+            if (res.sukses)
+            {
+                MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadDataGrid();
+            }
+            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void btnHapus_Click(object sender, EventArgs e)
+        {
+            if (_selectedId == 0) return;
+
+            DialogResult confirm = MessageBox.Show(
+                "Yakin nih mau ngehapus kategori ini? Ga bisa di-undo loh!",
+                "Konfirmasi Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (confirm == DialogResult.Yes)
             {
-                // 3. Panggil method TambahKategoriBaru dari AdminController yang sudah Anda buat
-                var result = _adminController.TambahKategoriBaru(namaKategori);
-
-                if (result.sukses)
+                var res = _controller.HapusKategori(_selectedId);
+                if (res.sukses)
                 {
-                    MessageBox.Show(result.pesan, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // Bersihkan form dan Refresh Data
-                    txtKategoriBaru.Clear();
-                    LoadDataKategori();
+                    MessageBox.Show(res.pesan, "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadDataGrid();
                 }
-                else
-                {
-                    // Menampilkan pesan error dari Validasi/Unique Constraint database Anda
-                    MessageBox.Show(result.pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                else MessageBox.Show(res.pesan, "Ditolak Sistem", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            ResetForm();
         }
     }
 }

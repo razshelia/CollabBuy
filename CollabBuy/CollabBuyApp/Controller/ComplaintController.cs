@@ -2,11 +2,13 @@
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Data; // Wajib ditambahkan untuk DataTable UI
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
     /// <summary>
     /// Controller untuk mengelola alur Aduan/Pengaduan.
+    /// Sudah disesuaikan untuk UI Gen-Z tanpa membuang logic asli.
     /// </summary>
     public class ComplaintController
     {
@@ -21,41 +23,56 @@ namespace CollabBuy.CollabBuyApp.Controllers
             _logRepo = new ActivityLogRepository();
         }
 
-
         // =======================================================
-        // FITUR PEMBELI
+        // FITUR PEMBELI (NEO-RETRO UI)
         // =======================================================
 
         /// <summary>
-        /// Membuat aduan baru dari pembeli.
+        /// Mengambil riwayat aduan khusus untuk user tertentu (Untuk DataGridView UI).
         /// </summary>
-        public (bool sukses, string pesan) KirimAduan(int idUser, string subjek, string deskripsi)
+        public DataTable GetRiwayatSpill(int idUser)
         {
+            try { return _complaintRepo.GetRiwayatByUser(idUser); }
+            catch (Exception) { return new DataTable(); }
+        }
+
+        /// <summary>
+        /// Membuat aduan baru dari pembeli (Versi Upgrade dari KirimAduan).
+        /// Mempertahankan validasi model dan Activity Log.
+        /// </summary>
+        public (bool sukses, string pesan) GasSpillKendala(int idUser, string subjek, string deskripsi)
+        {
+            if (string.IsNullOrWhiteSpace(subjek) || string.IsNullOrWhiteSpace(deskripsi))
+                return (false, "Subjek sama deskripsi jangan dikosongin dong bestie, Mimin bingung nanti!");
+
             try
             {
+                // 1. Buat Objek dan Validasi Asli
                 Complaint aduan = new Complaint(idUser, subjek, deskripsi);
                 aduan.Validate();
 
+                // 2. Simpan ke Database
                 _complaintRepo.Insert(aduan);
 
+                // 3. Catat ke Activity Log Asli
                 ActivityLog log = new ActivityLog(idUser, "Mengirim aduan: " + subjek);
                 _logRepo.Insert(log);
 
-                return (true, "Aduan berhasil dikirim ke Admin.");
+                return (true, "Aman! Curhatan kamu udah dikirim ke Mimin. Tunggu balasan ya! 💌");
             }
             catch (InvalidOrderException ex)
             {
-                return (false, ex.GetPesanLengkap());
+                return (false, "Waduh: " + ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                return (false, "Error sistem: " + ex.Message);
+                return (false, "Duh server lagi ngambek: " + ex.Message);
             }
         }
 
 
         // =======================================================
-        // FITUR ADMIN
+        // FITUR ADMIN (KODE ASLI DIPERTAHANKAN)
         // =======================================================
 
         /// <summary>
@@ -99,6 +116,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 // Simpan perubahan ke DB
                 _complaintRepo.Update(aduan);
 
+                // Catat ke Activity Log
                 ActivityLog log = new ActivityLog(idAdmin, "Membalas aduan ID: " + idAduan);
                 _logRepo.Insert(log);
 
@@ -112,6 +130,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 return (false, "Error sistem: " + ex.Message);
             }
+        }
+        public DataTable GetAduanBelumBeres()
+        {
+            try { return _complaintRepo.GetPendingAduan(); }
+            catch { return new DataTable(); }
         }
     }
 }

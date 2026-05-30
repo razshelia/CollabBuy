@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -12,172 +9,84 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 {
     public partial class TanggapanAduanControl : UserControl
     {
-        // Gunakan ComplaintController untuk memisahkan logika khusus Aduan
+        private readonly User _admin;
         private readonly ComplaintController _complaintController;
+        private readonly UserController _userController;
+        private int _selectedIdAduan = 0;
 
-        public TanggapanAduanControl()
+        public TanggapanAduanControl(User admin)
         {
             InitializeComponent();
+            _admin = admin;
             _complaintController = new ComplaintController();
+            _userController = new UserController();
         }
 
         private void TanggapanAduanControl_Load(object sender, EventArgs e)
         {
-            SetupDataGridView();
-            LoadDataAduan();
+            LoadAduan();
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        private void LoadAduan()
         {
-            LoadDataAduan();
-        }
-
-        // --- KONFIGURASI KOLOM TABEL ---
-        private void SetupDataGridView()
-        {
-            dgvAduan.AutoGenerateColumns = false;
-            dgvAduan.Columns.Clear();
-
-            dgvAduan.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAduan.DataSource = _complaintController.GetAduanBelumBeres();
+            if (dgvAduan.Columns.Count > 0)
             {
-                Name = "IdComplaint",
-                DataPropertyName = "Id", // Ganti sesuai property ID di model Complaint
-                Visible = false // Disembunyikan, hanya untuk referensi aksi
-            });
-
-            dgvAduan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Tanggal",
-                HeaderText = "Tanggal",
-                DataPropertyName = "Tanggal", // Ganti sesuai property Tanggal di model
-                Width = 120
-            });
-
-            dgvAduan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Pengirim",
-                HeaderText = "Pengirim (User)",
-                DataPropertyName = "NamaPengirim", // Ganti sesuai property nama user di model
-                Width = 150
-            });
-
-            // AutoSizeMode = Fill agar deskripsi memanjang menyesuaikan layar
-            dgvAduan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Deskripsi",
-                HeaderText = "Isi Aduan Kendala",
-                DataPropertyName = "Deskripsi",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-            });
-
-            dgvAduan.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Status",
-                HeaderText = "Status",
-                DataPropertyName = "Status",
-                Width = 120
-            });
-
-            // Tombol Aksi (Tandai Selesai)
-            DataGridViewButtonColumn btnSelesaikan = new DataGridViewButtonColumn
-            {
-                Name = "BtnSelesaikan",
-                HeaderText = "Aksi",
-                Text = "✅ Selesaikan",
-                UseColumnTextForButtonValue = true,
-                Width = 120,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnSelesaikan.DefaultCellStyle.BackColor = Color.FromArgb(200, 182, 255);
-            btnSelesaikan.DefaultCellStyle.ForeColor = Color.FromArgb(36, 0, 70);
-            dgvAduan.Columns.Add(btnSelesaikan);
-        }
-
-        // --- MEMUAT DATA ADUAN ---
-        private void LoadDataAduan()
-        {
-            try
-            {
-                // TODO: Panggil method dari ComplaintController Anda
-                // var daftarAduan = _complaintController.GetAllComplaints();
-
-                // MOCK DATA (Hapus bagian ini jika method controller sudah siap)
-                DataTable dtMock = new DataTable();
-                dtMock.Columns.Add("Id", typeof(int));
-                dtMock.Columns.Add("Tanggal", typeof(string));
-                dtMock.Columns.Add("NamaPengirim", typeof(string));
-                dtMock.Columns.Add("Deskripsi", typeof(string));
-                dtMock.Columns.Add("Status", typeof(string));
-
-                dtMock.Rows.Add(1, "12 Nov 2023", "Budi Santoso", "Pesanan saya dibatalkan sepihak oleh penjual tanpa alasan.", "Pending");
-                dtMock.Rows.Add(2, "14 Nov 2023", "Siti Aminah", "Aplikasi force close ketika menekan tombol keranjang.", "Pending");
-                dtMock.Rows.Add(3, "15 Nov 2023", "Andi Wijaya", "Penjual tidak merespon chat selama 2 hari setelah checkout.", "Selesai");
-
-                dgvAduan.DataSource = dtMock;
+                dgvAduan.Columns["id_aduan"].Visible = false;
+                dgvAduan.Columns["id_user"].Visible = false;
+                dgvAduan.Columns["nama_pelapor"].HeaderText = "Pelapor";
+                dgvAduan.Columns["subjek"].HeaderText = "Subjek Masalah";
+                dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
+                dgvAduan.Columns["tanggal"].HeaderText = "Waktu";
             }
-            catch (Exception ex)
+            ResetForm();
+        }
+
+        private void ResetForm()
+        {
+            _selectedIdAduan = 0;
+            txtBalasan.Clear();
+            btnBalas.Enabled = false;
+            btnBlokir.Enabled = false;
+        }
+
+        private void dgvAduan_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
             {
-                MessageBox.Show("Gagal memuat data aduan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _selectedIdAduan = Convert.ToInt32(dgvAduan.Rows[e.RowIndex].Cells["id_aduan"].Value);
+                btnBalas.Enabled = true;
+                btnBlokir.Enabled = true;
             }
         }
 
-        // --- EVENT KLIK TABEL ---
-        private void dgvAduan_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void btnBalas_Click(object sender, EventArgs e)
         {
-            // Abaikan jika yang diklik adalah Header (baris -1)
-            if (e.RowIndex < 0) return;
+            if (_selectedIdAduan == 0) return;
 
-            // Jika yang diklik adalah kolom tombol "Selesaikan"
-            if (dgvAduan.Columns[e.ColumnIndex].Name == "BtnSelesaikan")
+            var res = _complaintController.TanggapiAduan(_selectedIdAduan, txtBalasan.Text, _admin.GetIdUser());
+            if (res.sukses)
             {
-                string statusSaatIni = dgvAduan.Rows[e.RowIndex].Cells["Status"].Value.ToString();
-
-                // Cegah memproses aduan yang sudah selesai
-                if (statusSaatIni.ToLower() == "selesai" || statusSaatIni.ToLower() == "resolved")
-                {
-                    MessageBox.Show("Aduan ini sudah ditandai selesai.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                int idAduan = Convert.ToInt32(dgvAduan.Rows[e.RowIndex].Cells["IdComplaint"].Value);
-                string namaPengirim = dgvAduan.Rows[e.RowIndex].Cells["Pengirim"].Value.ToString();
-
-                DialogResult dialog = MessageBox.Show(
-                    $"Tandai aduan dari {namaPengirim} sebagai 'Selesai'?",
-                    "Konfirmasi",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (dialog == DialogResult.Yes)
-                {
-                    ProsesPenyelesaianAduan(idAduan);
-                }
+                MessageBox.Show("Kasus ditutup! Balasan Mimin udah dikirim. ✨", "Selesai", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadAduan();
             }
+            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        private void ProsesPenyelesaianAduan(int idAduan)
+        private void btnBlokir_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // PANGGIL CONTROLLER DI SINI
-                // bool sukses = _complaintController.ResolveComplaint(idAduan);
+            if (_selectedIdAduan == 0) return;
 
-                // MOCK SUCCESS
-                bool sukses = true;
-
-                if (sukses)
-                {
-                    MessageBox.Show("Aduan berhasil diselesaikan!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataAduan(); // Refresh data agar status berubah
-                }
-                else
-                {
-                    MessageBox.Show("Gagal menyelesaikan aduan. Silakan coba lagi.", "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-            }
-            catch (Exception ex)
+            string idPenjualStr = Microsoft.VisualBasic.Interaction.InputBox("Spill ID User Penjual yang mau di-banned:", "Blokir Penjual Nakal", "");
+            if (int.TryParse(idPenjualStr, out int idPenjual))
             {
-                MessageBox.Show("Terjadi kesalahan:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                var res = _userController.TindakPenjualNakal(_selectedIdAduan, idPenjual, txtBalasan.Text);
+                if (res.sukses)
+                {
+                    MessageBox.Show("Boom! 💥 Penjual nakal berhasil di-banned!", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadAduan();
+                }
+                else MessageBox.Show(res.pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

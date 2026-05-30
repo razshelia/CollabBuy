@@ -129,20 +129,32 @@ namespace CollabBuy.CollabBuyApp.Controllers
         }
         public DataTable GetKatalogUtama()
         {
-            try { return _productRepo.GetKatalogAktif(100); }
-            catch (Exception) { return new DataTable(); }
+            try { return _productRepo.GetKatalogUtama(); }
+            catch { return new DataTable(); }
         }
 
+        // Buat View Manajemen Produk (Penjual)
         public DataTable GetProdukLapak(int idPenjual)
         {
-            try { return _productRepo.GetProdukByPenjualDataTable(idPenjual); }
-            catch (Exception) { return new DataTable(); }
+            try { return _productRepo.GetProdukLapak(idPenjual); }
+            catch { return new DataTable(); }
         }
 
+        // =======================================================
+        // INI PENTING BUAT KERANJANG BELANJA
+        // =======================================================
         public Product GetProdukById(int idProduk)
         {
-            try { return _productRepo.GetById(idProduk); }
-            catch (Exception) { return null; }
+            try
+            {
+                return _productRepo.GetById(idProduk);
+            }
+            catch (Exception ex)
+            {
+                // Biar gampang ke-track kalau error
+                Console.WriteLine("Error narik data produk: " + ex.Message);
+                return null;
+            }
         }
     }
 }

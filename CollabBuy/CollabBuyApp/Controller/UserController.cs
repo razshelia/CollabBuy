@@ -2,6 +2,7 @@
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -212,6 +213,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 return (false, ex.GetPesanLengkap());
             }
+        }
+        public DataTable GetAntreanLapak()
+        {
+            try { return _userRepo.GetPendingVerifikasi(); }
+            catch { return new DataTable(); }
         }
 
         public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru)

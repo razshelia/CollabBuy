@@ -239,9 +239,92 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // IMPLEMENTASI ICommandRepository<Transaction>
         // =======================================================
 
-        public void Insert(Transaction entity)
+        public void Insert(Transaction transaksi)
         {
-            throw new NotSupportedException("Gunakan method Checkout() untuk insert Transaksi agar atomic.");
+            if (transaksi == null)
+            {
+                throw new ArgumentNullException(nameof(transaksi), "Data transaksi tidak boleh kosong!");
+            }
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var dbTx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Insert ke tabel induk 'transactions'
+                        // Catatan: Kolom di database namanya 'id_koordinator', tapi di C# Model kita pakai 'GetIdPembeli()'
+                        string insertHeaderQuery = @"
+                            INSERT INTO transactions (id_koordinator, tanggal_transaksi, status_pesanan, bukti_bayar, is_valid)
+                            VALUES (@koord, CURRENT_TIMESTAMP, @status, @bukti, FALSE)
+                            RETURNING id_transaksi;";
+
+                        int idTransaksiGenerated = 0;
+                        using (var cmdHeader = new NpgsqlCommand(insertHeaderQuery, conn, dbTx))
+                        {
+                            cmdHeader.Parameters.AddWithValue("@koord", transaksi.GetIdPembeli());
+                            cmdHeader.Parameters.AddWithValue("@status", transaksi.GetStatus());
+
+                            // Cek apakah ada bukti bayar (BYTEA), jika null kirim DBNull ke database
+                            byte[] buktiBayar = transaksi.GetBuktiBayar();
+                            if (buktiBayar != null && buktiBayar.Length > 0)
+                            {
+                                cmdHeader.Parameters.AddWithValue("@bukti", buktiBayar);
+                            }
+                            else
+                            {
+                                cmdHeader.Parameters.AddWithValue("@bukti", DBNull.Value);
+                            }
+
+                            // Eksekusi dan ambil ID transaksi yang baru saja ter-generate
+                            idTransaksiGenerated = Convert.ToInt32(cmdHeader.ExecuteScalar());
+
+                            // Set ID transaksi balik ke object RAM
+                            transaksi.SetIdTransaksi(idTransaksiGenerated);
+                        }
+
+                        // 2. Loop insert setiap detail item (Titipan) ke 'transaction_details'
+                        // Catatan DB: snapshot nama produk, harga beli, dan diskon akan OTOMATIS diisi 
+                        // oleh TRIGGER database (t_before_insert_detail) yang sudah dibuat sebelumnya.
+                        string insertDetailQuery = @"
+                            INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan)
+                            VALUES (@idTrx, @idProduk, @penitip, @jumlah, @catatan);";
+
+                        foreach (TransactionDetail detail in transaksi.GetSemuaDetail())
+                        {
+                            using (var cmdDetail = new NpgsqlCommand(insertDetailQuery, conn, dbTx))
+                            {
+                                cmdDetail.Parameters.AddWithValue("@idTrx", idTransaksiGenerated);
+                                cmdDetail.Parameters.AddWithValue("@idProduk", detail.GetIdProduk());
+                                cmdDetail.Parameters.AddWithValue("@penitip", detail.GetNamaPenitip());
+                                cmdDetail.Parameters.AddWithValue("@jumlah", detail.GetJumlahPesanan());
+
+                                // Handling catatan opsional (bisa null)
+                                if (string.IsNullOrWhiteSpace(detail.GetCatatan()))
+                                {
+                                    cmdDetail.Parameters.AddWithValue("@catatan", DBNull.Value);
+                                }
+                                else
+                                {
+                                    cmdDetail.Parameters.AddWithValue("@catatan", detail.GetCatatan());
+                                }
+
+                                cmdDetail.ExecuteNonQuery();
+                            }
+                        }
+
+                        // 3. Commit transaksi jika SELURUH header & detail sukses tanpa error
+                        dbTx.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        // 4. Rollback jika ada error di tengah jalan, agar data tidak masuk setengah-setengah
+                        dbTx.Rollback();
+                        throw;
+                    }
+                }
+            }
         }
 
         public void Update(Transaction entity)
