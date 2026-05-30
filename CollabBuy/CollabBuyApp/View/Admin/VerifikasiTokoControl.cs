@@ -16,10 +16,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             InitializeComponent();
             _userController = new UserController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void VerifikasiTokoControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadVerifikasi();
         }
 
@@ -80,6 +83,21 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 }
                 else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            int w = this.Width - (margin * 2);
+
+            int gridW = (int)(w * 0.58);
+            dgvVerifikasi.Width = gridW;
+
+            int pnlLeft = margin + gridW + 24;
+            pnlKTM.Left = pnlLeft;
+            pnlKTM.Width = this.Width - pnlLeft - margin;
+            pbKTM.Width = pnlKTM.Width - 48;
+            btnApprove.Width = pnlKTM.Width - 48;
         }
     }
 }

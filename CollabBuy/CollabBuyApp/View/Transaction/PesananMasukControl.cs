@@ -19,10 +19,12 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             // Inisialisasi controller
             _transactionController = new TransactionController(_currentUser.GetIdUser());
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void PesananMasukControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupDataGridView();
             LoadDataPesanan();
         }
@@ -104,6 +106,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void btnBatal_Click(object sender, EventArgs e)
         {
             ProsesUbahStatus("Dibatalkan", "Yakin banget nih mau ngebatalin pesanan orang? 🥺");
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int w = this.Width - (margin * 2);
+            pnlCard.Width = w;
+            dgvPesanan.Width = pnlCard.Width - 68;
+            btnProses.Left = pnlCard.Width - btnProses.Width - 34;
+            btnSelesai.Left = btnProses.Left - btnSelesai.Width - 10;
         }
     }
 }

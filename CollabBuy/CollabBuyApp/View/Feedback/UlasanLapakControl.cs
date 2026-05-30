@@ -18,6 +18,8 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             _seller = seller;
             _controller = new ReviewController();
             LoadUlasan();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void LoadUlasan()
@@ -116,6 +118,13 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
                 flpUlasan.Controls.Add(pnl);
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            flpUlasan.Width = this.Width - (margin * 2);
+            flpUlasan.Height = this.Height - flpUlasan.Top - margin;
         }
 
         private void BtnBalas_Click(object sender, EventArgs e)

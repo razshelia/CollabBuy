@@ -255,5 +255,56 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 return new List<ActivityLog>();
             }
         }
+
+        /// <summary>
+        /// Mengambil semua data user untuk ditampilkan di KelolaUserControl.
+        /// Memanggil UserRepository yang sudah ada (_userRepo).
+        /// </summary>
+        public DataTable GetSemuaUser()
+        {
+            try
+            {
+                return _userRepo.GetSemuaUser();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Gagal mengambil data user: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Memblokir atau mengaktifkan kembali akun user.
+        /// Memanggil UserRepository yang sudah ada (_userRepo).
+        /// </summary>
+        public (bool sukses, string pesan) ToggleBlokirUser(int idUser, bool blokir)
+        {
+            try
+            {
+                _userRepo.ToggleBlokirUser(idUser, blokir);
+                string aksi = blokir ? "diblokir" : "diaktifkan kembali";
+                return (true, $"Akun berhasil {aksi}!");
+            }
+            catch (Exception ex)
+            {
+                return (false, "Gagal update status akun: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Mengambil log aktivitas dalam bentuk DataTable untuk LogAktivitasControl.
+        /// Memanggil ActivityLogRepository yang sudah ada (_logRepo).
+        /// Method GetLogAktivitas() yang lama (return List) tetap dipertahankan.
+        /// </summary>
+        public DataTable GetLogAktivitasDataTable()
+        {
+            try
+            {
+                return _logRepo.GetAllAsDataTable();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Gagal mengambil log aktivitas: " + ex.Message);
+            }
+        }
     }
 }

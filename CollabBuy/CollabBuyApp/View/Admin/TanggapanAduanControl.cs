@@ -20,10 +20,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             _admin = admin;
             _complaintController = new ComplaintController();
             _userController = new UserController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void TanggapanAduanControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadAduan();
         }
 
@@ -88,6 +91,22 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 }
                 else MessageBox.Show(res.pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            int w = this.Width - (margin * 2);
+
+            int gridW = (int)(w * 0.58);
+            dgvAduan.Width = gridW;
+
+            int pnlLeft = margin + gridW + 24;
+            pnlForm.Left = pnlLeft;
+            pnlForm.Width = this.Width - pnlLeft - margin;
+            txtBalasan.Width = pnlForm.Width - 48;
+            btnBalas.Width = pnlForm.Width - 48;
+            btnBlokir.Width = pnlForm.Width - 48;
         }
     }
 }

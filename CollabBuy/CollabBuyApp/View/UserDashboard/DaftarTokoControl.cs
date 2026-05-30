@@ -25,13 +25,38 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             if (pnlCard != null)
             {
+                // Lebar card mengikuti area konten, max 500px
+                int maxW = 500;
+                int availW = this.Width - 80;
+                pnlCard.Width = availW < maxW ? availW : maxW;
+
+                // ← TAMBAH INI: tinggi card mengikuti layar, max 650px
+                int maxH = 650;
+                int availH = this.Height - 60;
+                pnlCard.Height = availH < maxH ? availH : maxH;
+
+                // ← TAMBAH INI: aktifkan scroll kalau konten tidak muat
+                pnlCard.AutoScroll = true;
+
+                // Update lebar elemen di dalam pnlCard
+                int innerW = pnlCard.Width - 80;
+                pnlStatus.Width = innerW;
+                pnlForm.Width = innerW;
+                txtNamaToko.Width = innerW;
+                txtNIM.Width = innerW;
+                txtTahunMasuk.Width = innerW;
+                chkSyarat.Width = innerW;
+                btnAjukan.Width = innerW;
+
+                // Centering
                 pnlCard.Left = (this.Width - pnlCard.Width) / 2;
-                pnlCard.Top = (this.Height - pnlCard.Height) / 2;
+                pnlCard.Top = Math.Max(20, (this.Height - pnlCard.Height) / 2);
             }
         }
 
         private void DaftarTokoControl_Load(object sender, EventArgs e)
         {
+            DaftarTokoControl_Resize(null, null);
             CekStatusVerifikasi();
         }
 

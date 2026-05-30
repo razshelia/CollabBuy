@@ -30,7 +30,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
             // Setup Form Global
             this.Text = "CollabBuy v1.0 - Sistem Agregator Dana Usaha (Danus) Mahasiswa";
             this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250); // Background Putih Keabuan
-
+            this.MinimumSize = new System.Drawing.Size(1100, 650);
+            this.WindowState = FormWindowState.Maximized;
             CreateUI();
         }
 
@@ -44,16 +45,18 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 BackColor = System.Drawing.Color.FromArgb(36, 0, 70), // Dark Purple
                 AutoScroll = true
             };
-            this.Controls.Add(pnlSidebar);
+     
 
             // === CONTENT AREA (Kanan) ===
             pnlContent = new Panel
             {
                 Dock = DockStyle.Fill,
                 BackColor = System.Drawing.Color.FromArgb(248, 249, 250),
-                Padding = new Padding(10)
+                Padding = new Padding(10),
+                AutoScroll = true
             };
             this.Controls.Add(pnlContent);
+            this.Controls.Add(pnlSidebar);
 
             ShowLoginControl();
         }
@@ -132,6 +135,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void BuildSidebarMenu()
         {
+
             pnlSidebar.Controls.Clear();
 
             // 1. LOGO UTAMA
@@ -215,9 +219,10 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AddCategoryLabel("MANAGEMENT");
                 AddMenuButton("🏢 Verifikasi Toko", () => ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
                 AddMenuButton("📁 Kelola Kategori", () => ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
-                // PERBAIKAN: Menambahkan _currentUser sebagai parameter
-                AddMenuButton("📣 Tanggapan Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
+                AddMenuButton("📣 Kelola Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
+                AddMenuButton("👥 Kelola User", () => ShowUserControl(new ViewAdmin.KelolaUserControl()));
                 AddMenuButton("📊 Laporan Sistem", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
+                AddMenuButton("📋 Log Aktivitas", () => ShowUserControl(new ViewAdmin.LogAktivitasControl()));
             }
             else if (peran == "Penjual")
             {

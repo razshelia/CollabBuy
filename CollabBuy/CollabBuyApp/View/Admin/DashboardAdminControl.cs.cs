@@ -17,10 +17,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             InitializeComponent();
             _admin = admin;
             _controller = new AdminController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void DashboardAdminControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             lblSapaan.Text = $"Hola Mimin {_admin.GetUsername()}! 🚀";
             LoadStatistik();
         }
@@ -38,6 +41,21 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadStatistik();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 35;
+            int w = this.Width - (margin * 2);
+            int cardW = (w / 4) - 15;
+
+            pnlUser.Width = cardW;
+            pnlTrx.Width = cardW;
+            pnlTrx.Left = margin + cardW + 20;
+            pnlPO.Width = cardW;
+            pnlPO.Left = margin + (cardW + 20) * 2;
+            pnlAduan.Width = cardW;
+            pnlAduan.Left = margin + (cardW + 20) * 3;
         }
     }
 }

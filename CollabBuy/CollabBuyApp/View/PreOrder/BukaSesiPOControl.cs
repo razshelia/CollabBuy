@@ -16,10 +16,13 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             InitializeComponent();
             _currentSeller = seller;
             _poController = new PreOrderController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void BukaSesiPOControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             dtpBatasWaktu.MinDate = DateTime.Now;
             cbJenisPO.SelectedIndex = 0; // Default Biasa
             LoadMasterProduk();
@@ -100,6 +103,27 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             cbJenisPO.SelectedIndex = 0;
             numQuota.Value = 10;
             dtpBatasWaktu.Value = DateTime.Now.AddDays(1);
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int w = this.Width - (margin * 2);
+            if (w < 400) w = 400;
+            pnlForm.Width = w;
+
+            int innerW = pnlForm.Width - 68;
+            txtNamaSesi.Width = (int)(innerW * 0.58);
+            cbJenisPO.Left = txtNamaSesi.Left + txtNamaSesi.Width + 20;
+            cbJenisPO.Width = innerW - txtNamaSesi.Width - 20;
+            lblJenis.Left = cbJenisPO.Left;
+            cbProduk.Width = innerW;
+            txtRekening.Width = innerW;
+            btnSimpanSesi.Width = innerW;
+            numQuota.Width = (int)(innerW * 0.45);
+            dtpBatasWaktu.Left = numQuota.Left + numQuota.Width + 20;
+            dtpBatasWaktu.Width = innerW - numQuota.Width - 20;
+            lblBatasWaktu.Left = dtpBatasWaktu.Left;
         }
     }
 }

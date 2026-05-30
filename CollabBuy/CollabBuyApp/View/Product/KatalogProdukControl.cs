@@ -24,16 +24,25 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             // Supaya tampilan mekar menyesuaikan layar
             this.Dock = DockStyle.Fill;
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void KatalogProdukControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadKatalog();
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadKatalog();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            flpKatalog.Width = this.Width - (margin * 2);
+            flpKatalog.Height = this.Height - flpKatalog.Top - margin;
         }
 
         private void LoadKatalog()

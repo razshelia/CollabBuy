@@ -17,10 +17,13 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             InitializeComponent();
             _currentUser = user;
             _controller = new ComplaintController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void SpillKendalaControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadRiwayat();
         }
 
@@ -52,6 +55,30 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                 dgvRiwayat.Columns["tanggal"].HeaderText = "Waktu Spill";
                 dgvRiwayat.Columns["is_selesai"].HeaderText = "Status Beres?";
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            int w = this.Width - (margin * 2);
+
+            int formW = (int)(w * 0.42);
+            if (formW < 300) formW = 300;
+            pnlForm.Width = formW;
+            pnlForm.Height = this.Height - pnlForm.Top - margin; // ← TAMBAH INI
+
+            int innerW = formW - 48;
+            txtSubjek.Width = innerW;
+            txtDeskripsi.Width = innerW;
+            txtDeskripsi.Height = pnlForm.Height - btnAduan.Height - 200; // ← TAMBAH INI
+            btnAduan.Top = txtDeskripsi.Top + txtDeskripsi.Height + 15; // ← TAMBAH INI
+            btnAduan.Width = innerW;
+
+            int riwayatLeft = margin + formW + 24;
+            lblRiwayat.Left = riwayatLeft;
+            dgvRiwayat.Left = riwayatLeft;
+            dgvRiwayat.Width = this.Width - riwayatLeft - margin;
+            dgvRiwayat.Height = this.Height - dgvRiwayat.Top - margin; // ← TAMBAH INI
         }
     }
 }

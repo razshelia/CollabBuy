@@ -16,10 +16,13 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             InitializeComponent();
             _currentUser = user;
             _controller = new ReviewController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void BeriUlasanControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadProduk();
         }
 
@@ -54,6 +57,20 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             {
                 MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            int w = this.Width - (margin * 2);
+            if (w > 600) w = 600;
+            pnlForm.Width = w;
+            pnlForm.Left = (this.Width - w) / 2;
+
+            int innerW = w - 48;
+            cbProduk.Width = innerW;
+            txtKomentar.Width = innerW;
+            btnKirim.Width = innerW;
         }
     }
 }

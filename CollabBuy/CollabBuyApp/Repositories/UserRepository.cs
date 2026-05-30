@@ -92,6 +92,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             else { user = new Pembeli(nama, username, password); }
 
                             user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
+                            user.SetPeran(peran);
                             if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
                             {
                                 user.Blokir("Diblokir oleh Admin");
@@ -271,6 +272,49 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
+        public DataTable GetSemuaUser()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT 
+            u.id_user,
+            u.nama,
+            u.username,
+            COALESCE(u.email, '-')         AS email,
+            COALESCE(u.nomor_telepon, '-') AS nomor_telepon,
+            u.peran,
+            CASE WHEN u.is_diblokir = TRUE THEN 'Diblokir' ELSE 'Aktif' END AS status_akun
+        FROM users u
+        ORDER BY u.peran, u.nama;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public void ToggleBlokirUser(int idUser, bool blokir)
+        {
+            string query = "UPDATE users SET is_diblokir = @blokir WHERE id_user = @id;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@blokir", blokir);
+                    cmd.Parameters.AddWithValue("@id", idUser);
+                    int rows = cmd.ExecuteNonQuery();
+                    if (rows == 0)
+                        throw new InvalidOperationException("User tidak ditemukan atau gagal diupdate.");
+                }
+            }
+        }
+
         // =======================================================
         // METHOD KHUSUS STORED PROCEDURE
         // =======================================================
@@ -338,6 +382,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             else
             {
                 user = new Pembeli(nama, username, password);
+                user.SetPeran(peran);
             }
 
             user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));

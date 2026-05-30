@@ -20,10 +20,18 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             _currentUser = currentUser;
             _transactionController = new TransactionController(_currentUser.GetIdUser());
             this.Dock = DockStyle.Fill;
+
+            pnlTitipan.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            dgvKeranjang.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlSummary.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnKosongkan.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void KeranjangBelanjaControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupDataGridView();
             LoadDataKeranjang();
         }
@@ -163,6 +171,30 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 }
                 else MessageBox.Show(res.pesan, "Gagal Checkout", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int availableWidth = this.Width - (margin * 2);
+
+            // Grid kiri: 58% dari lebar
+            int gridWidth = (int)(availableWidth * 0.58);
+            dgvKeranjang.Width = gridWidth;
+
+            // Panel titipan kanan: sisanya
+            int titipanLeft = margin + gridWidth + 24;
+            pnlTitipan.Left = titipanLeft;
+            pnlTitipan.Width = this.Width - titipanLeft - margin;
+
+            // Panel summary full width
+            pnlSummary.Width = availableWidth;
+
+            // Tombol hapus semua nempel kanan
+            btnKosongkan.Left = this.Width - margin - btnKosongkan.Width;
+
+            // Tombol checkout nempel kanan dalam panel summary
+            btnCheckout.Left = pnlSummary.Width - btnCheckout.Width - 20;
         }
     }
 }

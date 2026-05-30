@@ -15,10 +15,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             InitializeComponent();
             _controller = new AdminController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void KelolaKategoriControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadDataGrid();
         }
 
@@ -105,6 +108,30 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private void btnReset_Click(object sender, EventArgs e)
         {
             ResetForm();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 38;
+            int w = this.Width - (margin * 2);
+
+            int formW = (int)(w * 0.38);
+            if (formW < 300) formW = 300;
+            pnlForm.Width = formW;
+
+            // Sesuaikan lebar elemen di dalam pnlForm
+            int innerW = formW - 48;
+            txtNama.Width = innerW;
+            btnTambah.Width = innerW;
+            btnUpdate.Width = (innerW / 2) - 5;
+            btnHapus.Width = (innerW / 2) - 5;
+            btnHapus.Left = btnUpdate.Left + btnUpdate.Width + 10;
+            btnReset.Width = innerW;
+
+            int gridLeft = margin + formW + 24;
+            dgvKategori.Left = gridLeft;
+            dgvKategori.Width = this.Width - gridLeft - margin;
+            dgvKategori.Height = this.Height - dgvKategori.Top - margin;
         }
     }
 }

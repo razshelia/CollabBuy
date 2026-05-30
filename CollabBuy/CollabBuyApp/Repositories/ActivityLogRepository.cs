@@ -4,6 +4,7 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
@@ -93,6 +94,29 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return listLog;
         }
 
+        public DataTable GetAllAsDataTable()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT 
+            al.id_log,
+            u.nama     AS pelaku,
+            u.peran,
+            al.aktivitas,
+            al.waktu_akses
+        FROM activity_logs al
+        JOIN users u ON al.id_user = u.id_user
+        ORDER BY al.waktu_akses DESC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
+            }
+            return dt;
+        }
 
         // =======================================================
         // IMPLEMENTASI ICommandRepository<ActivityLog>

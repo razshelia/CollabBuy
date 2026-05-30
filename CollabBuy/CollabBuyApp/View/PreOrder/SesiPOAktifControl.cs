@@ -17,10 +17,13 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             InitializeComponent();
             _poController = new PreOrderController();
             _currentUser = currentUser;
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void SesiPOAktifControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             LoadDataSesiPO("");
         }
 
@@ -213,6 +216,13 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 txtCari.Text = "Kepoin sesi PO...";
                 txtCari.ForeColor = Color.Gray;
             }
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            flpSesiPO.Width = this.Width - (margin * 2);
+            flpSesiPO.Height = this.Height - flpSesiPO.Top - margin;
         }
     }
 }

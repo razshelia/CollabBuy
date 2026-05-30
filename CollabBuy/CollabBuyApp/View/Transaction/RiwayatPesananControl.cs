@@ -19,10 +19,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             
             // Inisialisasi controller
             _transactionController = new TransactionController(_currentUser.GetIdUser());
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void RiwayatPesananControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupDataGridView();
             LoadDataRiwayat();
         }
@@ -30,6 +33,18 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadDataRiwayat();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int w = this.Width - (margin * 2);
+            pnlCard.Width = w;
+            pnlCard.Height = this.Height - pnlCard.Top - margin; // ← TAMBAH INI
+            dgvRiwayat.Width = pnlCard.Width - 68;
+            dgvRiwayat.Height = pnlCard.Height - btnRefresh.Height - 70; // ← TAMBAH INI
+            btnRefresh.Left = pnlCard.Width - btnRefresh.Width - 34;
+            btnRefresh.Top = pnlCard.Height - btnRefresh.Height - 20; // ← TAMBAH INI
         }
 
         private void SetupDataGridView()

@@ -21,10 +21,13 @@ namespace CollabBuy.CollabBuyApp.View.Report
             InitializeComponent();
             _currentUser = currentUser;
             _laporanController = new LaporanController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void AnalitikPenjualanControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupDataGridView();
             LoadDataAnalitik();
         }
@@ -32,6 +35,31 @@ namespace CollabBuy.CollabBuyApp.View.Report
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadDataAnalitik();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int w = this.Width - (margin * 2);
+
+            int cardW = (int)(w * 0.36);
+            pnlCuan.Width = cardW;
+            pnlOrder.Left = margin + cardW + 14;
+            pnlOrder.Width = (int)(w * 0.31);
+            btnUnduhPdf.Left = pnlOrder.Left + pnlOrder.Width + 14;
+            btnUnduhPdf.Width = this.Width - btnUnduhPdf.Left - margin;
+
+            pnlGrid.Width = w;
+            pnlGrid.Height = this.Height - pnlGrid.Top - margin; // ← tambah ini
+
+            int innerW = pnlGrid.Width - 48;
+            int gridW = (int)(innerW * 0.47);
+            dgvLaporan.Width = gridW;
+            dgvLaporan.Height = pnlGrid.Height - dgvLaporan.Top - 20; // ← tambah ini
+            chartPenjualan.Left = dgvLaporan.Left + gridW + 16;
+            chartPenjualan.Width = innerW - gridW - 16;
+            chartPenjualan.Height = pnlGrid.Height - chartPenjualan.Top - 20; // ← tambah ini
+            btnRefresh.Left = pnlGrid.Width - btnRefresh.Width - 24;
         }
 
         private void SetupDataGridView()

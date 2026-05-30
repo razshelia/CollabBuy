@@ -106,7 +106,7 @@ namespace CollabBuy.CollabBuyApp.Models
             _email = email;
         }
         public string GetPeran() { return _peran; }
-        protected void SetPeran(string peran)
+        public void SetPeran(string peran)
         {
             if (string.IsNullOrWhiteSpace(peran))
             {

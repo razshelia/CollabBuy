@@ -17,10 +17,13 @@ namespace CollabBuy.CollabBuyApp.View.Product
             InitializeComponent();
             _currentUser = currentUser;
             _productController = new ProductController();
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void ManajemenProdukControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupDataGridView();
             LoadDataProduk();
         }
@@ -28,6 +31,15 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadDataProduk();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 36;
+            int w = this.Width - (margin * 2);
+            pnlGrid.Width = w;
+            dgvLapak.Width = pnlGrid.Width - 68;
+            btnRefresh.Left = pnlGrid.Width - btnRefresh.Width - 34;
         }
 
         private void SetupDataGridView()

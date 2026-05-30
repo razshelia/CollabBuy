@@ -28,10 +28,18 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             {
                 lblWelcome.Text = $"Halo, {_currentUser.GetNama()}! 👋";
             }
+
+            pnlStatsCard1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlStatsCard2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            dgvActivePO.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+            this.Resize += (s, e) => AdjustLayout();
         }
 
         private void DashboardUserControl_Load(object sender, EventArgs e)
         {
+            AdjustLayout();
             SetupGridColumns();
             LoadUserDataSummary();
         }
@@ -39,6 +47,20 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadUserDataSummary();
+        }
+
+        private void AdjustLayout()
+        {
+            int margin = 37;
+            int availableWidth = this.Width - (margin * 2);
+
+            int cardWidth = (availableWidth / 2) - 10;
+            pnlStatsCard1.Width = cardWidth;
+            pnlStatsCard2.Width = cardWidth;
+            pnlStatsCard2.Left = margin + cardWidth + 20;
+
+            dgvActivePO.Width = availableWidth;
+            btnRefresh.Left = this.Width - margin - btnRefresh.Width;
         }
 
         private void SetupGridColumns()
