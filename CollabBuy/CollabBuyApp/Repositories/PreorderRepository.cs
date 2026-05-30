@@ -1,67 +1,49 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Repositories.Interfaces;
-using Npgsql;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using Npgsql;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    /// <summary>
-    /// Repository untuk mengakses data PreOrder / Sesi PO.
-    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
-    /// </summary>
     public class PreOrderRepository : IQueryRepository<PreOrder>, ICommandRepository<PreOrder>
     {
-        // === PRIVATE FIELDS ===
         private readonly string _connectionString;
 
-        // === KONSTRUKTOR ===
         public PreOrderRepository()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-            if (string.IsNullOrEmpty(connStr))
-            {
-                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-            }
-            _connectionString = connStr;
+            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
+                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
         }
 
-
         // =======================================================
-        // IMPLEMENTASI IQueryRepository<PreOrder>
+        // IQueryRepository (READ)
         // =======================================================
 
         public PreOrder GetById(int idPo)
         {
             PreOrder po = null;
-
             string query = "SELECT id_po, id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif FROM preorders WHERE id_po = @id;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idPo);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
-                            string judulPo = reader.GetString(reader.GetOrdinal("judul_po"));
-                            string jenisPo = reader.GetString(reader.GetOrdinal("jenis_po"));
-                            string infoRekening = reader.GetString(reader.GetOrdinal("info_rekening"));
-                            DateTime batasWaktu = reader.GetDateTime(reader.GetOrdinal("batas_waktu"));
-
-                            po = new PreOrder(idPenjual, judulPo, jenisPo, infoRekening, batasWaktu);
+                            po = new PreOrder(reader.GetInt32(reader.GetOrdinal("id_penjual")),
+                                              reader.GetString(reader.GetOrdinal("judul_po")),
+                                              reader.GetString(reader.GetOrdinal("jenis_po")),
+                                              reader.GetString(reader.GetOrdinal("info_rekening")),
+                                              reader.GetDateTime(reader.GetOrdinal("batas_waktu")));
                             po.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
-
-                            // Cek status aktif
-                            if (reader.GetBoolean(reader.GetOrdinal("is_aktif")) == false)
-                            {
-                                po.UbahStatus("Tutup");
-                            }
+                            if (!reader.GetBoolean(reader.GetOrdinal("is_aktif"))) po.UbahStatus("Tutup");
                         }
                     }
                 }
@@ -71,112 +53,94 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public List<PreOrder> GetAll()
         {
-            List<PreOrder> listPo = new List<PreOrder>();
-            string query = "SELECT id_po, id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif FROM preorders ORDER BY batas_waktu DESC;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
-                            string judulPo = reader.GetString(reader.GetOrdinal("judul_po"));
-                            string jenisPo = reader.GetString(reader.GetOrdinal("jenis_po"));
-                            string infoRekening = reader.GetString(reader.GetOrdinal("info_rekening"));
-                            DateTime batasWaktu = reader.GetDateTime(reader.GetOrdinal("batas_waktu"));
-
-                            PreOrder po = new PreOrder(idPenjual, judulPo, jenisPo, infoRekening, batasWaktu);
-                            po.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
-
-                            if (reader.GetBoolean(reader.GetOrdinal("is_aktif")) == false)
-                            {
-                                po.UbahStatus("Tutup");
-                            }
-                            listPo.Add(po);
-                        }
-                    }
-                }
-            }
-            return listPo;
+            // Bisa digunakan untuk keperluan internal admin jika perlu
+            return new List<PreOrder>();
         }
 
-
-        // =======================================================
-        // IMPLEMENTASI ICommandRepository<PreOrder>
-        // =======================================================
-
-        public void Insert(PreOrder entity)
+        public DataTable GetPoByPenjual(int idPenjual)
         {
-            if (entity == null) throw new ArgumentNullException("Entity PO tidak boleh null.");
+            DataTable dt = new DataTable();
+            string query = "SELECT id_po, judul_po, jenis_po, batas_waktu, is_aktif, info_rekening FROM preorders WHERE id_penjual = @id ORDER BY batas_waktu DESC;";
 
-            string query = "INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) VALUES (@penjual, @judul, @jenis, @rekening, @batas, @aktif);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+        // =======================================================
+        // ICommandRepository & COMMANDS (WRITE)
+        // =======================================================
+
+        /// <summary>
+        /// Menggunakan Insert sesuai kontrak ICommandRepository.
+        /// </summary>
+        public void Insert(PreOrder entity)
+        {
+            string query = "INSERT INTO preorders (id_penjual, judul_po, jenis_po, batas_waktu, is_aktif, info_rekening) VALUES (@penjual, @judul, @jenis, @batas, TRUE, @rekening);";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@penjual", entity.GetIdPenjual());
                     cmd.Parameters.AddWithValue("@judul", entity.GetJudulPo());
                     cmd.Parameters.AddWithValue("@jenis", entity.GetJenisPo());
-                    cmd.Parameters.AddWithValue("@rekening", entity.GetInfoRekening());
                     cmd.Parameters.AddWithValue("@batas", entity.GetBatasWaktu());
-                    cmd.Parameters.AddWithValue("@aktif", entity.GetStatus() == "Aktif");
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected == 0)
-                    {
-                        throw new InvalidOrderException("Gagal menyimpan PO baru ke database.", "", "DB_INSERT_PO_FAILED");
-                    }
+                    cmd.Parameters.AddWithValue("@rekening", entity.GetInfoRekening());
+                    cmd.ExecuteNonQuery();
                 }
             }
         }
 
         public void Update(PreOrder entity)
         {
-            if (entity == null) throw new ArgumentNullException("Entity PO tidak boleh null.");
-
             string query = "UPDATE preorders SET judul_po = @judul, is_aktif = @aktif WHERE id_po = @id;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", entity.GetIdPo());
                     cmd.Parameters.AddWithValue("@judul", entity.GetJudulPo());
                     cmd.Parameters.AddWithValue("@aktif", entity.GetStatus() == "Aktif");
-
                     cmd.ExecuteNonQuery();
                 }
             }
         }
 
-
-        // =======================================================
-        // METHOD KHUSUS (STORED PROCEDURE DB)
-        // =======================================================
-
         /// <summary>
-        /// Memanggil Stored Procedure sp_update_status_massal_po.
-        /// Mengubah status pesanan secara massal berdasarkan ID PO.
+        /// Stored Procedure Massal (Tidak tumpang tindih dengan Update biasa).
         /// </summary>
         public void UpdateStatusMassal(int idPo, string statusBaru)
         {
-            string query = "CALL sp_update_status_massal_po(@idPo, @statusBaru);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand("CALL sp_update_status_massal_po(@idPo, @status);", conn))
                 {
                     cmd.Parameters.AddWithValue("@idPo", idPo);
-                    cmd.Parameters.AddWithValue("@statusBaru", statusBaru);
+                    cmd.Parameters.AddWithValue("@status", statusBaru);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
+        public void TutupSesiPo(int idPo)
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand("UPDATE preorders SET is_aktif = FALSE WHERE id_po = @id;", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPo);
                     cmd.ExecuteNonQuery();
                 }
             }
