@@ -14,6 +14,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private int _selectedIdProduk = 0;
         private string _selectedOldPenitip = "";
 
+        // Event untuk navigasi ke halaman pembayaran
+        public event Action<int, long> OnCheckoutBerhasil;
+
         public KeranjangBelanjaControl(User currentUser)
         {
             InitializeComponent();
@@ -84,7 +87,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void HitungTotalPembayaran(DataTable dt)
         {
             decimal total = 0;
-            foreach (DataRow row in dt.Rows) total += Convert.ToDecimal(row["Subtotal"]);
+            foreach (DataRow row in dt.Rows)
+                total += Convert.ToDecimal(row["Subtotal"]);
             lblTotalHarga.Text = $"Rp {total:N0}";
         }
 
@@ -93,7 +97,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             btnCheckout.Enabled = adaBarang;
             btnCheckout.BackColor = adaBarang ? Color.FromArgb(36, 0, 70) : Color.Gray;
             btnKosongkan.Enabled = adaBarang;
-            pnlTitipan.Enabled = false; // Kunci panel titipan sampai row diklik
+            pnlTitipan.Enabled = false;
         }
 
         private void dgvKeranjang_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -110,7 +114,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 return;
             }
 
-            // Populasikan ke Form Edit Titipan
             _selectedIdProduk = idProduk;
             _selectedOldPenitip = namaPenitip;
 
@@ -125,7 +128,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void btnSimpanTitipan_Click(object sender, EventArgs e)
         {
             if (_selectedIdProduk == 0 || string.IsNullOrWhiteSpace(txtPenitip.Text)) return;
-
             _transactionController.UpdateTitipan(_selectedIdProduk, _selectedOldPenitip, txtPenitip.Text, (int)numQty.Value, txtCatatan.Text);
             LoadDataKeranjang();
         }
@@ -133,7 +135,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void btnTambahTitipan_Click(object sender, EventArgs e)
         {
             if (_selectedIdProduk == 0 || string.IsNullOrWhiteSpace(txtPenitip.Text)) return;
-
             _transactionController.TambahTitipanBaru(_selectedIdProduk, txtPenitip.Text, (int)numQty.Value, txtCatatan.Text);
             LoadDataKeranjang();
         }
@@ -160,16 +161,48 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         private void btnCheckout_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Udah yakin sama pesanan kamu? Langsung gaskeun bayar?", "Checkout Yuk!", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show(
+                "Udah yakin sama pesanan kamu?\nSetelah ini kamu akan diarahkan ke halaman pembayaran.",
+                "Checkout Yuk!",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            var res = _transactionController.ProsesCheckout();
+
+            if (res.sukses)
             {
-                var res = _transactionController.ProsesCheckout();
-                if (res.sukses)
+                // Ekstrak ID transaksi dari pesan: "Checkout berhasil! ID Transaksi Anda: 42"
+                int idTransaksi = 0;
+                try
                 {
-                    MessageBox.Show(res.pesan + " 🎉", "Mantap!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    _transactionController.KosongkanKeranjang();
-                    LoadDataKeranjang();
+                    string[] parts = res.pesan.Split(':');
+                    if (parts.Length > 1)
+                        int.TryParse(parts[parts.Length - 1].Trim(), out idTransaksi);
                 }
-                else MessageBox.Show(res.pesan, "Gagal Checkout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                catch { /* abaikan, tetap navigasi */ }
+
+                // Hitung total dari label yang sudah ditampilkan
+                long totalTagihan = 0;
+                try
+                {
+                    string rawTotal = lblTotalHarga.Text.Replace("Rp", "").Replace(".", "").Replace(",", "").Trim();
+                    long.TryParse(rawTotal, out totalTagihan);
+                }
+                catch { /* abaikan */ }
+
+                // Kosongkan keranjang di memory/UI
+                _transactionController.KosongkanKeranjang();
+
+                // Navigasi ke halaman pembayaran via event
+                if (OnCheckoutBerhasil != null)
+                    OnCheckoutBerhasil(idTransaksi, totalTagihan);
+                else
+                    MessageBox.Show(res.pesan + " 🎉\nSilakan upload bukti pembayaran di halaman Riwayat Pesanan.", "Checkout Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(res.pesan, "Gagal Checkout", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -178,22 +211,15 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             int margin = 36;
             int availableWidth = this.Width - (margin * 2);
 
-            // Grid kiri: 58% dari lebar
             int gridWidth = (int)(availableWidth * 0.58);
             dgvKeranjang.Width = gridWidth;
 
-            // Panel titipan kanan: sisanya
             int titipanLeft = margin + gridWidth + 24;
             pnlTitipan.Left = titipanLeft;
             pnlTitipan.Width = this.Width - titipanLeft - margin;
 
-            // Panel summary full width
             pnlSummary.Width = availableWidth;
-
-            // Tombol hapus semua nempel kanan
             btnKosongkan.Left = this.Width - margin - btnKosongkan.Width;
-
-            // Tombol checkout nempel kanan dalam panel summary
             btnCheckout.Left = pnlSummary.Width - btnCheckout.Width - 20;
         }
     }

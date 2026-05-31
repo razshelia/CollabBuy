@@ -45,7 +45,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 BackColor = System.Drawing.Color.FromArgb(36, 0, 70), // Dark Purple
                 AutoScroll = true
             };
-     
+
 
             // === CONTENT AREA (Kanan) ===
             pnlContent = new Panel
@@ -238,8 +238,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
             else
             {
                 AddCategoryLabel("BUYER");
-                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
-                AddMenuButton("🛒 Keranjang Belanja", () => ShowUserControl(new ViewTransaction.KeranjangBelanjaControl(_currentUser)));
+                AddMenuButton("🏪 Katalog Produk", () => ShowKatalogProduk());
+                AddMenuButton("🛒 Keranjang Belanja", () => ShowKeranjangBelanja());
                 AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
                 AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
                 AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
@@ -272,6 +272,43 @@ namespace CollabBuy.CollabBuyApp.View.Main
             };
             pnlSidebar.Controls.Add(picLogoKecil);
             picLogoKecil.BringToFront();
+        }
+
+        private void ShowKatalogProduk()
+        {
+            var ctrl = new ViewProduct.KatalogProdukControl(_currentUser);
+            ctrl.OnLihatDetail += (idProduk) =>
+            {
+                // Halaman detail produk belum dibuat.
+                // Saat sudah ada, ganti MessageBox ini dengan:
+                // ShowUserControl(new ViewProduct.DetailProdukControl(_currentUser, idProduk));
+                System.Windows.Forms.MessageBox.Show(
+                    "Halaman detail produk sedang dikembangkan.\nID Produk: " + idProduk,
+                    "Coming Soon",
+                    System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Information);
+            };
+            ShowUserControl(ctrl);
+        }
+
+        private void ShowKeranjangBelanja()
+        {
+            var ctrl = new ViewTransaction.KeranjangBelanjaControl(_currentUser);
+            ctrl.OnCheckoutBerhasil += (idTransaksi, totalTagihan) =>
+            {
+                ShowPembayaran(idTransaksi, totalTagihan);
+            };
+            ShowUserControl(ctrl);
+        }
+
+        private void ShowPembayaran(int idTransaksi, long totalTagihan)
+        {
+            var ctrl = new ViewTransaction.PembayaranControl(_currentUser, idTransaksi, totalTagihan);
+            ctrl.OnPembayaranSelesai += () =>
+            {
+                ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser));
+            };
+            ShowUserControl(ctrl);
         }
 
         private void ShowUserControl(UserControl control)
