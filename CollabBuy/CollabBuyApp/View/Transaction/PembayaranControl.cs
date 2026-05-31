@@ -1,118 +1,226 @@
-﻿using CollabBuy.CollabBuyApp.Controllers;
-using CollabBuy.CollabBuyApp.Models;
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Models;
 
-namespace CollabBuy.CollabBuyApp.View.Transaction
+namespace CollabBuy.CollabBuyApp.View.User
 {
     /// <summary>
-    /// Halaman pembayaran: ditampilkan setelah checkout berhasil.
-    /// User bisa lihat ringkasan pesanan dan upload bukti transfer.
+    /// Halaman Pembayaran — muncul setelah user klik "Checkout Sekarang" dari Keranjang.
+    /// Alur:
+    ///   1. Tampilkan total tagihan
+    ///   2. User upload bukti transfer (opsional, bisa belakangan)
+    ///   3. User klik "Konfirmasi & Checkout" → proses transaksi ke DB
+    ///   4. Tampilkan ID Transaksi hasil checkout
+    ///   5. Event OnCheckoutBerhasil dipancarkan ke parent form
     /// </summary>
     public partial class PembayaranControl : UserControl
     {
-        private readonly User _currentUser;
-        private readonly int _idTransaksi;
+        private readonly Models.User _user;
+        private readonly TransactionController _trxCtrl;
         private readonly long _totalTagihan;
-        private readonly TransactionController _transactionController;
-        private byte[] _buktiBayarBytes = null;
 
-        // Event untuk kembali ke riwayat setelah upload berhasil
-        public event Action OnPembayaranSelesai;
+        private byte[] _buktiBayar = null;
+        private int _idTransaksiBaru = 0;
+        private bool _checkoutSudahDilakukan = false;
 
-        public PembayaranControl(User currentUser, int idTransaksi, long totalTagihan)
+        // Event navigasi
+        public event Action OnNavigateKembali;         // Kembali ke keranjang
+        public event Action<int> OnCheckoutBerhasil;  // Checkout sukses, bawa id transaksi
+
+        public PembayaranControl(Models.User user, TransactionController trxCtrl, long totalTagihan)
         {
             InitializeComponent();
-            _currentUser = currentUser;
-            _idTransaksi = idTransaksi;
+            _user = user;
+            _trxCtrl = trxCtrl;
             _totalTagihan = totalTagihan;
-            _transactionController = new TransactionController(_currentUser.GetIdUser());
         }
 
         private void PembayaranControl_Load(object sender, EventArgs e)
         {
-            // Isi info transaksi
-            lblIdTransaksi.Text = $"ID Transaksi  :  #{_idTransaksi}";
-            lblTotalBayar.Text = $"Rp {_totalTagihan:N0}";
-            lblStatusBayar.Text = "⏳ Menunggu Bukti Pembayaran";
-            lblStatusBayar.ForeColor = Color.FromArgb(200, 120, 0);
+            lblTotal.Text = "Rp " + _totalTagihan.ToString("N0");
+            lblRekeningInfo.Text =
+                "💡 Info rekening tersedia di detail setiap PO / Produk penjual.\n" +
+                "Pastikan kamu transfer ke rekening yang sesuai dengan produk yang dipesan.";
+            AturLayout();
         }
 
-        // ── Pilih gambar bukti bayar ──
-        private void btnPilihBukti_Click(object sender, EventArgs e)
+        private void PembayaranControl_Resize(object sender, EventArgs e)
+        {
+            AturLayout();
+        }
+
+        private void btnPilihFile_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Title = "Pilih Bukti Pembayaran";
-                ofd.Filter = "Gambar (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png|Semua File (*.*)|*.*";
+                ofd.Title = "Pilih Bukti Transfer";
+                ofd.Filter = "Gambar|*.jpg;*.jpeg;*.png;*.bmp|Semua File|*.*";
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    _buktiBayarBytes = File.ReadAllBytes(ofd.FileName);
-                    lblNamaFile.Text = Path.GetFileName(ofd.FileName);
-
-                    // Preview gambar
                     try
                     {
-                        pbPreview.Image = Image.FromFile(ofd.FileName);
-                    }
-                    catch
-                    {
-                        pbPreview.Image = null;
-                    }
+                        _buktiBayar = File.ReadAllBytes(ofd.FileName);
+                        lblNamaFile.Text = Path.GetFileName(ofd.FileName);
 
-                    btnUpload.Enabled = true;
-                    btnUpload.BackColor = Color.FromArgb(36, 0, 70);
+                        // Preview
+                        using (var ms = new MemoryStream(_buktiBayar))
+                        {
+                            picPreview.Image = Image.FromStream(ms);
+                        }
+                        picPreview.Visible = true;
+
+                        // Jika checkout sudah dilakukan, langsung upload bukti
+                        if (_checkoutSudahDilakukan && _idTransaksiBaru > 0)
+                        {
+                            UploadBuktiBayar();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TampilkanStatus($"❌ Gagal membaca file: {ex.Message}", false);
+                    }
                 }
             }
         }
 
-        // ── Upload bukti pembayaran ──
-        private void btnUpload_Click(object sender, EventArgs e)
+        private void btnKonfirmasiCheckout_Click(object sender, EventArgs e)
         {
-            if (_buktiBayarBytes == null || _buktiBayarBytes.Length == 0)
+            if (_checkoutSudahDilakukan)
             {
-                MessageBox.Show("Pilih file bukti pembayaran dulu ya!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                TampilkanStatus("⚠️ Checkout sudah dilakukan sebelumnya.", false);
                 return;
             }
 
-            var result = _transactionController.UploadBuktiBayar(_idTransaksi, _buktiBayarBytes, _currentUser.GetIdUser());
+            // Konfirmasi ke user
+            DialogResult konfirmasi = MessageBox.Show(
+                $"Konfirmasi checkout?\n\nTotal: Rp {_totalTagihan:N0}\n\nPesanan akan diproses setelah pembayaran diverifikasi.",
+                "Konfirmasi Checkout",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
 
-            if (result.sukses)
+            if (konfirmasi != DialogResult.Yes) return;
+
+            // Proses checkout ke database
+            var (sukses, pesan) = _trxCtrl.ProsesCheckout();
+
+            if (!sukses)
             {
-                lblStatusBayar.Text = "✅ Bukti berhasil diupload, menunggu verifikasi admin";
-                lblStatusBayar.ForeColor = Color.ForestGreen;
+                TampilkanStatus($"❌ Checkout gagal: {pesan}", false);
+                return;
+            }
 
-                MessageBox.Show(
-                    "Bukti pembayaran berhasil diupload! 🎉\nAdmin akan memverifikasi dalam 1×24 jam.",
-                    "Berhasil!",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+            // Ambil ID transaksi dari pesan (format: "Checkout berhasil! ID Transaksi Anda: 123")
+            _checkoutSudahDilakukan = true;
+            try
+            {
+                string[] parts = pesan.Split(':');
+                if (parts.Length >= 2)
+                    int.TryParse(parts[parts.Length - 1].Trim(), out _idTransaksiBaru);
+            }
+            catch { /* id tetap 0 */ }
 
-                btnUpload.Enabled = false;
-                btnPilihBukti.Enabled = false;
+            // Tampilkan ID transaksi
+            if (_idTransaksiBaru > 0)
+            {
+                txtIdTransaksi.Text = _idTransaksiBaru.ToString();
+                txtIdTransaksi.Visible = true;
+                lblIdTrxLabel.Visible = true;
+                lblIdTrxHint.Visible = true;
+            }
 
-                OnPembayaranSelesai?.Invoke();
+            // Upload bukti jika sudah dipilih
+            if (_buktiBayar != null && _buktiBayar.Length > 0)
+            {
+                UploadBuktiBayar();
             }
             else
             {
-                MessageBox.Show(result.pesan, "Upload Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TampilkanStatus(
+                    $"✅ Checkout berhasil! ID Transaksi: {_idTransaksiBaru}. Jangan lupa upload bukti transfer ya!",
+                    true
+                );
+            }
+
+            // Ubah tombol
+            btnKonfirmasiCheckout.Enabled = false;
+            btnKonfirmasiCheckout.BackColor = Color.FromArgb(150, 150, 150);
+            btnKonfirmasiCheckout.Text = "✅ Sudah Diproses";
+
+            // Navigasi ke riwayat setelah 2,5 detik
+            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+            timer.Interval = 2500;
+            timer.Tick += (s, ev) =>
+            {
+                timer.Stop();
+                OnCheckoutBerhasil?.Invoke(_idTransaksiBaru);
+            };
+            timer.Start();
+        }
+
+        private void UploadBuktiBayar()
+        {
+            if (_idTransaksiBaru <= 0 || _buktiBayar == null) return;
+
+            var (sukses, pesanUpload) = _trxCtrl.UploadBuktiBayar(_idTransaksiBaru, _buktiBayar, _user.GetIdUser());
+            if (sukses)
+                TampilkanStatus($"✅ Checkout & bukti bayar berhasil! ID Transaksi: {_idTransaksiBaru}", true);
+            else
+                TampilkanStatus($"⚠️ Checkout berhasil tapi gagal upload bukti: {pesanUpload}", false);
+        }
+
+        private void TampilkanStatus(string pesan, bool sukses)
+        {
+            lblStatus.Text = pesan;
+            lblStatus.BackColor = sukses
+                ? Color.FromArgb(210, 255, 230)
+                : Color.FromArgb(255, 220, 220);
+            lblStatus.ForeColor = sukses
+                ? Color.FromArgb(0, 100, 50)
+                : Color.FromArgb(150, 0, 0);
+            lblStatus.Visible = true;
+        }
+
+        private void btnBatalKembali_Click(object sender, EventArgs e)
+        {
+            if (_checkoutSudahDilakukan)
+            {
+                // Kalau sudah checkout, arahkan ke riwayat
+                OnCheckoutBerhasil?.Invoke(_idTransaksiBaru);
+            }
+            else
+            {
+                OnNavigateKembali?.Invoke();
             }
         }
 
-        // ── Kembali tanpa upload (bayar nanti) ──
-        private void btnNanti_Click(object sender, EventArgs e)
+        private void AturLayout()
         {
-            var dr = MessageBox.Show(
-                "Kamu bisa upload bukti pembayaran nanti di halaman Riwayat Pesanan.\nYakin mau kembali dulu?",
-                "Bayar Nanti?",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+            int margin = 30;
+            int w = this.Width > 0 ? this.Width : 980;
+            int contentW = w - margin * 2;
 
-            if (dr == DialogResult.Yes)
-                OnPembayaranSelesai?.Invoke();
+            pnlRingkasan.SetBounds(margin, 20, Math.Min(560, contentW), 90);
+            pnlRekening.SetBounds(margin, 126, Math.Min(560, contentW), 85);
+            lblUploadTitle.Location = new Point(margin, 228);
+            btnPilihFile.Location = new Point(margin, 258);
+            lblNamaFile.Location = new Point(margin + 170, 268);
+            picPreview.Location = new Point(margin, 305);
+
+            // Posisi ID transaksi & hint
+            lblIdTrxLabel.Location = new Point(margin, 480);
+            txtIdTransaksi.Location = new Point(margin + 210, 477);
+            lblIdTrxHint.Location = new Point(margin, 510);
+
+            // Tombol
+            btnBatalKembali.Location = new Point(margin, 540);
+            btnKonfirmasiCheckout.Location = new Point(margin + btnBatalKembali.Width + 20, 540);
+
+            // Status
+            lblStatus.SetBounds(margin, 605, Math.Min(700, contentW), 28);
         }
     }
 }

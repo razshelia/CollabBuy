@@ -45,7 +45,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 BackColor = System.Drawing.Color.FromArgb(36, 0, 70), // Dark Purple
                 AutoScroll = true
             };
-
+     
 
             // === CONTENT AREA (Kanan) ===
             pnlContent = new Panel

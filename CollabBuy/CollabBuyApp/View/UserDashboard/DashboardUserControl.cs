@@ -1,577 +1,316 @@
-﻿using System;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Controllers;
-using CollabBuy.CollabBuyApp.Models;
-
-namespace CollabBuy.CollabBuyApp.View.UserDashboard
+﻿namespace CollabBuy.CollabBuyApp.View.User
 {
-    public partial class DashboardUserControl : UserControl
+    partial class DashboardUserControl
     {
-        private readonly User _currentUser;
+        private System.ComponentModel.IContainer components = null;
 
-        private readonly TransactionController _transactionController;
-        private readonly ProductController _productController;
-
-        // ── Warna Palet Neo-Retro Ungu Soft + Kuning Soft ──
-        private static readonly Color ClrUnguSoft = Color.FromArgb(210, 195, 255);  // ungu muda
-        private static readonly Color ClrUnguMedium = Color.FromArgb(167, 139, 250);  // ungu sedang
-        private static readonly Color ClrUnguDark = Color.FromArgb(88, 56, 163);   // ungu tua
-        private static readonly Color ClrKuningLemon = Color.FromArgb(255, 240, 120);  // kuning lemon
-        private static readonly Color ClrKuningHangat = Color.FromArgb(255, 214, 51);  // kuning emas soft
-        private static readonly Color ClrCardBg = Color.FromArgb(252, 249, 255);  // putih ungu sangat muda
-        private static readonly Color ClrCardBorder = Color.FromArgb(220, 210, 255);  // border ungu lembut
-        private static readonly Color ClrTextDark = Color.FromArgb(36, 0, 70);   // teks gelap
-
-        private Panel pnlKatalogContainer;
-
-        public DashboardUserControl(User user)
+        protected override void Dispose(bool disposing)
         {
-            InitializeComponent();
-            _currentUser = user;
-
-            _transactionController = new TransactionController();
-            _productController = new ProductController();
-
-            if (_currentUser != null)
-                lblWelcome.Text = $"Halo, {_currentUser.GetNama()}! 👋";
-
-            pnlStatsCard1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            pnlStatsCard2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-            BuildKatalogContainer();
-
-            this.Resize += (s, e) => AdjustLayout();
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
         }
 
-        // ─────────────────────────────────────────────
-        // BUILD: kontainer scrollable untuk card-card
-        // ─────────────────────────────────────────────
-        private void BuildKatalogContainer()
+        private void InitializeComponent()
         {
-            pnlKatalogContainer = new Panel
-            {
-                AutoScroll = true,
-                BackColor = Color.Transparent,
-                Location = new Point(37, 335),
-                Size = new Size(940, 360),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left |
-                                  AnchorStyles.Right | AnchorStyles.Bottom,
-                Name = "pnlKatalogContainer"
-            };
-            this.Controls.Add(pnlKatalogContainer);
-            pnlKatalogContainer.BringToFront();
+            System.Windows.Forms.DataGridViewCellStyle headerStyle = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle rowStyle = new System.Windows.Forms.DataGridViewCellStyle();
+
+            // === DEKLARASI KONTROL ===
+            this.pnlMain = new System.Windows.Forms.Panel();
+            this.lblSapaan = new System.Windows.Forms.Label();
+            this.lblSubtitle = new System.Windows.Forms.Label();
+
+            // Kartu statistik
+            this.pnlPesanan = new System.Windows.Forms.Panel();
+            this.lblIkonPesanan = new System.Windows.Forms.Label();
+            this.lblTitlePesanan = new System.Windows.Forms.Label();
+            this.lblValPesanan = new System.Windows.Forms.Label();
+
+            this.pnlKeranjang = new System.Windows.Forms.Panel();
+            this.lblIkonKeranjang = new System.Windows.Forms.Label();
+            this.lblTitleKeranjang = new System.Windows.Forms.Label();
+            this.lblValKeranjang = new System.Windows.Forms.Label();
+
+            this.pnlSaldo = new System.Windows.Forms.Panel();
+            this.lblIkonSaldo = new System.Windows.Forms.Label();
+            this.lblTitleSaldo = new System.Windows.Forms.Label();
+            this.lblValSaldo = new System.Windows.Forms.Label();
+
+            // Section Katalog Terbaru
+            this.lblKatalogTitle = new System.Windows.Forms.Label();
+            this.btnLihatSemua = new System.Windows.Forms.Button();
+            this.pnlKatalog = new System.Windows.Forms.Panel();
+            this.dgvKatalog = new System.Windows.Forms.DataGridView();
+
+            // === SUSPEND LAYOUT ===
+            this.pnlMain.SuspendLayout();
+            this.pnlPesanan.SuspendLayout();
+            this.pnlKeranjang.SuspendLayout();
+            this.pnlSaldo.SuspendLayout();
+            this.pnlKatalog.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvKatalog)).BeginInit();
+            this.SuspendLayout();
+
+            // ============================================================
+            // pnlMain — container utama dengan AutoScroll vertical
+            // ============================================================
+            this.pnlMain.AutoScroll = true;
+            this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlMain.BackColor = System.Drawing.Color.FromArgb(248, 245, 255);
+            this.pnlMain.Controls.Add(this.lblSapaan);
+            this.pnlMain.Controls.Add(this.lblSubtitle);
+            this.pnlMain.Controls.Add(this.pnlPesanan);
+            this.pnlMain.Controls.Add(this.pnlKeranjang);
+            this.pnlMain.Controls.Add(this.pnlSaldo);
+            this.pnlMain.Controls.Add(this.lblKatalogTitle);
+            this.pnlMain.Controls.Add(this.btnLihatSemua);
+            this.pnlMain.Controls.Add(this.pnlKatalog);
+
+            // ============================================================
+            // lblSapaan
+            // ============================================================
+            this.lblSapaan.AutoSize = true;
+            this.lblSapaan.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblSapaan.ForeColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.lblSapaan.Location = new System.Drawing.Point(30, 28);
+            this.lblSapaan.Text = "Halo, Bestie! 👋";
+
+            // ============================================================
+            // lblSubtitle
+            // ============================================================
+            this.lblSubtitle.AutoSize = true;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI Semibold", 10F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(130, 80, 180);
+            this.lblSubtitle.Location = new System.Drawing.Point(34, 70);
+            this.lblSubtitle.Text = "Yuk cek belanjaan kamu hari ini! ✨";
+
+            // ============================================================
+            // pnlPesanan — Kartu "Pesanan Aktif"
+            // ============================================================
+            this.pnlPesanan.BackColor = System.Drawing.Color.FromArgb(230, 210, 255);
+            this.pnlPesanan.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.pnlPesanan.Location = new System.Drawing.Point(30, 110);
+            this.pnlPesanan.Size = new System.Drawing.Size(200, 110);
+            this.pnlPesanan.Padding = new System.Windows.Forms.Padding(16);
+            this.pnlPesanan.Controls.Add(this.lblIkonPesanan);
+            this.pnlPesanan.Controls.Add(this.lblTitlePesanan);
+            this.pnlPesanan.Controls.Add(this.lblValPesanan);
+
+            this.lblIkonPesanan.AutoSize = true;
+            this.lblIkonPesanan.Font = new System.Drawing.Font("Segoe UI", 22F);
+            this.lblIkonPesanan.Location = new System.Drawing.Point(14, 10);
+            this.lblIkonPesanan.Text = "📦";
+
+            this.lblTitlePesanan.AutoSize = true;
+            this.lblTitlePesanan.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblTitlePesanan.ForeColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.lblTitlePesanan.Location = new System.Drawing.Point(14, 50);
+            this.lblTitlePesanan.Text = "Pesanan Aktif";
+
+            this.lblValPesanan.AutoSize = true;
+            this.lblValPesanan.Font = new System.Drawing.Font("Segoe UI Black", 22F, System.Drawing.FontStyle.Bold);
+            this.lblValPesanan.ForeColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.lblValPesanan.Location = new System.Drawing.Point(14, 68);
+            this.lblValPesanan.Text = "0";
+
+            // ============================================================
+            // pnlKeranjang — Kartu "Item Keranjang"
+            // ============================================================
+            this.pnlKeranjang.BackColor = System.Drawing.Color.FromArgb(254, 252, 200);
+            this.pnlKeranjang.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.pnlKeranjang.Location = new System.Drawing.Point(250, 110);
+            this.pnlKeranjang.Size = new System.Drawing.Size(200, 110);
+            this.pnlKeranjang.Padding = new System.Windows.Forms.Padding(16);
+            this.pnlKeranjang.Controls.Add(this.lblIkonKeranjang);
+            this.pnlKeranjang.Controls.Add(this.lblTitleKeranjang);
+            this.pnlKeranjang.Controls.Add(this.lblValKeranjang);
+
+            this.lblIkonKeranjang.AutoSize = true;
+            this.lblIkonKeranjang.Font = new System.Drawing.Font("Segoe UI", 22F);
+            this.lblIkonKeranjang.Location = new System.Drawing.Point(14, 10);
+            this.lblIkonKeranjang.Text = "🛒";
+
+            this.lblTitleKeranjang.AutoSize = true;
+            this.lblTitleKeranjang.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblTitleKeranjang.ForeColor = System.Drawing.Color.FromArgb(130, 100, 0);
+            this.lblTitleKeranjang.Location = new System.Drawing.Point(14, 50);
+            this.lblTitleKeranjang.Text = "Item di Keranjang";
+
+            this.lblValKeranjang.AutoSize = true;
+            this.lblValKeranjang.Font = new System.Drawing.Font("Segoe UI Black", 22F, System.Drawing.FontStyle.Bold);
+            this.lblValKeranjang.ForeColor = System.Drawing.Color.FromArgb(130, 100, 0);
+            this.lblValKeranjang.Location = new System.Drawing.Point(14, 68);
+            this.lblValKeranjang.Text = "0";
+
+            // ============================================================
+            // pnlSaldo — Kartu "Slot Tersedia" (PO aktif)
+            // ============================================================
+            this.pnlSaldo.BackColor = System.Drawing.Color.FromArgb(210, 255, 230);
+            this.pnlSaldo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.pnlSaldo.Location = new System.Drawing.Point(470, 110);
+            this.pnlSaldo.Size = new System.Drawing.Size(200, 110);
+            this.pnlSaldo.Padding = new System.Windows.Forms.Padding(16);
+            this.pnlSaldo.Controls.Add(this.lblIkonSaldo);
+            this.pnlSaldo.Controls.Add(this.lblTitleSaldo);
+            this.pnlSaldo.Controls.Add(this.lblValSaldo);
+
+            this.lblIkonSaldo.AutoSize = true;
+            this.lblIkonSaldo.Font = new System.Drawing.Font("Segoe UI", 22F);
+            this.lblIkonSaldo.Location = new System.Drawing.Point(14, 10);
+            this.lblIkonSaldo.Text = "🎫";
+
+            this.lblTitleSaldo.AutoSize = true;
+            this.lblTitleSaldo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblTitleSaldo.ForeColor = System.Drawing.Color.FromArgb(0, 100, 60);
+            this.lblTitleSaldo.Location = new System.Drawing.Point(14, 50);
+            this.lblTitleSaldo.Text = "PO Tersedia";
+
+            this.lblValSaldo.AutoSize = true;
+            this.lblValSaldo.Font = new System.Drawing.Font("Segoe UI Black", 22F, System.Drawing.FontStyle.Bold);
+            this.lblValSaldo.ForeColor = System.Drawing.Color.FromArgb(0, 100, 60);
+            this.lblValSaldo.Location = new System.Drawing.Point(14, 68);
+            this.lblValSaldo.Text = "0";
+
+            // ============================================================
+            // lblKatalogTitle
+            // ============================================================
+            this.lblKatalogTitle.AutoSize = true;
+            this.lblKatalogTitle.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
+            this.lblKatalogTitle.ForeColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.lblKatalogTitle.Location = new System.Drawing.Point(30, 248);
+            this.lblKatalogTitle.Text = "🛍️  Produk Terbaru";
+
+            // ============================================================
+            // btnLihatSemua
+            // ============================================================
+            this.btnLihatSemua.BackColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.btnLihatSemua.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnLihatSemua.FlatAppearance.BorderSize = 0;
+            this.btnLihatSemua.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLihatSemua.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
+            this.btnLihatSemua.ForeColor = System.Drawing.Color.FromArgb(254, 252, 200);
+            this.btnLihatSemua.Location = new System.Drawing.Point(750, 244);
+            this.btnLihatSemua.Size = new System.Drawing.Size(140, 34);
+            this.btnLihatSemua.Text = "Lihat Semua →";
+            this.btnLihatSemua.UseVisualStyleBackColor = false;
+            this.btnLihatSemua.Click += new System.EventHandler(this.btnLihatSemua_Click);
+
+            // ============================================================
+            // pnlKatalog + dgvKatalog
+            // ============================================================
+            this.pnlKatalog.BackColor = System.Drawing.Color.White;
+            this.pnlKatalog.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlKatalog.Location = new System.Drawing.Point(30, 290);
+            this.pnlKatalog.Size = new System.Drawing.Size(900, 400);
+            this.pnlKatalog.Controls.Add(this.dgvKatalog);
+
+            headerStyle.BackColor = System.Drawing.Color.FromArgb(200, 170, 255);
+            headerStyle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            headerStyle.ForeColor = System.Drawing.Color.FromArgb(40, 0, 80);
+            headerStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+
+            rowStyle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            rowStyle.SelectionBackColor = System.Drawing.Color.FromArgb(230, 210, 255);
+            rowStyle.SelectionForeColor = System.Drawing.Color.Black;
+            rowStyle.BackColor = System.Drawing.Color.White;
+
+            this.dgvKatalog.AllowUserToAddRows = false;
+            this.dgvKatalog.AllowUserToDeleteRows = false;
+            this.dgvKatalog.AutoGenerateColumns = false;
+            this.dgvKatalog.BackgroundColor = System.Drawing.Color.White;
+            this.dgvKatalog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvKatalog.ColumnHeadersDefaultCellStyle = headerStyle;
+            this.dgvKatalog.ColumnHeadersHeight = 38;
+            this.dgvKatalog.DefaultCellStyle = rowStyle;
+            this.dgvKatalog.EnableHeadersVisualStyles = false;
+            this.dgvKatalog.Location = new System.Drawing.Point(2, 2);
+            this.dgvKatalog.ReadOnly = true;
+            this.dgvKatalog.RowHeadersVisible = false;
+            this.dgvKatalog.RowTemplate.Height = 44;
+            this.dgvKatalog.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvKatalog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+
+            // Kolom: Nama, Penjual, Harga, Slot Tersedia, PO, Aksi
+            System.Windows.Forms.DataGridViewTextBoxColumn colNama = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colNama.Name = "colNama"; colNama.HeaderText = "Nama Produk";
+            colNama.DataPropertyName = "nama_produk"; colNama.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colPenjual = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colPenjual.Name = "colPenjual"; colPenjual.HeaderText = "Penjual";
+            colPenjual.DataPropertyName = "nama_penjual"; colPenjual.Width = 140;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colHarga = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colHarga.Name = "colHarga"; colHarga.HeaderText = "Harga";
+            colHarga.DataPropertyName = "harga_display"; colHarga.Width = 130;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colSlot = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colSlot.Name = "colSlot"; colSlot.HeaderText = "Slot Tersedia";
+            colSlot.DataPropertyName = "slot_tersedia"; colSlot.Width = 110;
+
+            System.Windows.Forms.DataGridViewButtonColumn colDetail = new System.Windows.Forms.DataGridViewButtonColumn();
+            colDetail.Name = "colDetail"; colDetail.HeaderText = "";
+            colDetail.Text = "Detail"; colDetail.UseColumnTextForButtonValue = true;
+            colDetail.Width = 80;
+            colDetail.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            colDetail.DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            colDetail.DefaultCellStyle.ForeColor = System.Drawing.Color.White;
+            colDetail.DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI Semibold", 8F, System.Drawing.FontStyle.Bold);
+
+            this.dgvKatalog.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+                colNama, colPenjual, colHarga, colSlot, colDetail
+            });
+
+            this.dgvKatalog.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvKatalog_CellClick);
+
+            // ============================================================
+            // DashboardUserControl
+            // ============================================================
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(248, 245, 255);
+            this.Controls.Add(this.pnlMain);
+            this.Name = "DashboardUserControl";
+            this.Size = new System.Drawing.Size(980, 700);
+            this.Load += new System.EventHandler(this.DashboardUserControl_Load);
+            this.Resize += new System.EventHandler(this.DashboardUserControl_Resize);
+
+            // === RESUME LAYOUT ===
+            this.pnlPesanan.ResumeLayout(false);
+            this.pnlPesanan.PerformLayout();
+            this.pnlKeranjang.ResumeLayout(false);
+            this.pnlKeranjang.PerformLayout();
+            this.pnlSaldo.ResumeLayout(false);
+            this.pnlSaldo.PerformLayout();
+            this.pnlKatalog.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvKatalog)).EndInit();
+            this.pnlMain.ResumeLayout(false);
+            this.pnlMain.PerformLayout();
+            this.ResumeLayout(false);
         }
 
-        // ─────────────────────────────────────────────
-        // LOAD
-        // ─────────────────────────────────────────────
-        private void DashboardUserControl_Load(object sender, EventArgs e)
-        {
-            AdjustLayout();
-            LoadUserDataSummary();
-        }
+        // === DEKLARASI FIELD KONTROL ===
+        private System.Windows.Forms.Panel pnlMain;
+        private System.Windows.Forms.Label lblSapaan;
+        private System.Windows.Forms.Label lblSubtitle;
 
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            LoadUserDataSummary();
-        }
+        private System.Windows.Forms.Panel pnlPesanan;
+        private System.Windows.Forms.Label lblIkonPesanan;
+        private System.Windows.Forms.Label lblTitlePesanan;
+        private System.Windows.Forms.Label lblValPesanan;
 
-        // ─────────────────────────────────────────────
-        // LAYOUT
-        // ─────────────────────────────────────────────
-        private void AdjustLayout()
-        {
-            int margin = 37;
-            int availableW = this.Width - (margin * 2);
-            int cardHalfW = (availableW / 2) - 10;
+        private System.Windows.Forms.Panel pnlKeranjang;
+        private System.Windows.Forms.Label lblIkonKeranjang;
+        private System.Windows.Forms.Label lblTitleKeranjang;
+        private System.Windows.Forms.Label lblValKeranjang;
 
-            pnlStatsCard1.Width = cardHalfW;
-            pnlStatsCard2.Width = cardHalfW;
-            pnlStatsCard2.Left = margin + cardHalfW + 20;
+        private System.Windows.Forms.Panel pnlSaldo;
+        private System.Windows.Forms.Label lblIkonSaldo;
+        private System.Windows.Forms.Label lblTitleSaldo;
+        private System.Windows.Forms.Label lblValSaldo;
 
-            pnlKatalogContainer.Width = availableW;
-            btnRefresh.Left = this.Width - margin - btnRefresh.Width;
-        }
-
-        // ─────────────────────────────────────────────
-        // LOAD DATA → bangun card-card
-        // ─────────────────────────────────────────────
-        private void LoadUserDataSummary()
-        {
-            try
-            {
-                if (_currentUser == null) return;
-
-                // Stat card 1 – status lapak
-                if (_currentUser.GetPeran() == "Penjual")
-                {
-                    lblValueShopStatus.Text = "🏪 Lapak Aktif!";
-                    lblValueShopStatus.ForeColor = Color.ForestGreen;
-                }
-                else
-                {
-                    lblValueShopStatus.Text = "🔒 Terkunci (Buyer)";
-                    lblValueShopStatus.ForeColor = ClrTextDark;
-                }
-
-                // Stat card 2 – pesanan aktif
-                int totalAktif = _transactionController.GetTotalPesananAktif(_currentUser.GetIdUser());
-                lblValueActiveOrders.Text = totalAktif.ToString();
-
-                // Ambil katalog
-                DataTable dtRaw = _productController.GetKatalogAktifDashboard(15);
-
-                // Bersihkan card lama
-                pnlKatalogContainer.Controls.Clear();
-
-                int yOffset = 0;
-                int idx = 0;
-
-                foreach (DataRow row in dtRaw.Rows)
-                {
-                    Panel card = BuildProductCard(row, idx);
-                    card.Top = yOffset;
-                    card.Left = 0;
-                    card.Width = pnlKatalogContainer.ClientSize.Width - 4;
-                    pnlKatalogContainer.Controls.Add(card);
-                    yOffset += card.Height + 12;
-                    idx++;
-                }
-
-                if (dtRaw.Rows.Count == 0)
-                {
-                    Label lblEmpty = new Label
-                    {
-                        Text = "😴 Belum ada produk PO aktif nih, nantikan rilisan berikutnya~",
-                        Font = new Font("Segoe UI", 11F, FontStyle.Italic),
-                        ForeColor = ClrUnguDark,
-                        AutoSize = false,
-                        Width = pnlKatalogContainer.Width,
-                        Height = 50,
-                        TextAlign = ContentAlignment.MiddleCenter,
-                        Top = 20,
-                        Left = 0
-                    };
-                    pnlKatalogContainer.Controls.Add(lblEmpty);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Duh, gagal narik data dari server nih bestie: " + ex.Message,
-                                "Waduh Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        // ─────────────────────────────────────────────
-        // BUILDER: satu card horizontal
-        // ─────────────────────────────────────────────
-        private Panel BuildProductCard(DataRow row, int index)
-        {
-            // ── Ambil data ──
-            string namaProduk = row["nama_produk"]?.ToString() ?? "Produk";
-            string judulPo = row.IsNull("judul_po") ? "Reguler / Non-PO" : row["judul_po"].ToString();
-            int hargaDasar = row.IsNull("harga_dasar") ? 0 : Convert.ToInt32(row["harga_dasar"]);
-            int hargaDiskon = row.IsNull("harga_diskon") ? 0 : Convert.ToInt32(row["harga_diskon"]);
-
-            DateTime? batasWaktu = null;
-            if (!row.IsNull("batas_waktu"))
-                batasWaktu = Convert.ToDateTime(row["batas_waktu"]);
-
-            byte[] fotoBytes = row.IsNull("foto_produk") ? null : row["foto_produk"] as byte[];
-
-            // Countdown & badge
-            string badgeText = "✅ Aktif";
-            Color badgeColor = ClrUnguDark;
-            Color badgeFg = Color.White;
-            string countdown = "—";
-
-            if (batasWaktu.HasValue)
-            {
-                TimeSpan sisa = batasWaktu.Value - DateTime.Now;
-                if (sisa.TotalSeconds <= 0)
-                {
-                    badgeText = "🔒 Tutup";
-                    badgeColor = Color.FromArgb(200, 80, 80);
-                    countdown = "Sudah berakhir";
-                }
-                else if (sisa.TotalHours <= 2)
-                {
-                    badgeText = $"⏰ Tutup {(int)sisa.TotalHours}j {sisa.Minutes}m lagi";
-                    badgeColor = ClrKuningHangat;
-                    badgeFg = ClrTextDark;
-                    countdown = $"{(int)sisa.TotalHours:D2}:{sisa.Minutes:D2}:{sisa.Seconds:D2}";
-                }
-                else if (sisa.TotalDays <= 1)
-                {
-                    badgeText = $"⏳ {(int)sisa.TotalHours}j lagi";
-                    badgeColor = ClrKuningLemon;
-                    badgeFg = ClrTextDark;
-                    countdown = $"{(int)sisa.TotalHours}j {sisa.Minutes}m";
-                }
-                else
-                {
-                    badgeText = $"📅 {batasWaktu.Value:dd MMM}";
-                    badgeColor = ClrUnguMedium;
-                    countdown = batasWaktu.Value.ToString("dd MMM yyyy, HH:mm");
-                }
-            }
-
-            // Progress bar simulasi (kuota tidak tersedia di view, pakai placeholder)
-            int progressPct = 0; // default 0 jika tidak ada data kuota
-
-            // ── Warna alternasi card ──
-            Color cardBg = (index % 2 == 0) ? ClrCardBg : Color.FromArgb(248, 244, 255);
-
-            // ── Panel utama card ──
-            Panel card = new Panel
-            {
-                Height = 100,
-                BackColor = cardBg,
-                Cursor = Cursors.Hand,
-                Padding = new Padding(0),
-                Tag = row.IsNull("id_produk") ? 0 : Convert.ToInt32(row["id_produk"])
-            };
-
-            // Border halus via Paint
-            card.Paint += (s, e) =>
-            {
-                var g = e.Graphics;
-                var rect = new Rectangle(0, 0, card.Width - 1, card.Height - 1);
-                using (var pen = new Pen(ClrCardBorder, 1.5f))
-                    g.DrawRectangle(pen, rect);
-
-                // Garis aksen kiri ungu
-                using (var brush = new SolidBrush(ClrUnguMedium))
-                    g.FillRectangle(brush, 0, 0, 5, card.Height);
-            };
-
-            // ══════════════════════════════
-            // AREA KIRI – Foto + Identitas
-            // ══════════════════════════════
-            Panel pnlLeft = new Panel
-            {
-                Width = 260,
-                Height = card.Height,
-                Left = 8,
-                Top = 0,
-                BackColor = Color.Transparent
-            };
-            card.Controls.Add(pnlLeft);
-
-            // Foto produk
-            PictureBox pbFoto = new PictureBox
-            {
-                Width = 72,
-                Height = 72,
-                Left = 10,
-                Top = 14,
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = ClrUnguSoft
-            };
-            if (fotoBytes != null && fotoBytes.Length > 0)
-            {
-                try
-                {
-                    using (var ms = new System.IO.MemoryStream(fotoBytes))
-                        pbFoto.Image = Image.FromStream(ms);
-                }
-                catch { /* pakai background warna saja */ }
-            }
-
-            // Border bulat pada foto via Paint
-            pbFoto.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (var pen = new Pen(ClrUnguMedium, 2))
-                {
-                    var rect = new Rectangle(1, 1, pbFoto.Width - 3, pbFoto.Height - 3);
-                    e.Graphics.DrawEllipse(pen, rect);
-                }
-            };
-            pnlLeft.Controls.Add(pbFoto);
-
-            // Label nama produk
-            Label lblNamaProduk = new Label
-            {
-                Text = namaProduk,
-                Font = new Font("Segoe UI Black", 10.5F, FontStyle.Bold),
-                ForeColor = ClrTextDark,
-                AutoSize = false,
-                Width = 160,
-                Height = 22,
-                Left = 90,
-                Top = 14,
-                AutoEllipsis = true
-            };
-            pnlLeft.Controls.Add(lblNamaProduk);
-
-            // Label nama sesi PO
-            Label lblJudulPO = new Label
-            {
-                Text = judulPo,
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Italic),
-                ForeColor = Color.SlateGray,
-                AutoSize = false,
-                Width = 160,
-                Height = 18,
-                Left = 90,
-                Top = 36,
-                AutoEllipsis = true
-            };
-            pnlLeft.Controls.Add(lblJudulPO);
-
-            // Badge status / waktu
-            Label lblBadge = new Label
-            {
-                Text = badgeText,
-                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
-                ForeColor = badgeFg,
-                BackColor = badgeColor,
-                AutoSize = false,
-                Width = 160,
-                Height = 22,
-                Left = 90,
-                Top = 60,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Padding = new Padding(4, 0, 4, 0)
-            };
-            lblBadge.Paint += (s, e) =>
-            {
-                // Rounded corners badge
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (var path = RoundedRect(new Rectangle(0, 0, lblBadge.Width - 1, lblBadge.Height - 1), 8))
-                using (var brush = new SolidBrush(badgeColor))
-                {
-                    e.Graphics.FillPath(brush, path);
-                    TextRenderer.DrawText(e.Graphics, lblBadge.Text, lblBadge.Font,
-                        new Rectangle(0, 0, lblBadge.Width, lblBadge.Height),
-                        badgeFg,
-                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-                }
-            };
-            pnlLeft.Controls.Add(lblBadge);
-
-            // ══════════════════════════════
-            // AREA TENGAH – Progress + Waktu
-            // ══════════════════════════════
-            Panel pnlMid = new Panel
-            {
-                Width = 0,    // diatur saat Resize
-                Height = card.Height,
-                Left = 275,
-                Top = 0,
-                BackColor = Color.Transparent,
-                Name = "pnlMid"
-            };
-            card.Controls.Add(pnlMid);
-
-            // Label "Progress Slot"
-            Label lblProgressTitle = new Label
-            {
-                Text = "PROGRESS SLOT",
-                Font = new Font("Segoe UI", 7.5F, FontStyle.Bold),
-                ForeColor = Color.Gray,
-                AutoSize = true,
-                Left = 8,
-                Top = 18
-            };
-            pnlMid.Controls.Add(lblProgressTitle);
-
-            // Progress Bar custom
-            Panel pnlProgressBg = new Panel
-            {
-                Height = 14,
-                Left = 8,
-                Top = 38,
-                BackColor = ClrUnguSoft,
-                Name = "pnlProgressBg"
-            };
-            pnlMid.Controls.Add(pnlProgressBg);
-
-            Panel pnlProgressFill = new Panel
-            {
-                Height = 14,
-                Left = 0,
-                Top = 0,
-                BackColor = ClrUnguMedium,
-                Name = "pnlProgressFill"
-            };
-            pnlProgressBg.Controls.Add(pnlProgressFill);
-
-            // Rounded corners progress
-            pnlProgressBg.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (var path = RoundedRect(new Rectangle(0, 0, pnlProgressBg.Width - 1, pnlProgressBg.Height - 1), 6))
-                using (var brush = new SolidBrush(ClrUnguSoft))
-                {
-                    e.Graphics.FillPath(brush, path);
-                    int fillW = (int)(pnlProgressBg.Width * (progressPct / 100.0));
-                    if (fillW > 0)
-                    {
-                        var fillRect = new Rectangle(0, 0, fillW, pnlProgressBg.Height - 1);
-                        using (var fillPath = RoundedRect(fillRect, 6))
-                        using (var fillBrush = new SolidBrush(ClrUnguDark))
-                            e.Graphics.FillPath(fillBrush, fillPath);
-                    }
-                }
-            };
-
-            Label lblSlotInfo = new Label
-            {
-                Text = progressPct > 0 ? $"{progressPct}% Slot Terisi" : "Info slot tidak tersedia",
-                Font = new Font("Segoe UI", 8F),
-                ForeColor = ClrTextDark,
-                AutoSize = true,
-                Left = 8,
-                Top = 56
-            };
-            pnlMid.Controls.Add(lblSlotInfo);
-
-            // Countdown timer
-            Label lblCountdown = new Label
-            {
-                Text = $"⏱ {countdown}",
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
-                ForeColor = (batasWaktu.HasValue && (batasWaktu.Value - DateTime.Now).TotalHours <= 2)
-                            ? Color.Crimson : ClrUnguDark,
-                AutoSize = true,
-                Left = 8,
-                Top = 72
-            };
-            pnlMid.Controls.Add(lblCountdown);
-
-            // ══════════════════════════════
-            // AREA KANAN – Harga + Tombol
-            // ══════════════════════════════
-            Panel pnlRight = new Panel
-            {
-                Width = 210,
-                Height = card.Height,
-                BackColor = Color.Transparent,
-                Name = "pnlRight"
-            };
-            card.Controls.Add(pnlRight);
-
-            // Harga
-            bool adaDiskon = hargaDiskon > 0 && hargaDiskon < hargaDasar;
-            int hargaShow = adaDiskon ? hargaDiskon : hargaDasar;
-
-            Label lblHarga = new Label
-            {
-                Text = "Rp " + hargaShow.ToString("N0"),
-                Font = new Font("Segoe UI Black", 13F, FontStyle.Bold),
-                ForeColor = ClrUnguDark,
-                AutoSize = true,
-                Left = 8,
-                Top = 14
-            };
-            pnlRight.Controls.Add(lblHarga);
-
-            if (adaDiskon)
-            {
-                Label lblHargaCoret = new Label
-                {
-                    Text = "Rp " + hargaDasar.ToString("N0"),
-                    Font = new Font("Segoe UI", 8F),
-                    ForeColor = Color.Gray,
-                    AutoSize = true,
-                    Left = 8,
-                    Top = 38
-                };
-                // Coretan via Paint
-                lblHargaCoret.Paint += (s, e) =>
-                {
-                    TextRenderer.DrawText(e.Graphics, lblHargaCoret.Text, lblHargaCoret.Font,
-                        new Point(0, 0), Color.Gray);
-                    int midY = lblHargaCoret.Height / 2;
-                    e.Graphics.DrawLine(Pens.Gray, 0, midY, lblHargaCoret.Width, midY);
-                };
-                pnlRight.Controls.Add(lblHargaCoret);
-            }
-
-            // Tombol "Lihat Detail" (filled)
-            Button btnDetail = new Button
-            {
-                Text = "📋 Lihat Detail",
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                BackColor = ClrUnguDark,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Size = new Size(140, 30),
-                Left = 8,
-                Top = 55,
-                Cursor = Cursors.Hand,
-                Tag = card.Tag
-            };
-            btnDetail.FlatAppearance.BorderSize = 0;
-            btnDetail.Click += (s, e) =>
-            {
-                // Hook ini bisa disambungkan ke detail view sesuai arsitektur proyek
-                MessageBox.Show($"Membuka detail: {namaProduk}", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            };
-            pnlRight.Controls.Add(btnDetail);
-
-            // Tombol "Pesan Sekarang" (outline)
-            Button btnPesan = new Button
-            {
-                Text = "🛒 Pesan Sekarang",
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                BackColor = ClrKuningLemon,
-                ForeColor = ClrTextDark,
-                FlatStyle = FlatStyle.Flat,
-                Size = new Size(140, 28),
-                Left = 8,
-                Top = 60,
-                Cursor = Cursors.Hand,
-                Tag = card.Tag,
-                Visible = false   // tampilkan sesuai logika bisnis
-            };
-            btnPesan.FlatAppearance.BorderSize = 1;
-            btnPesan.FlatAppearance.BorderColor = ClrKuningHangat;
-            pnlRight.Controls.Add(btnPesan);
-
-            // ── Atur posisi pnlRight menempel kanan card ──
-            card.Resize += (s, e) =>
-            {
-                pnlRight.Left = card.Width - pnlRight.Width - 12;
-                int midLeft = pnlLeft.Right + 8;
-                int midWidth = pnlRight.Left - midLeft - 8;
-                pnlMid.Left = midLeft;
-                pnlMid.Width = midWidth > 0 ? midWidth : 1;
-                pnlProgressBg.Width = pnlMid.Width - 16;
-                pnlProgressFill.Width = (int)((pnlProgressBg.Width) * (progressPct / 100.0));
-            };
-
-            // Trigger awal
-            int initMidLeft = pnlLeft.Right + 8;
-            int initMidWidth = 940 - initMidLeft - pnlRight.Width - 20;
-            pnlMid.Left = initMidLeft;
-            pnlMid.Width = initMidWidth > 80 ? initMidWidth : 200;
-            pnlProgressBg.Width = pnlMid.Width - 16;
-            pnlProgressFill.Width = (int)(pnlProgressBg.Width * (progressPct / 100.0));
-            pnlRight.Left = 940 - pnlRight.Width - 12;
-
-            return card;
-        }
-
-        // ─────────────────────────────────────────────
-        // HELPER: Path rounded rectangle
-        // ─────────────────────────────────────────────
-        private static GraphicsPath RoundedRect(Rectangle bounds, int radius)
-        {
-            int d = radius * 2;
-            var path = new GraphicsPath();
-            path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
-            path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
-            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
-            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
-        }
+        private System.Windows.Forms.Label lblKatalogTitle;
+        private System.Windows.Forms.Button btnLihatSemua;
+        private System.Windows.Forms.Panel pnlKatalog;
+        private System.Windows.Forms.DataGridView dgvKatalog;
     }
 }

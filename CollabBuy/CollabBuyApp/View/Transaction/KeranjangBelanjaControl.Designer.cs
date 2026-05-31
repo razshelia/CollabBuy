@@ -1,201 +1,235 @@
-﻿namespace CollabBuy.CollabBuyApp.View.Transaction
+﻿namespace CollabBuy.CollabBuyApp.View.User
 {
     partial class KeranjangBelanjaControl
     {
         private System.ComponentModel.IContainer components = null;
-        protected override void Dispose(bool disposing) { if (disposing && (components != null)) components.Dispose(); base.Dispose(disposing); }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
 
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle headerStyle = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle rowStyle = new System.Windows.Forms.DataGridViewCellStyle();
+
+            this.pnlHeader = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
-            this.btnKosongkan = new System.Windows.Forms.Button();
+
+            this.pnlGrid = new System.Windows.Forms.Panel();
             this.dgvKeranjang = new System.Windows.Forms.DataGridView();
-            this.pnlSummary = new System.Windows.Forms.Panel();
-            this.lblTotalText = new System.Windows.Forms.Label();
-            this.lblTotalHarga = new System.Windows.Forms.Label();
+
+            this.pnlBottom = new System.Windows.Forms.Panel();
+            this.lblTotalLabel = new System.Windows.Forms.Label();
+            this.lblTotal = new System.Windows.Forms.Label();
+            this.btnHapus = new System.Windows.Forms.Button();
             this.btnCheckout = new System.Windows.Forms.Button();
+            this.btnKosongkan = new System.Windows.Forms.Button();
 
-            // Komponen Titipan
-            this.pnlTitipan = new System.Windows.Forms.Panel();
-            this.lblTitipanTitle = new System.Windows.Forms.Label();
-            this.lblProduk = new System.Windows.Forms.Label();
-            this.txtProduk = new System.Windows.Forms.TextBox();
-            this.lblPenitip = new System.Windows.Forms.Label();
-            this.txtPenitip = new System.Windows.Forms.TextBox();
-            this.lblCatatan = new System.Windows.Forms.Label();
-            this.txtCatatan = new System.Windows.Forms.TextBox();
-            this.lblQty = new System.Windows.Forms.Label();
-            this.numQty = new System.Windows.Forms.NumericUpDown();
-            this.btnSimpanTitipan = new System.Windows.Forms.Button();
-            this.btnTambahTitipan = new System.Windows.Forms.Button();
+            this.lblInfo = new System.Windows.Forms.Label();
 
+            // Suspend
+            this.pnlHeader.SuspendLayout();
+            this.pnlGrid.SuspendLayout();
+            this.pnlBottom.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvKeranjang)).BeginInit();
-            this.pnlSummary.SuspendLayout();
-            this.pnlTitipan.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numQty)).BeginInit();
             this.SuspendLayout();
 
-            // lblTitle
+            // ============================================================
+            // pnlHeader
+            // ============================================================
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Height = 90;
+            this.pnlHeader.Controls.Add(this.lblTitle);
+            this.pnlHeader.Controls.Add(this.lblSubtitle);
+
             this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTitle.Location = new System.Drawing.Point(30, 25);
-            this.lblTitle.Text = "Keranjang Jajan Kamu 🛒";
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(254, 252, 200);
+            this.lblTitle.Location = new System.Drawing.Point(30, 15);
+            this.lblTitle.Text = "🛒  Keranjang Belanja";
 
-            // lblSubtitle
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
-            this.lblSubtitle.Location = new System.Drawing.Point(35, 65);
-            this.lblSubtitle.Text = "Klik baris barang di tabel untuk edit nama temen yang nitip atau pisah pesanan! ✨";
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI Semibold", 9F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(210, 185, 255);
+            this.lblSubtitle.Location = new System.Drawing.Point(34, 55);
+            this.lblSubtitle.Text = "Review pesanan sebelum checkout, ya!";
 
-            // btnKosongkan
-            this.btnKosongkan.BackColor = System.Drawing.Color.White;
+            // ============================================================
+            // pnlGrid + dgvKeranjang
+            // ============================================================
+            this.pnlGrid.BackColor = System.Drawing.Color.White;
+            this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlGrid.Location = new System.Drawing.Point(30, 106);
+            this.pnlGrid.Controls.Add(this.dgvKeranjang);
+
+            headerStyle.BackColor = System.Drawing.Color.FromArgb(200, 170, 255);
+            headerStyle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            headerStyle.ForeColor = System.Drawing.Color.FromArgb(40, 0, 80);
+            headerStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+
+            rowStyle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            rowStyle.SelectionBackColor = System.Drawing.Color.FromArgb(230, 210, 255);
+            rowStyle.SelectionForeColor = System.Drawing.Color.Black;
+
+            this.dgvKeranjang.AllowUserToAddRows = false;
+            this.dgvKeranjang.AllowUserToDeleteRows = false;
+            this.dgvKeranjang.AutoGenerateColumns = false;
+            this.dgvKeranjang.BackgroundColor = System.Drawing.Color.White;
+            this.dgvKeranjang.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvKeranjang.ColumnHeadersDefaultCellStyle = headerStyle;
+            this.dgvKeranjang.ColumnHeadersHeight = 38;
+            this.dgvKeranjang.DefaultCellStyle = rowStyle;
+            this.dgvKeranjang.EnableHeadersVisualStyles = false;
+            this.dgvKeranjang.Location = new System.Drawing.Point(2, 2);
+            this.dgvKeranjang.ReadOnly = true;
+            this.dgvKeranjang.RowHeadersVisible = false;
+            this.dgvKeranjang.RowTemplate.Height = 46;
+            this.dgvKeranjang.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvKeranjang.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colNama = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colNama.Name = "colNama"; colNama.HeaderText = "Nama Produk";
+            colNama.DataPropertyName = "NamaItem";
+            colNama.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colPenitip = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colPenitip.Name = "colPenitip"; colPenitip.HeaderText = "Penitip";
+            colPenitip.DataPropertyName = "NamaPenitip"; colPenitip.Width = 130;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colCatatan = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colCatatan.Name = "colCatatan"; colCatatan.HeaderText = "Catatan";
+            colCatatan.DataPropertyName = "Catatan"; colCatatan.Width = 120;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colHarga = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colHarga.Name = "colHarga"; colHarga.HeaderText = "Harga Satuan";
+            colHarga.DataPropertyName = "HargaDisplay"; colHarga.Width = 115;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colQty = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colQty.Name = "colQty"; colQty.HeaderText = "Qty";
+            colQty.DataPropertyName = "Kuantitas"; colQty.Width = 55;
+
+            System.Windows.Forms.DataGridViewTextBoxColumn colSubtotal = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colSubtotal.Name = "colSubtotal"; colSubtotal.HeaderText = "Subtotal";
+            colSubtotal.DataPropertyName = "SubtotalDisplay"; colSubtotal.Width = 120;
+
+            this.dgvKeranjang.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+                colNama, colPenitip, colCatatan, colHarga, colQty, colSubtotal
+            });
+
+            // ============================================================
+            // lblInfo — notifikasi inline
+            // ============================================================
+            this.lblInfo.AutoSize = false;
+            this.lblInfo.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
+            this.lblInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblInfo.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lblInfo.Location = new System.Drawing.Point(30, 100);
+            this.lblInfo.Size = new System.Drawing.Size(500, 0);
+            this.lblInfo.Text = "";
+            this.lblInfo.Visible = false;
+
+            // ============================================================
+            // pnlBottom — ringkasan & tombol
+            // ============================================================
+            this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(230, 210, 255);
+            this.pnlBottom.Height = 80;
+            this.pnlBottom.Controls.Add(this.lblTotalLabel);
+            this.pnlBottom.Controls.Add(this.lblTotal);
+            this.pnlBottom.Controls.Add(this.btnKosongkan);
+            this.pnlBottom.Controls.Add(this.btnHapus);
+            this.pnlBottom.Controls.Add(this.btnCheckout);
+
+            this.lblTotalLabel.AutoSize = true;
+            this.lblTotalLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 11F, System.Drawing.FontStyle.Bold);
+            this.lblTotalLabel.ForeColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.lblTotalLabel.Location = new System.Drawing.Point(20, 28);
+            this.lblTotalLabel.Text = "Total Tagihan:";
+
+            this.lblTotal.AutoSize = true;
+            this.lblTotal.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
+            this.lblTotal.ForeColor = System.Drawing.Color.FromArgb(40, 0, 80);
+            this.lblTotal.Location = new System.Drawing.Point(148, 24);
+            this.lblTotal.Text = "Rp 0";
+
+            this.btnKosongkan.BackColor = System.Drawing.Color.FromArgb(255, 200, 200);
+            this.btnKosongkan.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnKosongkan.FlatAppearance.BorderSize = 0;
             this.btnKosongkan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnKosongkan.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnKosongkan.ForeColor = System.Drawing.Color.LightCoral;
-            this.btnKosongkan.Location = new System.Drawing.Point(400, 60);
-            this.btnKosongkan.Size = new System.Drawing.Size(160, 35);
-            this.btnKosongkan.Text = "🗑️ Hapus Semua";
+            this.btnKosongkan.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
+            this.btnKosongkan.ForeColor = System.Drawing.Color.FromArgb(150, 0, 0);
+            this.btnKosongkan.Location = new System.Drawing.Point(350, 22);
+            this.btnKosongkan.Size = new System.Drawing.Size(130, 36);
+            this.btnKosongkan.Text = "🗑 Kosongkan";
+            this.btnKosongkan.UseVisualStyleBackColor = false;
             this.btnKosongkan.Click += new System.EventHandler(this.btnKosongkan_Click);
 
-            // dgvKeranjang
-            this.dgvKeranjang.AllowUserToAddRows = false;
-            this.dgvKeranjang.BackgroundColor = System.Drawing.Color.White;
-            this.dgvKeranjang.RowHeadersVisible = false;
-            this.dgvKeranjang.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvKeranjang.Location = new System.Drawing.Point(36, 110);
-            this.dgvKeranjang.Size = new System.Drawing.Size(550, 360);
-            this.dgvKeranjang.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvKeranjang_CellClick);
+            this.btnHapus.BackColor = System.Drawing.Color.FromArgb(255, 230, 150);
+            this.btnHapus.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnHapus.FlatAppearance.BorderSize = 0;
+            this.btnHapus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnHapus.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold);
+            this.btnHapus.ForeColor = System.Drawing.Color.FromArgb(100, 70, 0);
+            this.btnHapus.Location = new System.Drawing.Point(495, 22);
+            this.btnHapus.Size = new System.Drawing.Size(140, 36);
+            this.btnHapus.Text = "✂️ Hapus Dipilih";
+            this.btnHapus.UseVisualStyleBackColor = false;
+            this.btnHapus.Click += new System.EventHandler(this.btnHapus_Click);
 
-            // pnlTitipan (Panel Kanan)
-            this.pnlTitipan.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
-            this.pnlTitipan.Location = new System.Drawing.Point(610, 110);
-            this.pnlTitipan.Size = new System.Drawing.Size(350, 360);
-            this.pnlTitipan.Controls.Add(this.btnTambahTitipan);
-            this.pnlTitipan.Controls.Add(this.btnSimpanTitipan);
-            this.pnlTitipan.Controls.Add(this.numQty);
-            this.pnlTitipan.Controls.Add(this.lblQty);
-            this.pnlTitipan.Controls.Add(this.txtCatatan);
-            this.pnlTitipan.Controls.Add(this.lblCatatan);
-            this.pnlTitipan.Controls.Add(this.txtPenitip);
-            this.pnlTitipan.Controls.Add(this.lblPenitip);
-            this.pnlTitipan.Controls.Add(this.txtProduk);
-            this.pnlTitipan.Controls.Add(this.lblProduk);
-            this.pnlTitipan.Controls.Add(this.lblTitipanTitle);
-
-            // Konten pnlTitipan
-            this.lblTitipanTitle.AutoSize = true;
-            this.lblTitipanTitle.Font = new System.Drawing.Font("Segoe UI Black", 14F, System.Drawing.FontStyle.Bold);
-            this.lblTitipanTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTitipanTitle.Location = new System.Drawing.Point(15, 15);
-            this.lblTitipanTitle.Text = "📝 Kelola Titipan Temen";
-
-            this.lblProduk.Location = new System.Drawing.Point(20, 60);
-            this.lblProduk.Text = "Barang:";
-            this.lblProduk.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.txtProduk.Location = new System.Drawing.Point(20, 80);
-            this.txtProduk.Size = new System.Drawing.Size(300, 25);
-            this.txtProduk.ReadOnly = true;
-
-            this.lblPenitip.Location = new System.Drawing.Point(20, 115);
-            this.lblPenitip.Text = "Atas Nama (Penitip):";
-            this.lblPenitip.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.txtPenitip.Location = new System.Drawing.Point(20, 135);
-            this.txtPenitip.Size = new System.Drawing.Size(300, 25);
-
-            this.lblQty.Location = new System.Drawing.Point(20, 170);
-            this.lblQty.Text = "Jumlah Pcs:";
-            this.lblQty.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.numQty.Location = new System.Drawing.Point(20, 190);
-            this.numQty.Size = new System.Drawing.Size(100, 25);
-
-            this.lblCatatan.Location = new System.Drawing.Point(135, 170);
-            this.lblCatatan.Text = "Catatan Khusus:";
-            this.lblCatatan.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.txtCatatan.Location = new System.Drawing.Point(135, 190);
-            this.txtCatatan.Size = new System.Drawing.Size(185, 25);
-
-            this.btnSimpanTitipan.BackColor = System.Drawing.Color.FromArgb(155, 246, 255);
-            this.btnSimpanTitipan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSimpanTitipan.FlatAppearance.BorderSize = 0;
-            this.btnSimpanTitipan.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.btnSimpanTitipan.Location = new System.Drawing.Point(20, 240);
-            this.btnSimpanTitipan.Size = new System.Drawing.Size(300, 40);
-            this.btnSimpanTitipan.Text = "💾 Update Titipan Ini";
-            this.btnSimpanTitipan.Click += new System.EventHandler(this.btnSimpanTitipan_Click);
-
-            this.btnTambahTitipan.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.btnTambahTitipan.ForeColor = System.Drawing.Color.White;
-            this.btnTambahTitipan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnTambahTitipan.FlatAppearance.BorderSize = 0;
-            this.btnTambahTitipan.Font = new System.Drawing.Font("Segoe UI Black", 9F);
-            this.btnTambahTitipan.Location = new System.Drawing.Point(20, 290);
-            this.btnTambahTitipan.Size = new System.Drawing.Size(300, 40);
-            this.btnTambahTitipan.Text = "➕ Pisah Jadi Titipan Baru";
-            this.btnTambahTitipan.Click += new System.EventHandler(this.btnTambahTitipan_Click);
-
-            // pnlSummary
-            this.pnlSummary.BackColor = System.Drawing.Color.White;
-            this.pnlSummary.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlSummary.Location = new System.Drawing.Point(36, 490);
-            this.pnlSummary.Size = new System.Drawing.Size(924, 90);
-            this.pnlSummary.Controls.Add(this.lblTotalText);
-            this.pnlSummary.Controls.Add(this.lblTotalHarga);
-            this.pnlSummary.Controls.Add(this.btnCheckout);
-
-            this.lblTotalText.AutoSize = true;
-            this.lblTotalText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblTotalText.ForeColor = System.Drawing.Color.Gray;
-            this.lblTotalText.Location = new System.Drawing.Point(20, 33);
-            this.lblTotalText.Text = "Total Jajan :";
-
-            this.lblTotalHarga.AutoSize = true;
-            this.lblTotalHarga.Font = new System.Drawing.Font("Segoe UI Black", 18F, System.Drawing.FontStyle.Bold);
-            this.lblTotalHarga.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTotalHarga.Location = new System.Drawing.Point(130, 25);
-            this.lblTotalHarga.Text = "Rp 0";
-
-            this.btnCheckout.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.btnCheckout.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
+            // ← Tombol Checkout Sekarang mengarah ke halaman PEMBAYARAN, bukan langsung proses
+            this.btnCheckout.BackColor = System.Drawing.Color.FromArgb(72, 0, 120);
+            this.btnCheckout.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnCheckout.FlatAppearance.BorderSize = 0;
             this.btnCheckout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCheckout.Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold);
-            this.btnCheckout.Location = new System.Drawing.Point(650, 20);
-            this.btnCheckout.Size = new System.Drawing.Size(250, 50);
-            this.btnCheckout.Text = "💳 Checkout Sekarang! 🚀";
+            this.btnCheckout.ForeColor = System.Drawing.Color.FromArgb(254, 252, 200);
+            this.btnCheckout.Location = new System.Drawing.Point(650, 15);
+            this.btnCheckout.Size = new System.Drawing.Size(200, 50);
+            this.btnCheckout.Text = "Checkout Sekarang →";
+            this.btnCheckout.UseVisualStyleBackColor = false;
             this.btnCheckout.Click += new System.EventHandler(this.btnCheckout_Click);
 
-            // Setup Utama
+            // ============================================================
+            // KeranjangBelanjaControl
+            // ============================================================
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.Controls.Add(this.pnlTitipan);
-            this.Controls.Add(this.pnlSummary);
-            this.Controls.Add(this.dgvKeranjang);
-            this.Controls.Add(this.btnKosongkan);
-            this.Controls.Add(this.lblSubtitle);
-            this.Controls.Add(this.lblTitle);
-            this.Size = new System.Drawing.Size(1000, 650);
+            this.BackColor = System.Drawing.Color.FromArgb(248, 245, 255);
+            this.Controls.Add(this.pnlHeader);
+            this.Controls.Add(this.lblInfo);
+            this.Controls.Add(this.pnlGrid);
+            this.Controls.Add(this.pnlBottom);
+            this.Name = "KeranjangBelanjaControl";
+            this.Size = new System.Drawing.Size(980, 700);
             this.Load += new System.EventHandler(this.KeranjangBelanjaControl_Load);
+            this.Resize += new System.EventHandler(this.KeranjangBelanjaControl_Resize);
 
+            // Resume
+            this.pnlHeader.ResumeLayout(false);
+            this.pnlHeader.PerformLayout();
+            this.pnlGrid.ResumeLayout(false);
+            this.pnlBottom.ResumeLayout(false);
+            this.pnlBottom.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvKeranjang)).EndInit();
-            this.pnlSummary.ResumeLayout(false);
-            this.pnlSummary.PerformLayout();
-            this.pnlTitipan.ResumeLayout(false);
-            this.pnlTitipan.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numQty)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
         }
 
-        private System.Windows.Forms.Label lblTitle, lblSubtitle, lblTotalText, lblTotalHarga;
-        private System.Windows.Forms.Button btnKosongkan, btnCheckout;
+        private System.Windows.Forms.Panel pnlHeader;
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Label lblSubtitle;
+        private System.Windows.Forms.Panel pnlGrid;
         private System.Windows.Forms.DataGridView dgvKeranjang;
-        private System.Windows.Forms.Panel pnlSummary, pnlTitipan;
-        private System.Windows.Forms.Label lblTitipanTitle, lblProduk, lblPenitip, lblCatatan, lblQty;
-        private System.Windows.Forms.TextBox txtProduk, txtPenitip, txtCatatan;
-        private System.Windows.Forms.NumericUpDown numQty;
-        private System.Windows.Forms.Button btnSimpanTitipan, btnTambahTitipan;
+        private System.Windows.Forms.Label lblInfo;
+        private System.Windows.Forms.Panel pnlBottom;
+        private System.Windows.Forms.Label lblTotalLabel;
+        private System.Windows.Forms.Label lblTotal;
+        private System.Windows.Forms.Button btnKosongkan;
+        private System.Windows.Forms.Button btnHapus;
+        private System.Windows.Forms.Button btnCheckout;
     }
 }

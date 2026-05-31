@@ -5,222 +5,195 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
 
-namespace CollabBuy.CollabBuyApp.View.Transaction
+namespace CollabBuy.CollabBuyApp.View.User
 {
     public partial class KeranjangBelanjaControl : UserControl
     {
-        private readonly User _currentUser;
-        private readonly TransactionController _transactionController;
-        private int _selectedIdProduk = 0;
-        private string _selectedOldPenitip = "";
+        private readonly Models.User _user;
+        private readonly TransactionController _trxCtrl;
+        private System.Windows.Forms.Timer _timerInfo;
 
-        // Event untuk navigasi ke halaman pembayaran
-        public event Action<int, long> OnCheckoutBerhasil;
+        // Event: checkout sekarang harus mengarah ke halaman pembayaran
+        public event Action<long> OnNavigatePembayaran;
 
-        public KeranjangBelanjaControl(User currentUser)
+        public KeranjangBelanjaControl(Models.User user, TransactionController trxCtrl)
         {
             InitializeComponent();
-            _currentUser = currentUser;
-            _transactionController = new TransactionController(_currentUser.GetIdUser());
-            this.Dock = DockStyle.Fill;
+            _user = user;
+            _trxCtrl = trxCtrl;
 
-            pnlTitipan.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            dgvKeranjang.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            pnlSummary.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnKosongkan.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-            this.Resize += (s, e) => AdjustLayout();
+            _timerInfo = new System.Windows.Forms.Timer();
+            _timerInfo.Interval = 3500;
+            _timerInfo.Tick += (s, e) => { lblInfo.Visible = false; _timerInfo.Stop(); };
         }
 
         private void KeranjangBelanjaControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            SetupDataGridView();
-            LoadDataKeranjang();
+            MuatKeranjang();
+            AturLayout();
         }
 
-        private void SetupDataGridView()
+        private void KeranjangBelanjaControl_Resize(object sender, EventArgs e)
         {
-            dgvKeranjang.AutoGenerateColumns = false;
-            dgvKeranjang.Columns.Clear();
-
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdProduk", DataPropertyName = "IdProduk", Visible = false });
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamaItem", HeaderText = "Produk", DataPropertyName = "NamaItem", Width = 150 });
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamaPenitip", HeaderText = "Atas Nama", DataPropertyName = "NamaPenitip", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "Catatan", HeaderText = "Notes", DataPropertyName = "Catatan", Width = 120 });
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "Harga", HeaderText = "Harga", DataPropertyName = "Harga", Width = 90, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
-            dgvKeranjang.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kuantitas", HeaderText = "Qty", DataPropertyName = "Kuantitas", Width = 50, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-
-            DataGridViewButtonColumn btnHapus = new DataGridViewButtonColumn
-            {
-                Name = "BtnHapus",
-                HeaderText = "Aksi",
-                Text = "❌",
-                UseColumnTextForButtonValue = true,
-                Width = 50,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnHapus.DefaultCellStyle.BackColor = Color.LightCoral;
-            btnHapus.DefaultCellStyle.ForeColor = Color.White;
-            dgvKeranjang.Columns.Add(btnHapus);
+            AturLayout();
         }
 
-        private void LoadDataKeranjang()
+        public void MuatKeranjang()
         {
             try
             {
-                DataTable dtKeranjang = _transactionController.GetKeranjangDataTable();
-                dgvKeranjang.DataSource = dtKeranjang;
-
-                HitungTotalPembayaran(dtKeranjang);
-                UpdateTombolState(dtKeranjang.Rows.Count > 0);
-
+                DataTable dt = _trxCtrl.GetKeranjangDataTable();
+                DataTable dtUI = BangunTabelUI(dt);
+                dgvKeranjang.DataSource = dtUI;
                 dgvKeranjang.ClearSelection();
-                ResetFormTitipan();
+
+                // Update total
+                long total = _trxCtrl.HitungTotalKeranjangSaatIni();
+                lblTotal.Text = "Rp " + total.ToString("N0");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal muat keranjang: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TampilkanInfo($"Gagal memuat keranjang: {ex.Message}", false);
             }
         }
 
-        private void HitungTotalPembayaran(DataTable dt)
+        private DataTable BangunTabelUI(DataTable dt)
         {
-            decimal total = 0;
+            DataTable dtUI = new DataTable();
+            dtUI.Columns.Add("IdProduk", typeof(int));
+            dtUI.Columns.Add("NamaItem", typeof(string));
+            dtUI.Columns.Add("NamaPenitip", typeof(string));
+            dtUI.Columns.Add("Catatan", typeof(string));
+            dtUI.Columns.Add("HargaDisplay", typeof(string));
+            dtUI.Columns.Add("Kuantitas", typeof(int));
+            dtUI.Columns.Add("SubtotalDisplay", typeof(string));
+
             foreach (DataRow row in dt.Rows)
-                total += Convert.ToDecimal(row["Subtotal"]);
-            lblTotalHarga.Text = $"Rp {total:N0}";
-        }
-
-        private void UpdateTombolState(bool adaBarang)
-        {
-            btnCheckout.Enabled = adaBarang;
-            btnCheckout.BackColor = adaBarang ? Color.FromArgb(36, 0, 70) : Color.Gray;
-            btnKosongkan.Enabled = adaBarang;
-            pnlTitipan.Enabled = false;
-        }
-
-        private void dgvKeranjang_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            int idProduk = Convert.ToInt32(dgvKeranjang.Rows[e.RowIndex].Cells["IdProduk"].Value);
-            string namaPenitip = dgvKeranjang.Rows[e.RowIndex].Cells["NamaPenitip"].Value.ToString();
-
-            if (dgvKeranjang.Columns[e.ColumnIndex].Name == "BtnHapus")
             {
-                _transactionController.HapusItemKeranjang(idProduk, namaPenitip);
-                LoadDataKeranjang();
+                int idProduk = dt.Columns.Contains("IdProduk") ? Convert.ToInt32(row["IdProduk"]) : 0;
+                string nama = dt.Columns.Contains("NamaItem") ? row["NamaItem"]?.ToString() ?? "-" : "-";
+                string penitip = dt.Columns.Contains("NamaPenitip") ? row["NamaPenitip"]?.ToString() ?? "-" : "-";
+                string catatan = dt.Columns.Contains("Catatan") ? row["Catatan"]?.ToString() ?? "-" : "-";
+
+                long harga = 0;
+                int qty = 1;
+                if (dt.Columns.Contains("Harga")) long.TryParse(row["Harga"]?.ToString(), out harga);
+                if (dt.Columns.Contains("Kuantitas")) int.TryParse(row["Kuantitas"]?.ToString(), out qty);
+
+                long subtotal = harga * qty;
+
+                dtUI.Rows.Add(
+                    idProduk,
+                    nama,
+                    penitip,
+                    catatan,
+                    "Rp " + harga.ToString("N0"),
+                    qty,
+                    "Rp " + subtotal.ToString("N0")
+                );
+            }
+
+            return dtUI;
+        }
+
+        // Checkout mengarah ke halaman Pembayaran — BUKAN langsung proses
+        private void btnCheckout_Click(object sender, EventArgs e)
+        {
+            long total = _trxCtrl.HitungTotalKeranjangSaatIni();
+
+            if (total <= 0)
+            {
+                TampilkanInfo("⚠️ Keranjang masih kosong! Tambahkan produk dulu ya.", false);
                 return;
             }
 
-            _selectedIdProduk = idProduk;
-            _selectedOldPenitip = namaPenitip;
-
-            txtProduk.Text = dgvKeranjang.Rows[e.RowIndex].Cells["NamaItem"].Value.ToString();
-            txtPenitip.Text = namaPenitip;
-            txtCatatan.Text = dgvKeranjang.Rows[e.RowIndex].Cells["Catatan"].Value.ToString();
-            numQty.Value = Convert.ToInt32(dgvKeranjang.Rows[e.RowIndex].Cells["Kuantitas"].Value);
-
-            pnlTitipan.Enabled = true;
+            // Navigasi ke halaman pembayaran dengan total tagihan
+            OnNavigatePembayaran?.Invoke(total);
         }
 
-        private void btnSimpanTitipan_Click(object sender, EventArgs e)
+        private void btnHapus_Click(object sender, EventArgs e)
         {
-            if (_selectedIdProduk == 0 || string.IsNullOrWhiteSpace(txtPenitip.Text)) return;
-            _transactionController.UpdateTitipan(_selectedIdProduk, _selectedOldPenitip, txtPenitip.Text, (int)numQty.Value, txtCatatan.Text);
-            LoadDataKeranjang();
-        }
+            if (dgvKeranjang.SelectedRows.Count == 0)
+            {
+                TampilkanInfo("⚠️ Pilih item yang ingin dihapus dulu!", false);
+                return;
+            }
 
-        private void btnTambahTitipan_Click(object sender, EventArgs e)
-        {
-            if (_selectedIdProduk == 0 || string.IsNullOrWhiteSpace(txtPenitip.Text)) return;
-            _transactionController.TambahTitipanBaru(_selectedIdProduk, txtPenitip.Text, (int)numQty.Value, txtCatatan.Text);
-            LoadDataKeranjang();
-        }
+            DataTable dt = dgvKeranjang.DataSource as DataTable;
+            if (dt == null) return;
 
-        private void ResetFormTitipan()
-        {
-            _selectedIdProduk = 0;
-            _selectedOldPenitip = "";
-            txtProduk.Clear();
-            txtPenitip.Clear();
-            txtCatatan.Clear();
-            numQty.Value = 1;
-            pnlTitipan.Enabled = false;
+            int rowIdx = dgvKeranjang.SelectedRows[0].Index;
+            int idProduk = Convert.ToInt32(dt.Rows[rowIdx]["IdProduk"]);
+            string namaPenitip = dt.Rows[rowIdx]["NamaPenitip"]?.ToString() ?? "";
+
+            _trxCtrl.HapusItemKeranjang(idProduk, namaPenitip);
+            TampilkanInfo("✅ Item berhasil dihapus dari keranjang.", true);
+            MuatKeranjang();
         }
 
         private void btnKosongkan_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Yakin hapus semua jajanannya? 😭", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-            {
-                _transactionController.KosongkanKeranjang();
-                LoadDataKeranjang();
-            }
-        }
-
-        private void btnCheckout_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show(
-                "Udah yakin sama pesanan kamu?\nSetelah ini kamu akan diarahkan ke halaman pembayaran.",
-                "Checkout Yuk!",
+            DialogResult hasil = MessageBox.Show(
+                "Yakin mau kosongkan semua item di keranjang?",
+                "Konfirmasi",
                 MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question) != DialogResult.Yes)
-                return;
+                MessageBoxIcon.Question
+            );
 
-            var res = _transactionController.ProsesCheckout();
-
-            if (res.sukses)
+            if (hasil == DialogResult.Yes)
             {
-                // Ekstrak ID transaksi dari pesan: "Checkout berhasil! ID Transaksi Anda: 42"
-                int idTransaksi = 0;
-                try
-                {
-                    string[] parts = res.pesan.Split(':');
-                    if (parts.Length > 1)
-                        int.TryParse(parts[parts.Length - 1].Trim(), out idTransaksi);
-                }
-                catch { /* abaikan, tetap navigasi */ }
-
-                // Hitung total dari label yang sudah ditampilkan
-                long totalTagihan = 0;
-                try
-                {
-                    string rawTotal = lblTotalHarga.Text.Replace("Rp", "").Replace(".", "").Replace(",", "").Trim();
-                    long.TryParse(rawTotal, out totalTagihan);
-                }
-                catch { /* abaikan */ }
-
-                // Kosongkan keranjang di memory/UI
-                _transactionController.KosongkanKeranjang();
-
-                // Navigasi ke halaman pembayaran via event
-                if (OnCheckoutBerhasil != null)
-                    OnCheckoutBerhasil(idTransaksi, totalTagihan);
-                else
-                    MessageBox.Show(res.pesan + " 🎉\nSilakan upload bukti pembayaran di halaman Riwayat Pesanan.", "Checkout Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show(res.pesan, "Gagal Checkout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _trxCtrl.KosongkanKeranjang();
+                TampilkanInfo("✅ Keranjang berhasil dikosongkan.", true);
+                MuatKeranjang();
             }
         }
 
-        private void AdjustLayout()
+        private void TampilkanInfo(string pesan, bool sukses)
         {
-            int margin = 36;
-            int availableWidth = this.Width - (margin * 2);
+            lblInfo.Text = pesan;
+            lblInfo.BackColor = sukses
+                ? Color.FromArgb(210, 255, 230)
+                : Color.FromArgb(255, 220, 220);
+            lblInfo.ForeColor = sukses
+                ? Color.FromArgb(0, 100, 50)
+                : Color.FromArgb(150, 0, 0);
+            lblInfo.Size = new System.Drawing.Size(lblInfo.Width, 26);
+            lblInfo.Visible = true;
+            _timerInfo.Stop();
+            _timerInfo.Start();
+        }
 
-            int gridWidth = (int)(availableWidth * 0.58);
-            dgvKeranjang.Width = gridWidth;
+        private void AturLayout()
+        {
+            int margin = 30;
+            int w = this.Width > 0 ? this.Width : 980;
+            int bottomH = 80;
+            int infoH = lblInfo.Visible ? 28 : 0;
 
-            int titipanLeft = margin + gridWidth + 24;
-            pnlTitipan.Left = titipanLeft;
-            pnlTitipan.Width = this.Width - titipanLeft - margin;
+            // Panel info
+            lblInfo.SetBounds(margin, 97, w - margin * 2, 26);
 
-            pnlSummary.Width = availableWidth;
-            btnKosongkan.Left = this.Width - margin - btnKosongkan.Width;
-            btnCheckout.Left = pnlSummary.Width - btnCheckout.Width - 20;
+            // Panel grid — isi tengah
+            int gridTop = 106;
+            int gridBottom = this.Height - bottomH - margin;
+            int gridH = Math.Max(100, gridBottom - gridTop);
+            pnlGrid.SetBounds(margin, gridTop, w - margin * 2, gridH);
+            dgvKeranjang.SetBounds(2, 2, pnlGrid.Width - 4, pnlGrid.Height - 4);
+
+            // Panel bottom — selalu di bawah
+            pnlBottom.SetBounds(0, this.Height - bottomH, w, bottomH);
+
+            // Tombol checkout selalu di kanan
+            btnCheckout.Location = new Point(pnlBottom.Width - btnCheckout.Width - margin, 15);
+
+            // Tombol hapus & kosongkan di tengah
+            int tengah = (pnlBottom.Width - btnKosongkan.Width - btnHapus.Width - 10) / 2;
+            btnKosongkan.Location = new Point(tengah, 22);
+            btnHapus.Location = new Point(tengah + btnKosongkan.Width + 10, 22);
+
+            // Total label
+            lblTotalLabel.Location = new Point(20, 28);
+            lblTotal.Location = new Point(148, 24);
         }
     }
 }
