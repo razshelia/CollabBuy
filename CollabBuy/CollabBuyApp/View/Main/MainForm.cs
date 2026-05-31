@@ -45,7 +45,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 BackColor = System.Drawing.Color.FromArgb(36, 0, 70), // Dark Purple
                 AutoScroll = true
             };
-     
+
 
             // === CONTENT AREA (Kanan) ===
             pnlContent = new Panel
@@ -277,34 +277,31 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private void ShowKatalogProduk()
         {
             var ctrl = new ViewProduct.KatalogProdukControl(_currentUser);
-            ctrl.OnLihatDetail += (idProduk) =>
+            ctrl.OnNavigateDetailProduk += (idProduk) =>
             {
-                // Halaman detail produk belum dibuat.
-                // Saat sudah ada, ganti MessageBox ini dengan:
-                // ShowUserControl(new ViewProduct.DetailProdukControl(_currentUser, idProduk));
-                System.Windows.Forms.MessageBox.Show(
-                    "Halaman detail produk sedang dikembangkan.\nID Produk: " + idProduk,
-                    "Coming Soon",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Information);
+                var detailCtrl = new ViewProduct.DetailProdukControl(_currentUser, idProduk);
+                detailCtrl.OnNavigateKembali += () => ShowKatalogProduk();
+                detailCtrl.OnNavigateKeranjang += () => ShowKeranjangBelanja();
+                ShowUserControl(detailCtrl);
             };
             ShowUserControl(ctrl);
         }
 
         private void ShowKeranjangBelanja()
         {
-            var ctrl = new ViewTransaction.KeranjangBelanjaControl(_currentUser);
-            ctrl.OnCheckoutBerhasil += (idTransaksi, totalTagihan) =>
+            var trxCtrl = new TransactionController(_currentUser.GetIdUser());
+            var ctrl = new ViewTransaction.KeranjangBelanjaControl(_currentUser, trxCtrl);
+            ctrl.OnNavigatePembayaran += (totalTagihan) =>
             {
-                ShowPembayaran(idTransaksi, totalTagihan);
+                ShowPembayaran(trxCtrl, totalTagihan);
             };
             ShowUserControl(ctrl);
         }
 
-        private void ShowPembayaran(int idTransaksi, long totalTagihan)
+        private void ShowPembayaran(TransactionController trxCtrl, long totalTagihan)
         {
-            var ctrl = new ViewTransaction.PembayaranControl(_currentUser, idTransaksi, totalTagihan);
-            ctrl.OnPembayaranSelesai += () =>
+            var ctrl = new ViewTransaction.PembayaranControl(_currentUser, trxCtrl, totalTagihan);
+            ctrl.OnCheckoutBerhasil += (idTransaksi) =>
             {
                 ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser));
             };

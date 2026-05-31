@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
 
-namespace CollabBuy.CollabBuyApp.View.User
+namespace CollabBuy.CollabBuyApp.View.UserDashboard
 {
     public partial class DashboardUserControl : UserControl
     {
@@ -128,7 +128,6 @@ namespace CollabBuy.CollabBuyApp.View.User
             // Kolom terakhir = tombol "Detail"
             if (e.ColumnIndex == dgvKatalog.Columns["colDetail"].Index)
             {
-                int idProduk = Convert.ToInt32(dgvKatalog.Rows[e.RowIndex].Cells["colNama"].OwningRow.Cells[0].Value);
 
                 // Ambil id_produk dari data source
                 DataTable dt = dgvKatalog.DataSource as DataTable;

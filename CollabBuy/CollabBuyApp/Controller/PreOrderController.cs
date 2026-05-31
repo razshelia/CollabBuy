@@ -12,7 +12,15 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             _poRepo = new PreOrderRepository();
         }
-
+        public int GetJumlahPoAktif()
+        {
+            try
+            {
+                var dt = _poRepo.GetSesiPOAktif("");
+                return dt?.Rows.Count ?? 0;
+            }
+            catch (Exception) { return 0; }
+        }
         public DataTable GetActiveSesiPO(string keyword)
         {
             try { return _poRepo.GetSesiPOAktif(keyword); }

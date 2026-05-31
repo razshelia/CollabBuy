@@ -1,4 +1,4 @@
-﻿namespace CollabBuy.CollabBuyApp.View.User
+﻿namespace CollabBuy.CollabBuyApp.View.Product
 {
     partial class DetailProdukControl
     {

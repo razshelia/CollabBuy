@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
 
-namespace CollabBuy.CollabBuyApp.View.User
+namespace CollabBuy.CollabBuyApp.View.Transaction
 {
     public partial class KeranjangBelanjaControl : UserControl
     {

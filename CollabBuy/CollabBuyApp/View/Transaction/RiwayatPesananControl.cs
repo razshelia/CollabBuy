@@ -16,7 +16,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             InitializeComponent();
             _currentUser = currentUser;
-            
+
             // Inisialisasi controller
             _transactionController = new TransactionController(_currentUser.GetIdUser());
 
@@ -53,7 +53,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             dgvRiwayat.Columns.Clear();
 
             dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Penjual", HeaderText = "Nama Lapak/Penjual", DataPropertyName = "nama_penjual", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Penjual", HeaderText = "Status Pembayaran", DataPropertyName = "nama_penjual", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan_format", Width = 180 });
             dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga", DataPropertyName = "total_harga_format", Width = 150 });
             dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Pesanan", DataPropertyName = "status_pesanan", Width = 150 });
@@ -64,8 +64,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             try
             {
                 // Tarik data mentah dari database via Controller
+                // GetRiwayatPesanan mengembalikan kolom: id_transaksi, waktu_pesan, total_tagihan, status_pesanan, status_bayar
                 DataTable dtRaw = _transactionController.GetRiwayatPesanan(_currentUser.GetIdUser());
-                
+
                 // Bikin tabel baru khusus buat nampilin format yang cantik di UI
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_transaksi", typeof(int));
@@ -76,14 +77,23 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 foreach (DataRow row in dtRaw.Rows)
                 {
-                    string tanggal = Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM yyyy, HH:mm");
-                    string harga = "Rp " + Convert.ToInt32(row["total_harga"]).ToString("N0");
-                    
+                    // Gunakan nama kolom sesuai yang dikembalikan controller: waktu_pesan & total_tagihan
+                    string tanggal = "-";
+                    if (row["waktu_pesan"] != DBNull.Value)
+                        tanggal = Convert.ToDateTime(row["waktu_pesan"]).ToString("dd MMM yyyy, HH:mm");
+
+                    string harga = "Rp 0";
+                    if (row["total_tagihan"] != DBNull.Value)
+                        harga = "Rp " + Convert.ToInt64(row["total_tagihan"]).ToString("N0");
+
+                    // nama_penjual tidak ada di query dasar, tampilkan status bayar sebagai gantinya
+                    string statusBayar = row["status_bayar"]?.ToString() ?? "-";
+
                     dtUI.Rows.Add(
-                        row["id_transaksi"], 
-                        row["nama_penjual"], 
-                        tanggal, 
-                        harga, 
+                        row["id_transaksi"],
+                        statusBayar,           // kolom "Nama Lapak/Penjual" diisi status bayar
+                        tanggal,
+                        harga,
                         row["status_pesanan"]
                     );
                 }

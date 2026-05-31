@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
 
-namespace CollabBuy.CollabBuyApp.View.User
+namespace CollabBuy.CollabBuyApp.View.Product
 {
     public partial class DetailProdukControl : UserControl
     {
@@ -13,7 +13,7 @@ namespace CollabBuy.CollabBuyApp.View.User
         private readonly TransactionController _trxCtrl;
         private readonly int _idProduk;
 
-        private Product _produk;
+        private Models.Product _produk;
         private System.Windows.Forms.Timer _timerStatus;
 
         // Event navigasi
