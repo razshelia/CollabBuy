@@ -552,5 +552,46 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+
+        /// <summary>
+        /// Mengambil data leaderboard penjual berdasarkan total omzet bersih.
+        /// Digunakan oleh DashboardAdminControl untuk menampilkan ranking penjual.
+        /// </summary>
+        public DataTable GetLeaderboardPenjual()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT
+            u.nama AS nama_penjual,
+            COALESCE(SUM(
+                (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                - COALESCE(td.selisih_refund, 0)
+            ), 0) AS total_omzet_bersih,
+            CASE
+                WHEN COALESCE(SUM(
+                    (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                    - COALESCE(td.selisih_refund, 0)
+                ), 0) >= 500000 THEN '👑 Seller Sultan'
+                WHEN COALESCE(SUM(
+                    (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                    - COALESCE(td.selisih_refund, 0)
+                ), 0) >= 100000 THEN '⭐ Seller Menengah'
+                ELSE '🌱 Seller Newbie'
+            END AS tier_penjual
+        FROM transaction_details td
+        JOIN products p ON td.id_produk = p.id_produk
+        JOIN users    u ON p.id_penjual = u.id_user
+        GROUP BY u.nama
+        ORDER BY total_omzet_bersih DESC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
+            }
+            return dt;
+        }
     }
 }

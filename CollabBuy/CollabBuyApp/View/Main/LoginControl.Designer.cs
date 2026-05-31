@@ -23,6 +23,9 @@
             this.lblUsername = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
+            this.picLogo = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
+            this.pnlCard.Controls.Add(this.picLogo);
             this.pnlCard.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -50,7 +53,7 @@
             this.chkShowPassword.Cursor = System.Windows.Forms.Cursors.Hand;
             this.chkShowPassword.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkShowPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(100)))), ((int)(((byte)(200)))));
-            this.chkShowPassword.Location = new System.Drawing.Point(40, 275);
+            this.chkShowPassword.Location = new System.Drawing.Point(40, 325);
             this.chkShowPassword.Name = "chkShowPassword";
             this.chkShowPassword.Size = new System.Drawing.Size(147, 19);
             this.chkShowPassword.TabIndex = 8;
@@ -65,7 +68,7 @@
             this.btnDaftar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDaftar.Font = new System.Drawing.Font("Segoe UI", 9.5F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDaftar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(120)))), ((int)(((byte)(80)))), ((int)(((byte)(180)))));
-            this.btnDaftar.Location = new System.Drawing.Point(40, 390);
+            this.btnDaftar.Location = new System.Drawing.Point(40, 420);
             this.btnDaftar.Name = "btnDaftar";
             this.btnDaftar.Size = new System.Drawing.Size(300, 30);
             this.btnDaftar.TabIndex = 7;
@@ -82,7 +85,7 @@
             this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLogin.Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnLogin.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.btnLogin.Location = new System.Drawing.Point(40, 320);
+            this.btnLogin.Location = new System.Drawing.Point(40, 358);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.Size = new System.Drawing.Size(300, 45);
             this.btnLogin.TabIndex = 6;
@@ -94,7 +97,7 @@
             // 
             this.txtPassword.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
             this.txtPassword.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPassword.Location = new System.Drawing.Point(40, 240);
+            this.txtPassword.Location = new System.Drawing.Point(40, 285);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '●';
             this.txtPassword.Size = new System.Drawing.Size(300, 29);
@@ -105,7 +108,7 @@
             this.lblPassword.AutoSize = true;
             this.lblPassword.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblPassword.Location = new System.Drawing.Point(36, 215);
+            this.lblPassword.Location = new System.Drawing.Point(40, 260);
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(155, 19);
             this.lblPassword.TabIndex = 4;
@@ -115,43 +118,40 @@
             // 
             this.txtUsername.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
             this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtUsername.Location = new System.Drawing.Point(40, 160);
+            this.txtUsername.Location = new System.Drawing.Point(40, 215);
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(300, 29);
             this.txtUsername.TabIndex = 3;
+            // 
+            // 1. Atur PictureBox (Logo) agar berada di tengah atas
+            this.picLogo.Image = System.Drawing.Image.FromFile("collabbuy_logo.jpeg");
+            this.picLogo.Location = new System.Drawing.Point(140, 10);
+            this.picLogo.Size = new System.Drawing.Size(100, 100);
+            this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+
+            // 2. Atur Label Title (Halooo Bestie!) agar tepat di bawah Logo
+            this.lblTitle.AutoSize = true;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.Location = new System.Drawing.Point(85, 120);
+            this.lblTitle.Text = "Halooo Bestie! 👋";
+
+            // 3. Atur Subtitle tepat di bawah Title
+            this.lblSubtitle.AutoSize = true;
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblSubtitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblSubtitle.Location = new System.Drawing.Point(85, 155);
+            this.lblSubtitle.Text = "Login dulu skuy, penuhi kebutuhanmu~";
             // 
             // lblUsername
             // 
             this.lblUsername.AutoSize = true;
             this.lblUsername.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblUsername.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblUsername.Location = new System.Drawing.Point(36, 135);
+            this.lblUsername.Location = new System.Drawing.Point(40, 190);
             this.lblUsername.Name = "lblUsername";
             this.lblUsername.Size = new System.Drawing.Size(117, 19);
             this.lblUsername.TabIndex = 2;
             this.lblUsername.Text = "Username Kamu";
-            // 
-            // lblSubtitle
-            // 
-            this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
-            this.lblSubtitle.Location = new System.Drawing.Point(36, 75);
-            this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(262, 19);
-            this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Login dulu skuy, penuhi kebutuhanmu~";
-            // 
-            // lblTitle
-            // 
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblTitle.Location = new System.Drawing.Point(33, 35);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(232, 37);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "Halooo Bestie! 👋";
             // 
             // LoginControl
             // 
@@ -178,5 +178,6 @@
         private System.Windows.Forms.Button btnLogin;
         private System.Windows.Forms.Button btnDaftar;
         private System.Windows.Forms.CheckBox chkShowPassword;
+        private System.Windows.Forms.PictureBox picLogo;
     }
 }

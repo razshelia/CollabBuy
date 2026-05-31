@@ -68,7 +68,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private void ShowLoginControl()
         {
             pnlContent.Controls.Clear();
-            pnlSidebar.Controls.Clear();
+            pnlSidebar.Visible = false;
 
             // Logo sederhana saat di menu login
             Label lblLogo = new Label
@@ -92,7 +92,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private void ShowRegisterControl()
         {
             pnlContent.Controls.Clear();
-            pnlSidebar.Controls.Clear();
+            pnlSidebar.Visible = false;
 
             RegisterControl registerCtrl = new RegisterControl();
             registerCtrl.OnRegistrationComplete += (s, e) => ShowLoginControl();
@@ -105,6 +105,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
         {
             if (_currentUser == null) return;
 
+            pnlSidebar.Visible = true;
             pnlContent.Controls.Clear();
             pnlSidebar.Controls.Clear();
 
@@ -147,7 +148,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 Dock = DockStyle.Top,
                 Height = 60,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Padding = new Padding(0, 15, 0, 0)
+                Padding = new Padding(20, 15, 0, 0)
             };
             pnlSidebar.Controls.Add(lblLogo);
 
@@ -260,6 +261,17 @@ namespace CollabBuy.CollabBuyApp.View.Main
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += (s, e) => HandleLogout();
             pnlSidebar.Controls.Add(btnLogout);
+
+            PictureBox picLogoKecil = new PictureBox
+            {
+                Image = System.Drawing.Image.FromFile("logo_sidebar.jpeg"),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Size = new System.Drawing.Size(40, 60),
+                Location = new System.Drawing.Point(10, 12), // Jarak dari kiri dan atas
+                BackColor = System.Drawing.Color.Transparent
+            };
+            pnlSidebar.Controls.Add(picLogoKecil);
+            picLogoKecil.BringToFront();
         }
 
         private void ShowUserControl(UserControl control)

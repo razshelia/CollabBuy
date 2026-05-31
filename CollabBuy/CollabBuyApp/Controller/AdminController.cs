@@ -21,6 +21,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         private readonly UserRepository _userRepo;
         private readonly ComplaintRepository _complaintRepo;
         private readonly string _connectionString;
+        private readonly TransactionRepository _transactionRepo;
 
         // === KONSTRUKTOR ===
         public AdminController()
@@ -29,6 +30,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             _logRepo = new ActivityLogRepository();
             _userRepo = new UserRepository();
             _complaintRepo = new ComplaintRepository();
+            _transactionRepo = new TransactionRepository();
 
             // Connection string untuk query statistik dashboard baru yang butuh Npgsql langsung
             _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
@@ -306,5 +308,23 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 throw new Exception("Gagal mengambil log aktivitas: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Mengambil data leaderboard penjual untuk DashboardAdminControl.
+        /// Memanggil TransactionRepository karena data melibatkan transaction_details.
+        /// </summary>
+        public DataTable GetLeaderboardPenjual()
+        {
+            try
+            {
+                return _transactionRepo.GetLeaderboardPenjual();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Gagal mengambil data leaderboard: " + ex.Message);
+            }
+        }
+
+
     }
 }
