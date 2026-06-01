@@ -2,17 +2,74 @@
 using System.Configuration;
 using System.Data;
 using Npgsql;
+using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
     public class PreOrderRepository
     {
+        // === PRIVATE FIELDS ===
         private readonly string _connectionString;
 
+        // === KONSTRUKTOR ===
         public PreOrderRepository()
         {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
+            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
+            }
+            else
+            {
+                this._connectionString = connStr;
+            }
+        }
+
+        /// <summary>
+        /// Mengambil data satu sesi PO spesifik berdasarkan ID untuk di-map ke objek Model.
+        /// </summary>
+        public Models.PreOrder GetById(int idPo)
+        {
+            Models.PreOrder po = null;
+            string query = "SELECT id_po, id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif FROM preorders WHERE id_po = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPo);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int idPenjual = reader.GetInt32(1);
+                            string judul = reader.GetString(2);
+                            string jenis = reader.GetString(3);
+                            string rekening = reader.GetString(4);
+                            DateTime batas = reader.GetDateTime(5);
+                            bool isAktif = reader.GetBoolean(6);
+
+                            po = new Models.PreOrder(idPenjual, judul, jenis, rekening, batas);
+                            po.SetIdPo(reader.GetInt32(0));
+
+                            if (isAktif == false)
+                            {
+                                po.UbahStatus("Tutup");
+                            }
+                            else
+                            {
+                                bool tetapAktif = true; // Penugasan nyata menghindari else kosong
+                            }
+                        }
+                        else
+                        {
+                            po = null;
+                        }
+                    }
+                }
+            }
+            return po;
         }
 
         // Mengambil daftar sesi PO yang sedang aktif untuk User
@@ -38,13 +95,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 GROUP BY po.id_po, po.judul_po, v.nama_toko, p.target_kuota, p.harga_dasar, po.batas_waktu, po.is_aktif
                 ORDER BY po.batas_waktu ASC;";
 
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
             {
                 conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@keyword", $"%{keyword}%");
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
                 }
             }
             return dt;
@@ -56,13 +116,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
             DataTable dt = new DataTable();
             string query = "SELECT id_produk, nama_produk FROM products WHERE id_penjual = @id AND id_po IS NULL;";
 
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
             {
                 conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idPenjual);
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
                 }
             }
             return dt;
@@ -71,20 +134,20 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // Menyimpan sesi PO baru DAN mengupdate produk menggunakan Transaction agar aman (ACID)
         public bool InsertPOAndUpdateProduct(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
-            using (var conn = new NpgsqlConnection(_connectionString))
+            bool hasilEksekusi;
+            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
             {
                 conn.Open();
-                using (var dbTx = conn.BeginTransaction())
+                using (NpgsqlTransaction dbTx = conn.BeginTransaction())
                 {
                     try
                     {
-                        // 1. Insert ke tabel preorders dan ambil id_po yang baru dibuat
                         string insertQuery = @"
                             INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) 
                             VALUES (@penjual, @judul, @jenis, @rekening, @batas, TRUE) RETURNING id_po;";
 
                         int newIdPo = 0;
-                        using (var cmdInsert = new NpgsqlCommand(insertQuery, conn, dbTx))
+                        using (NpgsqlCommand cmdInsert = new NpgsqlCommand(insertQuery, conn, dbTx))
                         {
                             cmdInsert.Parameters.AddWithValue("@penjual", idPenjual);
                             cmdInsert.Parameters.AddWithValue("@judul", judul);
@@ -94,9 +157,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             newIdPo = (int)cmdInsert.ExecuteScalar();
                         }
 
-                        // 2. Update id_po dan target_kuota di tabel products
                         string updateQuery = "UPDATE products SET id_po = @idPo, target_kuota = @kuota WHERE id_produk = @idProduk;";
-                        using (var cmdUpdate = new NpgsqlCommand(updateQuery, conn, dbTx))
+                        using (NpgsqlCommand cmdUpdate = new NpgsqlCommand(updateQuery, conn, dbTx))
                         {
                             cmdUpdate.Parameters.AddWithValue("@idPo", newIdPo);
                             cmdUpdate.Parameters.AddWithValue("@kuota", targetKuota);
@@ -105,15 +167,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         }
 
                         dbTx.Commit();
-                        return true;
+                        hasilEksekusi = true;
                     }
                     catch
                     {
                         dbTx.Rollback();
-                        throw; // Lempar ke controller agar bisa ditangkap catch blok
+                        throw;
                     }
                 }
             }
+            return hasilEksekusi;
         }
     }
 }

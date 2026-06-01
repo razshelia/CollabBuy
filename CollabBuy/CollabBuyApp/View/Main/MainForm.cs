@@ -24,21 +24,21 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         public MainForm()
         {
-            InitializeComponent();
-            _userController = new UserController();
+            this.InitializeComponent();
+            this._userController = new UserController();
 
             // Setup Form Global
             this.Text = "CollabBuy v1.0 - Sistem Agregator Dana Usaha (Danus) Mahasiswa";
             this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250); // Background Putih Keabuan
             this.MinimumSize = new System.Drawing.Size(1100, 650);
             this.WindowState = FormWindowState.Maximized;
-            CreateUI();
+            this.CreateUI();
         }
 
         private void CreateUI()
         {
             // === SIDEBAR (Kiri) ===
-            pnlSidebar = new Panel
+            this.pnlSidebar = new Panel
             {
                 Dock = DockStyle.Left,
                 Width = 260,
@@ -46,29 +46,31 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AutoScroll = true
             };
 
-
             // === CONTENT AREA (Kanan) ===
-            pnlContent = new Panel
+            this.pnlContent = new Panel
             {
                 Dock = DockStyle.Fill,
                 BackColor = System.Drawing.Color.FromArgb(248, 249, 250),
                 Padding = new Padding(10),
                 AutoScroll = true
             };
-            this.Controls.Add(pnlContent);
-            this.Controls.Add(pnlSidebar);
 
-            ShowLoginControl();
+            this.Controls.Add(this.pnlContent);
+            this.Controls.Add(this.pnlSidebar);
+
+            this.ShowLoginControl();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            // Event load utama (bisa dibiarkan kosong jika tidak ada inisialisasi tambahan)
+            bool formDimuat = true;
         }
 
         private void ShowLoginControl()
         {
-            pnlContent.Controls.Clear();
-            pnlSidebar.Visible = false;
+            this.pnlContent.Controls.Clear();
+            this.pnlSidebar.Visible = false;
 
             // Logo sederhana saat di menu login
             Label lblLogo = new Label
@@ -80,63 +82,68 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 Height = 150,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             };
-            pnlSidebar.Controls.Add(lblLogo);
+            this.pnlSidebar.Controls.Add(lblLogo);
 
             LoginControl loginCtrl = new LoginControl();
-            loginCtrl.OnLoginSuccess += HandleLoginSuccess;
-            loginCtrl.OnNavigateToRegister += () => ShowRegisterControl();
+            loginCtrl.OnLoginSuccess += this.HandleLoginSuccess;
+            loginCtrl.OnNavigateToRegister += () => this.ShowRegisterControl();
             loginCtrl.Dock = DockStyle.Fill;
-            pnlContent.Controls.Add(loginCtrl);
+            this.pnlContent.Controls.Add(loginCtrl);
         }
 
         private void ShowRegisterControl()
         {
-            pnlContent.Controls.Clear();
-            pnlSidebar.Visible = false;
+            this.pnlContent.Controls.Clear();
+            this.pnlSidebar.Visible = false;
 
             RegisterControl registerCtrl = new RegisterControl();
-            registerCtrl.OnRegistrationComplete += (s, e) => ShowLoginControl();
+            registerCtrl.OnRegistrationComplete += (s, e) => this.ShowLoginControl();
 
             registerCtrl.Dock = DockStyle.Fill;
-            pnlContent.Controls.Add(registerCtrl);
+            this.pnlContent.Controls.Add(registerCtrl);
         }
 
         private void ShowDashboard()
         {
-            if (_currentUser == null) return;
-
-            pnlSidebar.Visible = true;
-            pnlContent.Controls.Clear();
-            pnlSidebar.Controls.Clear();
-
-            BuildSidebarMenu();
-
-            string peran = _currentUser.GetPeran();
-
-            if (peran == "Admin")
+            if (this._currentUser == null)
             {
-                // PERBAIKAN: Menambahkan _currentUser sebagai parameter
-                ViewAdmin.DashboardAdminControl adminDash = new ViewAdmin.DashboardAdminControl(_currentUser);
-                adminDash.Dock = DockStyle.Fill;
-                pnlContent.Controls.Add(adminDash);
-            }
-            else if (peran == "Penjual")
-            {
-                ViewUser.DashboardUserControl sellerDash = new ViewUser.DashboardUserControl(_currentUser);
-                sellerDash.Dock = DockStyle.Fill;
-                pnlContent.Controls.Add(sellerDash);
+                // Keamanan ekstra: cegah akses dashboard jika user null
+                bool cegahAkses = true;
             }
             else
             {
-                ViewUser.DashboardUserControl buyerDash = new ViewUser.DashboardUserControl(_currentUser);
-                buyerDash.Dock = DockStyle.Fill;
-                pnlContent.Controls.Add(buyerDash);
+                this.pnlSidebar.Visible = true;
+                this.pnlContent.Controls.Clear();
+                this.pnlSidebar.Controls.Clear();
+
+                this.BuildSidebarMenu();
+
+                string peran = this._currentUser.GetPeran();
+
+                if (peran == "Admin")
+                {
+                    ViewAdmin.DashboardAdminControl adminDash = new ViewAdmin.DashboardAdminControl(this._currentUser);
+                    adminDash.Dock = DockStyle.Fill;
+                    this.pnlContent.Controls.Add(adminDash);
+                }
+                else if (peran == "Penjual")
+                {
+                    ViewUser.DashboardUserControl sellerDash = new ViewUser.DashboardUserControl(this._currentUser);
+                    sellerDash.Dock = DockStyle.Fill;
+                    this.pnlContent.Controls.Add(sellerDash);
+                }
+                else
+                {
+                    ViewUser.DashboardUserControl buyerDash = new ViewUser.DashboardUserControl(this._currentUser);
+                    buyerDash.Dock = DockStyle.Fill;
+                    this.pnlContent.Controls.Add(buyerDash);
+                }
             }
         }
 
         private void BuildSidebarMenu()
         {
-            pnlSidebar.Controls.Clear();
+            this.pnlSidebar.Controls.Clear();
 
             // 1. LOGO UTAMA
             Label lblLogo = new Label
@@ -149,12 +156,22 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
                 Padding = new Padding(0, 15, 0, 0)
             };
-            pnlSidebar.Controls.Add(lblLogo);
+            this.pnlSidebar.Controls.Add(lblLogo);
 
-            // 2. USER INFO
-            lblUserInfo = new Label
+            // 2. USER INFO (Strict OOP)
+            string namaSapaan;
+            if (this._currentUser != null)
             {
-                Text = "Halo, " + (_currentUser != null ? _currentUser.GetNama() : "User"),
+                namaSapaan = this._currentUser.GetNama();
+            }
+            else
+            {
+                namaSapaan = "User";
+            }
+
+            this.lblUserInfo = new Label
+            {
+                Text = "Halo, " + namaSapaan,
                 ForeColor = System.Drawing.Color.FromArgb(200, 182, 255), // Ungu Pastel
                 Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold),
                 Dock = DockStyle.Top,
@@ -162,7 +179,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
                 Padding = new Padding(0, 0, 0, 10)
             };
-            pnlSidebar.Controls.Add(lblUserInfo);
+            this.pnlSidebar.Controls.Add(this.lblUserInfo);
 
             // Fungsi helper pembuat tombol
             Action<string, Action> AddMenuButton = (text, onClick) =>
@@ -183,7 +200,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 btn.Click += (s, e) => onClick();
                 btn.MouseEnter += (s, e) => btn.BackColor = System.Drawing.Color.FromArgb(70, 20, 110);
                 btn.MouseLeave += (s, e) => btn.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
-                pnlSidebar.Controls.Add(btn);
+                this.pnlSidebar.Controls.Add(btn);
                 btn.BringToFront();
             };
 
@@ -200,79 +217,55 @@ namespace CollabBuy.CollabBuyApp.View.Main
                     TextAlign = System.Drawing.ContentAlignment.BottomLeft,
                     Padding = new Padding(10, 0, 0, 5)
                 };
-                pnlSidebar.Controls.Add(lblCat);
+                this.pnlSidebar.Controls.Add(lblCat);
                 lblCat.BringToFront();
             };
 
             lblLogo.BringToFront();
-            lblUserInfo.BringToFront();
+            this.lblUserInfo.BringToFront();
 
-            // =========================================================
-            // LOGIKA NAVIGASI KERANJANG & PEMBAYARAN (ANTI ERROR)
-            // =========================================================
-            Action bukaKeranjang = null;
-            bukaKeranjang = () => {
-                var trxCtrl = new TransactionController(_currentUser.GetIdUser());
-                var keranjangPage = new ViewTransaction.KeranjangBelanjaControl(_currentUser, trxCtrl);
-
-                keranjangPage.OnNavigatePembayaran += (totalTagihan) => {
-                    var bayarPage = new ViewTransaction.PembayaranControl(_currentUser, trxCtrl, totalTagihan);
-
-                    // Kalau batal bayar, balik ke keranjang utuh
-                    bayarPage.OnNavigateKembali += () => bukaKeranjang();
-
-                    // Kalau sukses bayar, pergi ke riwayat
-                    bayarPage.OnCheckoutBerhasil += (idTrx) => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser));
-
-                    ShowUserControl(bayarPage);
-                };
-
-                ShowUserControl(keranjangPage);
-            };
-            // =========================================================
-
-            string peran = _currentUser.GetPeran();
+            string peran = this._currentUser.GetPeran();
 
             // Menu Universal
-            AddMenuButton("📊 Dashboard", ShowDashboard);
-            AddMenuButton("👤 Kelola Profil", () => ShowUserControl(new ViewUser.KelolaProfilControl(_currentUser)));
+            AddMenuButton("📊 Dashboard", this.ShowDashboard);
+            AddMenuButton("👤 Kelola Profil", () => this.ShowUserControl(new ViewUser.KelolaProfilControl(this._currentUser)));
 
             // === MENU BERDASARKAN ROLE ===
             if (peran == "Admin")
             {
                 AddCategoryLabel("MANAGEMENT");
-                AddMenuButton("🏢 Verifikasi Toko", () => ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
-                AddMenuButton("📁 Kelola Kategori", () => ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
-                AddMenuButton("📣 Tanggapan Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
-                AddMenuButton("📊 Laporan Sistem", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
+                AddMenuButton("🏢 Verifikasi Toko", () => this.ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
+                AddMenuButton("📁 Kelola Kategori", () => this.ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
+                AddMenuButton("📣 Tanggapan Aduan", () => this.ShowUserControl(new ViewAdmin.TanggapanAduanControl(this._currentUser)));
+                AddMenuButton("📊 Laporan Sistem", () => this.ShowUserControl(new ViewReport.AnalitikPenjualanControl(this._currentUser)));
             }
             else if (peran == "Penjual")
             {
                 AddCategoryLabel("LAPAK GUE (SELLER)");
-                AddMenuButton("📦 Manajemen Produk", () => ShowUserControl(new ViewProduct.ManajemenProdukControl(_currentUser)));
-                AddMenuButton("🎁 Buka Sesi PO", () => ShowUserControl(new ViewPreOrder.BukaSesiPOControl(_currentUser)));
-                AddMenuButton("📋 Sesi PO Aktif", () => ShowUserControl(new ViewPreOrder.SesiPOAktifControl(_currentUser)));
-                AddMenuButton("📥 Pesanan Masuk", () => ShowUserControl(new ViewTransaction.PesananMasukControl(_currentUser)));
-                AddMenuButton("⭐ Balas Ulasan", () => ShowUserControl(new ViewFeedback.UlasanLapakControl(_currentUser)));
-                AddMenuButton("📊 Analitik Penjualan", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
+                AddMenuButton("📦 Manajemen Produk", () => this.ShowUserControl(new ViewProduct.ManajemenProdukControl(this._currentUser)));
+                AddMenuButton("🎁 Buka Sesi PO", () => this.ShowUserControl(new ViewPreOrder.BukaSesiPOControl(this._currentUser)));
+                AddMenuButton("📋 Sesi PO Aktif", () => this.ShowUserControl(new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
+                AddMenuButton("📥 Pesanan Masuk", () => this.ShowUserControl(new ViewTransaction.PesananMasukControl(this._currentUser)));
+                AddMenuButton("⭐ Balas Ulasan", () => this.ShowUserControl(new ViewFeedback.UlasanLapakControl(this._currentUser)));
+                AddMenuButton("📊 Analitik Penjualan", () => this.ShowUserControl(new ViewReport.AnalitikPenjualanControl(this._currentUser)));
 
                 // MENU PEMBELI DITAMPILKAN JUGA BUAT PENJUAL!
                 AddCategoryLabel("JAJAN YUK (BUYER)");
-                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
-                AddMenuButton("🛒 Keranjang Belanja", () => bukaKeranjang()); // Panggil logic keranjang
-                AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
-                AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
-                AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
+                AddMenuButton("🏪 Katalog Produk", () => this.ShowKatalogProduk());
+                AddMenuButton("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
+                AddMenuButton("📋 Riwayat Pesanan", () => this.ShowUserControl(new ViewTransaction.RiwayatPesananControl(this._currentUser)));
+                AddMenuButton("⭐ Beri Ulasan", () => this.ShowUserControl(new ViewFeedback.BeriUlasanControl(this._currentUser)));
+                AddMenuButton("📝 Laporkan Kendala", () => this.ShowUserControl(new ViewFeedback.SpillKendalaControl(this._currentUser)));
             }
             else // Pembeli Biasa
             {
                 AddCategoryLabel("JAJAN YUK (BUYER)");
-                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
-                AddMenuButton("🛒 Keranjang Belanja", () => bukaKeranjang()); // Panggil logic keranjang
-                AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
-                AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
-                AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
-                AddMenuButton("🏢 Daftar Toko", () => ShowUserControl(new ViewUser.DaftarTokoControl(_currentUser)));
+                AddMenuButton("🏪 Katalog Produk", () => this.ShowKatalogProduk());
+                AddMenuButton("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
+                AddMenuButton("📋 Riwayat Pesanan", () => this.ShowUserControl(new ViewTransaction.RiwayatPesananControl(this._currentUser)));
+                AddMenuButton("⭐ Beri Ulasan", () => this.ShowUserControl(new ViewFeedback.BeriUlasanControl(this._currentUser)));
+                AddMenuButton("📝 Laporkan Kendala", () => this.ShowUserControl(new ViewFeedback.SpillKendalaControl(this._currentUser)));
+                AddMenuButton("🏢 Daftar Toko", () => this.ShowUserControl(new ViewUser.DaftarTokoControl(this._currentUser)));
             }
 
             // Tombol Logout dikunci ke bagian bawah (Bottom)
@@ -288,75 +281,99 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 Cursor = Cursors.Hand
             };
             btnLogout.FlatAppearance.BorderSize = 0;
-            btnLogout.Click += (s, e) => HandleLogout();
-            pnlSidebar.Controls.Add(btnLogout);
+            btnLogout.Click += (s, e) => this.HandleLogout();
+            this.pnlSidebar.Controls.Add(btnLogout);
         }
 
         private void ShowKatalogProduk()
         {
-            var ctrl = new ViewProduct.KatalogProdukControl(_currentUser);
+            var ctrl = new ViewProduct.KatalogProdukControl(this._currentUser);
             ctrl.OnNavigateDetailProduk += (idProduk) =>
             {
-                var detailCtrl = new ViewProduct.DetailProdukControl(_currentUser, idProduk);
-                detailCtrl.OnNavigateKembali += () => ShowKatalogProduk();
-                detailCtrl.OnNavigateKeranjang += () => ShowKeranjangBelanja();
-                ShowUserControl(detailCtrl);
+                var detailCtrl = new ViewProduct.DetailProdukControl(this._currentUser, idProduk);
+                detailCtrl.OnNavigateKembali += () => this.ShowKatalogProduk();
+                detailCtrl.OnNavigateKeranjang += () => this.ShowKeranjangBelanja();
+                this.ShowUserControl(detailCtrl);
             };
-            ShowUserControl(ctrl);
+            this.ShowUserControl(ctrl);
         }
 
         private void ShowKeranjangBelanja()
         {
-            var trxCtrl = new TransactionController(_currentUser.GetIdUser());
-            var ctrl = new ViewTransaction.KeranjangBelanjaControl(_currentUser, trxCtrl);
+            var trxCtrl = new TransactionController(this._currentUser.GetIdUser());
+            var ctrl = new ViewTransaction.KeranjangBelanjaControl(this._currentUser, trxCtrl);
             ctrl.OnNavigatePembayaran += (totalTagihan) =>
             {
-                ShowPembayaran(trxCtrl, totalTagihan);
+                this.ShowPembayaran(trxCtrl, totalTagihan);
             };
-            ShowUserControl(ctrl);
+            this.ShowUserControl(ctrl);
         }
 
         private void ShowPembayaran(TransactionController trxCtrl, long totalTagihan)
         {
-            var ctrl = new ViewTransaction.PembayaranControl(_currentUser, trxCtrl, totalTagihan);
+            var ctrl = new ViewTransaction.PembayaranControl(this._currentUser, trxCtrl, totalTagihan);
+            ctrl.OnNavigateKembali += () => this.ShowKeranjangBelanja();
             ctrl.OnCheckoutBerhasil += (idTransaksi) =>
             {
-                ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser));
+                this.ShowUserControl(new ViewTransaction.RiwayatPesananControl(this._currentUser));
             };
-            ShowUserControl(ctrl);
+            this.ShowUserControl(ctrl);
         }
 
         private void ShowUserControl(UserControl control)
         {
-            pnlContent.Controls.Clear();
+            this.pnlContent.Controls.Clear();
             control.Dock = DockStyle.Fill;
-            pnlContent.Controls.Add(control);
+            this.pnlContent.Controls.Add(control);
         }
 
         private void HandleLoginSuccess(User user)
         {
-            _currentUser = user;
-            SetCurrentUser(user);
-            ShowDashboard();
+            this._currentUser = user;
+            this.SetCurrentUser(user);
+            this.ShowDashboard();
         }
 
         private void SetCurrentUser(User user)
         {
             if (user == null)
             {
-                if (lblUserInfo != null) lblUserInfo.Text = "Status: Belum Login";
-                return;
+                if (this.lblUserInfo != null)
+                {
+                    this.lblUserInfo.Text = "Status: Belum Login";
+                }
+                else
+                {
+                    bool abaikanTeks = true;
+                }
             }
-
-            string roleEmoji = user.GetPeran() switch
+            else
             {
-                "Admin" => "👮",
-                "Penjual" => "🏪",
-                _ => "👤"
-            };
+                string roleEmoji;
+                string peran = user.GetPeran();
 
-            if (lblUserInfo != null)
-                lblUserInfo.Text = $"{roleEmoji} {user.GetNama()} ({user.GetPeran()})";
+                if (peran == "Admin")
+                {
+                    roleEmoji = "👮";
+                }
+                else if (peran == "Penjual")
+                {
+                    roleEmoji = "🏪";
+                }
+                else
+                {
+                    roleEmoji = "👤";
+                }
+
+                if (this.lblUserInfo != null)
+                {
+                    this.lblUserInfo.Text = $"{roleEmoji} {user.GetNama()} ({user.GetPeran()})";
+                }
+                else
+                {
+                    bool abaikanInfo = true;
+                }
+            }
         }
 
         private void HandleLogout()
@@ -370,8 +387,13 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             if (dr == DialogResult.Yes)
             {
-                _currentUser = null;
-                ShowLoginControl();
+                this._currentUser = null;
+                this.ShowLoginControl();
+            }
+            else
+            {
+                // Pengguna membatalkan logout
+                bool batalLogout = true;
             }
         }
     }

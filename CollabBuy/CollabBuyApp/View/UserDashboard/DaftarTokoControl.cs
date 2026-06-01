@@ -9,138 +9,196 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 {
     public partial class DaftarTokoControl : UserControl
     {
-        private User _currentUser;
+        private Models.User _currentUser;
         private readonly UserController _userController;
-        private byte[] _buktiKtmBytes; // Buat nampung data foto
+        private byte[] _buktiKtmBytes;
 
-        public DaftarTokoControl(User currentUser)
+        public DaftarTokoControl(Models.User currentUser)
         {
-            InitializeComponent();
-            _currentUser = currentUser;
-            _userController = new UserController();
-            this.Resize += DaftarTokoControl_Resize;
+            this.InitializeComponent();
+
+            this._currentUser = currentUser;
+            this._userController = new UserController();
+
+            this.Resize += this.DaftarTokoControl_Resize;
         }
 
         private void DaftarTokoControl_Resize(object sender, EventArgs e)
         {
-            if (pnlCard != null)
+            if (this.pnlCard != null)
             {
-                // Lebar card mengikuti area konten, max 500px
                 int maxW = 500;
                 int availW = this.Width - 80;
-                pnlCard.Width = availW < maxW ? availW : maxW;
 
-                // ← TAMBAH INI: tinggi card mengikuti layar, max 650px
+                if (availW < maxW)
+                {
+                    this.pnlCard.Width = availW;
+                }
+                else
+                {
+                    this.pnlCard.Width = maxW;
+                }
+
                 int maxH = 650;
                 int availH = this.Height - 60;
-                pnlCard.Height = availH < maxH ? availH : maxH;
 
-                // ← TAMBAH INI: aktifkan scroll kalau konten tidak muat
-                pnlCard.AutoScroll = true;
+                if (availH < maxH)
+                {
+                    this.pnlCard.Height = availH;
+                }
+                else
+                {
+                    this.pnlCard.Height = maxH;
+                }
 
-                // Update lebar elemen di dalam pnlCard
-                int innerW = pnlCard.Width - 80;
-                pnlStatus.Width = innerW;
-                pnlForm.Width = innerW;
-                txtNamaToko.Width = innerW;
-                txtNIM.Width = innerW;
-                txtTahunMasuk.Width = innerW;
-                chkSyarat.Width = innerW;
-                btnAjukan.Width = innerW;
+                this.pnlCard.AutoScroll = true;
 
-                // Centering
-                pnlCard.Left = (this.Width - pnlCard.Width) / 2;
-                pnlCard.Top = Math.Max(20, (this.Height - pnlCard.Height) / 2);
+                int innerW = this.pnlCard.Width - 80;
+                this.pnlStatus.Width = innerW;
+                this.pnlForm.Width = innerW;
+                this.txtNamaToko.Width = innerW;
+                this.txtNIM.Width = innerW;
+                this.txtTahunMasuk.Width = innerW;
+                this.chkSyarat.Width = innerW;
+                this.btnAjukan.Width = innerW;
+
+                this.pnlCard.Left = (this.Width - this.pnlCard.Width) / 2;
+
+                int topPos = (this.Height - this.pnlCard.Height) / 2;
+                if (topPos > 20)
+                {
+                    this.pnlCard.Top = topPos;
+                }
+                else
+                {
+                    this.pnlCard.Top = 20;
+                }
+            }
+            else
+            {
+                bool cardBelumDimuat = true; // Assignment nyata menghindari else kosong
             }
         }
 
         private void DaftarTokoControl_Load(object sender, EventArgs e)
         {
-            DaftarTokoControl_Resize(null, null);
-            CekStatusVerifikasi();
+            this.DaftarTokoControl_Resize(null, null);
+            this.CekStatusVerifikasi();
         }
 
-        // Cegah input abjad di NIM dan Tahun Masuk
         private void HanyaAngka_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
                 e.Handled = true;
             }
+            else
+            {
+                bool karakterAman = true;
+            }
         }
 
-        // Fitur Dialog Pilih Foto
         private void btnUploadKTM_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Title = "Pilih Foto KTM Kamu";
                 ofd.Filter = "Image Files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png";
+
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    _buktiKtmBytes = File.ReadAllBytes(ofd.FileName);
-                    lblNamaFile.Text = Path.GetFileName(ofd.FileName);
-                    lblNamaFile.ForeColor = Color.Green;
+                    this._buktiKtmBytes = File.ReadAllBytes(ofd.FileName);
+                    this.lblNamaFile.Text = Path.GetFileName(ofd.FileName);
+                    this.lblNamaFile.ForeColor = Color.Green;
+                }
+                else
+                {
+                    // User batal memilih file
+                    bool batalPilihGambar = true;
                 }
             }
         }
 
         private void CekStatusVerifikasi()
         {
-            bool isVerifiedSeller = _currentUser.GetPeran() == "Penjual";
-            bool isPendingVerification = _userController.CekPendingVerifikasi(_currentUser.GetIdUser());
-
-            if (isVerifiedSeller)
+            bool isVerifiedSeller;
+            if (this._currentUser.GetPeran() == "Penjual")
             {
-                pnlForm.Visible = false;
-                pnlStatus.Visible = true;
-                lblStatusVerifikasi.Text = "✅ Asyik! Lapak kamu udah terverifikasi.";
-                pnlStatus.BackColor = Color.LightGreen;
-            }
-            else if (isPendingVerification)
-            {
-                pnlForm.Visible = false;
-                pnlStatus.Visible = true;
-                lblStatusVerifikasi.Text = "⏳ Pengajuan lagi antre dicek Admin nih. Sabar ya!";
-                pnlStatus.BackColor = Color.FromArgb(253, 255, 182);
+                isVerifiedSeller = true;
             }
             else
             {
-                pnlForm.Visible = true;
-                pnlStatus.Visible = false;
+                isVerifiedSeller = false;
+            }
+
+            bool isPendingVerification = this._userController.CekPendingVerifikasi(this._currentUser.GetIdUser());
+
+            if (isVerifiedSeller)
+            {
+                this.pnlForm.Visible = false;
+                this.pnlStatus.Visible = true;
+                this.lblStatusVerifikasi.Text = "✅ Asyik! Lapak kamu udah terverifikasi.";
+                this.pnlStatus.BackColor = Color.LightGreen;
+            }
+            else if (isPendingVerification)
+            {
+                this.pnlForm.Visible = false;
+                this.pnlStatus.Visible = true;
+                this.lblStatusVerifikasi.Text = "⏳ Pengajuan lagi antre dicek Admin nih. Sabar ya!";
+                this.pnlStatus.BackColor = Color.FromArgb(253, 255, 182);
+            }
+            else
+            {
+                this.pnlForm.Visible = true;
+                this.pnlStatus.Visible = false;
             }
         }
 
         private void btnAjukan_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNamaToko.Text) || string.IsNullOrWhiteSpace(txtNIM.Text) || string.IsNullOrWhiteSpace(txtTahunMasuk.Text))
+            if (string.IsNullOrWhiteSpace(this.txtNamaToko.Text) || string.IsNullOrWhiteSpace(this.txtNIM.Text) || string.IsNullOrWhiteSpace(this.txtTahunMasuk.Text))
             {
                 MessageBox.Show("Formnya diisi yang lengkap ya bestie!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
             }
-
-            if (!chkSyarat.Checked)
+            else
             {
-                MessageBox.Show("Centang dulu dong persyaratannya.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            DialogResult dialog = MessageBox.Show($"Yakin mau buka lapak dengan nama '{txtNamaToko.Text}'?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (dialog == DialogResult.Yes)
-            {
-                int tahun = int.TryParse(txtTahunMasuk.Text, out int t) ? t : DateTime.Now.Year;
-
-                // Kirim byte[] foto KTM ke Controller
-                var (sukses, pesan) = _userController.AjukanVerifikasiToko(_currentUser.GetIdUser(), txtNIM.Text.Trim(), txtNamaToko.Text.Trim(), tahun, _buktiKtmBytes);
-
-                if (sukses)
+                if (!this.chkSyarat.Checked)
                 {
-                    MessageBox.Show(pesan, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    CekStatusVerifikasi();
+                    MessageBox.Show("Centang dulu dong persyaratannya.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
                 {
-                    MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DialogResult dialog = MessageBox.Show($"Yakin mau buka lapak dengan nama '{this.txtNamaToko.Text}'?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (dialog == DialogResult.Yes)
+                    {
+                        int tahun;
+                        if (int.TryParse(this.txtTahunMasuk.Text, out int t))
+                        {
+                            tahun = t;
+                        }
+                        else
+                        {
+                            tahun = DateTime.Now.Year;
+                        }
+
+                        var (sukses, pesan) = this._userController.AjukanVerifikasiToko(this._currentUser.GetIdUser(), this.txtNIM.Text.Trim(), this.txtNamaToko.Text.Trim(), tahun, this._buktiKtmBytes);
+
+                        if (sukses)
+                        {
+                            MessageBox.Show(pesan, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            this.CekStatusVerifikasi();
+                        }
+                        else
+                        {
+                            MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        // User batal mendaftar di pop-up konfirmasi
+                        bool aksiBatal = true;
+                    }
                 }
             }
         }

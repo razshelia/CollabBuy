@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using CollabBuy.CollabBuyApp.Repositories;
+using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -10,58 +11,113 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public PreOrderController()
         {
-            _poRepo = new PreOrderRepository();
+            this._poRepo = new PreOrderRepository();
         }
-        public int GetJumlahPoAktif()
+
+        /// <summary>
+        /// Mengambil objek Model PreOrder utuh berdasarkan ID-nya.
+        /// </summary>
+        public Models.PreOrder GetPreOrder(int idPo)
         {
+            Models.PreOrder poObj;
             try
             {
-                var dt = _poRepo.GetSesiPOAktif("");
-                return dt?.Rows.Count ?? 0;
+                poObj = this._poRepo.GetById(idPo);
             }
-            catch (Exception) { return 0; }
+            catch (Exception)
+            {
+                poObj = null;
+            }
+            return poObj;
         }
+
+        public int GetJumlahPoAktif()
+        {
+            int jumlah;
+            try
+            {
+                DataTable dt = this._poRepo.GetSesiPOAktif("");
+                if (dt != null)
+                {
+                    jumlah = dt.Rows.Count;
+                }
+                else
+                {
+                    jumlah = 0;
+                }
+            }
+            catch (Exception)
+            {
+                jumlah = 0;
+            }
+            return jumlah;
+        }
+
         public DataTable GetActiveSesiPO(string keyword)
         {
-            try { return _poRepo.GetSesiPOAktif(keyword); }
-            catch (Exception) { return new DataTable(); }
+            DataTable dt;
+            try
+            {
+                dt = this._poRepo.GetSesiPOAktif(keyword);
+            }
+            catch (Exception)
+            {
+                dt = new DataTable();
+            }
+            return dt;
         }
 
         public DataTable GetProdukTersedia(int idPenjual)
         {
-            try { return _poRepo.GetProdukTanpaPO(idPenjual); }
-            catch (Exception) { return new DataTable(); }
+            DataTable dt;
+            try
+            {
+                dt = this._poRepo.GetProdukTanpaPO(idPenjual);
+            }
+            catch (Exception)
+            {
+                dt = new DataTable();
+            }
+            return dt;
         }
 
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
-            // Validasi Input Gen-Z style
+            (bool sukses, string pesan) hasil;
+
             if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
             {
-                return (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
+                hasil = (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
+            }
+            else if (batasWaktu <= DateTime.Now)
+            {
+                hasil = (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
+            }
+            else if (idProduk <= 0)
+            {
+                hasil = (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
+            }
+            else
+            {
+                try
+                {
+                    bool result = this._poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+                    if (result)
+                    {
+                        hasil = (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
+                    }
+                    else
+                    {
+                        hasil = (false, "Hmm, gagal nyimpen ke database nih.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    hasil = (false, "Waduh error server: " + ex.Message);
+                }
             }
 
-            if (batasWaktu <= DateTime.Now)
-            {
-                return (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
-            }
-
-            if (idProduk <= 0)
-            {
-                return (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
-            }
-
-            try
-            {
-                bool result = _poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
-                if (result) return (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
-
-                return (false, "Hmm, gagal nyimpen ke database nih.");
-            }
-            catch (Exception ex)
-            {
-                return (false, "Waduh error server: " + ex.Message);
-            }
+            return hasil;
         }
     }
 }

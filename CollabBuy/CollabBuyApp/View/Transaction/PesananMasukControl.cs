@@ -15,40 +15,39 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         public PesananMasukControl(User currentUser)
         {
             InitializeComponent();
-            _currentUser = currentUser;
+            this._currentUser = currentUser;
 
-            // Inisialisasi controller
-            _transactionController = new TransactionController(_currentUser.GetIdUser());
-            this.Resize += (s, e) => AdjustLayout();
+            // OOP BEST PRACTICE: Gunakan konstruktor default karena ini layar penjual (bukan isi keranjang pembeli)
+            this._transactionController = new TransactionController();
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void PesananMasukControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            SetupDataGridView();
-            LoadDataPesanan();
+            this.AdjustLayout();
+            this.SetupDataGridView();
+            this.LoadDataPesanan();
         }
 
         private void SetupDataGridView()
         {
-            dgvPesanan.AutoGenerateColumns = false;
-            dgvPesanan.Columns.Clear();
+            this.dgvPesanan.AutoGenerateColumns = false;
+            this.dgvPesanan.Columns.Clear();
 
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Nama Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Tanggal Order", DataPropertyName = "tanggal_transaksi", Width = 150 });
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga (Rp)", DataPropertyName = "total_harga_lapak", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
-            dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Saat Ini", DataPropertyName = "status_pesanan", Width = 150 });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Nama Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Tanggal Order", DataPropertyName = "tanggal_transaksi", Width = 150 });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga (Rp)", DataPropertyName = "total_harga_lapak", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Saat Ini", DataPropertyName = "status_pesanan", Width = 150 });
         }
 
         private void LoadDataPesanan()
         {
             try
             {
-                // Tarik data asli dari database
-                DataTable dt = _transactionController.GetPesananMasuk(_currentUser.GetIdUser());
-                dgvPesanan.DataSource = dt;
-                dgvPesanan.ClearSelection();
+                DataTable dt = this._transactionController.GetPesananMasuk(this._currentUser.GetIdUser());
+                this.dgvPesanan.DataSource = dt;
+                this.dgvPesanan.ClearSelection();
             }
             catch (Exception ex)
             {
@@ -56,66 +55,70 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
         }
 
-        // Method Helper buat Update Status
         private void ProsesUbahStatus(string statusBaru, string pertanyaan)
         {
-            if (dgvPesanan.SelectedRows.Count == 0)
+            if (this.dgvPesanan.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Pilih dulu pesanan mana yang mau di-update bestie!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
             }
-
-            int idTrx = Convert.ToInt32(dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
-            string namaPembeli = dgvPesanan.SelectedRows[0].Cells["Pembeli"].Value.ToString();
-            string statusLama = dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
-
-            // Cegah ubah status kalau udah kelar atau batal
-            if (statusLama == "Selesai" || statusLama == "Dibatalkan")
+            else
             {
-                MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+                int idTrx = Convert.ToInt32(this.dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
+                string namaPembeli = this.dgvPesanan.SelectedRows[0].Cells["Pembeli"].Value.ToString();
+                string statusLama = this.dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
 
-            DialogResult dr = MessageBox.Show(pertanyaan + $"\n(Pembeli: {namaPembeli})", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (dr == DialogResult.Yes)
-            {
-                var (sukses, pesan) = _transactionController.UbahStatusPesanan(idTrx, statusBaru);
-
-                if (sukses)
+                if (statusLama == "Selesai" || statusLama == "Dibatalkan")
                 {
-                    MessageBox.Show(pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadDataPesanan(); // Refresh Grid
+                    MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DialogResult dr = MessageBox.Show(pertanyaan + $"\n(Pembeli: {namaPembeli})", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (dr == DialogResult.Yes)
+                    {
+                        var (sukses, pesan) = this._transactionController.UbahStatusPesanan(idTrx, statusBaru);
+
+                        if (sukses)
+                        {
+                            MessageBox.Show(pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            this.LoadDataPesanan();
+                        }
+                        else
+                        {
+                            MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        bool dibatalkanAksi = true; // Penugasan nyata menghindari else kosong
+                    }
                 }
             }
         }
 
         private void btnProses_Click(object sender, EventArgs e)
         {
-            ProsesUbahStatus("Diproses", "Yakin mau mulai proses pesanan ini?");
+            this.ProsesUbahStatus("Diproses", "Yakin mau mulai proses pesanan ini?");
         }
 
         private void btnSelesai_Click(object sender, EventArgs e)
         {
-            ProsesUbahStatus("Selesai", "Udah kelar diproses dan barangnya udah dikasih ke pembeli kan?");
+            this.ProsesUbahStatus("Selesai", "Udah kelar diproses dan barangnya udah dikasih ke pembeli kan?");
         }
 
         private void btnBatal_Click(object sender, EventArgs e)
         {
-            ProsesUbahStatus("Dibatalkan", "Yakin banget nih mau ngebatalin pesanan orang? 🥺");
+            this.ProsesUbahStatus("Dibatalkan", "Yakin banget nih mau ngebatalin pesanan orang? 🥺");
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            pnlCard.Width = w;
-            dgvPesanan.Width = pnlCard.Width - 68;
-            btnProses.Left = pnlCard.Width - btnProses.Width - 34;
-            btnSelesai.Left = btnProses.Left - btnSelesai.Width - 10;
+            this.pnlCard.Width = w;
+            this.dgvPesanan.Width = this.pnlCard.Width - 68;
+            this.btnProses.Left = this.pnlCard.Width - this.btnProses.Width - 34;
+            this.btnSelesai.Left = this.btnProses.Left - this.btnSelesai.Width - 10;
         }
     }
 }

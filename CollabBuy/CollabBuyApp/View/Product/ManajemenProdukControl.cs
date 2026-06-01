@@ -9,44 +9,46 @@ namespace CollabBuy.CollabBuyApp.View.Product
 {
     public partial class ManajemenProdukControl : UserControl
     {
-        private readonly User _currentUser;
+        private readonly Models.User _currentUser;
         private readonly ProductController _productController;
 
-        public ManajemenProdukControl(User currentUser)
+        public ManajemenProdukControl(Models.User currentUser)
         {
-            InitializeComponent();
-            _currentUser = currentUser;
-            _productController = new ProductController();
+            this.InitializeComponent();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this._currentUser = currentUser;
+            this._productController = new ProductController();
+
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void ManajemenProdukControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            SetupDataGridView();
-            LoadDataProduk();
+            this.AdjustLayout();
+            this.SetupDataGridView();
+            this.LoadDataProduk();
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            LoadDataProduk();
+            this.LoadDataProduk();
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            pnlGrid.Width = w;
-            dgvLapak.Width = pnlGrid.Width - 68;
-            btnRefresh.Left = pnlGrid.Width - btnRefresh.Width - 34;
+
+            this.pnlGrid.Width = w;
+            this.dgvLapak.Width = this.pnlGrid.Width - 68;
+            this.btnRefresh.Left = this.pnlGrid.Width - this.btnRefresh.Width - 34;
         }
 
         private void SetupDataGridView()
         {
-            dgvLapak.AutoGenerateColumns = false;
-            dgvLapak.Columns.Clear();
-            dgvLapak.RowTemplate.Height = 80; // Kasih space buat foto
+            this.dgvLapak.AutoGenerateColumns = false;
+            this.dgvLapak.Columns.Clear();
+            this.dgvLapak.RowTemplate.Height = 80; // Kasih space buat foto
 
             // Kolom Gambar Baru
             DataGridViewImageColumn colFoto = new DataGridViewImageColumn();
@@ -55,61 +57,111 @@ namespace CollabBuy.CollabBuyApp.View.Product
             colFoto.DataPropertyName = "foto_image";
             colFoto.ImageLayout = DataGridViewImageCellLayout.Zoom;
             colFoto.Width = 80;
-            dgvLapak.Columns.Add(colFoto);
 
-            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Barang", DataPropertyName = "nama_produk", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "nama_kategori", Width = 150 });
-            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "PO", HeaderText = "Sesi PO", DataPropertyName = "judul_po", Width = 150 });
-            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Harga", HeaderText = "Harga Jual", DataPropertyName = "harga_format", Width = 130 });
-            dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kuota", HeaderText = "Target Kuota", DataPropertyName = "target_kuota", Width = 100 });
+            this.dgvLapak.Columns.Add(colFoto);
+
+            this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Barang", DataPropertyName = "nama_produk", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "nama_kategori", Width = 150 });
+            this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "PO", HeaderText = "Sesi PO", DataPropertyName = "judul_po", Width = 150 });
+            this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Harga", HeaderText = "Harga Jual", DataPropertyName = "harga_format", Width = 130 });
+            this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kuota", HeaderText = "Target Kuota", DataPropertyName = "target_kuota", Width = 100 });
         }
 
         private void LoadDataProduk()
         {
             try
             {
-                DataTable dtRaw = _productController.GetProdukLapak(_currentUser.GetIdUser());
+                DataTable dtRaw = this._productController.GetProdukLapak(this._currentUser.GetIdUser());
                 DataTable dtUI = new DataTable();
+
                 dtUI.Columns.Add("foto_image", typeof(Image));
                 dtUI.Columns.Add("nama_produk", typeof(string));
-                dtUI.Columns.Add("nama_kategori", typeof(string)); // Ini yang akan kita proses
+                dtUI.Columns.Add("nama_kategori", typeof(string));
                 dtUI.Columns.Add("judul_po", typeof(string));
                 dtUI.Columns.Add("harga_format", typeof(string));
                 dtUI.Columns.Add("target_kuota", typeof(string));
 
-                foreach (DataRow row in dtRaw.Rows)
+                if (dtRaw != null)
                 {
-                    string judulPo = row.IsNull("judul_po") ? "Reguler" : row["judul_po"].ToString();
-
-                    // --- OOP BEST PRACTICE CALL ---
-                    // 1. Ambil nama kategori mentah dari DB
-                    string namaKatMentah = row.IsNull("nama_kategori") ? "Umum" : row["nama_kategori"].ToString();
-
-                    // 2. Buat objek Category, ini otomatis menjalankan method RapikanNamaKategori() di konstruktornya!
-                    Category katObj = new Category(namaKatMentah);
-
-                    // 3. Gunakan hasil yang sudah rapi
-                    string kategoriRapi = katObj.GetNamaKategori();
-                    // ------------------------------
-
-                    string harga = "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0");
-                    string kuota = row.IsNull("target_kuota") ? "-" : row["target_kuota"].ToString();
-
-                    Image foto = null;
-                    if (row["foto_produk"] != DBNull.Value)
+                    foreach (DataRow row in dtRaw.Rows)
                     {
-                        byte[] imgBytes = (byte[])row["foto_produk"];
-                        using (var ms = new System.IO.MemoryStream(imgBytes))
+                        string judulPo;
+                        if (row.IsNull("judul_po"))
                         {
-                            foto = Image.FromStream(ms);
+                            judulPo = "Reguler";
                         }
-                    }
+                        else
+                        {
+                            judulPo = row["judul_po"].ToString();
+                        }
 
-                    dtUI.Rows.Add(foto, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);
+                        // =======================================================
+                        // OOP BEST PRACTICE: Pemanfaatan Model Category
+                        // =======================================================
+                        string namaKatMentah;
+                        if (row.IsNull("nama_kategori"))
+                        {
+                            namaKatMentah = "Umum";
+                        }
+                        else
+                        {
+                            namaKatMentah = row["nama_kategori"].ToString();
+                        }
+
+                        Models.Category katObj = new Models.Category(namaKatMentah);
+                        string kategoriRapi = katObj.GetNamaKategori();
+
+                        string harga;
+                        if (row["harga_dasar"] != DBNull.Value)
+                        {
+                            harga = "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0");
+                        }
+                        else
+                        {
+                            harga = "Rp 0";
+                        }
+
+                        string kuota;
+                        if (row.IsNull("target_kuota"))
+                        {
+                            kuota = "-";
+                        }
+                        else
+                        {
+                            kuota = row["target_kuota"].ToString();
+                        }
+
+                        Image foto = null;
+                        if (row["foto_produk"] != DBNull.Value)
+                        {
+                            try
+                            {
+                                byte[] imgBytes = (byte[])row["foto_produk"];
+                                using (System.IO.MemoryStream ms = new System.IO.MemoryStream(imgBytes))
+                                {
+                                    foto = Image.FromStream(ms);
+                                }
+                            }
+                            catch
+                            {
+                                foto = null;
+                            }
+                        }
+                        else
+                        {
+                            bool fotoKosong = true; // Penugasan untuk menghindari else kosong
+                        }
+
+                        dtUI.Rows.Add(foto, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);
+                    }
+                }
+                else
+                {
+                    bool dataKosong = true;
                 }
 
-                dgvLapak.DataSource = dtUI;
-                dgvLapak.ClearSelection();
+                this.dgvLapak.DataSource = dtUI;
+                this.dgvLapak.ClearSelection();
             }
             catch (Exception ex)
             {

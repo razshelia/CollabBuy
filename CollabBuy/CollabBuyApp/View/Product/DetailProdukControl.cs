@@ -24,86 +24,129 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         public DetailProdukControl(Models.User user, int idProduk)
         {
-            InitializeComponent();
-            _user = user;
-            _idProduk = idProduk;
-            _prodCtrl = new ProductController();
-            _trxCtrl = new TransactionController(_user.GetIdUser());
+            this.InitializeComponent();
 
-            _timerStatus = new System.Windows.Forms.Timer();
-            _timerStatus.Interval = 3000;
-            _timerStatus.Tick += (s, e) => { lblStatus.Visible = false; _timerStatus.Stop(); };
+            this._user = user;
+            this._idProduk = idProduk;
+            this._prodCtrl = new ProductController();
+            this._trxCtrl = new TransactionController(this._user.GetIdUser());
+
+            this._timerStatus = new System.Windows.Forms.Timer();
+            this._timerStatus.Interval = 3000;
+            this._timerStatus.Tick += (s, e) =>
+            {
+                this.lblStatus.Visible = false;
+                this._timerStatus.Stop();
+            };
 
             this.Dock = DockStyle.Fill;
         }
 
         private void DetailProdukControl_Load(object sender, EventArgs e)
         {
-            MuatDetailProduk();
+            this.MuatDetailProduk();
         }
 
         private void MuatDetailProduk()
         {
             try
             {
-                _produk = _prodCtrl.GetProdukById(_idProduk);
-                if (_produk == null)
+                this._produk = this._prodCtrl.GetProdukById(this._idProduk);
+
+                if (this._produk == null)
                 {
-                    lblNamaProduk.Text = "Waduh, barangnya ngilang bestie 😭";
-                    btnMasukKeranjang.Enabled = false;
-                    return;
+                    this.lblNamaProduk.Text = "Waduh, barangnya ngilang bestie 😭";
+                    this.btnMasukKeranjang.Enabled = false;
                 }
-
-                // 1. Info Teks Dasar
-                lblNamaProduk.Text = _produk.GetNamaProduk();
-                lblHeaderTitle.Text = "✨ Detail: " + _produk.GetNamaProduk();
-
-                long hargaSaatIni = _produk.HitungTotal();
-                lblHarga.Text = "Rp " + hargaSaatIni.ToString("N0");
-
-                string deskripsi = _produk.GetDeskripsi();
-                txtDeskripsi.Text = string.IsNullOrEmpty(deskripsi) ? "Penjualnya misterius, nggak ngasih deskripsi nih." : deskripsi;
-
-                // 2. Info PO & Slot
-                string tipePo = "Ready Stock (Langsung Gass)";
-                string slotInfo = "Aman banget (Unlimited)";
-                string minOrder = _produk.GetMinOrder().ToString();
-
-                if (_produk.GetIdPo().HasValue)
+                else
                 {
-                    tipePo = "Pre-Order (PO)";
-                    if (_produk.GetTargetKuota() > 0)
+                    // 1. Info Teks Dasar
+                    this.lblNamaProduk.Text = this._produk.GetNamaProduk();
+                    this.lblHeaderTitle.Text = "✨ Detail: " + this._produk.GetNamaProduk();
+
+                    // =======================================================
+                    // OOP BEST PRACTICE: Panggil Method Behavior dari Model!
+                    // =======================================================
+                    this.lblHarga.Text = this._produk.DapatkanFormatHargaUI();
+
+                    string deskripsi = this._produk.GetDeskripsi();
+
+                    if (string.IsNullOrWhiteSpace(deskripsi) || deskripsi == "Tidak ada deskripsi.")
                     {
-                        int sisa = _produk.GetSisaKuota();
-                        slotInfo = sisa > 0 ? $"🔥 Sisa {sisa} slot lagi!" : "⛔ Penuh Bestie!";
-                        lblSlotNilai.ForeColor = sisa > 0 ? Color.FromArgb(200, 50, 50) : Color.FromArgb(180, 0, 0);
+                        this.txtDeskripsi.Text = "Penjualnya misterius, nggak ngasih deskripsi nih.";
                     }
+                    else
+                    {
+                        this.txtDeskripsi.Text = deskripsi;
+                    }
+
+                    // 2. Info PO & Slot
+                    string tipePo;
+                    if (this._produk.GetIdPo().HasValue)
+                    {
+                        tipePo = "Pre-Order (PO)";
+                    }
+                    else
+                    {
+                        tipePo = "Ready Stock (Langsung Gass)";
+                    }
+
+                    this.lblTipePoNilai.Text = tipePo;
+
+                    // =======================================================
+                    // Mengambil langsung info slot dari Behavior Model
+                    // =======================================================
+                    string slotInfo = this._produk.DapatkanInfoSlot();
+                    this.lblSlotNilai.Text = slotInfo;
+                    this.lblMinOrderNilai.Text = this._produk.GetMinOrder().ToString() + " pcs";
+
+                    if (this._produk.GetSisaKuota() > 0 || !this._produk.GetIdPo().HasValue)
+                    {
+                        this.lblSlotNilai.ForeColor = Color.FromArgb(200, 50, 50);
+                        this.btnMasukKeranjang.Enabled = true;
+                    }
+                    else
+                    {
+                        this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
+                        this.btnMasukKeranjang.Enabled = false;
+                    }
+
+                    // 3. Multi-Foto (Byte Packing System)
+                    this.RenderFotoProduk();
+
+                    // 4. Form Order (Hanya Quantity)
+                    if (this._produk.GetMinOrder() > 0)
+                    {
+                        this.nudQty.Minimum = this._produk.GetMinOrder();
+                    }
+                    else
+                    {
+                        this.nudQty.Minimum = 1;
+                    }
+
+                    this.nudQty.Value = this.nudQty.Minimum;
                 }
-
-                lblTipePoNilai.Text = tipePo;
-                lblSlotNilai.Text = slotInfo;
-                lblMinOrderNilai.Text = minOrder + " pcs";
-
-                // 3. Multi-Foto (Byte Packing System)
-                RenderFotoProduk();
-
-                // 4. Form Order (Hanya Quantity)
-                nudQty.Minimum = _produk.GetMinOrder() > 0 ? _produk.GetMinOrder() : 1;
-                nudQty.Value = nudQty.Minimum;
-
-                if (slotInfo == "⛔ Penuh Bestie!") btnMasukKeranjang.Enabled = false;
             }
             catch (Exception ex)
             {
-                lblNamaProduk.Text = "Error memuat produk";
-                TampilkanStatus($"Error: {ex.Message}", false);
+                this.lblNamaProduk.Text = "Error memuat produk";
+                this.TampilkanStatus($"Error: {ex.Message}", false);
             }
         }
 
         private void RenderFotoProduk()
         {
-            flpThumbnails.Controls.Clear();
-            byte[] fotoData = _produk.GetFotoProduk();
+            this.flpThumbnails.Controls.Clear();
+            byte[] fotoData;
+
+            if (this._produk != null)
+            {
+                fotoData = this._produk.GetFotoProduk();
+            }
+            else
+            {
+                fotoData = null;
+            }
 
             if (fotoData != null && fotoData.Length > 0)
             {
@@ -113,7 +156,10 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
                     if (images.Count > 0)
                     {
-                        using (MemoryStream ms = new MemoryStream(images[0])) { picFoto.Image = new Bitmap(Image.FromStream(ms)); }
+                        using (MemoryStream ms = new MemoryStream(images[0]))
+                        {
+                            this.picFoto.Image = new Bitmap(Image.FromStream(ms));
+                        }
 
                         foreach (var imgByte in images)
                         {
@@ -128,26 +174,36 @@ namespace CollabBuy.CollabBuyApp.View.Product
                                 BackColor = Color.White
                             };
 
-                            using (MemoryStream msThumb = new MemoryStream(imgByte)) { thumb.Image = new Bitmap(Image.FromStream(msThumb)); }
+                            using (MemoryStream msThumb = new MemoryStream(imgByte))
+                            {
+                                thumb.Image = new Bitmap(Image.FromStream(msThumb));
+                            }
 
-                            thumb.Click += (s, e) => { picFoto.Image = thumb.Image; };
-                            flpThumbnails.Controls.Add(thumb);
+                            thumb.Click += (s, e) => { this.picFoto.Image = thumb.Image; };
+                            this.flpThumbnails.Controls.Add(thumb);
                         }
                     }
-                    else { TampilkanIkonDefault(); }
+                    else
+                    {
+                        this.TampilkanIkonDefault();
+                    }
                 }
-                catch { TampilkanIkonDefault(); }
+                catch
+                {
+                    this.TampilkanIkonDefault();
+                }
             }
             else
             {
-                TampilkanIkonDefault();
+                this.TampilkanIkonDefault();
             }
         }
 
         private void TampilkanIkonDefault()
         {
-            picFoto.Image = null;
-            picFoto.Controls.Clear();
+            this.picFoto.Image = null;
+            this.picFoto.Controls.Clear();
+
             Label lblPlaceholder = new Label
             {
                 Text = "🖼️\nNo Image",
@@ -156,46 +212,62 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 ForeColor = Color.Gray,
                 Dock = DockStyle.Fill
             };
-            picFoto.Controls.Add(lblPlaceholder);
+
+            this.picFoto.Controls.Add(lblPlaceholder);
         }
 
         private void btnMasukKeranjang_Click(object sender, EventArgs e)
         {
-            if (_produk == null) return;
-
-            int jumlah = (int)nudQty.Value;
-            string catatan = "";
-            string namaPenitip = _user.GetNama();
-
-            var (sukses, pesan) = _trxCtrl.TambahItemKeKeranjang(_idProduk, namaPenitip, jumlah, catatan);
-
-            if (sukses)
+            if (this._produk == null)
             {
-                // GANTI PAKE MESSAGE BOX BIAR POP-UP NYA JELAS DAN GAK KETIMPA!
-                MessageBox.Show($"✅ Yeay! '{_produk.GetNamaProduk()}' udah masuk keranjang jajan lo bestie. Gas cek keranjang!",
-                    "Masuk Keranjang!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Keadaan di mana _produk gagal dimuat tapi tombol sempat diklik
+                bool proteksiNull = true;
             }
             else
             {
-                MessageBox.Show($"❌ Waduh gagal: {pesan}", "Error Bestie", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                int jumlah = (int)this.nudQty.Value;
+                string catatan = "";
+                string namaPenitip = this._user.GetNama();
+
+                var (sukses, pesan) = this._trxCtrl.TambahItemKeKeranjang(this._idProduk, namaPenitip, jumlah, catatan);
+
+                if (sukses)
+                {
+                    MessageBox.Show($"✅ Yeay! '{this._produk.GetNamaProduk()}' udah masuk keranjang jajan lo bestie. Gas cek keranjang!",
+                        "Masuk Keranjang!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"❌ Waduh gagal: {pesan}", "Error Bestie", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private void TampilkanStatus(string pesan, bool sukses)
         {
-            lblStatus.Text = pesan;
-            lblStatus.BackColor = sukses ? Color.FromArgb(210, 255, 230) : Color.FromArgb(255, 220, 220);
-            lblStatus.ForeColor = sukses ? Color.FromArgb(0, 100, 50) : Color.FromArgb(150, 0, 0);
-            lblStatus.Visible = true;
-            _timerStatus.Stop();
-            _timerStatus.Start();
+            this.lblStatus.Text = pesan;
+            this.lblStatus.Visible = true;
+
+            if (sukses)
+            {
+                this.lblStatus.BackColor = Color.FromArgb(210, 255, 230);
+                this.lblStatus.ForeColor = Color.FromArgb(0, 100, 50);
+            }
+            else
+            {
+                this.lblStatus.BackColor = Color.FromArgb(255, 220, 220);
+                this.lblStatus.ForeColor = Color.FromArgb(150, 0, 0);
+            }
+
+            this._timerStatus.Stop();
+            this._timerStatus.Start();
         }
 
         private void btnKembali_Click(object sender, EventArgs e)
         {
-            if (OnNavigateKembali != null)
+            if (this.OnNavigateKembali != null)
             {
-                OnNavigateKembali.Invoke();
+                this.OnNavigateKembali.Invoke();
             }
             else
             {
@@ -203,9 +275,14 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 if (parentPanel != null)
                 {
                     parentPanel.Controls.Clear();
-                    KatalogProdukControl katalog = new KatalogProdukControl(_user);
+                    KatalogProdukControl katalog = new KatalogProdukControl(this._user);
                     katalog.Dock = DockStyle.Fill;
                     parentPanel.Controls.Add(katalog);
+                }
+                else
+                {
+                    // Tidak ada parent, tidak bisa load Katalog
+                    bool parentKosong = true;
                 }
             }
         }

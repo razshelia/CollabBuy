@@ -9,130 +9,194 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 {
     public partial class TanggapanAduanControl : UserControl
     {
-        private readonly User _admin;
+        private readonly Models.User _admin;
         private readonly ComplaintController _complaintController;
         private readonly UserController _userController;
-        private int _selectedIdAduan = 0;
+        private int _selectedIdAduan;
 
-        public TanggapanAduanControl(User admin)
+        public TanggapanAduanControl(Models.User admin)
         {
-            InitializeComponent();
-            _admin = admin;
-            _complaintController = new ComplaintController();
-            _userController = new UserController();
+            this.InitializeComponent();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this._admin = admin;
+            this._complaintController = new ComplaintController();
+            this._userController = new UserController();
+            this._selectedIdAduan = 0;
+
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void TanggapanAduanControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            LoadAduan();
+            this.AdjustLayout();
+            this.LoadAduan();
         }
 
         private void LoadAduan()
         {
-            // Ambil data mentah
-            DataTable dtRaw = _complaintController.GetAduanBelumBeres();
+            DataTable dtRaw = this._complaintController.GetAduanBelumBeres();
 
-            // Buat DataTable baru yang sudah dipoles untuk UI
             DataTable dtUI = new DataTable();
             dtUI.Columns.Add("id_aduan", typeof(int));
             dtUI.Columns.Add("id_user", typeof(int));
             dtUI.Columns.Add("nama_pelapor", typeof(string));
             dtUI.Columns.Add("subjek", typeof(string));
-            dtUI.Columns.Add("deskripsi", typeof(string)); // Akan kita isi preview
+            dtUI.Columns.Add("deskripsi", typeof(string));
             dtUI.Columns.Add("tanggal", typeof(string));
-            dtUI.Columns.Add("status", typeof(string)); // Akan kita isi status emoji
+            dtUI.Columns.Add("status", typeof(string));
 
-            foreach (DataRow row in dtRaw.Rows)
+            if (dtRaw != null)
             {
-                int idUser = Convert.ToInt32(row["id_user"]);
-                string subjek = row["subjek"].ToString();
-                string deskripsiRaw = row["deskripsi"].ToString();
-                string statusRaw = "Menunggu"; // Default query ini memanggil aduan pending
+                foreach (DataRow row in dtRaw.Rows)
+                {
+                    int idUser = Convert.ToInt32(row["id_user"]);
+                    string subjek = row["subjek"].ToString();
+                    string deskripsiRaw = row["deskripsi"].ToString();
+                    string statusRaw = "Menunggu";
 
-                // --- OOP BEST PRACTICE CALL ---
-                // Kita buat objek untuk memformat teks yang akan tampil di grid
-                Complaint aduanObj = new Complaint(idUser, subjek, deskripsiRaw);
-                aduanObj.SetStatus(statusRaw);
+                    // =======================================================
+                    // OOP BEST PRACTICE: PEMANFAATAN BEHAVIOR MODEL
+                    // =======================================================
+                    Complaint aduanObj = new Complaint(idUser, subjek, deskripsiRaw);
+                    aduanObj.SetStatus(statusRaw);
 
-                // Gunakan Method Behavior Model!
-                string previewTeks = aduanObj.DapatkanPreviewDeskripsi(35); // Batasi 35 huruf
-                string statusKece = aduanObj.DapatkanStatusUI(); // Tambah Emoji
-                // ------------------------------
+                    string previewTeks = aduanObj.DapatkanPreviewDeskripsi(35);
+                    string statusKece = aduanObj.DapatkanStatusUI();
+                    string tanggalFormat;
 
-                dtUI.Rows.Add(
-                    Convert.ToInt32(row["id_aduan"]),
-                    idUser,
-                    row["nama_pelapor"].ToString(),
-                    subjek,
-                    previewTeks, // Yang tampil di grid jadi rapi
-                    Convert.ToDateTime(row["tanggal"]).ToString("dd MMM yyyy, HH:mm"),
-                    statusKece
-                );
+                    if (row["tanggal"] != DBNull.Value)
+                    {
+                        tanggalFormat = Convert.ToDateTime(row["tanggal"]).ToString("dd MMM yyyy, HH:mm");
+                    }
+                    else
+                    {
+                        tanggalFormat = "-";
+                    }
+
+                    dtUI.Rows.Add(
+                        Convert.ToInt32(row["id_aduan"]),
+                        idUser,
+                        row["nama_pelapor"].ToString(),
+                        subjek,
+                        previewTeks,
+                        tanggalFormat,
+                        statusKece
+                    );
+                }
+            }
+            else
+            {
+                bool rawKosong = true; // Penugasan nyata menghindari else kosong
             }
 
-            dgvAduan.DataSource = dtUI;
+            this.dgvAduan.DataSource = dtUI;
 
-            if (dgvAduan.Columns.Count > 0)
+            if (this.dgvAduan.Columns.Count > 0)
             {
-                dgvAduan.Columns["id_aduan"].Visible = false;
-                dgvAduan.Columns["id_user"].Visible = false;
-                dgvAduan.Columns["nama_pelapor"].HeaderText = "Pelapor";
-                dgvAduan.Columns["subjek"].HeaderText = "Subjek Masalah";
-                dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
-                dgvAduan.Columns["tanggal"].HeaderText = "Waktu";
-                dgvAduan.Columns["status"].HeaderText = "Status";
+                this.dgvAduan.Columns["id_aduan"].Visible = false;
+                this.dgvAduan.Columns["id_user"].Visible = false;
+                this.dgvAduan.Columns["nama_pelapor"].HeaderText = "Pelapor";
+                this.dgvAduan.Columns["subjek"].HeaderText = "Subjek Masalah";
+                this.dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
+                this.dgvAduan.Columns["tanggal"].HeaderText = "Waktu";
+                this.dgvAduan.Columns["status"].HeaderText = "Status";
             }
-            ResetForm();
+            else
+            {
+                bool skipFormatGrid = true;
+            }
+
+            this.ResetForm();
         }
 
         private void ResetForm()
         {
-            _selectedIdAduan = 0;
-            txtBalasan.Clear();
-            btnBalas.Enabled = false;
-            btnBlokir.Enabled = false;
+            this._selectedIdAduan = 0;
+            this.txtBalasan.Clear();
+            this.btnBalas.Enabled = false;
+            this.btnBlokir.Enabled = false;
         }
 
         private void dgvAduan_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            if (e.RowIndex < 0)
             {
-                _selectedIdAduan = Convert.ToInt32(dgvAduan.Rows[e.RowIndex].Cells["id_aduan"].Value);
-                btnBalas.Enabled = true;
-                btnBlokir.Enabled = true;
+                bool abaikanHeaderKlik = true;
+            }
+            else
+            {
+                this._selectedIdAduan = Convert.ToInt32(this.dgvAduan.Rows[e.RowIndex].Cells["id_aduan"].Value);
+                this.btnBalas.Enabled = true;
+                this.btnBlokir.Enabled = true;
             }
         }
 
         private void btnBalas_Click(object sender, EventArgs e)
         {
-            if (_selectedIdAduan == 0) return;
-
-            var res = _complaintController.TanggapiAduan(_selectedIdAduan, txtBalasan.Text, _admin.GetIdUser());
-            if (res.sukses)
+            if (this._selectedIdAduan == 0)
             {
-                MessageBox.Show("Kasus ditutup! Balasan Mimin udah dikirim. ✨", "Selesai", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadAduan();
+                MessageBox.Show("Silakan pilih aduan yang ingin dibalas terlebih dahulu dari tabel!", "Pilih Aduan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            else if (string.IsNullOrWhiteSpace(this.txtBalasan.Text))
+            {
+                MessageBox.Show("Balasan Mimin tidak boleh kosong ya!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                var (sukses, pesan) = this._complaintController.TanggapiAduan(this._selectedIdAduan, this.txtBalasan.Text, this._admin.GetIdUser());
+
+                if (sukses)
+                {
+                    MessageBox.Show("Kasus ditutup! Balasan Mimin udah dikirim. ✨", "Selesai", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.LoadAduan();
+                }
+                else
+                {
+                    MessageBox.Show(pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
         }
 
         private void btnBlokir_Click(object sender, EventArgs e)
         {
-            if (_selectedIdAduan == 0) return;
-
-            string idPenjualStr = Microsoft.VisualBasic.Interaction.InputBox("Spill ID User Penjual yang mau di-banned:", "Blokir Penjual Nakal", "");
-            if (int.TryParse(idPenjualStr, out int idPenjual))
+            if (this._selectedIdAduan == 0)
             {
-                var res = _userController.TindakPenjualNakal(_selectedIdAduan, idPenjual, txtBalasan.Text);
-                if (res.sukses)
+                MessageBox.Show("Silakan pilih aduan yang berkaitan dengan penjual terlebih dahulu!", "Pilih Aduan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else if (string.IsNullOrWhiteSpace(this.txtBalasan.Text))
+            {
+                MessageBox.Show("Mohon isi balasan atau alasan pemblokiran di kotak teks terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                string idPenjualStr = Microsoft.VisualBasic.Interaction.InputBox("Spill ID User Penjual yang mau di-banned:", "Blokir Penjual Nakal", "");
+
+                if (int.TryParse(idPenjualStr, out int idPenjual))
                 {
-                    MessageBox.Show("Boom! 💥 Penjual nakal berhasil di-banned!", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadAduan();
+                    var (sukses, pesan) = this._userController.TindakPenjualNakal(this._selectedIdAduan, idPenjual, this.txtBalasan.Text);
+
+                    if (sukses)
+                    {
+                        MessageBox.Show("Boom! 💥 Penjual nakal berhasil di-banned!", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        this.LoadAduan();
+                    }
+                    else
+                    {
+                        MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                else MessageBox.Show(res.pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(idPenjualStr))
+                    {
+                        // Pengguna menekan tombol Cancel atau menutup InputBox
+                        bool batalBlokir = true;
+                    }
+                    else
+                    {
+                        MessageBox.Show("ID Penjual harus berupa angka!", "Format Salah", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 
@@ -142,14 +206,15 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             int w = this.Width - (margin * 2);
 
             int gridW = (int)(w * 0.58);
-            dgvAduan.Width = gridW;
+            this.dgvAduan.Width = gridW;
 
             int pnlLeft = margin + gridW + 24;
-            pnlForm.Left = pnlLeft;
-            pnlForm.Width = this.Width - pnlLeft - margin;
-            txtBalasan.Width = pnlForm.Width - 48;
-            btnBalas.Width = pnlForm.Width - 48;
-            btnBlokir.Width = pnlForm.Width - 48;
+            this.pnlForm.Left = pnlLeft;
+            this.pnlForm.Width = this.Width - pnlLeft - margin;
+
+            this.txtBalasan.Width = this.pnlForm.Width - 48;
+            this.btnBalas.Width = this.pnlForm.Width - 48;
+            this.btnBlokir.Width = this.pnlForm.Width - 48;
         }
     }
 }

@@ -12,29 +12,30 @@ namespace CollabBuy.CollabBuyApp.View.Report
 {
     public partial class AnalitikPenjualanControl : UserControl
     {
-        private readonly User _currentUser;
+        private readonly Models.User _currentUser;
         private readonly LaporanController _laporanController;
-        private DataTable _dtRaw; // Simpan data raw untuk print
+        private DataTable _dtRaw;
 
-        public AnalitikPenjualanControl(User currentUser)
+        public AnalitikPenjualanControl(Models.User currentUser)
         {
-            InitializeComponent();
-            _currentUser = currentUser;
-            _laporanController = new LaporanController();
+            this.InitializeComponent();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this._currentUser = currentUser;
+            this._laporanController = new LaporanController();
+
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void AnalitikPenjualanControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            SetupDataGridView();
-            LoadDataAnalitik();
+            this.AdjustLayout();
+            this.SetupDataGridView();
+            this.LoadDataAnalitik();
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            LoadDataAnalitik();
+            this.LoadDataAnalitik();
         }
 
         private void AdjustLayout()
@@ -43,33 +44,38 @@ namespace CollabBuy.CollabBuyApp.View.Report
             int w = this.Width - (margin * 2);
 
             int cardW = (int)(w * 0.36);
-            pnlCuan.Width = cardW;
-            pnlOrder.Left = margin + cardW + 14;
-            pnlOrder.Width = (int)(w * 0.31);
-            btnUnduhPdf.Left = pnlOrder.Left + pnlOrder.Width + 14;
-            btnUnduhPdf.Width = this.Width - btnUnduhPdf.Left - margin;
+            this.pnlCuan.Width = cardW;
 
-            pnlGrid.Width = w;
-            pnlGrid.Height = this.Height - pnlGrid.Top - margin; // ← tambah ini
+            this.pnlOrder.Left = margin + cardW + 14;
+            this.pnlOrder.Width = (int)(w * 0.31);
 
-            int innerW = pnlGrid.Width - 48;
+            this.btnUnduhPdf.Left = this.pnlOrder.Left + this.pnlOrder.Width + 14;
+            this.btnUnduhPdf.Width = this.Width - this.btnUnduhPdf.Left - margin;
+
+            this.pnlGrid.Width = w;
+            this.pnlGrid.Height = this.Height - this.pnlGrid.Top - margin;
+
+            int innerW = this.pnlGrid.Width - 48;
             int gridW = (int)(innerW * 0.47);
-            dgvLaporan.Width = gridW;
-            dgvLaporan.Height = pnlGrid.Height - dgvLaporan.Top - 20; // ← tambah ini
-            chartPenjualan.Left = dgvLaporan.Left + gridW + 16;
-            chartPenjualan.Width = innerW - gridW - 16;
-            chartPenjualan.Height = pnlGrid.Height - chartPenjualan.Top - 20; // ← tambah ini
-            btnRefresh.Left = pnlGrid.Width - btnRefresh.Width - 24;
+
+            this.dgvLaporan.Width = gridW;
+            this.dgvLaporan.Height = this.pnlGrid.Height - this.dgvLaporan.Top - 20;
+
+            this.chartPenjualan.Left = this.dgvLaporan.Left + gridW + 16;
+            this.chartPenjualan.Width = innerW - gridW - 16;
+            this.chartPenjualan.Height = this.pnlGrid.Height - this.chartPenjualan.Top - 20;
+
+            this.btnRefresh.Left = this.pnlGrid.Width - this.btnRefresh.Width - 24;
         }
 
         private void SetupDataGridView()
         {
-            dgvLaporan.AutoGenerateColumns = false;
-            dgvLaporan.Columns.Clear();
+            this.dgvLaporan.AutoGenerateColumns = false;
+            this.dgvLaporan.Columns.Clear();
 
-            dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Selesai", DataPropertyName = "tanggal_format", Width = 130 });
-            dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Cuan (Rp)", DataPropertyName = "total_format", Width = 110 });
+            this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Selesai", DataPropertyName = "tanggal_format", Width = 130 });
+            this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Cuan (Rp)", DataPropertyName = "total_format", Width = 110 });
         }
 
         private void LoadDataAnalitik()
@@ -77,33 +83,66 @@ namespace CollabBuy.CollabBuyApp.View.Report
             try
             {
                 // 1. Load Ringkasan (Cards)
-                var (totalPendapatan, totalPesanan) = _laporanController.GetRingkasanLapak(_currentUser.GetIdUser());
+                var (totalPendapatan, totalPesanan) = this._laporanController.GetRingkasanLapak(this._currentUser.GetIdUser());
 
-                lblTotalCuan.Text = $"Rp {totalPendapatan:N0}";
-                lblTotalOrder.Text = totalPesanan.ToString() + " Pesanan";
+                this.lblTotalCuan.Text = $"Rp {totalPendapatan:N0}";
+                this.lblTotalOrder.Text = totalPesanan.ToString() + " Pesanan";
 
                 // 2. Load Tabel History Cuan
-                _dtRaw = _laporanController.GetDetailRiwayatCuan(_currentUser.GetIdUser());
+                this._dtRaw = this._laporanController.GetDetailRiwayatCuan(this._currentUser.GetIdUser());
 
-                // Format tabel untuk UI
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("nama_pembeli", typeof(string));
                 dtUI.Columns.Add("tanggal_format", typeof(string));
                 dtUI.Columns.Add("total_format", typeof(string));
 
-                foreach (DataRow row in _dtRaw.Rows)
+                if (this._dtRaw != null)
                 {
-                    string tanggal = Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM yyyy");
-                    string total = "Rp " + Convert.ToInt32(row["total_harga"]).ToString("N0");
+                    foreach (DataRow row in this._dtRaw.Rows)
+                    {
+                        string pembeli;
+                        if (row["nama_pembeli"] != DBNull.Value)
+                        {
+                            pembeli = row["nama_pembeli"].ToString();
+                        }
+                        else
+                        {
+                            pembeli = "Anonim";
+                        }
 
-                    dtUI.Rows.Add(row["nama_pembeli"], tanggal, total);
+                        string tanggal;
+                        if (row["tanggal_pesanan"] != DBNull.Value)
+                        {
+                            tanggal = Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM yyyy");
+                        }
+                        else
+                        {
+                            tanggal = "-";
+                        }
+
+                        string total;
+                        if (row["total_harga"] != DBNull.Value)
+                        {
+                            total = "Rp " + Convert.ToInt32(row["total_harga"]).ToString("N0");
+                        }
+                        else
+                        {
+                            total = "Rp 0";
+                        }
+
+                        dtUI.Rows.Add(pembeli, tanggal, total);
+                    }
+                }
+                else
+                {
+                    bool tabelKosong = true;
                 }
 
-                dgvLaporan.DataSource = dtUI;
-                dgvLaporan.ClearSelection();
+                this.dgvLaporan.DataSource = dtUI;
+                this.dgvLaporan.ClearSelection();
 
-                // 3. Load Chart (Kelompokkan berdasarkan Tanggal)
-                LoadChartData();
+                // 3. Load Chart 
+                this.LoadChartData();
             }
             catch (Exception ex)
             {
@@ -113,32 +152,35 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
         private void LoadChartData()
         {
-            chartPenjualan.Series.Clear();
+            this.chartPenjualan.Series.Clear();
             Series series = new Series("Pendapatan Harian");
-            series.ChartType = SeriesChartType.Column; // Bisa ganti ke Line atau Bar
-            series.Color = Color.FromArgb(200, 182, 255); // Ungu pastel
+            series.ChartType = SeriesChartType.Column;
+            series.Color = Color.FromArgb(200, 182, 255);
             series.BorderColor = Color.FromArgb(36, 0, 70);
             series.BorderWidth = 1;
 
-            if (_dtRaw != null && _dtRaw.Rows.Count > 0)
+            if (this._dtRaw != null && this._dtRaw.Rows.Count > 0)
             {
-                // Agregasi LINQ sederhana untuk menjumlahkan total harga per hari
-                var query = _dtRaw.AsEnumerable()
+                var query = this._dtRaw.AsEnumerable()
                     .GroupBy(row => row.Field<DateTime>("tanggal_pesanan").ToString("dd MMM"))
                     .Select(g => new {
                         Tanggal = g.Key,
                         Total = g.Sum(row => row.Field<int>("total_harga"))
-                    }).Reverse(); // Reverse biar yang lama di bawah/kiri
+                    }).Reverse();
 
                 foreach (var item in query)
                 {
                     series.Points.AddXY(item.Tanggal, item.Total);
                 }
             }
+            else
+            {
+                bool chartKosong = true;
+            }
 
-            chartPenjualan.Series.Add(series);
-            chartPenjualan.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-            chartPenjualan.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
+            this.chartPenjualan.Series.Add(series);
+            this.chartPenjualan.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
+            this.chartPenjualan.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
         }
 
         // =======================================================
@@ -149,7 +191,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
             PrintDialog printDialog = new PrintDialog();
             PrintDocument printDocument = new PrintDocument();
 
-            printDocument.PrintPage += new PrintPageEventHandler(DrawPdfContent);
+            printDocument.PrintPage += new PrintPageEventHandler(this.DrawPdfContent);
             printDialog.Document = printDocument;
 
             MessageBox.Show("Tips: Pada jendela print yang muncul, pilih printer 'Microsoft Print to PDF' untuk menyimpannya sebagai file PDF ya bestie!", "Info Cetak LPJ", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -164,6 +206,11 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 {
                     MessageBox.Show("Gagal mencetak: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+            else
+            {
+                // User menekan Cancel pada dialog
+                bool batalCetak = true;
             }
         }
 
@@ -183,7 +230,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
             // 1. Gambar Judul & Header Laporan
             g.DrawString("LAPORAN PERTANGGUNGJAWABAN (LPJ) DANUS", fontJudul, brushHitam, marginKiri, yPos);
             yPos += 40;
-            g.DrawString($"Nama Lapak/Penjual : {_currentUser.GetNama()}", fontSub, brushHitam, marginKiri, yPos);
+            g.DrawString($"Nama Lapak/Penjual : {this._currentUser.GetNama()}", fontSub, brushHitam, marginKiri, yPos);
             yPos += 25;
             g.DrawString($"Waktu Cetak Dokumen: {DateTime.Now.ToString("dd MMMM yyyy, HH:mm")}", fontSub, brushHitam, marginKiri, yPos);
             yPos += 30;
@@ -192,18 +239,19 @@ namespace CollabBuy.CollabBuyApp.View.Report
             yPos += 20;
 
             // 2. Gambar Ringkasan (Cards)
-            g.DrawString($"Total Pesanan Kelar : {lblTotalOrder.Text}", fontTabelHeader, brushHitam, marginKiri, yPos);
+            g.DrawString($"Total Pesanan Kelar : {this.lblTotalOrder.Text}", fontTabelHeader, brushHitam, marginKiri, yPos);
             yPos += 25;
-            g.DrawString($"Total Cuan Bersih   : {lblTotalCuan.Text}", fontTabelHeader, brushHitam, marginKiri, yPos);
+            g.DrawString($"Total Cuan Bersih   : {this.lblTotalCuan.Text}", fontTabelHeader, brushHitam, marginKiri, yPos);
             yPos += 30;
 
             // 3. Render Chart sebagai Gambar ke dalam PDF
             g.DrawString("Grafik Pendapatan Harian:", fontTabelHeader, brushHitam, marginKiri, yPos);
             yPos += 25;
             Rectangle chartRect = new Rectangle(marginKiri, yPos, 650, 250);
-            using (Bitmap chartBmp = new Bitmap(chartPenjualan.Width, chartPenjualan.Height))
+
+            using (Bitmap chartBmp = new Bitmap(this.chartPenjualan.Width, this.chartPenjualan.Height))
             {
-                chartPenjualan.DrawToBitmap(chartBmp, new Rectangle(0, 0, chartPenjualan.Width, chartPenjualan.Height));
+                this.chartPenjualan.DrawToBitmap(chartBmp, new Rectangle(0, 0, this.chartPenjualan.Width, this.chartPenjualan.Height));
                 g.DrawImage(chartBmp, chartRect);
             }
             yPos += 270;
@@ -222,28 +270,87 @@ namespace CollabBuy.CollabBuyApp.View.Report
             yPos += 25;
 
             // Isi Tabel (Looping Data)
-            DataTable dtLpj = _laporanController.GetLpjDanusPerPo(_currentUser.GetIdUser());
+            // PEMANGGILAN AMAN: Mengambil rekapan khusus LPJ
+            DataTable dtLpj = this._laporanController.GetLpjDanusPerPo(this._currentUser.GetIdUser());
 
-            if (dtLpj.Rows.Count > 0)
+            if (dtLpj != null && dtLpj.Rows.Count > 0)
             {
                 foreach (DataRow row in dtLpj.Rows)
                 {
-                    string judulPo = row.IsNull("judul_po") ? "Reguler" : row["judul_po"].ToString();
-                    string namaProduk = row["nama_produk"].ToString();
+                    string judulPo;
+                    if (row.IsNull("judul_po"))
+                    {
+                        judulPo = "Reguler";
+                    }
+                    else
+                    {
+                        judulPo = row["judul_po"].ToString();
+                    }
+
+                    string namaProduk;
+                    if (row["nama_produk"] != DBNull.Value)
+                    {
+                        namaProduk = row["nama_produk"].ToString();
+                    }
+                    else
+                    {
+                        namaProduk = "-";
+                    }
 
                     // Potong teks jika terlalu panjang agar tidak nabrak kolom sebelahnya
-                    if (judulPo.Length > 15) judulPo = judulPo.Substring(0, 15) + "..";
-                    if (namaProduk.Length > 20) namaProduk = namaProduk.Substring(0, 20) + "..";
+                    if (judulPo.Length > 15)
+                    {
+                        judulPo = judulPo.Substring(0, 15) + "..";
+                    }
+                    else
+                    {
+                        bool judulAman = true;
+                    }
 
-                    string terjual = row["total_barang_terjual"].ToString() + " pcs";
-                    string refund = "Rp " + Convert.ToInt64(row["total_refund_dicairkan"]).ToString("N0");
-                    string omzet = "Rp " + Convert.ToInt64(row["omzet_bersih_lpj"]).ToString("N0");
+                    if (namaProduk.Length > 20)
+                    {
+                        namaProduk = namaProduk.Substring(0, 20) + "..";
+                    }
+                    else
+                    {
+                        bool namaAman = true;
+                    }
+
+                    string terjual;
+                    if (row["total_barang_terjual"] != DBNull.Value)
+                    {
+                        terjual = row["total_barang_terjual"].ToString() + " pcs";
+                    }
+                    else
+                    {
+                        terjual = "0 pcs";
+                    }
+
+                    string refund;
+                    if (row["total_refund_dicairkan"] != DBNull.Value)
+                    {
+                        refund = "Rp " + Convert.ToInt64(row["total_refund_dicairkan"]).ToString("N0");
+                    }
+                    else
+                    {
+                        refund = "Rp 0";
+                    }
+
+                    string omzet;
+                    if (row["omzet_bersih_lpj"] != DBNull.Value)
+                    {
+                        omzet = "Rp " + Convert.ToInt64(row["omzet_bersih_lpj"]).ToString("N0");
+                    }
+                    else
+                    {
+                        omzet = "Rp 0";
+                    }
 
                     g.DrawString(judulPo, fontTabelIsi, brushHitam, marginKiri + 5, yPos + 4);
                     g.DrawString(namaProduk, fontTabelIsi, brushHitam, marginKiri + 150, yPos + 4);
                     g.DrawString(terjual, fontTabelIsi, brushHitam, marginKiri + 350, yPos + 4);
-                    g.DrawString(refund, fontTabelIsi, Brushes.Red, marginKiri + 450, yPos + 4); // Refund warna merah
-                    g.DrawString(omzet, fontTabelIsi, Brushes.Green, marginKiri + 580, yPos + 4); // Omzet warna hijau
+                    g.DrawString(refund, fontTabelIsi, Brushes.Red, marginKiri + 450, yPos + 4);
+                    g.DrawString(omzet, fontTabelIsi, Brushes.Green, marginKiri + 580, yPos + 4);
 
                     g.DrawLine(penGaris, marginKiri, yPos + 25, marginKiri + 700, yPos + 25);
                     yPos += 25;

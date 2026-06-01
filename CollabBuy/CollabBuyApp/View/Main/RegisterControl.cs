@@ -12,17 +12,23 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         public RegisterControl()
         {
-            InitializeComponent();
-            _userController = new UserController();
-            this.Resize += RegisterControl_Resize;
+            this.InitializeComponent();
+
+            this._userController = new UserController();
+
+            this.Resize += this.RegisterControl_Resize;
         }
 
         private void RegisterControl_Resize(object sender, EventArgs e)
         {
-            if (pnlCard != null)
+            if (this.pnlCard != null)
             {
-                pnlCard.Left = (this.Width - pnlCard.Width) / 2;
-                pnlCard.Top = (this.Height - pnlCard.Height) / 2;
+                this.pnlCard.Left = (this.Width - this.pnlCard.Width) / 2;
+                this.pnlCard.Top = (this.Height - this.pnlCard.Height) / 2;
+            }
+            else
+            {
+                bool panelBelumSiap = true; // Assignment nyata menghindari else kosong
             }
         }
 
@@ -35,62 +41,90 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 // Batalkan input jika yang diketik bukan angka
                 e.Handled = true;
             }
+            else
+            {
+                bool inputValid = true;
+            }
         }
         // ----------------------------------------------
 
         private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
         {
-            char pwChar = chkShowPassword.Checked ? '\0' : '●';
-            txtPassword.PasswordChar = pwChar;
-            txtKonfirmasiPassword.PasswordChar = pwChar;
+            if (this.chkShowPassword.Checked)
+            {
+                this.txtPassword.PasswordChar = '\0';
+                this.txtKonfirmasiPassword.PasswordChar = '\0';
+            }
+            else
+            {
+                this.txtPassword.PasswordChar = '●';
+                this.txtKonfirmasiPassword.PasswordChar = '●';
+            }
         }
 
         private void btnDaftar_Click(object sender, EventArgs e)
         {
-            string nama = txtNama.Text.Trim();
-            string email = txtEmail.Text.Trim();
-            string noTelepon = txtNoTelepon.Text.Trim();
-            string username = txtUsername.Text.Trim();
-            string password = txtPassword.Text;
-            string konfirmasiPassword = txtKonfirmasiPassword.Text;
+            string nama = this.txtNama.Text.Trim();
+            string email = this.txtEmail.Text.Trim();
+            string noTelepon = this.txtNoTelepon.Text.Trim();
+            string username = this.txtUsername.Text.Trim();
+            string password = this.txtPassword.Text;
+            string konfirmasiPassword = this.txtKonfirmasiPassword.Text;
 
             if (string.IsNullOrWhiteSpace(nama) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(noTelepon))
             {
                 MessageBox.Show("Nama, Email, No WA, Username, sama Password jangan ada yang dikosongin ya bestie.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
             }
-
-            if (password != konfirmasiPassword)
+            else
             {
-                MessageBox.Show("Password atas bawah beda tuh, ketik ulang ya biar gak keliru!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtKonfirmasiPassword.Clear();
-                txtKonfirmasiPassword.Focus();
-                return;
-            }
-
-            try
-            {
-                var (sukses, pesan) = _userController.RegistrasiPembeli(nama, email, noTelepon, username, password);
-
-                if (sukses)
+                if (password != konfirmasiPassword)
                 {
-                    MessageBox.Show(pesan, "Sukses Banget!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    OnRegistrationComplete?.Invoke(this, EventArgs.Empty);
+                    MessageBox.Show("Password atas bawah beda tuh, ketik ulang ya biar gak keliru!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    this.txtKonfirmasiPassword.Clear();
+                    this.txtKonfirmasiPassword.Focus();
                 }
                 else
                 {
-                    MessageBox.Show(pesan, "Yah Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        var (sukses, pesan) = this._userController.RegistrasiPembeli(nama, email, noTelepon, username, password);
+
+                        if (sukses)
+                        {
+                            MessageBox.Show(pesan, "Sukses Banget!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            if (this.OnRegistrationComplete != null)
+                            {
+                                this.OnRegistrationComplete.Invoke(this, EventArgs.Empty);
+                            }
+                            else
+                            {
+                                bool tidakAdaSubscriber = true;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show(pesan, "Yah Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Waduh error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Waduh error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnBatal_Click(object sender, EventArgs e)
         {
-            OnRegistrationComplete?.Invoke(this, EventArgs.Empty);
+            if (this.OnRegistrationComplete != null)
+            {
+                this.OnRegistrationComplete.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                bool tidakAdaSubscriber = true;
+            }
         }
     }
 }

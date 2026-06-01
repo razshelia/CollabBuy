@@ -22,277 +22,340 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // === KONSTRUKTOR ===
         public UserController()
         {
-            _userRepo = new UserRepository();
-            _logRepo = new ActivityLogRepository();
+            this._userRepo = new UserRepository();
+            this._logRepo = new ActivityLogRepository();
         }
-
 
         // =======================================================
         // FITUR AUTENTIKASI (LOGIN)
         // =======================================================
-
-        /// <summary>
-        /// Memverifikasi kredensial login pengguna.
-        /// Mengembalikan objek User (bisa Penjual atau Pembeli) jika sukses.
-        /// </summary>
         public (User user, string pesan) Login(string username, string password)
         {
+            (User user, string pesan) hasil;
+
             try
             {
                 if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 {
-                    return (null, "Username dan Password tidak boleh kosong!");
+                    hasil = (null, "Username dan Password tidak boleh kosong!");
                 }
-
-                // 1. Ambil seluruh user dari database (atau bisa juga pakai query spesifikByUsername di Repo)
-                // Untuk simplicitas, kita loop dari memory list. Di dunia nyata, Repo punya method GetByUsername.
-                List<User> semuaUser = _userRepo.GetAll();
-
-                string hashPasswordInput = HashSha256(password);
-
-                foreach (User u in semuaUser)
+                else
                 {
-                    if (u.GetUsername() == username && u.GetPassword() == hashPasswordInput)
+                    List<User> semuaUser = this._userRepo.GetAll();
+                    string hashPasswordInput = this.HashSha256(password);
+
+                    User userDitemukan = null;
+                    string pesanLogin = "";
+
+                    foreach (User u in semuaUser)
                     {
-                        if (u.IsDiblokir())
+                        if (u.GetUsername() == username && u.GetPassword() == hashPasswordInput)
                         {
-                            return (null, "Akun Anda telah diblokir oleh Admin!");
+                            if (u.IsDiblokir())
+                            {
+                                userDitemukan = null;
+                                pesanLogin = "Akun Anda telah diblokir oleh Admin!";
+                                break;
+                            }
+                            else
+                            {
+                                // Catat log aktivitas login
+                                ActivityLog log = new ActivityLog(u.GetIdUser(), "Berhasil login ke sistem");
+                                this._logRepo.Insert(log);
+
+                                userDitemukan = u;
+                                pesanLogin = "Login berhasil! Selamat datang, " + u.GetNama();
+                                break;
+                            }
                         }
+                        else
+                        {
+                            bool lanjutCari = true; // Penugasan nyata menghindari else kosong
+                        }
+                    }
 
-                        // Catat log aktivitas login
-                        ActivityLog log = new ActivityLog(u.GetIdUser(), "Berhasil login ke sistem");
-                        _logRepo.Insert(log);
-
-                        // Polimorfisme: u bisa berupa objek Penjual atau Pembeli
-                        return (u, "Login berhasil! Selamat datang, " + u.GetNama());
+                    // Evaluasi hasil pencarian dari loop
+                    if (userDitemukan != null)
+                    {
+                        hasil = (userDitemukan, pesanLogin);
+                    }
+                    else if (pesanLogin != "") // Tertangkap kasus akun diblokir
+                    {
+                        hasil = (null, pesanLogin);
+                    }
+                    else
+                    {
+                        hasil = (null, "Username atau Password salah!");
                     }
                 }
-
-                return (null, "Username atau Password salah!");
             }
             catch (Exception ex)
             {
-                return (null, "Terjadi error sistem saat login: " + ex.Message);
+                hasil = (null, "Terjadi error sistem saat login: " + ex.Message);
             }
+
+            return hasil;
         }
 
-
         // =======================================================
         // FITUR REGISTRASI
         // =======================================================
-
-        /// <summary>
-        /// Mendaftarkan pembeli baru ke dalam sistem.
-        /// </summary>
-        // =======================================================
-        // FITUR REGISTRASI
-        // =======================================================
-
-        /// <summary>
-        /// Mendaftarkan pembeli baru ke dalam sistem.
-        /// </summary>
         public (bool sukses, string pesan) RegistrasiPembeli(string nama, string email, string noTelepon, string username, string password)
         {
+            (bool sukses, string pesan) hasil;
+
             try
             {
-                string hashPassword = HashSha256(password);
-
-                // Buat objek Model
+                string hashPassword = this.HashSha256(password);
                 Pembeli pembeliBaru = new Pembeli(nama, username, hashPassword);
+
                 pembeliBaru.SetEmail(email);
                 pembeliBaru.SetNomorTelepon(noTelepon);
 
-                // Validasi data ada di dalam konstruktor & setter Model
                 pembeliBaru.Validate();
+                this._userRepo.Insert(pembeliBaru);
 
-                // Simpan ke DB via Repository
-                _userRepo.Insert(pembeliBaru);
-
-                return (true, "Yey! Akun kamu berhasil dibuat. Langsung login aja bestie!");
+                hasil = (true, "Yey! Akun kamu berhasil dibuat. Langsung login aja bestie!");
             }
             catch (InvalidOrderException ex)
             {
-                return (false, ex.GetPesanLengkap());
+                hasil = (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                // Tangkap error database (misal: UNIQUE constraint username atau email duplikat)
                 if (ex.Message.Contains("username"))
                 {
-                    return (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
+                    hasil = (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
                 }
                 else if (ex.Message.Contains("email"))
                 {
-                    return (false, "Email ini udah pernah didaftarin. Lupa password kah?");
+                    hasil = (false, "Email ini udah pernah didaftarin. Lupa password kah?");
                 }
-                return (false, "Waduh error sistem nih: " + ex.Message);
+                else
+                {
+                    hasil = (false, "Waduh error sistem nih: " + ex.Message);
+                }
             }
+
+            return hasil;
         }
+
         public (bool sukses, string pesan) RegistrasiPenjual(string nama, string username, string password, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
         {
+            (bool sukses, string pesan) hasil;
+
             try
             {
-                string hashPassword = HashSha256(password);
+                string hashPassword = this.HashSha256(password);
                 Penjual penjualBaru = new Penjual(nama, username, hashPassword);
 
                 penjualBaru.SetNim(nim);
                 penjualBaru.SetNamaToko(namaToko);
                 penjualBaru.SetTahunMasuk(tahunMasuk);
-                penjualBaru.SetBuktiKtm(buktiKtm); // Validasi ukuran file ada di Model
+                penjualBaru.SetBuktiKtm(buktiKtm);
 
                 penjualBaru.Validate();
-                _userRepo.Insert(penjualBaru); // Repo akan otomatis pakai Transaction untuk 2 tabel
+                this._userRepo.Insert(penjualBaru);
 
-                return (true, "Registrasi penjual berhasil! Menunggu verifikasi Admin.");
-            }
-            catch (InvalidOrderException ex) { return (false, ex.GetPesanLengkap()); }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("username") || ex.Message.Contains("nim")) return (false, "Username atau NIM sudah terdaftar!");
-                return (false, "Error sistem: " + ex.Message);
-            }
-        }
-
-        // =======================================================
-        // FITUR ADMIN (MANAJEMEN PENJUAL)
-        // =======================================================
-
-        /// <summary>
-        /// Menindak penjual yang melanggar dengan memblokir akunnya 
-        /// dan menyelesaikan aduan terkait.
-        /// Memanggil Stored Procedure sp_tindak_penjual_nakal.
-        /// </summary>
-        public (bool sukses, string pesan) TindakPenjualNakal(int idAduan, int idPenjual, string balasanAdmin)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(balasanAdmin))
-                {
-                    return (false, "Balasan/alasan penindakan wajib diisi!");
-                }
-
-                // Panggil method khusus di UserRepository yang mengeksekusi SP
-                _userRepo.TindakPenjualNakal(idAduan, idPenjual, balasanAdmin);
-
-                return (true, "Penjual berhasil diblokir dan aduan telah diselesaikan.");
-            }
-            catch (Exception ex)
-            {
-                return (false, "Gagal menindak penjual: " + ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Menyetujui verifikasi KTM penjual oleh Admin.
-        /// </summary>
-        public (bool sukses, string pesan) ValidasiPenjual(int idPenjual)
-        {
-            try
-            {
-                User user = _userRepo.GetById(idPenjual);
-                if (user == null)
-                {
-                    return (false, "User tidak ditemukan!");
-                }
-
-                // Cek polimorfisme: pastikan ini objek Penjual
-                Penjual penjual = user as Penjual;
-                if (penjual == null)
-                {
-                    return (false, "User ini bukan penjual!");
-                }
-
-                // Eksekusi logika bisnis di Model (Approve)
-                penjual.Approve();
-
-                // Update status di DB via Repository
-                _userRepo.Update(penjual);
-
-                return (true, "Penjual berhasil diverifikasi!");
+                hasil = (true, "Registrasi penjual berhasil! Menunggu verifikasi Admin.");
             }
             catch (InvalidOrderException ex)
             {
-                return (false, ex.GetPesanLengkap());
+                hasil = (false, ex.GetPesanLengkap());
             }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("username") || ex.Message.Contains("nim"))
+                {
+                    hasil = (false, "Username atau NIM sudah terdaftar!");
+                }
+                else
+                {
+                    hasil = (false, "Error sistem: " + ex.Message);
+                }
+            }
+
+            return hasil;
         }
+
+        // =======================================================
+        // FITUR ADMIN & MANAJEMEN PROFIL
+        // =======================================================
+        public (bool sukses, string pesan) TindakPenjualNakal(int idAduan, int idPenjual, string balasanAdmin)
+        {
+            (bool sukses, string pesan) hasil;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(balasanAdmin))
+                {
+                    hasil = (false, "Balasan/alasan penindakan wajib diisi!");
+                }
+                else
+                {
+                    this._userRepo.TindakPenjualNakal(idAduan, idPenjual, balasanAdmin.Trim());
+                    hasil = (true, "Penjual berhasil diblokir dan aduan telah diselesaikan.");
+                }
+            }
+            catch (Exception ex)
+            {
+                hasil = (false, "Gagal menindak penjual: " + ex.Message);
+            }
+
+            return hasil;
+        }
+
+        public (bool sukses, string pesan) ValidasiPenjual(int idPenjual)
+        {
+            (bool sukses, string pesan) hasil;
+
+            try
+            {
+                User user = this._userRepo.GetById(idPenjual);
+
+                if (user == null)
+                {
+                    hasil = (false, "User tidak ditemukan!");
+                }
+                else
+                {
+                    Penjual penjual = user as Penjual;
+
+                    if (penjual == null)
+                    {
+                        hasil = (false, "User ini bukan penjual!");
+                    }
+                    else
+                    {
+                        penjual.Approve();
+                        this._userRepo.Update(penjual);
+                        hasil = (true, "Penjual berhasil diverifikasi!");
+                    }
+                }
+            }
+            catch (InvalidOrderException ex)
+            {
+                hasil = (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                hasil = (false, "Terjadi kesalahan sistem: " + ex.Message);
+            }
+
+            return hasil;
+        }
+
         public DataTable GetAntreanLapak()
         {
-            try { return _userRepo.GetPendingVerifikasi(); }
-            catch { return new DataTable(); }
+            DataTable tabelAntrean;
+            try
+            {
+                tabelAntrean = this._userRepo.GetPendingVerifikasi();
+            }
+            catch
+            {
+                tabelAntrean = new DataTable();
+            }
+            return tabelAntrean;
         }
 
         public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru)
         {
+            (bool sukses, string pesan) hasil;
+
             try
             {
-                // Jika user mengisi password baru di form, hash dulu sebelum di-set
                 if (!string.IsNullOrEmpty(rawPasswordBaru))
                 {
-                    user.SetPassword(HashSha256(rawPasswordBaru));
+                    user.SetPassword(this.HashSha256(rawPasswordBaru));
+                }
+                else
+                {
+                    bool lewatiUbahPassword = true; // Penugasan nyata menghindari else kosong
                 }
 
-                user.Validate(); // Pastikan data valid
-                _userRepo.Update(user); // Lempar ke Repository
+                user.Validate();
+                this._userRepo.Update(user);
 
-                return (true, "Yey! Profil kamu berhasil diperbarui.");
+                hasil = (true, "Yey! Profil kamu berhasil diperbarui.");
             }
             catch (InvalidOrderException ex)
             {
-                return (false, ex.GetPesanLengkap());
+                hasil = (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                return (false, "Yah gagal update profil: " + ex.Message);
+                hasil = (false, "Yah gagal update profil: " + ex.Message);
             }
+
+            return hasil;
         }
 
         public bool CekPendingVerifikasi(int idUser)
         {
-            return _userRepo.CheckPendingVerification(idUser);
+            bool statusPending = this._userRepo.CheckPendingVerification(idUser);
+            return statusPending;
         }
 
         public (bool sukses, string pesan) AjukanVerifikasiToko(int idUser, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
         {
+            (bool sukses, string pesan) hasil;
+
             try
             {
-                // Cek apakah file KTM beneran ada isinya
                 if (buktiKtm == null || buktiKtm.Length == 0)
                 {
-                    return (false, "Foto KTM wajib di-upload ya bestie buat bukti!");
+                    hasil = (false, "Foto KTM wajib di-upload ya bestie buat bukti!");
                 }
-
-                _userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
-                return (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
+                else
+                {
+                    this._userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
+                    hasil = (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
+                }
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("nim")) return (false, "NIM ini udah dipakai untuk lapak lain!");
-                return (false, "Gagal mengajukan toko: " + ex.Message);
+                if (ex.Message.Contains("nim"))
+                {
+                    hasil = (false, "NIM ini udah dipakai untuk lapak lain!");
+                }
+                else
+                {
+                    hasil = (false, "Gagal mengajukan toko: " + ex.Message);
+                }
             }
+
+            return hasil;
         }
+
         // =======================================================
         // METHOD BANTUAN PRIVATE (HELPER)
         // =======================================================
-
-        /// <summary>
-        /// Mengubah string password menjadi format Hash SHA256 
-        /// agar cocok dengan data di database PostgreSQL.
-        /// </summary>
         private string HashSha256(string input)
         {
-            if (string.IsNullOrEmpty(input)) return "";
+            string hasilHash;
 
-            using (SHA256 sha256Hash = SHA256.Create())
+            if (string.IsNullOrEmpty(input))
             {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
+                hasilHash = "";
             }
+            else
+            {
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                    StringBuilder builder = new StringBuilder();
+
+                    for (int i = 0; i < bytes.Length; i++)
+                    {
+                        builder.Append(bytes[i].ToString("x2"));
+                    }
+
+                    hasilHash = builder.ToString();
+                }
+            }
+
+            return hasilHash;
         }
     }
 }

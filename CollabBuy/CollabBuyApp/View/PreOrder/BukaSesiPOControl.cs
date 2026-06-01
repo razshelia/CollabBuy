@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -8,64 +9,71 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 {
     public partial class BukaSesiPOControl : UserControl
     {
-        private readonly User _currentSeller;
+        private readonly Models.User _currentSeller;
         private readonly PreOrderController _poController;
 
-        public BukaSesiPOControl(User seller)
+        public BukaSesiPOControl(Models.User seller)
         {
-            InitializeComponent();
-            _currentSeller = seller;
-            _poController = new PreOrderController();
+            this.InitializeComponent();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this._currentSeller = seller;
+            this._poController = new PreOrderController();
+
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void BukaSesiPOControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            dtpBatasWaktu.MinDate = DateTime.Now;
-            cbJenisPO.SelectedIndex = 0; // Default Biasa
-            LoadMasterProduk();
+            this.AdjustLayout();
+            this.dtpBatasWaktu.MinDate = DateTime.Now;
+            this.cbJenisPO.SelectedIndex = 0; // Default Biasa
+            this.LoadMasterProduk();
         }
 
         private void btnSimpanSesi_Click(object sender, EventArgs e)
         {
-            if (cbProduk.SelectedValue == null)
+            if (this.cbProduk.SelectedValue == null)
             {
                 MessageBox.Show("Pilih dulu barang yang mau dijual ngab!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
             }
-
-            DialogResult confirm = MessageBox.Show(
-                $"Udah yakin mau launching sesi '{txtNamaSesi.Text}'? Gaskeun?",
-                "CollabBuy - Konfirmasi",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (confirm == DialogResult.Yes)
+            else
             {
-                int idProduk = Convert.ToInt32(cbProduk.SelectedValue);
-                int targetKuota = Convert.ToInt32(numQuota.Value);
+                DialogResult confirm = MessageBox.Show(
+                    $"Udah yakin mau launching sesi '{this.txtNamaSesi.Text}'? Gaskeun?",
+                    "CollabBuy - Konfirmasi",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
-                var result = _poController.GasLuncurkanPO(
-                    _currentSeller.GetIdUser(),
-                    txtNamaSesi.Text,
-                    cbJenisPO.Text,
-                    txtRekening.Text,
-                    dtpBatasWaktu.Value,
-                    idProduk,
-                    targetKuota
-                );
-
-                if (result.sukses)
+                if (confirm == DialogResult.Yes)
                 {
-                    MessageBox.Show(result.pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    ResetForm();
-                    LoadMasterProduk(); // Refresh produk yg belum ada PO
+                    int idProduk = Convert.ToInt32(this.cbProduk.SelectedValue);
+                    int targetKuota = Convert.ToInt32(this.numQuota.Value);
+
+                    var (sukses, pesan) = this._poController.GasLuncurkanPO(
+                        this._currentSeller.GetIdUser(),
+                        this.txtNamaSesi.Text,
+                        this.cbJenisPO.Text,
+                        this.txtRekening.Text,
+                        this.dtpBatasWaktu.Value,
+                        idProduk,
+                        targetKuota
+                    );
+
+                    if (sukses)
+                    {
+                        MessageBox.Show(pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        this.ResetForm();
+                        this.LoadMasterProduk(); // Refresh produk yg belum ada PO
+                    }
+                    else
+                    {
+                        MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 else
                 {
-                    MessageBox.Show(result.pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Penjual batal launching PO
+                    bool batalLaunch = true;
                 }
             }
         }
@@ -74,20 +82,21 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             try
             {
-                DataTable dtProduk = _poController.GetProdukTersedia(_currentSeller.GetIdUser());
-                cbProduk.DataSource = dtProduk;
-                cbProduk.DisplayMember = "nama_produk";
-                cbProduk.ValueMember = "id_produk";
+                DataTable dtProduk = this._poController.GetProdukTersedia(this._currentSeller.GetIdUser());
 
-                if (dtProduk.Rows.Count == 0)
+                this.cbProduk.DataSource = dtProduk;
+                this.cbProduk.DisplayMember = "nama_produk";
+                this.cbProduk.ValueMember = "id_produk";
+
+                if (dtProduk != null && dtProduk.Rows.Count == 0)
                 {
                     MessageBox.Show("Barang jualan lo udah masuk PO semua atau belum didaftarin nih. Input produk baru dulu gih di menu Manajemen Produk!",
                         "Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    btnSimpanSesi.Enabled = false;
+                    this.btnSimpanSesi.Enabled = false;
                 }
                 else
                 {
-                    btnSimpanSesi.Enabled = true;
+                    this.btnSimpanSesi.Enabled = true;
                 }
             }
             catch (Exception ex)
@@ -98,32 +107,44 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
         private void ResetForm()
         {
-            txtNamaSesi.Clear();
-            txtRekening.Clear();
-            cbJenisPO.SelectedIndex = 0;
-            numQuota.Value = 10;
-            dtpBatasWaktu.Value = DateTime.Now.AddDays(1);
+            this.txtNamaSesi.Clear();
+            this.txtRekening.Clear();
+            this.cbJenisPO.SelectedIndex = 0;
+            this.numQuota.Value = 10;
+            this.dtpBatasWaktu.Value = DateTime.Now.AddDays(1);
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            if (w < 400) w = 400;
-            pnlForm.Width = w;
 
-            int innerW = pnlForm.Width - 68;
-            txtNamaSesi.Width = (int)(innerW * 0.58);
-            cbJenisPO.Left = txtNamaSesi.Left + txtNamaSesi.Width + 20;
-            cbJenisPO.Width = innerW - txtNamaSesi.Width - 20;
-            lblJenis.Left = cbJenisPO.Left;
-            cbProduk.Width = innerW;
-            txtRekening.Width = innerW;
-            btnSimpanSesi.Width = innerW;
-            numQuota.Width = (int)(innerW * 0.45);
-            dtpBatasWaktu.Left = numQuota.Left + numQuota.Width + 20;
-            dtpBatasWaktu.Width = innerW - numQuota.Width - 20;
-            lblBatasWaktu.Left = dtpBatasWaktu.Left;
+            if (w < 400)
+            {
+                w = 400;
+            }
+            else
+            {
+                bool lebarAman = true; // Assignment nyata menghindari else kosong
+            }
+
+            this.pnlForm.Width = w;
+
+            int innerW = this.pnlForm.Width - 68;
+            this.txtNamaSesi.Width = (int)(innerW * 0.58);
+
+            this.cbJenisPO.Left = this.txtNamaSesi.Left + this.txtNamaSesi.Width + 20;
+            this.cbJenisPO.Width = innerW - this.txtNamaSesi.Width - 20;
+            this.lblJenis.Left = this.cbJenisPO.Left;
+
+            this.cbProduk.Width = innerW;
+            this.txtRekening.Width = innerW;
+            this.btnSimpanSesi.Width = innerW;
+
+            this.numQuota.Width = (int)(innerW * 0.45);
+            this.dtpBatasWaktu.Left = this.numQuota.Left + this.numQuota.Width + 20;
+            this.dtpBatasWaktu.Width = innerW - this.numQuota.Width - 20;
+            this.lblBatasWaktu.Left = this.dtpBatasWaktu.Left;
         }
     }
 }

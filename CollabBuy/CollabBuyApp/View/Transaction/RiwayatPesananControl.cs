@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
@@ -15,91 +16,95 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         public RiwayatPesananControl(User currentUser)
         {
             InitializeComponent();
-            _currentUser = currentUser;
+            this._currentUser = currentUser;
 
-            // Inisialisasi controller
-            _transactionController = new TransactionController(_currentUser.GetIdUser());
+            // Inisialisasi controller khusus sesi pembeli yang sedang login
+            this._transactionController = new TransactionController(this._currentUser.GetIdUser());
 
-            this.Resize += (s, e) => AdjustLayout();
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void RiwayatPesananControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            SetupDataGridView();
-            LoadDataRiwayat();
+            this.AdjustLayout();
+            this.SetupDataGridView();
+            this.LoadDataRiwayat();
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            LoadDataRiwayat();
+            this.LoadDataRiwayat();
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            pnlCard.Width = w;
-            pnlCard.Height = this.Height - pnlCard.Top - margin; // ← TAMBAH INI
-            dgvRiwayat.Width = pnlCard.Width - 68;
-            dgvRiwayat.Height = pnlCard.Height - btnRefresh.Height - 70; // ← TAMBAH INI
-            btnRefresh.Left = pnlCard.Width - btnRefresh.Width - 34;
-            btnRefresh.Top = pnlCard.Height - btnRefresh.Height - 20; // ← TAMBAH INI
+
+            this.pnlCard.Width = w;
+            this.pnlCard.Height = this.Height - this.pnlCard.Top - margin;
+
+            this.dgvRiwayat.Width = this.pnlCard.Width - 68;
+            this.dgvRiwayat.Height = this.pnlCard.Height - this.btnRefresh.Height - 70;
+
+            this.btnRefresh.Left = this.pnlCard.Width - this.btnRefresh.Width - 34;
+            this.btnRefresh.Top = this.pnlCard.Height - this.btnRefresh.Height - 20;
         }
 
         private void SetupDataGridView()
         {
-            dgvRiwayat.AutoGenerateColumns = false;
-            dgvRiwayat.Columns.Clear();
+            this.dgvRiwayat.AutoGenerateColumns = false;
+            this.dgvRiwayat.Columns.Clear();
 
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Penjual", HeaderText = "Status Pembayaran", DataPropertyName = "nama_penjual", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan_format", Width = 180 });
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga", DataPropertyName = "total_harga_format", Width = 150 });
-            dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Pesanan", DataPropertyName = "status_pesanan", Width = 150 });
+            // Memperbaiki penamaan dan binding kolom agar lebih masuk akal
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "StatusBayar", HeaderText = "Status Pembayaran", DataPropertyName = "status_bayar", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan", Width = 180 });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga", DataPropertyName = "total_harga", Width = 180 });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Pesanan", DataPropertyName = "status_pesanan", Width = 150 });
         }
 
         private void LoadDataRiwayat()
         {
             try
             {
-                // Tarik data mentah dari database via Controller
-                // GetRiwayatPesanan mengembalikan kolom: id_transaksi, waktu_pesan, total_tagihan, status_pesanan, status_bayar
-                DataTable dtRaw = _transactionController.GetRiwayatPesanan(_currentUser.GetIdUser());
+                // OOP BEST PRACTICE: Ambil List Objek, BUKAN DataTable mentah!
+                List<Models.Transaction> listTrx = this._transactionController.GetTransaksiByPembeli(this._currentUser.GetIdUser());
 
-                // Bikin tabel baru khusus buat nampilin format yang cantik di UI
+                // Bikin tabel baru khusus buat binding ke UI
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_transaksi", typeof(int));
-                dtUI.Columns.Add("nama_penjual", typeof(string));
-                dtUI.Columns.Add("tanggal_pesanan_format", typeof(string));
-                dtUI.Columns.Add("total_harga_format", typeof(string));
+                dtUI.Columns.Add("status_bayar", typeof(string));
+                dtUI.Columns.Add("tanggal_pesanan", typeof(string));
+                dtUI.Columns.Add("total_harga", typeof(string));
                 dtUI.Columns.Add("status_pesanan", typeof(string));
 
-                foreach (DataRow row in dtRaw.Rows)
+                if (listTrx != null)
                 {
-                    // Gunakan nama kolom sesuai yang dikembalikan controller: waktu_pesan & total_tagihan
-                    string tanggal = "-";
-                    if (row["waktu_pesan"] != DBNull.Value)
-                        tanggal = Convert.ToDateTime(row["waktu_pesan"]).ToString("dd MMM yyyy, HH:mm");
+                    foreach (Models.Transaction trx in listTrx)
+                    {
+                        // Memanfaatkan Behavior / Method UI dari kelas Transaction
+                        string waktuFormat = trx.GetTanggalTransaksi().ToString("dd MMM yyyy, HH:mm");
+                        string hargaFormat = trx.DapatkanFormatTagihanUI();
+                        string statusBayar = trx.DapatkanStatusPembayaranUI();
+                        string statusTrx = trx.GetStatus();
 
-                    string harga = "Rp 0";
-                    if (row["total_tagihan"] != DBNull.Value)
-                        harga = "Rp " + Convert.ToInt64(row["total_tagihan"]).ToString("N0");
-
-                    // nama_penjual tidak ada di query dasar, tampilkan status bayar sebagai gantinya
-                    string statusBayar = row["status_bayar"]?.ToString() ?? "-";
-
-                    dtUI.Rows.Add(
-                        row["id_transaksi"],
-                        statusBayar,           // kolom "Nama Lapak/Penjual" diisi status bayar
-                        tanggal,
-                        harga,
-                        row["status_pesanan"]
-                    );
+                        dtUI.Rows.Add(
+                            trx.GetIdTransaksi(),
+                            statusBayar,
+                            waktuFormat,
+                            hargaFormat,
+                            statusTrx
+                        );
+                    }
+                }
+                else
+                {
+                    bool listKosong = true; // Assignment nyata menghindari else kosong
                 }
 
-                dgvRiwayat.DataSource = dtUI;
-                dgvRiwayat.ClearSelection();
+                this.dgvRiwayat.DataSource = dtUI;
+                this.dgvRiwayat.ClearSelection();
             }
             catch (Exception ex)
             {

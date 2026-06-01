@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -8,54 +9,63 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 {
     public partial class BeriUlasanControl : UserControl
     {
-        private readonly User _currentUser;
+        private readonly Models.User _currentUser;
         private readonly ReviewController _controller;
 
-        public BeriUlasanControl(User user)
+        public BeriUlasanControl(Models.User user)
         {
-            InitializeComponent();
-            _currentUser = user;
-            _controller = new ReviewController();
+            this.InitializeComponent();
+            this._currentUser = user;
+            this._controller = new ReviewController();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void BeriUlasanControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            LoadProduk();
+            this.AdjustLayout();
+            this.LoadProduk();
         }
 
         private void LoadProduk()
         {
-            DataTable dt = _controller.GetListProdukBuatDiulas(_currentUser.GetIdUser());
-            cbProduk.DataSource = dt;
-            cbProduk.DisplayMember = "nama_produk";
-            cbProduk.ValueMember = "id_produk";
+            DataTable dt = this._controller.GetListProdukBuatDiulas(this._currentUser.GetIdUser());
+            this.cbProduk.DataSource = dt;
+            this.cbProduk.DisplayMember = "nama_produk";
+            this.cbProduk.ValueMember = "id_produk";
 
             if (dt.Rows.Count == 0)
             {
-                btnKirim.Enabled = false;
+                this.btnKirim.Enabled = false;
                 MessageBox.Show("Belum ada barang beres yang bisa di-review nih. Jajan dulu gih!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                this.btnKirim.Enabled = true;
             }
         }
 
         private void btnKirim_Click(object sender, EventArgs e)
         {
-            if (cbProduk.SelectedValue == null) return;
-
-            int idProduk = Convert.ToInt32(cbProduk.SelectedValue);
-            var res = _controller.GasNgasihRating(idProduk, _currentUser.GetIdUser(), (int)numRating.Value, txtKomentar.Text);
-
-            if (res.sukses)
+            if (this.cbProduk.SelectedValue == null)
             {
-                MessageBox.Show(res.pesan, "Suksessss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                txtKomentar.Clear();
-                numRating.Value = 5;
+                MessageBox.Show("Pilih dulu produk yang mau diulas ya!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
             {
-                MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                int idProduk = Convert.ToInt32(this.cbProduk.SelectedValue);
+                var (sukses, pesan) = this._controller.GasNgasihRating(idProduk, this._currentUser.GetIdUser(), (int)this.numRating.Value, this.txtKomentar.Text);
+
+                if (sukses)
+                {
+                    MessageBox.Show(pesan, "Suksessss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.txtKomentar.Clear();
+                    this.numRating.Value = 5;
+                }
+                else
+                {
+                    MessageBox.Show(pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 
@@ -63,14 +73,24 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
         {
             int margin = 38;
             int w = this.Width - (margin * 2);
-            if (w > 600) w = 600;
-            pnlForm.Width = w;
-            pnlForm.Left = (this.Width - w) / 2;
+
+            if (w > 600)
+            {
+                w = 600;
+            }
+            else
+            {
+                // Tetap gunakan lebar yang sudah dihitung
+                bool tidakPerluDibatasi = true;
+            }
+
+            this.pnlForm.Width = w;
+            this.pnlForm.Left = (this.Width - w) / 2;
 
             int innerW = w - 48;
-            cbProduk.Width = innerW;
-            txtKomentar.Width = innerW;
-            btnKirim.Width = innerW;
+            this.cbProduk.Width = innerW;
+            this.txtKomentar.Width = innerW;
+            this.btnKirim.Width = innerW;
         }
     }
 }

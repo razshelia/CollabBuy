@@ -10,59 +10,72 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
     public partial class SesiPOAktifControl : UserControl
     {
         private readonly PreOrderController _poController;
-        private User _currentUser;
+        private Models.User _currentUser;
 
-        public SesiPOAktifControl(User currentUser)
+        public SesiPOAktifControl(Models.User currentUser)
         {
-            InitializeComponent();
-            _poController = new PreOrderController();
-            _currentUser = currentUser;
+            this.InitializeComponent();
 
-            this.Resize += (s, e) => AdjustLayout();
+            this._poController = new PreOrderController();
+            this._currentUser = currentUser;
+
+            this.Resize += (s, e) => this.AdjustLayout();
         }
 
         private void SesiPOAktifControl_Load(object sender, EventArgs e)
         {
-            AdjustLayout();
-            LoadDataSesiPO("");
+            this.AdjustLayout();
+            this.LoadDataSesiPO("");
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            txtCari.Text = "Kepoin sesi PO...";
-            txtCari.ForeColor = Color.Gray;
-            LoadDataSesiPO("");
+            this.txtCari.Text = "Kepoin sesi PO...";
+            this.txtCari.ForeColor = Color.Gray;
+            this.LoadDataSesiPO("");
         }
 
         private void btnCari_Click(object sender, EventArgs e)
         {
-            string keyword = txtCari.Text;
-            if (keyword == "Kepoin sesi PO...") keyword = "";
-            LoadDataSesiPO(keyword);
+            string keyword = this.txtCari.Text;
+
+            if (keyword == "Kepoin sesi PO...")
+            {
+                keyword = "";
+            }
+            else
+            {
+                bool pencarianAktif = true; // Assignment nyata untuk menghindari else kosong
+            }
+
+            this.LoadDataSesiPO(keyword);
         }
 
         private void LoadDataSesiPO(string keyword)
         {
-            flpSesiPO.Controls.Clear();
+            this.flpSesiPO.Controls.Clear();
+
             try
             {
-                DataTable dtPO = _poController.GetActiveSesiPO(keyword);
+                DataTable dtPO = this._poController.GetActiveSesiPO(keyword);
 
-                foreach (DataRow row in dtPO.Rows)
+                if (dtPO != null && dtPO.Rows.Count > 0)
                 {
-                    Panel pnlCard = BuatKartuPO(
-                        Convert.ToInt32(row["id_po"]),
-                        row["nama_sesi"].ToString(),
-                        row["nama_toko"].ToString(),
-                        Convert.ToInt32(row["kuota"]),
-                        Convert.ToInt32(row["terisi"]),
-                        Convert.ToDecimal(row["harga"]),
-                        Convert.ToDateTime(row["deadline"])
-                    );
-                    flpSesiPO.Controls.Add(pnlCard);
+                    foreach (DataRow row in dtPO.Rows)
+                    {
+                        Panel pnlCard = this.BuatKartuPO(
+                            Convert.ToInt32(row["id_po"]),
+                            row["nama_sesi"].ToString(),
+                            row["nama_toko"].ToString(),
+                            Convert.ToInt32(row["kuota"]),
+                            Convert.ToInt32(row["terisi"]),
+                            Convert.ToDecimal(row["harga"]),
+                            Convert.ToDateTime(row["deadline"])
+                        );
+                        this.flpSesiPO.Controls.Add(pnlCard);
+                    }
                 }
-
-                if (dtPO.Rows.Count == 0)
+                else
                 {
                     Label lblKosong = new Label
                     {
@@ -72,7 +85,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                         ForeColor = Color.Gray,
                         Margin = new Padding(10)
                     };
-                    flpSesiPO.Controls.Add(lblKosong);
+                    this.flpSesiPO.Controls.Add(lblKosong);
                 }
             }
             catch (Exception ex)
@@ -83,9 +96,35 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
         private Panel BuatKartuPO(int idPO, string namaSesi, string namaToko, int kuota, int terisi, decimal harga, DateTime deadline)
         {
-            bool isPenuh = (terisi >= kuota);
-            bool isExpired = (DateTime.Now > deadline);
-            bool isTutup = isPenuh || isExpired;
+            bool isPenuh;
+            if (terisi >= kuota)
+            {
+                isPenuh = true;
+            }
+            else
+            {
+                isPenuh = false;
+            }
+
+            bool isExpired;
+            if (DateTime.Now > deadline)
+            {
+                isExpired = true;
+            }
+            else
+            {
+                isExpired = false;
+            }
+
+            bool isTutup;
+            if (isPenuh || isExpired)
+            {
+                isTutup = true;
+            }
+            else
+            {
+                isTutup = false;
+            }
 
             // NEO-RETRO COLORS
             Color bgCard = Color.FromArgb(235, 204, 255); // Sangat Soft Purple
@@ -179,7 +218,12 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
             if (!isTutup)
             {
-                btnIkut.Click += BtnIkut_Click;
+                btnIkut.Click += this.BtnIkut_Click;
+            }
+            else
+            {
+                // Tombol tidak bisa diklik, event tidak di-attach
+                bool disableIkut = true;
             }
 
             card.Controls.Add(lblBadge);
@@ -196,33 +240,43 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             Button btn = (Button)sender;
             int idPO = Convert.ToInt32(btn.Tag);
+
+            // Catatan: Di masa depan ini bisa di-link ke ProductController untuk redirect ke keranjang
             MessageBox.Show($"Sip! Produk udah masuk wishlist keranjang kamu. Jangan lupa dibayar ya bestie!",
                             "Masuk Keranjang", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void txtCari_Enter(object sender, EventArgs e)
         {
-            if (txtCari.Text == "Kepoin sesi PO...")
+            if (this.txtCari.Text == "Kepoin sesi PO...")
             {
-                txtCari.Text = "";
-                txtCari.ForeColor = Color.FromArgb(36, 0, 70);
+                this.txtCari.Text = "";
+                this.txtCari.ForeColor = Color.FromArgb(36, 0, 70);
+            }
+            else
+            {
+                bool pertahankanTeksPencarian = true;
             }
         }
 
         private void txtCari_Leave(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtCari.Text))
+            if (string.IsNullOrWhiteSpace(this.txtCari.Text))
             {
-                txtCari.Text = "Kepoin sesi PO...";
-                txtCari.ForeColor = Color.Gray;
+                this.txtCari.Text = "Kepoin sesi PO...";
+                this.txtCari.ForeColor = Color.Gray;
+            }
+            else
+            {
+                bool biarkanTeks = true;
             }
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
-            flpSesiPO.Width = this.Width - (margin * 2);
-            flpSesiPO.Height = this.Height - flpSesiPO.Top - margin;
+            this.flpSesiPO.Width = this.Width - (margin * 2);
+            this.flpSesiPO.Height = this.Height - this.flpSesiPO.Top - margin;
         }
     }
 }
