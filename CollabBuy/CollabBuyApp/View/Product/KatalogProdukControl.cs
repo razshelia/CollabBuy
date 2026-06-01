@@ -419,8 +419,23 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             if (_cmbKategori != null && txtCari != null)
             {
+                // 1. Posisi Dropdown Kategori di sebelah kanan TextBox Cari
                 _cmbKategori.Top = txtCari.Top;
                 _cmbKategori.Left = txtCari.Left + txtCari.Width + 15;
+
+                // 2. Geser Tombol Cari ke sebelah kanan Dropdown Kategori
+                if (btnCari != null)
+                {
+                    btnCari.Top = txtCari.Top - 1; // Penyesuaian presisi margin atas
+                    btnCari.Left = _cmbKategori.Left + _cmbKategori.Width + 15;
+                }
+
+                // 3. Geser Tombol Reset ke sebelah kanan Tombol Cari
+                if (btnReset != null)
+                {
+                    btnReset.Top = txtCari.Top - 1; // Penyesuaian presisi margin atas
+                    btnReset.Left = btnCari.Left + btnCari.Width + 10;
+                }
             }
         }
     }

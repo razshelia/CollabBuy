@@ -1,4 +1,5 @@
-﻿using CollabBuy.CollabBuyApp.Models;
+﻿using CollabBuy.CollabBuyApp.Exceptions;
+using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Collections.Generic;

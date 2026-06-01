@@ -1,5 +1,5 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Models.Interfaces;
+﻿using CollabBuy.CollabBuyApp.Models.Interfaces;
+using CollabBuy.CollabBuyApp.Exceptions;
 using System;
 
 namespace CollabBuy.CollabBuyApp.Models
@@ -7,12 +7,6 @@ namespace CollabBuy.CollabBuyApp.Models
     /// <summary>
     /// Abstract class induk untuk semua jenis pengguna.
     /// Mengimplementasikan IValidatable untuk data dasar.
-    /// Memindahkan logika IBlockable langsung ke sini karena kemampuan 
-    /// diblokir melekat pada level user (bisa Penjual maupun Pembeli).
-    /// 
-    /// Pemetaan Database:
-    /// - Tabel: users
-    /// - Kolom: is_diblokir, peran
     /// </summary>
     public abstract class User : IValidatable
     {
@@ -30,158 +24,310 @@ namespace CollabBuy.CollabBuyApp.Models
         // === KONSTRUKTOR ===
         protected User(string nama, string username, string password, string peran)
         {
-            SetNama(nama);
-            SetUsername(username);
-            SetPassword(password);
-            SetPeran(peran);
-            _isDiblokir = false;
-            _alasanBlokir = "";
+            this.SetNama(nama);
+            this.SetUsername(username);
+            this.SetPassword(password);
+            this.SetPeran(peran);
+
+            this._isDiblokir = false;
+            this._alasanBlokir = "";
+            this._nomorTelepon = "";
+            this._email = "";
         }
 
-        // === GETTER & SETTER DENGAN VALIDASI ===
-        public int GetIdUser() { return _idUser; }
-        public void SetIdUser(int id) { _idUser = id; }
+        // === GETTER & SETTER (ENKAPSULASI STRICT IF-ELSE) ===
+        public int GetIdUser()
+        {
+            return this._idUser;
+        }
 
-        public string GetNama() { return _nama; }
+        public void SetIdUser(int id)
+        {
+            if (id <= 0)
+            {
+                throw new InvalidOrderException("ID User tidak valid!", "id_user", "USER_ID_INVALID");
+            }
+            else
+            {
+                this._idUser = id;
+            }
+        }
+
+        public string GetNama()
+        {
+            return this._nama;
+        }
+
         public void SetNama(string nama)
         {
-            if (string.IsNullOrEmpty(nama))
+            if (string.IsNullOrWhiteSpace(nama))
             {
                 throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
             }
-            _nama = nama;
+            else
+            {
+                this._nama = nama.Trim();
+            }
         }
 
-        public string GetUsername() { return _username; }
+        public string GetUsername()
+        {
+            return this._username;
+        }
+
         public void SetUsername(string username)
         {
-            if (string.IsNullOrEmpty(username) || username.Length < 4)
+            if (string.IsNullOrWhiteSpace(username) || username.Length < 4)
             {
                 throw new InvalidOrderException("Username minimal 4 karakter!", "username", "USER_UNAME_INVALID");
             }
-            _username = username;
+            else
+            {
+                this._username = username.Trim();
+            }
         }
 
-        public string GetPassword() { return _password; }
+        public string GetPassword()
+        {
+            return this._password;
+        }
+
         public void SetPassword(string password)
         {
-            if (string.IsNullOrEmpty(password))
+            if (string.IsNullOrWhiteSpace(password))
             {
                 throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
             }
-            _password = password;
+            else
+            {
+                this._password = password;
+            }
         }
 
-        public string GetNomorTelepon() { return _nomorTelepon; }
+        public string GetNomorTelepon()
+        {
+            return this._nomorTelepon;
+        }
+
         public void SetNomorTelepon(string telp)
         {
             if (string.IsNullOrWhiteSpace(telp))
             {
                 throw new InvalidOrderException("Nomor WhatsApp tidak boleh kosong!", "nomorTelepon", "USER_TELP_KOSONG");
             }
-
-            // Validasi panjang standar nomor telepon (9 - 15 digit)
-            if (telp.Length < 9 || telp.Length > 15)
+            else if (telp.Length < 9 || telp.Length > 15)
             {
                 throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
             }
-
-            _nomorTelepon = telp;
+            else
+            {
+                this._nomorTelepon = telp.Trim();
+            }
         }
 
-        public string GetEmail() { return _email; }
+        public string GetEmail()
+        {
+            return this._email;
+        }
+
         public void SetEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
             {
                 throw new InvalidOrderException("Email tidak boleh kosong!", "email", "USER_EMAIL_KOSONG");
             }
-
-            // Validasi email sederhana harus ada '@' dan '.'
-            if (!email.Contains("@") || !email.Contains("."))
+            else if (!email.Contains("@") || !email.Contains("."))
             {
                 throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
             }
-
-            _email = email;
+            else
+            {
+                this._email = email.Trim();
+            }
         }
-        public string GetPeran() { return _peran; }
+
+        public string GetPeran()
+        {
+            return this._peran;
+        }
+
         public void SetPeran(string peran)
         {
             if (string.IsNullOrWhiteSpace(peran))
             {
-                throw new InvalidOrderException("Peran (Role) pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
+                throw new InvalidOrderException("Peran pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
             }
-
-            // Validasi ketat sesuai dengan yang ada di Database
-            if (peran != "Admin" && peran != "Penjual" && peran != "User")
+            else if (peran != "Admin" && peran != "Penjual" && peran != "User")
             {
                 throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, atau User.", "peran", "USER_PERAN_INVALID");
             }
-
-            _peran = peran;
-        }
-
-
-        // === METHOD ABSTRAK ===
-        /// <summary>
-        /// Setiap turunan User wajib mengimplementasi cara menampilkan peran spesifiknya.
-        /// Ini membuktikan Polimorfisme.
-        /// </summary>
-        public abstract string GetTipeUser();
-
-
-        // === METHOD KONKRET (LOGIKANYA DIMILIKI OLEH INDUK) ===
-
-        /// <summary>
-        /// Memblokir user karena pelanggaran.
-        /// Pemetaan DB: Diakses oleh Procedure sp_tindak_penjual_nakal
-        /// </summary>
-        public void Blokir(string alasan)
-        {
-            if (string.IsNullOrEmpty(alasan))
+            else
             {
-                throw new InvalidOrderException("Alasan pemblokiran wajib diisi!", "alasan_blokir", "BLOKIR_INVALID");
+                this._peran = peran.Trim();
             }
-            _isDiblokir = true;
-            _alasanBlokir = alasan;
-        }
-
-        public void BukaBlokir()
-        {
-            _isDiblokir = false;
-            _alasanBlokir = "";
         }
 
         public bool IsDiblokir()
         {
-            return _isDiblokir;
+            return this._isDiblokir;
         }
 
         public string GetAlasanBlokir()
         {
-            return _alasanBlokir;
+            return this._alasanBlokir;
         }
 
+        // === METHOD ABSTRAK ===
+        public abstract string GetTipeUser();
 
-        // === IMPLEMENTASI IValidatable ===
+        // =========================================================
+        // IMPLEMENTASI METODE BISNIS / BEHAVIOR 
+        // =========================================================
+
+        public void Blokir(string alasan)
+        {
+            if (string.IsNullOrWhiteSpace(alasan))
+            {
+                throw new InvalidOrderException("Alasan pemblokiran wajib diisi!", "alasan_blokir", "BLOKIR_INVALID");
+            }
+            else
+            {
+                this._isDiblokir = true;
+                this._alasanBlokir = alasan.Trim();
+            }
+        }
+
+        public void BukaBlokir()
+        {
+            this._isDiblokir = false;
+            this._alasanBlokir = "";
+        }
+
+        public string DapatkanStatusAkun()
+        {
+            string statusUi;
+            if (this._isDiblokir)
+            {
+                statusUi = "🚫 Terblokir: " + this._alasanBlokir;
+            }
+            else
+            {
+                statusUi = "✅ Aktif & Aman";
+            }
+            return statusUi;
+        }
+
+        public string DapatkanInfoKontak()
+        {
+            string infoTelp;
+            string infoEmail;
+
+            if (string.IsNullOrWhiteSpace(this._nomorTelepon))
+            {
+                infoTelp = "No HP Belum Diisi";
+            }
+            else
+            {
+                infoTelp = this._nomorTelepon;
+            }
+
+            if (string.IsNullOrWhiteSpace(this._email))
+            {
+                infoEmail = "Email Belum Diisi";
+            }
+            else
+            {
+                infoEmail = this._email;
+            }
+
+            return $"{this._nama} | 📞 {infoTelp} | ✉️ {infoEmail}";
+        }
+
+        public bool ApakahAkunAman()
+        {
+            bool statusAman;
+            if (this._isDiblokir)
+            {
+                statusAman = false;
+            }
+            else
+            {
+                statusAman = true;
+            }
+            return statusAman;
+        }
+
+        // === METHOD TAMBAHAN MAKSIMAL (REAL-WORLD SCENARIO) ===
+
+        public bool UbahPassword(string passLama, string passBaru)
+        {
+            bool isBerhasil;
+            if (this._password != passLama)
+            {
+                throw new InvalidOrderException("Gagal: Password lama tidak cocok!", "password", "UBAH_PASS_GAGAL");
+            }
+            else
+            {
+                this.SetPassword(passBaru);
+                isBerhasil = true;
+            }
+            return isBerhasil;
+        }
+
+        public string DapatkanInisialProfil()
+        {
+            string inisial;
+            if (string.IsNullOrWhiteSpace(this._nama))
+            {
+                inisial = "U";
+            }
+            else
+            {
+                inisial = this._nama.Substring(0, 1).ToUpper();
+            }
+            return inisial;
+        }
+
+        public string DapatkanLinkWhatsApp()
+        {
+            string linkWa;
+            if (string.IsNullOrWhiteSpace(this._nomorTelepon))
+            {
+                linkWa = "";
+            }
+            else if (this._nomorTelepon.StartsWith("0"))
+            {
+                linkWa = "https://wa.me/62" + this._nomorTelepon.Substring(1);
+            }
+            else
+            {
+                linkWa = "https://wa.me/" + this._nomorTelepon;
+            }
+            return linkWa;
+        }
+
+        // === IMPLEMENTASI IValidatable (TANPA ELSE KOSONG) ===
         public virtual void Validate()
         {
-            if (string.IsNullOrEmpty(_nama))
+            bool lolosTahapSatu;
+            bool lolosTahapDua;
+
+            if (string.IsNullOrWhiteSpace(this._nama) || string.IsNullOrWhiteSpace(this._username))
             {
-                throw new InvalidOrderException("Validasi gagal: Nama user kosong.", "nama", "USER_INVALID");
+                throw new InvalidOrderException("Validasi gagal: Nama/Username tidak boleh kosong.", "nama_username", "USER_INVALID");
             }
-            if (string.IsNullOrEmpty(_username))
+            else
             {
-                throw new InvalidOrderException("Validasi gagal: Username kosong.", "username", "USER_INVALID");
+                lolosTahapSatu = true; // Assignment nyata
             }
-            if (string.IsNullOrEmpty(_email))
+
+            if (string.IsNullOrWhiteSpace(this._email) || string.IsNullOrWhiteSpace(this._nomorTelepon))
             {
-                throw new InvalidOrderException("Validasi gagal: Email kosong.", "email", "USER_INVALID");
+                throw new InvalidOrderException("Validasi gagal: Kontak Email/Telepon belum lengkap.", "kontak", "USER_INVALID");
             }
-            if (string.IsNullOrEmpty(_nomorTelepon))
+            else
             {
-                throw new InvalidOrderException("Validasi gagal: Nomor telepon kosong.", "nomor_telepon", "USER_INVALID");
+                lolosTahapDua = lolosTahapSatu; // Assignment nyata berantai
             }
         }
     }

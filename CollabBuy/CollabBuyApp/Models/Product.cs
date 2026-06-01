@@ -1,18 +1,12 @@
 ﻿using System;
 using CollabBuy.CollabBuyApp.Models.Interfaces;
+using CollabBuy.CollabBuyApp.Exceptions;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
     /// <summary>
     /// Kelas Model untuk entitas Produk.
-    /// Menerapkan IValidatable (validasi bisnis), ICalculatable (kalkulasi harga), 
-    /// dan IQuotaTrackable (pemantauan kuota preorder).
-    /// 
-    /// Pemetaan Database:
-    /// - Tabel: products
-    /// - Kolom foto_produk: BYTEA (Menyimpan file gambar di database)
-    /// - Function: cek_harga_saat_ini() -> Diimplementasikan di HitungTotal()
-    /// - Trigger: trg_cek_kepemilikan_po -> Diimplementasikan di Validate()
+    /// Menerapkan IValidatable, ICalculatable, dan IQuotaTrackable.
     /// </summary>
     public class Product : IValidatable, ICalculatable, IQuotaTrackable
     {
@@ -27,91 +21,154 @@ namespace CollabBuy.CollabBuyApp.Models
         private int? _hargaDiskon;
         private int? _targetKuota;
         private int _minOrder;
-        private int _terpesan; // In-Memory: Menyimpan jumlah yang sudah dipesan di RAM
-        private byte[] _fotoProduk; // Tambahan untuk BYTEA di Database
-
-        // Properti bantu untuk kalkulasi (di-set oleh repository saat load dari DB)
-        private string _jenisPo = "Biasa";
-
+        private int _terpesan;
+        private byte[] _fotoProduk;
+        private string _jenisPo;
 
         // === KONSTRUKTOR ===
         public Product(int idPenjual, int idKategori, string namaProduk, int hargaDasar)
         {
-            _idPenjual = idPenjual;
-            _idKategori = idKategori;
-            SetNamaProduk(namaProduk);
-            SetHargaDasar(hargaDasar);
+            this._idPenjual = idPenjual;
+            this._idKategori = idKategori;
+            this.SetNamaProduk(namaProduk);
+            this.SetHargaDasar(hargaDasar);
 
-            _minOrder = 1;
-            _terpesan = 0;
+            this._minOrder = 1;
+            this._terpesan = 0;
+            this._jenisPo = "Biasa";
+            this._deskripsi = "";
         }
 
+        // === GETTER & SETTER DENGAN ENKAPSULASI STRICT (IF-ELSE) ===
+        public int GetIdProduk()
+        {
+            return this._idProduk;
+        }
 
-        // === PROPERTI (Getter saja, Setter dipisah sebagai method dengan validasi) ===
-        public int GetIdProduk() { return _idProduk; }
-        public void SetIdProduk(int id) { _idProduk = id; }
+        public void SetIdProduk(int id)
+        {
+            if (id <= 0)
+            {
+                throw new InvalidOrderException("ID Produk tidak valid!", "id_produk", "PRODUK_ID_INVALID");
+            }
+            else
+            {
+                this._idProduk = id;
+            }
+        }
 
-        public int GetIdPenjual() { return _idPenjual; }
+        public int GetIdPenjual()
+        {
+            return this._idPenjual;
+        }
 
-        public int? GetIdPo() { return _idPo; }
-        public void SetIdPo(int? idPo) { _idPo = idPo; }
+        public int? GetIdPo()
+        {
+            return this._idPo;
+        }
 
-        public int GetIdKategori() { return _idKategori; }
+        public void SetIdPo(int? idPo)
+        {
+            if (idPo.HasValue && idPo.Value <= 0)
+            {
+                throw new InvalidOrderException("ID PO tidak valid!", "id_po", "PO_ID_INVALID");
+            }
+            else
+            {
+                this._idPo = idPo;
+            }
+        }
 
-        public string GetNamaProduk() { return _namaProduk; }
+        public int GetIdKategori()
+        {
+            return this._idKategori;
+        }
+
+        public string GetNamaProduk()
+        {
+            return this._namaProduk;
+        }
+
         public void SetNamaProduk(string nama)
         {
-            if (string.IsNullOrEmpty(nama))
+            if (string.IsNullOrWhiteSpace(nama))
             {
                 throw new InvalidOrderException("Nama produk tidak boleh kosong!", "nama_produk", "PRODUK_INVALID");
             }
-            _namaProduk = nama;
+            else
+            {
+                this._namaProduk = nama.Trim();
+            }
         }
 
-        public string GetDeskripsi() { return _deskripsi; }
-        public void SetDeskripsi(string deskripsi) { _deskripsi = deskripsi; }
+        public string GetDeskripsi()
+        {
+            return this._deskripsi;
+        }
 
-        public int GetMinOrder() { return _minOrder; }
+        public void SetDeskripsi(string deskripsi)
+        {
+            if (string.IsNullOrWhiteSpace(deskripsi))
+            {
+                this._deskripsi = "Tidak ada deskripsi.";
+            }
+            else
+            {
+                this._deskripsi = deskripsi.Trim();
+            }
+        }
+
+        public int GetMinOrder()
+        {
+            return this._minOrder;
+        }
+
         public void SetMinOrder(int min)
         {
             if (min <= 0)
             {
                 throw new InvalidOrderException("Minimal order harus lebih dari 0!", "min_order", "MIN_ORDER_INVALID");
             }
-            _minOrder = min;
+            else
+            {
+                this._minOrder = min;
+            }
         }
 
         public void SetJenisPo(string jenis)
         {
-            _jenisPo = jenis;
+            if (string.IsNullOrWhiteSpace(jenis))
+            {
+                this._jenisPo = "Biasa";
+            }
+            else
+            {
+                this._jenisPo = jenis.Trim();
+            }
         }
 
-
-        // === METHOD BISNIS LOGIC (Rich Domain Model) ===
-
-        /// <summary>
-        /// Menetapkan harga dasar dengan validasi.
-        /// </summary>
         public void SetHargaDasar(int harga)
         {
             if (harga <= 0)
             {
                 throw new InvalidOrderException("Harga dasar harus lebih dari 0!", "harga_dasar", "HARGA_INVALID");
             }
-            _hargaDasar = harga;
+            else
+            {
+                this._hargaDasar = harga;
+            }
         }
 
-        /// <summary>
-        /// Menetapkan harga diskon dengan validasi bisnis.
-        /// Aturan: Harga diskon tidak boleh sama atau lebih mahal dari harga dasar.
-        /// </summary>
         public void SetHargaDiskon(int? harga)
         {
-            if (harga.HasValue && harga.Value >= _hargaDasar)
+            if (harga.HasValue && harga.Value >= this._hargaDasar)
             {
                 throw new InvalidOrderException("Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
             }
-            _hargaDiskon = harga;
+            else
+            {
+                this._hargaDiskon = harga;
+            }
         }
 
         public void SetTargetKuota(int? kuota)
@@ -120,143 +177,230 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Target kuota harus lebih dari 0!", "target_kuota", "KUOTA_INVALID");
             }
-            _targetKuota = kuota;
-        }
-
-        /// <summary>
-        /// Menambah jumlah pesanan di memori (RAM).
-        /// Dipanggil oleh CartManager saat menambah detail pesanan.
-        /// </summary>
-        public void TambahPesanan(int jumlah)
-        {
-            if (jumlah < _minOrder)
+            else
             {
-                throw new InvalidOrderException("Jumlah pesanan kurang dari minimal order (" + _minOrder + ")!", "jumlah_pesanan", "QTY_MIN_INVALID");
+                this._targetKuota = kuota;
             }
-            _terpesan = _terpesan + jumlah;
         }
 
-        /// <summary>
-        /// Menetapkan foto produk dengan validasi ukuran.
-        /// Ditangani di Model (Sub-bab 3.2 Laporan: Business Rule Validation).
-        /// </summary>
         public void SetFotoProduk(byte[] foto)
         {
-            // Validasi: Maksimal ukuran file 2MB (2 * 1024 * 1024 = 2097152 byte)
             if (foto != null && foto.Length > 2097152)
             {
                 throw new InvalidOrderException("Ukuran foto produk maksimal 2MB!", "foto_produk", "FOTO_OVERSIZE");
             }
-            _fotoProduk = foto;
+            else
+            {
+                this._fotoProduk = foto;
+            }
         }
 
         public byte[] GetFotoProduk()
         {
-            return _fotoProduk;
+            return this._fotoProduk;
+        }
+
+        public int GetHargaDasar()
+        {
+            return this._hargaDasar;
+        }
+
+        public int? GetHargaDiskon()
+        {
+            return this._hargaDiskon;
+        }
+
+        // =========================================================
+        // IMPLEMENTASI METODE BISNIS / BEHAVIOR (OOP BEST PRACTICE)
+        // =========================================================
+
+        public void TambahPesanan(int jumlah)
+        {
+            if (jumlah < this._minOrder)
+            {
+                throw new InvalidOrderException("Jumlah pesanan kurang dari minimal order (" + this._minOrder + ")!", "jumlah_pesanan", "QTY_MIN_INVALID");
+            }
+            else
+            {
+                this._terpesan = this._terpesan + jumlah;
+            }
+        }
+
+        /// <summary>
+        /// Mengembalikan teks label badge khusus untuk UI Katalog.
+        /// </summary>
+        public string DapatkanLabelPromo()
+        {
+            string label;
+            if (this._jenisPo == "Gotong Royong" && this._hargaDiskon.HasValue)
+            {
+                label = "🔥 Gotong Royong: Potongan Harga!";
+            }
+            else if (this._targetKuota.HasValue)
+            {
+                label = "📦 Pre-Order Reguler";
+            }
+            else
+            {
+                label = "🛍️ Ready Stock";
+            }
+            return label;
+        }
+
+        /// <summary>
+        /// Format harga menjadi string rapi siap tampil di UI.
+        /// Jika ada diskon dan kuota terpenuhi, otomatis dicoret harga aslinya!
+        /// </summary>
+        public string DapatkanFormatHargaUI()
+        {
+            string hargaUI;
+            long hargaAkhir = this.HitungTotal();
+
+            if (hargaAkhir < this._hargaDasar)
+            {
+                // Diskon Aktif!
+                hargaUI = $"Rp {hargaAkhir:N0} (Turun dari Rp {this._hargaDasar:N0})";
+            }
+            else
+            {
+                hargaUI = $"Rp {this._hargaDasar:N0}";
+            }
+
+            return hargaUI;
+        }
+
+        /// <summary>
+        /// Mengembalikan status sisa slot dalam bentuk string untuk UI.
+        /// </summary>
+        public string DapatkanInfoSlot()
+        {
+            string info;
+            if (!this._targetKuota.HasValue)
+            {
+                info = "✅ Ready / Tanpa Batas";
+            }
+            else
+            {
+                int sisa = this.GetSisaKuota();
+                if (sisa <= 0)
+                {
+                    info = "⛔ Ludes / Penuh!";
+                }
+                else
+                {
+                    info = $"Sisa {sisa} Slot (Terkumpul {this._terpesan}/{this._targetKuota.Value})";
+                }
+            }
+            return info;
         }
 
 
         // === IMPLEMENTASI IValidatable ===
-
-        /// <summary>
-        /// Memvalidasi seluruh aturan bisnis produk sebelum disimpan.
-        /// Pemetaan DB: Menggantikan sebagian logika Trigger trg_cek_kepemilikan_po
-        /// </summary>
         public void Validate()
         {
-            if (string.IsNullOrEmpty(_namaProduk))
+            bool validasiProdukSelesai;
+
+            if (string.IsNullOrWhiteSpace(this._namaProduk))
             {
                 throw new InvalidOrderException("Validasi gagal: Nama produk kosong.", "nama_produk", "PRODUK_INVALID");
             }
-            if (_hargaDasar <= 0)
+            else if (this._hargaDasar <= 0)
             {
                 throw new InvalidOrderException("Validasi gagal: Harga dasar tidak valid.", "harga_dasar", "HARGA_INVALID");
             }
-            if (_hargaDiskon.HasValue && _hargaDiskon.Value >= _hargaDasar)
+            else if (this._hargaDiskon.HasValue && this._hargaDiskon.Value >= this._hargaDasar)
             {
                 throw new InvalidOrderException("Validasi gagal: Harga diskon >= Harga dasar.", "harga_diskon", "DISKON_INVALID");
             }
+            else
+            {
+                validasiProdukSelesai = true;
+            }
         }
-
 
         // === IMPLEMENTASI ICalculatable ===
-
-        /// <summary>
-        /// Menghitung harga saat ini.
-        /// Pemetaan DB: Ini adalah logika dari Function PostgreSQL cek_harga_saat_ini().
-        /// PERBAIKAN: Hanya menerapkan harga diskon JIKA jenis_po == "Gotong Royong".
-        /// </summary>
         public long HitungTotal()
         {
-            // Cek apakah PO Gotong Royong, punya target kuota, ada harga diskon, dan kuota sudah terpenuhi
-            if (_idPo.HasValue && _jenisPo == "Gotong Royong" && _targetKuota.HasValue && _hargaDiskon.HasValue)
+            long hargaFinal;
+
+            if (this._idPo.HasValue && this._jenisPo == "Gotong Royong" && this._targetKuota.HasValue && this._hargaDiskon.HasValue && this.IsKuotaTerpenuhi())
             {
-                if (IsKuotaTerpenuhi())
-                {
-                    return _hargaDiskon.Value;
-                }
+                hargaFinal = this._hargaDiskon.Value;
             }
-            return _hargaDasar;
+            else
+            {
+                hargaFinal = this._hargaDasar;
+            }
+
+            return hargaFinal;
         }
 
-        /// <summary>
-        /// Menghitung selisih potongan harga.
-        /// PERBAIKAN: Hanya menghitung diskon JIKA jenis_po == "Gotong Royong".
-        /// </summary>
         public long HitungDiskon()
         {
-            if (_idPo.HasValue && _jenisPo == "Gotong Royong" && _targetKuota.HasValue && _hargaDiskon.HasValue && IsKuotaTerpenuhi())
+            long diskon;
+
+            if (this._idPo.HasValue && this._jenisPo == "Gotong Royong" && this._targetKuota.HasValue && this._hargaDiskon.HasValue && this.IsKuotaTerpenuhi())
             {
-                return _hargaDasar - _hargaDiskon.Value;
+                diskon = this._hargaDasar - this._hargaDiskon.Value;
             }
-            return 0;
+            else
+            {
+                diskon = 0;
+            }
+
+            return diskon;
         }
 
-
         // === IMPLEMENTASI IQuotaTrackable ===
-
         public int GetTargetKuota()
         {
-            if (_targetKuota.HasValue) { return _targetKuota.Value; }
-            return 0;
+            int kuota;
+            if (this._targetKuota.HasValue)
+            {
+                kuota = this._targetKuota.Value;
+            }
+            else
+            {
+                kuota = 0;
+            }
+            return kuota;
         }
 
         public int GetTerpesan()
         {
-            return _terpesan;
+            return this._terpesan;
         }
 
         public int GetSisaKuota()
         {
-            if (!_targetKuota.HasValue) { return int.MaxValue; }
-            return _targetKuota.Value - _terpesan;
+            int sisa;
+            if (!this._targetKuota.HasValue)
+            {
+                sisa = int.MaxValue;
+            }
+            else
+            {
+                sisa = this._targetKuota.Value - this._terpesan;
+            }
+            return sisa;
         }
 
         public bool IsKuotaTerpenuhi()
         {
-            if (!_targetKuota.HasValue) { return false; }
-            return _terpesan >= _targetKuota.Value;
-        }
-
-
-        // === TAMBAHAN GETTER UNTUK REPOSITORY ===
-
-        /// <summary>
-        /// Mengambil nilai harga dasar murni (tanpa logika gotong royong).
-        /// Dipakai Repository untuk INSERT/UPDATE ke database.
-        /// </summary>
-        public int GetHargaDasar()
-        {
-            return _hargaDasar;
-        }
-
-        /// <summary>
-        /// Mengambil nilai harga diskon murni.
-        /// Dipakai Repository untuk INSERT/UPDATE ke database.
-        /// </summary>
-        public int? GetHargaDiskon()
-        {
-            return _hargaDiskon;
+            bool terpenuhi;
+            if (!this._targetKuota.HasValue)
+            {
+                terpenuhi = false;
+            }
+            else if (this._terpesan >= this._targetKuota.Value)
+            {
+                terpenuhi = true;
+            }
+            else
+            {
+                terpenuhi = false;
+            }
+            return terpenuhi;
         }
     }
 }

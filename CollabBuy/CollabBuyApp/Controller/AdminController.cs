@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using Npgsql;
 using System.Configuration;
+using CollabBuy.CollabBuyApp.Exceptions;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {

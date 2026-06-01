@@ -32,9 +32,27 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
+                            // Mapping: subjek di DB masuk ke parameter jenisAduan di Model
                             aduan = new Complaint(reader.GetInt32(1), reader.GetString(2), reader.GetString(3));
                             aduan.SetIdAduan(reader.GetInt32(0));
-                            if (!reader.IsDBNull(6)) aduan.BeriTanggapan(reader.GetString(6));
+
+                            if (!reader.IsDBNull(4))
+                            {
+                                aduan.SetTanggalAduan(reader.GetDateTime(4));
+                            }
+
+                            // Translasi is_selesai (Boolean DB) -> Status (String OOP)
+                            bool isSelesai = reader.GetBoolean(5);
+                            if (isSelesai)
+                            {
+                                aduan.SetStatus("Selesai");
+                            }
+
+                            // Mapping: balasan di DB -> TanggapanAdmin di Model
+                            if (!reader.IsDBNull(6))
+                            {
+                                aduan.SetTanggapanAdmin(reader.GetString(6));
+                            }
                         }
                     }
                 }
@@ -73,7 +91,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
-                    cmd.Parameters.AddWithValue("@subjek", entity.GetSubjek());
+                    // Gunakan getter dari Model yang sudah diperbarui
+                    cmd.Parameters.AddWithValue("@subjek", entity.GetJenisAduan());
                     cmd.Parameters.AddWithValue("@deskripsi", entity.GetDeskripsi());
                     cmd.ExecuteNonQuery();
                 }
@@ -89,29 +108,34 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", entity.GetIdAduan());
-                    cmd.Parameters.AddWithValue("@isSelesai", entity.IsSelesai());
-                    cmd.Parameters.AddWithValue("@balasan", entity.GetTanggapan() ?? (object)DBNull.Value);
+
+                    // Translasi Status (String OOP) -> is_selesai (Boolean DB)
+                    bool isSelesai = (entity.GetStatus() != null && entity.GetStatus().ToLower() == "selesai");
+                    cmd.Parameters.AddWithValue("@isSelesai", isSelesai);
+
+                    cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.GetTanggapanAdmin()) ? (object)DBNull.Value : entity.GetTanggapanAdmin());
                     cmd.ExecuteNonQuery();
                 }
             }
         }
+
         public DataTable GetPendingAduan()
         {
             DataTable dt = new DataTable();
             // Ambil aduan yang is_selesai = false, gabungkan dengan nama pelapor
             string query = @"
-        SELECT c.id_aduan, c.id_user, u.nama AS nama_pelapor, c.subjek, c.deskripsi, c.tanggal 
-        FROM complaints c 
-        JOIN users u ON c.id_user = u.id_user 
-        WHERE c.is_selesai = FALSE 
-        ORDER BY c.tanggal ASC;";
+                SELECT c.id_aduan, c.id_user, u.nama AS nama_pelapor, c.subjek, c.deskripsi, c.tanggal 
+                FROM complaints c 
+                JOIN users u ON c.id_user = u.id_user 
+                WHERE c.is_selesai = FALSE 
+                ORDER BY c.tanggal ASC;";
 
-            using (var conn = new Npgsql.NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (var cmd = new Npgsql.NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    using (var da = new Npgsql.NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
                 }
             }
             return dt;

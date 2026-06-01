@@ -1,5 +1,6 @@
 ﻿using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using CollabBuy.CollabBuyApp.Exceptions;
 using Npgsql;
 using System;
 using System.Collections.Generic;

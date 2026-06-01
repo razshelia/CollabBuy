@@ -32,7 +32,49 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
         private void LoadAduan()
         {
-            dgvAduan.DataSource = _complaintController.GetAduanBelumBeres();
+            // Ambil data mentah
+            DataTable dtRaw = _complaintController.GetAduanBelumBeres();
+
+            // Buat DataTable baru yang sudah dipoles untuk UI
+            DataTable dtUI = new DataTable();
+            dtUI.Columns.Add("id_aduan", typeof(int));
+            dtUI.Columns.Add("id_user", typeof(int));
+            dtUI.Columns.Add("nama_pelapor", typeof(string));
+            dtUI.Columns.Add("subjek", typeof(string));
+            dtUI.Columns.Add("deskripsi", typeof(string)); // Akan kita isi preview
+            dtUI.Columns.Add("tanggal", typeof(string));
+            dtUI.Columns.Add("status", typeof(string)); // Akan kita isi status emoji
+
+            foreach (DataRow row in dtRaw.Rows)
+            {
+                int idUser = Convert.ToInt32(row["id_user"]);
+                string subjek = row["subjek"].ToString();
+                string deskripsiRaw = row["deskripsi"].ToString();
+                string statusRaw = "Menunggu"; // Default query ini memanggil aduan pending
+
+                // --- OOP BEST PRACTICE CALL ---
+                // Kita buat objek untuk memformat teks yang akan tampil di grid
+                Complaint aduanObj = new Complaint(idUser, subjek, deskripsiRaw);
+                aduanObj.SetStatus(statusRaw);
+
+                // Gunakan Method Behavior Model!
+                string previewTeks = aduanObj.DapatkanPreviewDeskripsi(35); // Batasi 35 huruf
+                string statusKece = aduanObj.DapatkanStatusUI(); // Tambah Emoji
+                // ------------------------------
+
+                dtUI.Rows.Add(
+                    Convert.ToInt32(row["id_aduan"]),
+                    idUser,
+                    row["nama_pelapor"].ToString(),
+                    subjek,
+                    previewTeks, // Yang tampil di grid jadi rapi
+                    Convert.ToDateTime(row["tanggal"]).ToString("dd MMM yyyy, HH:mm"),
+                    statusKece
+                );
+            }
+
+            dgvAduan.DataSource = dtUI;
+
             if (dgvAduan.Columns.Count > 0)
             {
                 dgvAduan.Columns["id_aduan"].Visible = false;
@@ -41,6 +83,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 dgvAduan.Columns["subjek"].HeaderText = "Subjek Masalah";
                 dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
                 dgvAduan.Columns["tanggal"].HeaderText = "Waktu";
+                dgvAduan.Columns["status"].HeaderText = "Status";
             }
             ResetForm();
         }

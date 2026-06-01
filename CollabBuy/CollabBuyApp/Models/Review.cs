@@ -1,20 +1,17 @@
-﻿using CollabBuy.CollabBuyApp.Models;
+﻿using System;
 using CollabBuy.CollabBuyApp.Models.Interfaces;
-using System;
+using CollabBuy.CollabBuyApp.Exceptions;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
     /// <summary>
     /// Kelas Model untuk Ulasan Produk.
     /// Mengimplementasikan IValidatable dan IResolvable.
-    /// 
-    /// Pemetaan Database:
-    /// - Tabel: reviews
-    /// - Kolom: rating (CHECK >=1 AND <=5), balasan_penjual
+    /// Dilengkapi dengan formatting UI otomatis untuk Bintang dan Balasan.
     /// </summary>
     public class Review : IValidatable, IResolvable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Strict Encapsulation) ===
         private int _idUlasan;
         private int _idProduk;
         private int _idUser;
@@ -26,22 +23,49 @@ namespace CollabBuy.CollabBuyApp.Models
         // === KONSTRUKTOR ===
         public Review(int idProduk, int idUser, int rating, string komentar)
         {
-            _idProduk = idProduk;
-            _idUser = idUser;
-            SetRating(rating);
-            SetKomentar(komentar);
-            _tanggalUlasan = DateTime.Now;
-            _balasanPenjual = "";
+            this._idProduk = idProduk;
+            this._idUser = idUser;
+
+            this.SetRating(rating);
+            this.SetKomentar(komentar);
+
+            this._tanggalUlasan = DateTime.Now;
+            this._balasanPenjual = "";
         }
 
-        // === GETTER & SETTER ===
-        public int GetIdUlasan() { return _idUlasan; }
-        public void SetIdUlasan(int id) { _idUlasan = id; }
+        // === GETTER & SETTER DENGAN ENKAPSULASI KETAT (IF-ELSE) ===
+        public int GetIdUlasan()
+        {
+            return this._idUlasan;
+        }
 
-        public int GetIdProduk() { return _idProduk; }
-        public int GetIdUser() { return _idUser; }
+        public void SetIdUlasan(int id)
+        {
+            if (id <= 0)
+            {
+                throw new InvalidOrderException("ID Ulasan tidak valid!", "id_ulasan", "ULASAN_ID_INVALID");
+            }
+            else
+            {
+                this._idUlasan = id;
+            }
+        }
 
-        public int GetRating() { return _rating; }
+        public int GetIdProduk()
+        {
+            return this._idProduk;
+        }
+
+        public int GetIdUser()
+        {
+            return this._idUser;
+        }
+
+        public int GetRating()
+        {
+            return this._rating;
+        }
+
         public void SetRating(int rating)
         {
             // Pemetaan CHECK Constraint Database: rating >= 1 AND rating <= 5
@@ -49,54 +73,177 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Rating harus di antara 1 sampai 5!", "rating", "RATING_INVALID");
             }
-            _rating = rating;
+            else
+            {
+                this._rating = rating;
+            }
         }
 
-        public string GetKomentar() { return _komentar; }
+        public string GetKomentar()
+        {
+            return this._komentar;
+        }
+
         public void SetKomentar(string komentar)
         {
-            // Boleh kosong (NULL di DB), tapi jika diisi harus lebih dari 0 karakter
-            if (komentar != null && komentar.Length == 0)
+            if (string.IsNullOrWhiteSpace(komentar))
             {
-                throw new InvalidOrderException("Komentar tidak boleh string kosong!", "komentar", "KOMENTAR_INVALID");
+                this._komentar = "Tidak ada komentar tertulis.";
             }
-            _komentar = komentar;
+            else
+            {
+                this._komentar = komentar.Trim();
+            }
         }
 
-        public DateTime GetTanggalUlasan() { return _tanggalUlasan; }
+        public DateTime GetTanggalUlasan()
+        {
+            return this._tanggalUlasan;
+        }
+
+        // =========================================================
+        // PROACTIVE BUSINESS LOGIC & UI HELPER BEHAVIORS
+        // =========================================================
+
+        /// <summary>
+        /// Mengubah angka rating (misal: 4) menjadi string visual (⭐⭐⭐⭐).
+        /// </summary>
+        public string DapatkanBintangUI()
+        {
+            string bintangVisual;
+
+            if (this._rating == 5)
+            {
+                bintangVisual = "⭐⭐⭐⭐⭐";
+            }
+            else if (this._rating == 4)
+            {
+                bintangVisual = "⭐⭐⭐⭐";
+            }
+            else if (this._rating == 3)
+            {
+                bintangVisual = "⭐⭐⭐";
+            }
+            else if (this._rating == 2)
+            {
+                bintangVisual = "⭐⭐";
+            }
+            else if (this._rating == 1)
+            {
+                bintangVisual = "⭐";
+            }
+            else
+            {
+                bintangVisual = "Belum Ada Rating";
+            }
+
+            return bintangVisual;
+        }
+
+        /// <summary>
+        /// Memotong komentar ulasan agar rapi saat ditampilkan di Card/Grid UI.
+        /// </summary>
+        public string DapatkanPreviewKomentar(int batasKarakter)
+        {
+            string preview;
+
+            if (this._komentar == "Tidak ada komentar tertulis.")
+            {
+                preview = this._komentar;
+            }
+            else if (this._komentar.Length <= batasKarakter)
+            {
+                preview = this._komentar;
+            }
+            else
+            {
+                preview = this._komentar.Substring(0, batasKarakter) + "...";
+            }
+
+            return preview;
+        }
+
+        public string DapatkanStatusBalasan()
+        {
+            string statusUi;
+
+            if (this.IsSelesai())
+            {
+                statusUi = "✅ Telah Dibalas Penjual";
+            }
+            else
+            {
+                statusUi = "⏳ Menunggu Balasan";
+            }
+
+            return statusUi;
+        }
+
+        public string DapatkanWaktuFormatUI()
+        {
+            string waktuFormat;
+
+            if (this._tanggalUlasan != DateTime.MinValue)
+            {
+                waktuFormat = this._tanggalUlasan.ToString("dd MMM yyyy, HH:mm");
+            }
+            else
+            {
+                waktuFormat = "Tanggal tidak diketahui";
+            }
+
+            return waktuFormat;
+        }
 
         // === IMPLEMENTASI IValidatable ===
         public void Validate()
         {
-            if (_rating < 1 || _rating > 5)
+            bool validasiUlasanSelesai;
+
+            if (this._rating < 1 || this._rating > 5)
             {
                 throw new InvalidOrderException("Review tidak valid: Rating di luar jangkauan.", "rating", "REVIEW_INVALID");
+            }
+            else
+            {
+                validasiUlasanSelesai = true; // Penugasan nyata agar else tidak kosong
             }
         }
 
         // === IMPLEMENTASI IResolvable ===
-        /// <summary>
-        /// Penjual memberikan balasan terhadap review pembeli.
-        /// Pemetaan DB: reviews.balasan_penjual
-        /// </summary>
+
         public void BeriTanggapan(string tanggapan)
         {
-            if (string.IsNullOrEmpty(tanggapan))
+            if (string.IsNullOrWhiteSpace(tanggapan))
             {
                 throw new InvalidOrderException("Balasan penjual tidak boleh kosong!", "balasan_penjual", "REVIEW_BALAS_KOSONG");
             }
-            _balasanPenjual = tanggapan;
+            else
+            {
+                this._balasanPenjual = tanggapan.Trim();
+            }
         }
 
         public bool IsSelesai()
         {
+            bool sudahDibalas;
+
             // Review dianggap "selesai/resolusi" jika sudah dibalas penjual
-            return !string.IsNullOrEmpty(_balasanPenjual);
+            if (string.IsNullOrWhiteSpace(this._balasanPenjual))
+            {
+                sudahDibalas = false;
+            }
+            else
+            {
+                sudahDibalas = true;
+            }
+
+            return sudahDibalas;
         }
 
         public string GetTanggapan()
         {
-            return _balasanPenjual;
+            return this._balasanPenjual;
         }
     }
 }

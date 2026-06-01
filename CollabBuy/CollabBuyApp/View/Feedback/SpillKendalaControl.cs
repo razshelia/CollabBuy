@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
             if (result.sukses)
             {
-                // Menyesuaikan logika fitur aduan agar pengguna mendapat feedback notifikasi sesuai request
+                // Notifikasi aduan sesuai request
                 MessageBox.Show("Laporan udah masuk ke sistem! Beberapa saat lagi akan dikabari sama Mimin ya bestie! 💌",
                                 "Aduan Terkirim", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 txtSubjek.Clear();
@@ -48,12 +48,65 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
         private void LoadRiwayat()
         {
-            dgvRiwayat.DataSource = _controller.GetRiwayatSpill(_currentUser.GetIdUser());
+            DataTable dtRaw = _controller.GetRiwayatSpill(_currentUser.GetIdUser());
+
+            // Buat DataTable khusus UI agar lebih rapi
+            DataTable dtUI = new DataTable();
+            dtUI.Columns.Add("subjek", typeof(string));
+            dtUI.Columns.Add("deskripsi", typeof(string));
+            dtUI.Columns.Add("tanggal", typeof(string));
+            dtUI.Columns.Add("status", typeof(string));
+            dtUI.Columns.Add("balasan", typeof(string));
+
+            foreach (DataRow row in dtRaw.Rows)
+            {
+                string subjek = row["subjek"].ToString();
+                string deskripsiRaw = row["deskripsi"].ToString();
+                bool isSelesai = false;
+                if (!row.IsNull("is_selesai")) isSelesai = Convert.ToBoolean(row["is_selesai"]);
+
+                string balasan = row["balasan"]?.ToString();
+
+                // --- OOP BEST PRACTICE CALL ---
+                // Buat objek untuk memanfaatkan behavior-nya
+                Complaint aduanObj = new Complaint(_currentUser.GetIdUser(), subjek, deskripsiRaw);
+                aduanObj.SetStatus(isSelesai ? "Selesai" : "Menunggu");
+
+                if (!string.IsNullOrWhiteSpace(balasan))
+                {
+                    aduanObj.SetTanggapanAdmin(balasan);
+                }
+
+                // Gunakan Method Behavior Model!
+                string statusKece = aduanObj.DapatkanStatusUI();
+                string previewTeks = aduanObj.DapatkanPreviewDeskripsi(30);
+                string previewBalasan = string.IsNullOrWhiteSpace(aduanObj.GetTanggapanAdmin()) ? "Belum direspon" : aduanObj.GetTanggapanAdmin();
+
+                // Batasi balasan admin jika terlalu panjang di grid
+                if (previewBalasan.Length > 35 && previewBalasan != "Belum direspon")
+                {
+                    previewBalasan = previewBalasan.Substring(0, 35) + "...";
+                }
+                // ------------------------------
+
+                dtUI.Rows.Add(
+                    subjek,
+                    previewTeks,
+                    Convert.ToDateTime(row["tanggal"]).ToString("dd MMM yyyy, HH:mm"),
+                    statusKece,
+                    previewBalasan
+                );
+            }
+
+            dgvRiwayat.DataSource = dtUI;
+
             if (dgvRiwayat.Columns.Count > 0)
             {
                 dgvRiwayat.Columns["subjek"].HeaderText = "Subjek Masalah";
+                dgvRiwayat.Columns["deskripsi"].HeaderText = "Detail Curhatan";
                 dgvRiwayat.Columns["tanggal"].HeaderText = "Waktu Spill";
-                dgvRiwayat.Columns["is_selesai"].HeaderText = "Status Beres?";
+                dgvRiwayat.Columns["status"].HeaderText = "Status";
+                dgvRiwayat.Columns["balasan"].HeaderText = "Balasan Mimin";
             }
         }
 
@@ -65,20 +118,20 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             int formW = (int)(w * 0.42);
             if (formW < 300) formW = 300;
             pnlForm.Width = formW;
-            pnlForm.Height = this.Height - pnlForm.Top - margin; // ← TAMBAH INI
+            pnlForm.Height = this.Height - pnlForm.Top - margin;
 
             int innerW = formW - 48;
             txtSubjek.Width = innerW;
             txtDeskripsi.Width = innerW;
-            txtDeskripsi.Height = pnlForm.Height - btnAduan.Height - 200; // ← TAMBAH INI
-            btnAduan.Top = txtDeskripsi.Top + txtDeskripsi.Height + 15; // ← TAMBAH INI
+            txtDeskripsi.Height = pnlForm.Height - btnAduan.Height - 200;
+            btnAduan.Top = txtDeskripsi.Top + txtDeskripsi.Height + 15;
             btnAduan.Width = innerW;
 
             int riwayatLeft = margin + formW + 24;
             lblRiwayat.Left = riwayatLeft;
             dgvRiwayat.Left = riwayatLeft;
             dgvRiwayat.Width = this.Width - riwayatLeft - margin;
-            dgvRiwayat.Height = this.Height - dgvRiwayat.Top - margin; // ← TAMBAH INI
+            dgvRiwayat.Height = this.Height - dgvRiwayat.Top - margin;
         }
     }
 }

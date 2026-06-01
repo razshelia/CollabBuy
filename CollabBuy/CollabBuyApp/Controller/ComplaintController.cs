@@ -1,8 +1,9 @@
-﻿using CollabBuy.CollabBuyApp.Models;
+﻿using CollabBuy.CollabBuyApp.Exceptions;
+using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Data; // Wajib ditambahkan untuk DataTable UI
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -19,8 +20,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // === KONSTRUKTOR ===
         public ComplaintController()
         {
-            _complaintRepo = new ComplaintRepository();
-            _logRepo = new ActivityLogRepository();
+            this._complaintRepo = new ComplaintRepository();
+            this._logRepo = new ActivityLogRepository();
         }
 
         // =======================================================
@@ -32,8 +33,14 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public DataTable GetRiwayatSpill(int idUser)
         {
-            try { return _complaintRepo.GetRiwayatByUser(idUser); }
-            catch (Exception) { return new DataTable(); }
+            try
+            {
+                return this._complaintRepo.GetRiwayatByUser(idUser);
+            }
+            catch (Exception)
+            {
+                return new DataTable();
+            }
         }
 
         /// <summary>
@@ -43,33 +50,36 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public (bool sukses, string pesan) GasSpillKendala(int idUser, string subjek, string deskripsi)
         {
             if (string.IsNullOrWhiteSpace(subjek) || string.IsNullOrWhiteSpace(deskripsi))
+            {
                 return (false, "Subjek sama deskripsi jangan dikosongin dong bestie, Mimin bingung nanti!");
-
-            try
-            {
-                // 1. Buat Objek dan Validasi Asli
-                Complaint aduan = new Complaint(idUser, subjek, deskripsi);
-                aduan.Validate();
-
-                // 2. Simpan ke Database
-                _complaintRepo.Insert(aduan);
-
-                // 3. Catat ke Activity Log Asli
-                ActivityLog log = new ActivityLog(idUser, "Mengirim aduan: " + subjek);
-                _logRepo.Insert(log);
-
-                return (true, "Aman! Curhatan kamu udah dikirim ke Mimin. Tunggu balasan ya! 💌");
             }
-            catch (InvalidOrderException ex)
+            else
             {
-                return (false, "Waduh: " + ex.GetPesanLengkap());
-            }
-            catch (Exception ex)
-            {
-                return (false, "Duh server lagi ngambek: " + ex.Message);
+                try
+                {
+                    // 1. Buat Objek dan Validasi Asli (Memanfaatkan Model)
+                    Complaint aduan = new Complaint(idUser, subjek, deskripsi);
+                    aduan.Validate();
+
+                    // 2. Simpan ke Database
+                    this._complaintRepo.Insert(aduan);
+
+                    // 3. Catat ke Activity Log Asli
+                    ActivityLog log = new ActivityLog(idUser, "Mengirim aduan: " + subjek);
+                    this._logRepo.Insert(log);
+
+                    return (true, "Aman! Curhatan kamu udah dikirim ke Mimin. Tunggu balasan ya! 💌");
+                }
+                catch (InvalidOrderException ex)
+                {
+                    return (false, "Waduh: " + ex.GetPesanLengkap());
+                }
+                catch (Exception ex)
+                {
+                    return (false, "Duh server lagi ngambek: " + ex.Message);
+                }
             }
         }
-
 
         // =======================================================
         // FITUR ADMIN (KODE ASLI DIPERTAHANKAN)
@@ -82,7 +92,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try
             {
-                return _complaintRepo.GetAll();
+                return this._complaintRepo.GetAll();
             }
             catch (Exception)
             {
@@ -92,49 +102,61 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         /// <summary>
         /// Memberikan tanggapan dan menyelesaikan aduan.
-        /// Memanfaatkan method BeriTanggapan() dari Interface IResolvable.
+        /// Memanfaatkan method BerikanTanggapan() dari Class Complaint yang baru.
         /// </summary>
         public (bool sukses, string pesan) TanggapiAduan(int idAduan, string balasanAdmin, int idAdmin)
         {
-            try
+            if (string.IsNullOrEmpty(balasanAdmin))
             {
-                if (string.IsNullOrEmpty(balasanAdmin))
-                {
-                    return (false, "Balasan admin tidak boleh kosong!");
-                }
-
-                Complaint aduan = _complaintRepo.GetById(idAduan);
-                if (aduan == null)
-                {
-                    return (false, "Aduan tidak ditemukan!");
-                }
-
-                // Panggil method dari IResolvable. 
-                // Ini akan otomatis mengubah status IsSelesai menjadi true di RAM.
-                aduan.BeriTanggapan(balasanAdmin);
-
-                // Simpan perubahan ke DB
-                _complaintRepo.Update(aduan);
-
-                // Catat ke Activity Log
-                ActivityLog log = new ActivityLog(idAdmin, "Membalas aduan ID: " + idAduan);
-                _logRepo.Insert(log);
-
-                return (true, "Tanggapan berhasil dikirim dan aduan diselesaikan.");
+                return (false, "Balasan admin tidak boleh kosong!");
             }
-            catch (InvalidOrderException ex)
+            else
             {
-                return (false, ex.GetPesanLengkap());
-            }
-            catch (Exception ex)
-            {
-                return (false, "Error sistem: " + ex.Message);
+                try
+                {
+                    Complaint aduan = this._complaintRepo.GetById(idAduan);
+
+                    if (aduan == null)
+                    {
+                        return (false, "Aduan tidak ditemukan!");
+                    }
+                    else
+                    {
+                        // OOP BEST PRACTICE: Memanggil method behavior dari Model
+                        // True berarti statusnya langsung diset menjadi "Selesai" di dalam model
+                        aduan.BerikanTanggapan(balasanAdmin, true);
+
+                        // Simpan perubahan objek yang sudah diupdate ke DB
+                        this._complaintRepo.Update(aduan);
+
+                        // Catat ke Activity Log
+                        ActivityLog log = new ActivityLog(idAdmin, "Membalas aduan ID: " + idAduan);
+                        this._logRepo.Insert(log);
+
+                        return (true, "Tanggapan berhasil dikirim dan aduan diselesaikan.");
+                    }
+                }
+                catch (InvalidOrderException ex)
+                {
+                    return (false, ex.GetPesanLengkap());
+                }
+                catch (Exception ex)
+                {
+                    return (false, "Error sistem: " + ex.Message);
+                }
             }
         }
+
         public DataTable GetAduanBelumBeres()
         {
-            try { return _complaintRepo.GetPendingAduan(); }
-            catch { return new DataTable(); }
+            try
+            {
+                return this._complaintRepo.GetPendingAduan();
+            }
+            catch
+            {
+                return new DataTable();
+            }
         }
     }
 }

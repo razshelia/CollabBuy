@@ -1,132 +1,255 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Models.Interfaces;
+﻿using CollabBuy.CollabBuyApp.Models.Interfaces;
+using CollabBuy.CollabBuyApp.Exceptions;
 using System;
+using System.Collections.Generic;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
     /// <summary>
     /// Kelas turunan dari User yang bertindak sebagai penjual/danus.
     /// Mengimplementasikan IApprovable terkait verifikasi KTM dan toko.
-    /// 
-    /// Pemetaan Database:
-    /// - Tabel: users (peran = 'Penjual') & verifications
     /// </summary>
     public class Penjual : User, IApprovable
     {
-        // === PRIVATE FIELDS (Spesifik Penjual) ===
+        // === PRIVATE FIELDS ===
         private string _nim;
         private string _namaToko;
         private int _tahunMasuk;
         private byte[] _buktiKtm;
         private bool _isVerifikasi;
+        private string _alasanPenolakan;
+
+        // Relasi Object: Penjual memiliki banyak Produk
+        private List<Product> _katalogLapak;
 
         // === KONSTRUKTOR ===
         public Penjual(string nama, string username, string password)
             : base(nama, username, password, "Penjual")
         {
-            _isVerifikasi = false;
+            this._isVerifikasi = false;
+            this._alasanPenolakan = "";
+            this._nim = "";
+            this._namaToko = "";
+            this._tahunMasuk = DateTime.Now.Year;
+            this._buktiKtm = null;
+            this._katalogLapak = new List<Product>();
         }
 
-        // === GETTER & SETTER ===
-        public string GetNim() { return _nim; }
+        // === GETTER & SETTER STRICT ENCAPSULATION ===
+        public string GetNim()
+        {
+            return this._nim;
+        }
+
         public void SetNim(string nim)
         {
-            if (string.IsNullOrEmpty(nim))
+            if (string.IsNullOrWhiteSpace(nim))
             {
                 throw new InvalidOrderException("NIM penjual wajib diisi!", "nim", "PENJUAL_NIM_KOSONG");
             }
-            _nim = nim;
+            else
+            {
+                this._nim = nim.Trim();
+            }
         }
 
-        public string GetNamaToko() { return _namaToko; }
+        public string GetNamaToko()
+        {
+            return this._namaToko;
+        }
+
         public void SetNamaToko(string namaToko)
         {
-            if (string.IsNullOrEmpty(namaToko))
+            if (string.IsNullOrWhiteSpace(namaToko))
             {
                 throw new InvalidOrderException("Nama toko wajib diisi!", "nama_toko", "PENJUAL_TOKO_KOSONG");
             }
-            _namaToko = namaToko;
+            else
+            {
+                this._namaToko = namaToko.Trim();
+            }
         }
 
-        public int GetTahunMasuk() { return _tahunMasuk; }
+        public int GetTahunMasuk()
+        {
+            return this._tahunMasuk;
+        }
+
         public void SetTahunMasuk(int tahun)
         {
             if (tahun < 2000 || tahun > DateTime.Now.Year)
             {
                 throw new InvalidOrderException("Tahun masuk tidak valid!", "tahun_masuk", "TAHUN_INVALID");
             }
-            _tahunMasuk = tahun;
+            else
+            {
+                this._tahunMasuk = tahun;
+            }
         }
 
-        // === TAMBAHAN FIELD BUKTI KTM (BYTEA) ===
-        
-
-        /// <summary>
-        /// Mengambil data bukti KTM dalam format byte[].
-        /// </summary>
         public byte[] GetBuktiKtm()
         {
-            return _buktiKtm;
+            return this._buktiKtm;
         }
 
-        /// <summary>
-        /// Menetapkan file bukti KTM dengan validasi ukuran.
-        /// </summary>
         public void SetBuktiKtm(byte[] ktm)
         {
-            // Validasi: Maksimal ukuran file 2MB (2 * 1024 * 1024 = 2097152 byte)
-            if (ktm != null && ktm.Length > 2097152)
+            if (ktm == null || ktm.Length == 0)
+            {
+                throw new InvalidOrderException("File bukti KTM tidak boleh kosong!", "bukti_ktm", "KTM_KOSONG");
+            }
+            else if (ktm.Length > 2097152) // 2MB
             {
                 throw new InvalidOrderException("Ukuran file KTM maksimal 2MB!", "bukti_ktm", "KTM_OVERSIZE");
             }
-            _buktiKtm = ktm;
+            else
+            {
+                this._buktiKtm = ktm;
+            }
         }
-
 
         // === OVERRIDE METHOD ABSTRAK (POLIMORFISME) ===
         public override string GetTipeUser()
         {
-            if (_isVerifikasi)
+            string tipe;
+            if (this._isVerifikasi)
             {
-                return "Penjual Terverifikasi";
+                tipe = "Penjual Terverifikasi";
             }
-            return "Penjual Belum Verifikasi";
+            else
+            {
+                tipe = "Penjual Belum Verifikasi";
+            }
+            return tipe;
         }
 
-
         // === IMPLEMENTASI IApprovable ===
-        /// <summary>
-        /// Menyetujui verifikasi penjual oleh Admin.
-        /// Pemetaan DB: verifications.is_verifikasi = TRUE
-        /// </summary>
         public void Approve()
         {
-            _isVerifikasi = true;
+            this._isVerifikasi = true;
+            this._alasanPenolakan = "";
         }
 
         public void Reject(string alasan)
         {
-            _isVerifikasi = false;
-            // Bisa ditambahkan logika penyimpanan alasan reject jika dibutuhkan
+            if (string.IsNullOrWhiteSpace(alasan))
+            {
+                throw new InvalidOrderException("Alasan penolakan KTM wajib diisi oleh Admin!", "alasan_tolak", "REJECT_INVALID");
+            }
+            else
+            {
+                this._isVerifikasi = false;
+                this._alasanPenolakan = alasan.Trim();
+            }
         }
 
         public bool GetStatusPersetujuan()
         {
-            return _isVerifikasi;
+            return this._isVerifikasi;
         }
 
+        public string GetAlasanPenolakan()
+        {
+            return this._alasanPenolakan;
+        }
+
+        // =========================================================
+        // IMPLEMENTASI METODE BISNIS / BEHAVIOR KHUSUS PENJUAL
+        // =========================================================
+
+        public void TambahProdukKeLapak(Product produkBaru)
+        {
+            if (produkBaru == null)
+            {
+                throw new InvalidOrderException("Data produk tidak boleh kosong!", "produk", "PRODUK_NULL");
+            }
+            else
+            {
+                this._katalogLapak.Add(produkBaru);
+            }
+        }
+
+        public int DapatkanTotalProdukAktif()
+        {
+            int total;
+            if (this._katalogLapak == null)
+            {
+                total = 0;
+            }
+            else
+            {
+                total = this._katalogLapak.Count;
+            }
+            return total;
+        }
+
+        public string DapatkanInfoDanus()
+        {
+            string infoLengkap;
+
+            if (string.IsNullOrWhiteSpace(this._namaToko) || string.IsNullOrWhiteSpace(this._nim))
+            {
+                infoLengkap = "Data Lapak Belum Lengkap";
+            }
+            else
+            {
+                infoLengkap = $"🏪 {this._namaToko} | 🎓 NIM: {this._nim} (Angkatan {this._tahunMasuk})";
+            }
+
+            return infoLengkap;
+        }
+
+        public bool ApakahBisaBukaLapak()
+        {
+            bool bisaBuka;
+
+            if (this._isVerifikasi && !this.IsDiblokir())
+            {
+                bisaBuka = true;
+            }
+            else
+            {
+                bisaBuka = false;
+            }
+
+            return bisaBuka;
+        }
+
+        /// <summary>
+        /// Mengecek apakah mahasiswa masih dalam masa studi wajar (Maksimal 7 tahun).
+        /// Dihitung dari tahun ini (2026).
+        /// </summary>
+        public bool ApakahMahasiswaAktif()
+        {
+            bool isAktif;
+            int lamaStudi = DateTime.Now.Year - this._tahunMasuk;
+
+            if (lamaStudi <= 7)
+            {
+                isAktif = true;
+            }
+            else
+            {
+                isAktif = false;
+            }
+
+            return isAktif;
+        }
 
         // === OVERRIDE VALIDATE ===
         public override void Validate()
         {
-            base.Validate(); // Panggil validasi dasar dari User
-            if (string.IsNullOrEmpty(_nim))
+            bool validasiPenjualSelesai;
+
+            base.Validate();
+
+            if (string.IsNullOrWhiteSpace(this._nim) || string.IsNullOrWhiteSpace(this._namaToko))
             {
-                throw new InvalidOrderException("Data penjual belum lengkap (NIM kosong)!", "nim", "PENJUAL_INVALID");
+                throw new InvalidOrderException("Data penjual belum lengkap (NIM atau Nama Toko kosong)!", "nim_toko", "PENJUAL_INVALID");
             }
-            if (string.IsNullOrEmpty(_namaToko))
+            else
             {
-                throw new InvalidOrderException("Data penjual belum lengkap (Nama Toko kosong)!", "nama_toko", "PENJUAL_INVALID");
+                validasiPenjualSelesai = true;
             }
         }
     }

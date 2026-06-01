@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Exceptions;
 using CollabBuy.CollabBuyApp.Models;
 
 namespace CollabBuy.CollabBuyApp.View.UserDashboard

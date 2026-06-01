@@ -1,5 +1,6 @@
 ﻿using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Models.Interfaces;
+using CollabBuy.CollabBuyApp.Exceptions;
 using System;
 using System.Globalization;
 
