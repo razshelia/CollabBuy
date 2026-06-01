@@ -3,6 +3,7 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Models; // PENTING: Untuk memanggil class Category
 
 namespace CollabBuy.CollabBuyApp.View.Admin
 {
@@ -63,26 +64,52 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
         private void btnTambah_Click(object sender, EventArgs e)
         {
-            var res = _controller.TambahKategori(txtNama.Text);
-            if (res.sukses)
+            try
             {
-                MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadDataGrid();
+                // 1. MENGGUNAKAN MODEL OOP
+                // Saat objek dibuat, Model otomatis memvalidasi kekosongan dan merapikan teks!
+                Category katBaru = new Category(txtNama.Text);
+
+                // 2. Ambil teks yang sudah dirapikan (Title Case) oleh Model untuk dilempar ke Controller
+                string namaBersih = katBaru.GetNamaKategori();
+
+                var res = _controller.TambahKategori(namaBersih);
+                if (res.sukses)
+                {
+                    MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadDataGrid();
+                }
+                else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            catch (Exception ex) // Akan menangkap InvalidOrderException dari Model jika TextBox kosong
+            {
+                MessageBox.Show(ex.Message, "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (_selectedId == 0) return;
 
-            var res = _controller.EditKategori(_selectedId, txtNama.Text);
-            if (res.sukses)
+            try
             {
-                MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadDataGrid();
+                // 1. MENGGUNAKAN MODEL OOP UNTUK UPDATE
+                Category katUpdate = new Category(txtNama.Text);
+                katUpdate.SetIdKategori(_selectedId); // Memanfaatkan validasi Setter ID juga
+
+                // 2. Ambil teks dan ID yang sudah diproses oleh Model
+                var res = _controller.EditKategori(katUpdate.GetIdKategori(), katUpdate.GetNamaKategori());
+                if (res.sukses)
+                {
+                    MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadDataGrid();
+                }
+                else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void btnHapus_Click(object sender, EventArgs e)

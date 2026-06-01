@@ -145,7 +145,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public List<Transaction> GetByIdPembeli(int idPembeli)
         {
             List<Transaction> listTransaksi = new List<Transaction>();
-            string query = @"SELECT id_transaksi, id_koordinator, tanggal_transaksi, status_pesanan, is_valid
+
+            // PERBAIKAN: Tambahkan 'bukti_bayar' di SELECT agar status bayar terdeteksi!
+            string query = @"SELECT id_transaksi, id_koordinator, tanggal_transaksi, status_pesanan, is_valid, bukti_bayar
                              FROM transactions
                              WHERE id_koordinator = @idPembeli
                              ORDER BY tanggal_transaksi DESC;";
@@ -178,8 +180,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                 transaksi.SetTanggalTransaksi(reader.GetDateTime(reader.GetOrdinal("tanggal_transaksi")));
                             }
 
-                            // Simpan tanggal menggunakan reflection-free approach
-                            // (tanggal sudah di-set oleh konstruktor; kita set ulang melalui GetById jika perlu)
+                            // PERBAIKAN: Ambil array gambar resi dari database ke object
+                            if (!reader.IsDBNull(reader.GetOrdinal("bukti_bayar")))
+                            {
+                                transaksi.SetBuktiBayar((byte[])reader["bukti_bayar"]);
+                            }
+
                             listTransaksi.Add(transaksi);
                         }
                     }
@@ -532,11 +538,21 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetRiwayatPesananDataTable(int idKoordinator)
         {
             DataTable dt = new DataTable();
+
+            // PERBAIKAN: Gunakan JOIN ke tabel transactions untuk ambil bukti_bayar
+            // karena view vw_transaksi_lengkap tidak memiliki kolom bukti_bayar
             string query = @"
-                SELECT id_transaksi, tanggal_transaksi, total_tagihan, total_cashback, status_pesanan 
-                FROM vw_transaksi_lengkap 
-                WHERE id_koordinator = @id 
-                ORDER BY tanggal_transaksi DESC;";
+                SELECT 
+                    vw.id_transaksi, 
+                    vw.tanggal_transaksi, 
+                    vw.total_tagihan, 
+                    vw.total_cashback, 
+                    vw.status_pesanan,
+                    t.bukti_bayar
+                FROM vw_transaksi_lengkap vw
+                JOIN transactions t ON vw.id_transaksi = t.id_transaksi
+                WHERE vw.id_koordinator = @id 
+                ORDER BY vw.tanggal_transaksi DESC;";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
             {

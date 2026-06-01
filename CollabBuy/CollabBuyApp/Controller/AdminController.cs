@@ -324,7 +324,19 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 throw new Exception("Gagal mengambil data leaderboard: " + ex.Message);
             }
         }
-
-
+        // Tambahkan di dalam class AdminController
+        public System.Collections.Generic.List<CollabBuy.CollabBuyApp.Models.ActivityLog> GetAllActivityLogs()
+        {
+            try
+            {
+                CollabBuy.CollabBuyApp.Repositories.ActivityLogRepository repo = new CollabBuy.CollabBuyApp.Repositories.ActivityLogRepository();
+                return repo.GetAll();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error ambil log: " + ex.Message);
+                return new System.Collections.Generic.List<CollabBuy.CollabBuyApp.Models.ActivityLog>();
+            }
+        }
     }
 }

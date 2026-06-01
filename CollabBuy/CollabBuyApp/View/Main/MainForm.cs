@@ -136,7 +136,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void BuildSidebarMenu()
         {
-
             pnlSidebar.Controls.Clear();
 
             // 1. LOGO UTAMA
@@ -148,7 +147,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 Dock = DockStyle.Top,
                 Height = 60,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Padding = new Padding(20, 15, 0, 0)
+                Padding = new Padding(0, 15, 0, 0)
             };
             pnlSidebar.Controls.Add(lblLogo);
 
@@ -208,6 +207,30 @@ namespace CollabBuy.CollabBuyApp.View.Main
             lblLogo.BringToFront();
             lblUserInfo.BringToFront();
 
+            // =========================================================
+            // LOGIKA NAVIGASI KERANJANG & PEMBAYARAN (ANTI ERROR)
+            // =========================================================
+            Action bukaKeranjang = null;
+            bukaKeranjang = () => {
+                var trxCtrl = new TransactionController(_currentUser.GetIdUser());
+                var keranjangPage = new ViewTransaction.KeranjangBelanjaControl(_currentUser, trxCtrl);
+
+                keranjangPage.OnNavigatePembayaran += (totalTagihan) => {
+                    var bayarPage = new ViewTransaction.PembayaranControl(_currentUser, trxCtrl, totalTagihan);
+
+                    // Kalau batal bayar, balik ke keranjang utuh
+                    bayarPage.OnNavigateKembali += () => bukaKeranjang();
+
+                    // Kalau sukses bayar, pergi ke riwayat
+                    bayarPage.OnCheckoutBerhasil += (idTrx) => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser));
+
+                    ShowUserControl(bayarPage);
+                };
+
+                ShowUserControl(keranjangPage);
+            };
+            // =========================================================
+
             string peran = _currentUser.GetPeran();
 
             // Menu Universal
@@ -220,26 +243,32 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AddCategoryLabel("MANAGEMENT");
                 AddMenuButton("🏢 Verifikasi Toko", () => ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
                 AddMenuButton("📁 Kelola Kategori", () => ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
-                AddMenuButton("📣 Kelola Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
-                AddMenuButton("👥 Kelola User", () => ShowUserControl(new ViewAdmin.KelolaUserControl()));
+                AddMenuButton("📣 Tanggapan Aduan", () => ShowUserControl(new ViewAdmin.TanggapanAduanControl(_currentUser)));
                 AddMenuButton("📊 Laporan Sistem", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
-                AddMenuButton("📋 Log Aktivitas", () => ShowUserControl(new ViewAdmin.LogAktivitasControl()));
             }
             else if (peran == "Penjual")
             {
-                AddCategoryLabel("SELLER");
+                AddCategoryLabel("LAPAK GUE (SELLER)");
                 AddMenuButton("📦 Manajemen Produk", () => ShowUserControl(new ViewProduct.ManajemenProdukControl(_currentUser)));
                 AddMenuButton("🎁 Buka Sesi PO", () => ShowUserControl(new ViewPreOrder.BukaSesiPOControl(_currentUser)));
                 AddMenuButton("📋 Sesi PO Aktif", () => ShowUserControl(new ViewPreOrder.SesiPOAktifControl(_currentUser)));
                 AddMenuButton("📥 Pesanan Masuk", () => ShowUserControl(new ViewTransaction.PesananMasukControl(_currentUser)));
                 AddMenuButton("⭐ Balas Ulasan", () => ShowUserControl(new ViewFeedback.UlasanLapakControl(_currentUser)));
                 AddMenuButton("📊 Analitik Penjualan", () => ShowUserControl(new ViewReport.AnalitikPenjualanControl(_currentUser)));
+
+                // MENU PEMBELI DITAMPILKAN JUGA BUAT PENJUAL!
+                AddCategoryLabel("JAJAN YUK (BUYER)");
+                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
+                AddMenuButton("🛒 Keranjang Belanja", () => bukaKeranjang()); // Panggil logic keranjang
+                AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
+                AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
+                AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
             }
-            else
+            else // Pembeli Biasa
             {
-                AddCategoryLabel("BUYER");
-                AddMenuButton("🏪 Katalog Produk", () => ShowKatalogProduk());
-                AddMenuButton("🛒 Keranjang Belanja", () => ShowKeranjangBelanja());
+                AddCategoryLabel("JAJAN YUK (BUYER)");
+                AddMenuButton("🏪 Katalog Produk", () => ShowUserControl(new ViewProduct.KatalogProdukControl(_currentUser)));
+                AddMenuButton("🛒 Keranjang Belanja", () => bukaKeranjang()); // Panggil logic keranjang
                 AddMenuButton("📋 Riwayat Pesanan", () => ShowUserControl(new ViewTransaction.RiwayatPesananControl(_currentUser)));
                 AddMenuButton("⭐ Beri Ulasan", () => ShowUserControl(new ViewFeedback.BeriUlasanControl(_currentUser)));
                 AddMenuButton("📝 Laporkan Kendala", () => ShowUserControl(new ViewFeedback.SpillKendalaControl(_currentUser)));
@@ -261,17 +290,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += (s, e) => HandleLogout();
             pnlSidebar.Controls.Add(btnLogout);
-
-            PictureBox picLogoKecil = new PictureBox
-            {
-                Image = System.Drawing.Image.FromFile("logo_sidebar.jpeg"),
-                SizeMode = PictureBoxSizeMode.Zoom,
-                Size = new System.Drawing.Size(40, 60),
-                Location = new System.Drawing.Point(10, 12), // Jarak dari kiri dan atas
-                BackColor = System.Drawing.Color.Transparent
-            };
-            pnlSidebar.Controls.Add(picLogoKecil);
-            picLogoKecil.BringToFront();
         }
 
         private void ShowKatalogProduk()

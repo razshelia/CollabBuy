@@ -156,5 +156,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 return null;
             }
         }
+        public DataTable GetPOHampirPenuh()
+        {
+            try { return _productRepo.GetPOHampirPenuh(); }
+            catch { return new DataTable(); }
+        }
     }
 }

@@ -72,7 +72,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("foto_image", typeof(Image));
                 dtUI.Columns.Add("nama_produk", typeof(string));
-                dtUI.Columns.Add("nama_kategori", typeof(string));
+                dtUI.Columns.Add("nama_kategori", typeof(string)); // Ini yang akan kita proses
                 dtUI.Columns.Add("judul_po", typeof(string));
                 dtUI.Columns.Add("harga_format", typeof(string));
                 dtUI.Columns.Add("target_kuota", typeof(string));
@@ -80,11 +80,21 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 foreach (DataRow row in dtRaw.Rows)
                 {
                     string judulPo = row.IsNull("judul_po") ? "Reguler" : row["judul_po"].ToString();
-                    string kategori = row.IsNull("nama_kategori") ? "-" : row["nama_kategori"].ToString();
+
+                    // --- OOP BEST PRACTICE CALL ---
+                    // 1. Ambil nama kategori mentah dari DB
+                    string namaKatMentah = row.IsNull("nama_kategori") ? "Umum" : row["nama_kategori"].ToString();
+
+                    // 2. Buat objek Category, ini otomatis menjalankan method RapikanNamaKategori() di konstruktornya!
+                    Category katObj = new Category(namaKatMentah);
+
+                    // 3. Gunakan hasil yang sudah rapi
+                    string kategoriRapi = katObj.GetNamaKategori();
+                    // ------------------------------
+
                     string harga = "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0");
                     string kuota = row.IsNull("target_kuota") ? "-" : row["target_kuota"].ToString();
 
-                    // Konversi Byte to Image
                     Image foto = null;
                     if (row["foto_produk"] != DBNull.Value)
                     {
@@ -95,7 +105,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         }
                     }
 
-                    dtUI.Rows.Add(foto, row["nama_produk"], kategori, judulPo, harga, kuota);
+                    dtUI.Rows.Add(foto, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);
                 }
 
                 dgvLapak.DataSource = dtUI;

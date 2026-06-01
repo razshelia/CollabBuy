@@ -413,5 +413,30 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
+        public DataTable GetPOHampirPenuh()
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, 
+               COALESCE(SUM(td.jumlah_pesanan), 0) AS terisi, p.foto_produk
+        FROM products p
+        JOIN preorders po ON p.id_po = po.id_po
+        LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
+        WHERE po.is_aktif = TRUE AND p.target_kuota IS NOT NULL
+        GROUP BY p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk
+        HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
+           AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) > 0
+        ORDER BY (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) ASC;";
+
+            using (var conn = new Npgsql.NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new Npgsql.NpgsqlCommand(query, conn))
+                {
+                    using (var da = new Npgsql.NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
     }
 }

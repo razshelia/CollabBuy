@@ -186,7 +186,7 @@
             this.lblNamaToko.Name = "lblNamaToko";
             this.lblNamaToko.Size = new System.Drawing.Size(126, 17);
             this.lblNamaToko.TabIndex = 2;
-            this.lblNamaToko.Text = "Nama Lapak/Circle";
+            this.lblNamaToko.Text = "Nama Lapak";
             // 
             // chkSyarat
             // 

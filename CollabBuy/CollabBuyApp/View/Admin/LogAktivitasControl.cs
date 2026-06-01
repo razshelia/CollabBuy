@@ -1,14 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Models;
+
+// PERHATIKAN: Tidak ada lagi 'using CollabBuy.CollabBuyApp.Repositories;' di sini!
+// Ini membuktikan View kita sangat taat aturan MVC!
 
 namespace CollabBuy.CollabBuyApp.View.Admin
 {
     public partial class LogAktivitasControl : UserControl
     {
         private readonly AdminController _adminController;
+        private Button _btnExport; // Tombol export rahasia buatan kode
 
         public LogAktivitasControl()
         {
@@ -20,6 +27,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             SetupDataGridView();
             LoadLog("Semua");
+            BuatTombolExport();
+
             this.Resize += (s, ev) => AdjustLayout();
             AdjustLayout();
         }
@@ -29,42 +38,52 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             dgvLog.AutoGenerateColumns = false;
             dgvLog.Columns.Clear();
 
-            dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pelaku", HeaderText = "Nama User", DataPropertyName = "pelaku", Width = 160 });
+            dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pelaku", HeaderText = "Nama User", DataPropertyName = "pelaku", Width = 140 });
             dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Peran", HeaderText = "Peran", DataPropertyName = "peran", Width = 80 });
+            dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "kategori", Width = 130 });
             dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Aktivitas", HeaderText = "Aktivitas", DataPropertyName = "aktivitas", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Waktu", HeaderText = "Waktu Akses", DataPropertyName = "waktu_format", Width = 160 });
+            dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Waktu", HeaderText = "Waktu Akses", DataPropertyName = "waktu_format", Width = 150 });
         }
 
         private void LoadLog(string filter)
         {
             try
             {
-                // Panggil AdminController → ActivityLogRepository.GetAllAsDataTable()
                 DataTable dtRaw = _adminController.GetLogAktivitasDataTable();
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("pelaku", typeof(string));
                 dtUI.Columns.Add("peran", typeof(string));
+                dtUI.Columns.Add("kategori", typeof(string));
                 dtUI.Columns.Add("aktivitas", typeof(string));
                 dtUI.Columns.Add("waktu_format", typeof(string));
 
                 foreach (DataRow row in dtRaw.Rows)
                 {
-                    string aktivitas = row["aktivitas"].ToString().ToLower();
-                    bool isLogin = aktivitas.Contains("login") || aktivitas.Contains("logout");
-                    bool isPerubahan = aktivitas.Contains("ubah") || aktivitas.Contains("update") ||
-                                       aktivitas.Contains("edit") || aktivitas.Contains("ganti") ||
-                                       aktivitas.Contains("tambah") || aktivitas.Contains("hapus") ||
-                                       aktivitas.Contains("blokir") || aktivitas.Contains("acc") ||
-                                       aktivitas.Contains("verif");
+                    string teksAktivitas = row["aktivitas"].ToString();
+                    DateTime waktuAkses = Convert.ToDateTime(row["waktu_akses"]);
 
+                    // Buat Objek Model untuk memanfaatkan fungsi cerdasnya
+                    ActivityLog logObj = new ActivityLog(1, teksAktivitas);
+                    logObj.SetWaktuAkses(waktuAkses);
+
+                    // Panggil Method / Behavior dari Model
+                    string kategoriObjek = logObj.DapatkanKategori();
+                    bool isHariIni = logObj.ApakahHariIni();
+
+                    // Filter menggunakan kategori dari objek, kodenya jadi sangat bersih!
                     bool tampilkan = filter == "Semua"
-                        || (filter == "Login/Logout" && isLogin)
-                        || (filter == "Perubahan Data" && isPerubahan);
+                        || (filter == "Login/Logout" && kategoriObjek == "Autentikasi")
+                        || (filter == "Perubahan Data" && (kategoriObjek == "Perubahan Data" || kategoriObjek == "Tindakan Kritis"));
 
                     if (tampilkan)
                     {
-                        string waktu = Convert.ToDateTime(row["waktu_akses"]).ToString("dd MMM yyyy, HH:mm");
-                        dtUI.Rows.Add(row["pelaku"], row["peran"], row["aktivitas"], waktu);
+                        string waktuFormat = waktuAkses.ToString("dd MMM yyyy, HH:mm");
+                        if (isHariIni)
+                        {
+                            waktuFormat = "🔥 HARI INI, " + waktuAkses.ToString("HH:mm");
+                        }
+
+                        dtUI.Rows.Add(row["pelaku"], row["peran"], kategoriObjek, teksAktivitas, waktuFormat);
                     }
                 }
 
@@ -75,6 +94,63 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             catch (Exception ex)
             {
                 MessageBox.Show("Gagal muat log: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ==========================================================
+        // FITUR EXPORT 100% BEST PRACTICE MVC (Lewat Controller)
+        // ==========================================================
+        private void BuatTombolExport()
+        {
+            _btnExport = new Button();
+            _btnExport.Text = "💾 Export (.txt)";
+            _btnExport.BackColor = Color.FromArgb(0, 150, 80); // Warna hijau khas Excel/Teks
+            _btnExport.ForeColor = Color.White;
+            _btnExport.FlatStyle = FlatStyle.Flat;
+            _btnExport.FlatAppearance.BorderSize = 0;
+            _btnExport.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            _btnExport.Cursor = Cursors.Hand;
+            _btnExport.Size = new Size(130, 35);
+            _btnExport.Click += BtnExport_Click;
+
+            pnlCard.Controls.Add(_btnExport);
+            _btnExport.BringToFront();
+        }
+
+        private void BtnExport_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Text File|*.txt";
+                sfd.FileName = "Audit_Trail_CollabBuy_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+                sfd.Title = "Simpan Export Log Aktivitas";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // View meminta data dari Controller, BUKAN dari Repository
+                        List<ActivityLog> logs = _adminController.GetAllActivityLogs();
+
+                        List<string> barisTeks = new List<string>();
+                        barisTeks.Add("=== AUDIT TRAIL COLLABBUY ===");
+                        barisTeks.Add("Diexport pada: " + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss"));
+                        barisTeks.Add("=============================\n");
+
+                        foreach (ActivityLog log in logs)
+                        {
+                            // View memanfaatkan method formatting dari Model (Information Expert)
+                            barisTeks.Add(log.DapatkanFormatLog());
+                        }
+
+                        File.WriteAllLines(sfd.FileName, barisTeks);
+                        MessageBox.Show("Yeay! Log aktivitas berhasil diexport ke TXT.", "Sukses Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Waduh gagal export nih: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 
@@ -121,7 +197,14 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             pnlCard.Height = this.Height - pnlCard.Top - margin;
             dgvLog.Width = pnlCard.Width - 48;
             dgvLog.Height = pnlCard.Height - dgvLog.Top - 20;
+
             btnRefresh.Left = pnlCard.Width - btnRefresh.Width - 24;
+
+            if (_btnExport != null)
+            {
+                _btnExport.Top = btnRefresh.Top;
+                _btnExport.Left = btnRefresh.Left - _btnExport.Width - 10;
+            }
         }
     }
 }
