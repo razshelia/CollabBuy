@@ -34,11 +34,41 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.dgvPesanan.AutoGenerateColumns = false;
             this.dgvPesanan.Columns.Clear();
 
-            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
-            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Pembeli", HeaderText = "Nama Pembeli", DataPropertyName = "nama_pembeli", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Tanggal Order", DataPropertyName = "tanggal_transaksi", Width = 150 });
-            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga (Rp)", DataPropertyName = "total_harga_lapak", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
-            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Saat Ini", DataPropertyName = "status_pesanan", Width = 150 });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "IdTrx",
+                DataPropertyName = "id_transaksi",
+                Visible = false
+            });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Pembeli",
+                HeaderText = "Nama Pembeli",
+                DataPropertyName = "nama_pembeli",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Tanggal",
+                HeaderText = "Tanggal Order",
+                DataPropertyName = "tanggal_transaksi",
+                Width = 150
+            });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Total",
+                HeaderText = "Total Harga (Rp)",
+                DataPropertyName = "total_harga_lapak",
+                Width = 150,
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+            });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Status",
+                HeaderText = "Status Saat Ini",
+                DataPropertyName = "status_pesanan",
+                Width = 150
+            });
         }
 
         private void LoadDataPesanan()
@@ -51,7 +81,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal narik data pesanan: " + ex.Message, "Waduh Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal narik data pesanan: " + ex.Message, "Waduh Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -59,7 +90,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             if (this.dgvPesanan.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Pilih dulu pesanan mana yang mau di-update bestie!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Pilih dulu pesanan mana yang mau di-update bestie!", "Oops",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             else
             {
@@ -69,11 +101,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 if (statusLama == "Selesai" || statusLama == "Dibatalkan")
                 {
-                    MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    DialogResult dr = MessageBox.Show(pertanyaan + $"\n(Pembeli: {namaPembeli})", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    DialogResult dr = MessageBox.Show(
+                        pertanyaan + $"\n(Pembeli: {namaPembeli})",
+                        "Konfirmasi",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
                     if (dr == DialogResult.Yes)
                     {
                         var (sukses, pesan) = this._transactionController.UbahStatusPesanan(idTrx, statusBaru);
@@ -93,6 +131,41 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         bool dibatalkanAksi = true; // Penugasan nyata menghindari else kosong
                     }
                 }
+            }
+        }
+
+        private void btnLihatDetail_Click(object sender, EventArgs e)
+        {
+            if (this.dgvPesanan.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Pilih dulu pesanan yang mau dilihat detailnya!", "Oops",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int idTrx = Convert.ToInt32(this.dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
+
+            try
+            {
+                DataTable dtDetail = this._transactionController.GetDetailPesananPenjual(
+                    idTrx, this._currentUser.GetIdUser());
+
+                if (dtDetail == null || dtDetail.Rows.Count == 0)
+                {
+                    MessageBox.Show("Detail pesanan tidak ditemukan atau tidak ada produk milikmu di pesanan ini.",
+                        "Data Kosong", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                using (DetailPesananForm formDetail = new DetailPesananForm(idTrx, dtDetail))
+                {
+                    formDetail.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal membuka detail pesanan: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -119,6 +192,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.dgvPesanan.Width = this.pnlCard.Width - 68;
             this.btnProses.Left = this.pnlCard.Width - this.btnProses.Width - 34;
             this.btnSelesai.Left = this.btnProses.Left - this.btnSelesai.Width - 10;
+            this.btnLihatDetail.Left = this.btnBatal.Left + this.btnBatal.Width + 10;
         }
     }
 }

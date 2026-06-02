@@ -19,6 +19,7 @@
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.pnlCard = new System.Windows.Forms.Panel();
             this.btnBatal = new System.Windows.Forms.Button();
+            this.btnLihatDetail = new System.Windows.Forms.Button();
             this.btnSelesai = new System.Windows.Forms.Button();
             this.btnProses = new System.Windows.Forms.Button();
             this.dgvPesanan = new System.Windows.Forms.DataGridView();
@@ -53,6 +54,7 @@
             this.pnlCard.BackColor = System.Drawing.Color.White;
             this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlCard.Controls.Add(this.btnBatal);
+            this.pnlCard.Controls.Add(this.btnLihatDetail);
             this.pnlCard.Controls.Add(this.btnSelesai);
             this.pnlCard.Controls.Add(this.btnProses);
             this.pnlCard.Controls.Add(this.dgvPesanan);
@@ -77,6 +79,23 @@
             this.btnBatal.Text = "❌ Batalkan";
             this.btnBatal.UseVisualStyleBackColor = false;
             this.btnBatal.Click += new System.EventHandler(this.btnBatal_Click);
+            // 
+            // btnLihatDetail
+            // 
+            this.btnLihatDetail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(220)))));
+            this.btnLihatDetail.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnLihatDetail.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(150)))), ((int)(((byte)(0)))));
+            this.btnLihatDetail.FlatAppearance.BorderSize = 2;
+            this.btnLihatDetail.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLihatDetail.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnLihatDetail.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(130)))), ((int)(((byte)(90)))), ((int)(((byte)(0)))));
+            this.btnLihatDetail.Location = new System.Drawing.Point(194, 435);
+            this.btnLihatDetail.Name = "btnLihatDetail";
+            this.btnLihatDetail.Size = new System.Drawing.Size(165, 40);
+            this.btnLihatDetail.TabIndex = 4;
+            this.btnLihatDetail.Text = "🔍 Lihat Detail";
+            this.btnLihatDetail.UseVisualStyleBackColor = false;
+            this.btnLihatDetail.Click += new System.EventHandler(this.btnLihatDetail_Click);
             // 
             // btnSelesai
             // 
@@ -167,5 +186,6 @@
         private System.Windows.Forms.Button btnProses;
         private System.Windows.Forms.Button btnSelesai;
         private System.Windows.Forms.Button btnBatal;
+        private System.Windows.Forms.Button btnLihatDetail;
     }
 }

@@ -123,7 +123,9 @@ namespace CollabBuy.CollabBuyApp.View.Report
                         string total;
                         if (row["total_harga"] != DBNull.Value)
                         {
-                            total = "Rp " + Convert.ToInt32(row["total_harga"]).ToString("N0");
+                            // PERBAIKAN: Gunakan Convert.ToInt64 karena total_harga adalah long (Int64)
+                            // hasil SUM dari database, bukan int.
+                            total = "Rp " + Convert.ToInt64(row["total_harga"]).ToString("N0");
                         }
                         else
                         {
@@ -161,12 +163,19 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
             if (this._dtRaw != null && this._dtRaw.Rows.Count > 0)
             {
+                // PERBAIKAN: Gunakan Convert.ToInt64 karena total_harga bertipe long (Int64),
+                // bukan int. Field<int> menyebabkan InvalidCastException sehingga chart kosong.
                 var query = this._dtRaw.AsEnumerable()
-                    .GroupBy(row => row.Field<DateTime>("tanggal_pesanan").ToString("dd MMM"))
-                    .Select(g => new {
+                    .Where(row => row["tanggal_pesanan"] != DBNull.Value)
+                    .GroupBy(row => Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM"))
+                    .Select(g => new
+                    {
                         Tanggal = g.Key,
-                        Total = g.Sum(row => row.Field<int>("total_harga"))
-                    }).Reverse();
+                        Total = g.Sum(row => row["total_harga"] != DBNull.Value
+                                            ? Convert.ToInt64(row["total_harga"])
+                                            : 0L)
+                    })
+                    .Reverse();
 
                 foreach (var item in query)
                 {
@@ -249,9 +258,15 @@ namespace CollabBuy.CollabBuyApp.View.Report
             yPos += 25;
             Rectangle chartRect = new Rectangle(marginKiri, yPos, 650, 250);
 
-            using (Bitmap chartBmp = new Bitmap(this.chartPenjualan.Width, this.chartPenjualan.Height))
+            // PERBAIKAN: chartPenjualan bisa punya ukuran 0 saat print dipanggil sebelum
+            // control selesai di-render. Gunakan ukuran eksplisit minimum (650x250) agar
+            // DrawToBitmap tidak throw ArgumentException.
+            int chartW = this.chartPenjualan.Width > 0 ? this.chartPenjualan.Width : 650;
+            int chartH = this.chartPenjualan.Height > 0 ? this.chartPenjualan.Height : 250;
+
+            using (Bitmap chartBmp = new Bitmap(chartW, chartH))
             {
-                this.chartPenjualan.DrawToBitmap(chartBmp, new Rectangle(0, 0, this.chartPenjualan.Width, this.chartPenjualan.Height));
+                this.chartPenjualan.DrawToBitmap(chartBmp, new Rectangle(0, 0, chartW, chartH));
                 g.DrawImage(chartBmp, chartRect);
             }
             yPos += 270;

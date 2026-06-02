@@ -43,10 +43,17 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public (long totalPendapatan, int totalPesanan) GetRingkasanPenjualan(int idPenjual)
         {
+            // PERBAIKAN: kolom 'total_harga' tidak ada di tabel transactions.
+            // Pendapatan penjual = SUM(jumlah_pesanan * harga_satuan_saat_beli) dari
+            // transaction_details, difilter products.id_penjual, status 'Selesai'.
             string query = @"
-                SELECT COUNT(id_transaksi) as total_pesanan, COALESCE(SUM(total_harga), 0) as total_pendapatan 
-                FROM transactions 
-                WHERE id_koordinator = @id AND status_pesanan = 'Selesai';";
+                SELECT
+                    COUNT(DISTINCT t.id_transaksi) AS total_pesanan,
+                    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_pendapatan
+                FROM transactions t
+                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+                JOIN products p ON td.id_produk = p.id_produk
+                WHERE p.id_penjual = @id AND t.status_pesanan = 'Selesai';";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -57,7 +64,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
-                            return (reader.GetInt64(reader.GetOrdinal("total_pendapatan")), reader.GetInt32(reader.GetOrdinal("total_pesanan")));
+                        {
+                            long pendapatan = reader.IsDBNull(reader.GetOrdinal("total_pendapatan"))
+                                             ? 0L
+                                             : Convert.ToInt64(reader["total_pendapatan"]);
+                            int pesanan = reader.IsDBNull(reader.GetOrdinal("total_pesanan"))
+                                         ? 0
+                                         : Convert.ToInt32(reader["total_pesanan"]);
+                            return (pendapatan, pesanan);
+                        }
                     }
                 }
             }
@@ -66,12 +81,21 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
+            // PERBAIKAN: Kolom t.tanggal_pesanan, t.total_harga, t.id_pembeli tidak ada.
+            // Kolom yang benar: t.tanggal_transaksi, t.id_koordinator (=pembeli).
+            // Total per transaksi dihitung dari transaction_details JOIN products filter id_penjual.
             string query = @"
-                SELECT u.nama AS nama_pembeli, t.tanggal_pesanan, t.total_harga
+                SELECT
+                    u.nama AS nama_pembeli,
+                    t.tanggal_transaksi AS tanggal_pesanan,
+                    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_harga
                 FROM transactions t
-                JOIN users u ON t.id_pembeli = u.id_user
-                WHERE t.id_koordinator = @id AND t.status_pesanan = 'Selesai'
-                ORDER BY t.tanggal_pesanan DESC;";
+                JOIN users u ON t.id_koordinator = u.id_user
+                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+                JOIN products p ON td.id_produk = p.id_produk
+                WHERE p.id_penjual = @id AND t.status_pesanan = 'Selesai'
+                GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi
+                ORDER BY t.tanggal_transaksi DESC;";
             return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@id", idPenjual));
         }
 

@@ -501,5 +501,119 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+
+        // =======================================================
+        // METHOD BARU: GET DETAIL PESANAN UNTUK HALAMAN PENJUAL
+        // Mengambil header transaksi (termasuk bukti_bayar) dan
+        // detail item yang merupakan produk milik penjual tsb.
+        // =======================================================
+        public DataTable GetDetailPesananPenjual(int idTransaksi, int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("nama_pembeli", typeof(string));
+            dt.Columns.Add("tanggal_transaksi", typeof(string));
+            dt.Columns.Add("status_pesanan", typeof(string));
+            dt.Columns.Add("bukti_bayar", typeof(byte[]));
+            dt.Columns.Add("nama_produk", typeof(string));
+            dt.Columns.Add("nama_penitip", typeof(string));
+            dt.Columns.Add("jumlah", typeof(int));
+            dt.Columns.Add("harga_satuan", typeof(long));
+            dt.Columns.Add("subtotal", typeof(long));
+            dt.Columns.Add("catatan", typeof(string));
+
+            string queryHeader = @"
+                SELECT t.id_transaksi, u.nama AS nama_pembeli,
+                       t.tanggal_transaksi, t.status_pesanan, t.bukti_bayar
+                FROM transactions t
+                JOIN users u ON t.id_koordinator = u.id_user
+                WHERE t.id_transaksi = @idTrx;";
+
+            string namaPembeli = "";
+            string tanggalStr = "";
+            string statusPesanan = "";
+            byte[] buktiBayar = null;
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(queryHeader, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idTrx", idTransaksi);
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+                        if (rdr.Read())
+                        {
+                            namaPembeli = rdr.GetString(rdr.GetOrdinal("nama_pembeli"));
+                            tanggalStr = rdr.GetDateTime(rdr.GetOrdinal("tanggal_transaksi"))
+                                              .ToString("dd MMM yyyy, HH:mm");
+                            statusPesanan = rdr.GetString(rdr.GetOrdinal("status_pesanan"));
+
+                            if (!rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")))
+                            {
+                                buktiBayar = (byte[])rdr["bukti_bayar"];
+                            }
+                            else
+                            {
+                                buktiBayar = null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            string queryDetail = @"
+                SELECT td.nama_produk_snapshot, td.nama_penitip,
+                       td.jumlah_pesanan, td.harga_satuan_saat_beli,
+                       td.catatan
+                FROM transaction_details td
+                JOIN products p ON td.id_produk = p.id_produk
+                WHERE td.id_transaksi = @idTrx AND p.id_penjual = @idPenjual;";
+
+            using (var conn2 = new NpgsqlConnection(_connectionString))
+            {
+                conn2.Open();
+                using (var cmd2 = new NpgsqlCommand(queryDetail, conn2))
+                {
+                    cmd2.Parameters.AddWithValue("@idTrx", idTransaksi);
+                    cmd2.Parameters.AddWithValue("@idPenjual", idPenjual);
+                    using (var rdr2 = cmd2.ExecuteReader())
+                    {
+                        while (rdr2.Read())
+                        {
+                            int jumlah = rdr2.GetInt32(rdr2.GetOrdinal("jumlah_pesanan"));
+                            long harga = Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("harga_satuan_saat_beli")));
+                            long subtotal = jumlah * harga;
+
+                            string namaSnap = rdr2.IsDBNull(rdr2.GetOrdinal("nama_produk_snapshot"))
+                                              ? "-"
+                                              : rdr2.GetString(rdr2.GetOrdinal("nama_produk_snapshot"));
+
+                            string catatan = rdr2.IsDBNull(rdr2.GetOrdinal("catatan"))
+                                             ? "-"
+                                             : rdr2.GetString(rdr2.GetOrdinal("catatan"));
+
+                            object buktiBayarVal = (buktiBayar != null && buktiBayar.Length > 0)
+                                                   ? (object)buktiBayar
+                                                   : DBNull.Value;
+
+                            dt.Rows.Add(
+                                namaPembeli,
+                                tanggalStr,
+                                statusPesanan,
+                                buktiBayarVal,
+                                namaSnap,
+                                rdr2.GetString(rdr2.GetOrdinal("nama_penitip")),
+                                jumlah,
+                                harga,
+                                subtotal,
+                                catatan
+                            );
+                        }
+                    }
+                }
+            }
+
+            return dt;
+        }
     }
 }

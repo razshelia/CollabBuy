@@ -431,5 +431,24 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             this._cartManager.KosongkanKeranjang();
         }
+
+        // =======================================================
+        // METHOD BARU: GET DETAIL PESANAN UNTUK PENJUAL
+        // Mengambil header transaksi + item produk milik penjual
+        // termasuk kolom bukti_bayar dari database.
+        // =======================================================
+        public DataTable GetDetailPesananPenjual(int idTransaksi, int idPenjual)
+        {
+            DataTable dt;
+            try
+            {
+                dt = this._transactionRepo.GetDetailPesananPenjual(idTransaksi, idPenjual);
+            }
+            catch (Exception)
+            {
+                dt = new DataTable();
+            }
+            return dt;
+        }
     }
 }
