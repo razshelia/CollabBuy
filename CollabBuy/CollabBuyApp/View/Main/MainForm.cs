@@ -113,9 +113,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             }
             else
             {
-                // FIX CS1061: DashboardUserControl tidak memiliki event OnNavigateKatalog
-                // maupun OnNavigateDetailProduk — navigasinya dilakukan internal via this.Parent.
-                // Cukup instantiate tanpa subscribe event yang tidak ada.
                 var userDash = new ViewUser.DashboardUserControl(this._currentUser);
                 userDash.Dock = DockStyle.Fill;
                 this.pnlContent.Controls.Add(userDash);

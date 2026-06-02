@@ -305,14 +305,22 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         private User MappingReaderToUser(NpgsqlDataReader reader)
         {
-            string peran = reader.GetString(reader.GetOrdinal("peran"));
+            string peranDb = reader.GetString(reader.GetOrdinal("peran"));
             string nama = reader.GetString(reader.GetOrdinal("nama"));
             string username = reader.GetString(reader.GetOrdinal("username"));
             string password = reader.GetString(reader.GetOrdinal("password"));
+            bool sudahVerifikasiPenjual = HasColumn(reader, "is_verifikasi")
+                && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi"))
+                && reader.GetBoolean(reader.GetOrdinal("is_verifikasi"));
 
             User userObj;
 
-            if (peran == "Penjual")
+            if (peranDb.ToLower() == "admin")
+            {
+                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
+                userObj.SetPeran("Admin");
+            }
+            else if (sudahVerifikasiPenjual)
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
@@ -322,21 +330,23 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     penjual.SetNamaToko(reader.GetString(reader.GetOrdinal("nama_toko")));
                 if (HasColumn(reader, "tahun_masuk") && !reader.IsDBNull(reader.GetOrdinal("tahun_masuk")))
                     penjual.SetTahunMasuk(reader.GetInt32(reader.GetOrdinal("tahun_masuk")));
-                if (HasColumn(reader, "is_verifikasi") && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi")) && reader.GetBoolean(reader.GetOrdinal("is_verifikasi")))
-                    penjual.Approve();
-                if (HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
-                    penjual.SetBuktiKtm((byte[])reader["bukti_ktm"]);
 
+                penjual.Approve();
+
+                if (HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
+                {
+                    byte[] ktmBytes = (byte[])reader["bukti_ktm"];
+                    if (ktmBytes != null && ktmBytes.Length > 0)
+                        penjual.SetBuktiKtm(ktmBytes);
+                }
+
+                try { penjual.SetPeran("Penjual"); } catch { }
                 userObj = penjual;
-            }
-            else if (peran == "Admin")
-            {
-                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
             }
             else
             {
                 userObj = new Pembeli(nama, username, password);
-                userObj.SetPeran(peran);
+                userObj.SetPeran("User");
             }
 
             userObj.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
@@ -344,7 +354,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 userObj.SetNomorTelepon(reader.GetString(reader.GetOrdinal("nomor_telepon")));
             if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
                 userObj.SetEmail(reader.GetString(reader.GetOrdinal("email")));
-            if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
+            if (HasColumn(reader, "is_diblokir") && !reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
                 userObj.Blokir("Diblokir oleh Admin");
 
             return userObj;

@@ -68,7 +68,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                                 // upgrade perannya menjadi "Penjual" agar sidebar penjual tampil.
                                 if (userLengkap is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
                                 {
-                                    try { userLengkap.SetPeran("Penjual"); } catch { bool skip = true; }
+                                    try { userLengkap.SetPeran("Penjual"); } catch { }
                                 }
 
                                 // Catat log aktivitas login

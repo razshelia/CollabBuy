@@ -20,7 +20,6 @@
             this.btnRefresh = new System.Windows.Forms.Button();
             this.btnTambahProduk = new System.Windows.Forms.Button();
             this.dgvLapak = new System.Windows.Forms.DataGridView();
-            // === PANEL FORM TAMBAH PRODUK ===
             this.pnlTambahProduk = new System.Windows.Forms.Panel();
             this.lblFormTitle = new System.Windows.Forms.Label();
             this.lblNamaProduk = new System.Windows.Forms.Label();
@@ -60,7 +59,7 @@
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Name = "lblSubtitle";
             this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Pantau daftar barang yang kamu jual di sistem Danus!";
+            this.lblSubtitle.Text = "Pantau, edit, dan hapus barang yang kamu jual!";
 
             // pnlGrid
             this.pnlGrid.BackColor = System.Drawing.Color.White;
@@ -80,9 +79,9 @@
             this.btnTambahProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnTambahProduk.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnTambahProduk.ForeColor = System.Drawing.Color.White;
-            this.btnTambahProduk.Location = new System.Drawing.Point(570, 435);
+            this.btnTambahProduk.Location = new System.Drawing.Point(570, 448);
             this.btnTambahProduk.Name = "btnTambahProduk";
-            this.btnTambahProduk.Size = new System.Drawing.Size(160, 40);
+            this.btnTambahProduk.Size = new System.Drawing.Size(160, 38);
             this.btnTambahProduk.TabIndex = 4;
             this.btnTambahProduk.Text = "➕ Tambah Produk";
             this.btnTambahProduk.UseVisualStyleBackColor = false;
@@ -95,9 +94,9 @@
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnRefresh.Location = new System.Drawing.Point(734, 435);
+            this.btnRefresh.Location = new System.Drawing.Point(743, 448);
             this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(150, 40);
+            this.btnRefresh.Size = new System.Drawing.Size(140, 38);
             this.btnRefresh.TabIndex = 3;
             this.btnRefresh.Text = "🔄 Refresh";
             this.btnRefresh.UseVisualStyleBackColor = false;
@@ -121,21 +120,19 @@
             this.dgvLapak.Location = new System.Drawing.Point(34, 30);
             this.dgvLapak.MultiSelect = false;
             this.dgvLapak.Name = "dgvLapak";
-            this.dgvLapak.ReadOnly = true;
+            this.dgvLapak.ReadOnly = false;
             this.dgvLapak.RowHeadersVisible = false;
             dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 10F);
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(235, 230, 255);
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
             dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(5);
             this.dgvLapak.RowsDefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvLapak.RowTemplate.Height = 50;
+            this.dgvLapak.RowTemplate.Height = 80;
             this.dgvLapak.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvLapak.Size = new System.Drawing.Size(850, 380);
+            this.dgvLapak.Size = new System.Drawing.Size(858, 400);
             this.dgvLapak.TabIndex = 0;
 
-            // ===========================================
-            // pnlTambahProduk - panel form input produk
-            // ===========================================
+            // pnlTambahProduk
             this.pnlTambahProduk.BackColor = System.Drawing.Color.FromArgb(224, 170, 255);
             this.pnlTambahProduk.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlTambahProduk.Controls.Add(this.lblFormTitle);
@@ -312,7 +309,6 @@
         private System.Windows.Forms.DataGridView dgvLapak;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Button btnTambahProduk;
-        // Form tambah produk (inline panel)
         private System.Windows.Forms.Panel pnlTambahProduk;
         private System.Windows.Forms.Label lblFormTitle;
         private System.Windows.Forms.Label lblNamaProduk;

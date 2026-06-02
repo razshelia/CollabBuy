@@ -53,7 +53,8 @@ CREATE TABLE products (
     harga_diskon INTEGER,
     target_kuota INTEGER,
     min_order INTEGER DEFAULT 1,
-    foto_produk BYTEA
+    foto_produk BYTEA,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE transactions (
@@ -193,8 +194,8 @@ FROM products p
 LEFT JOIN preorders   po  ON p.id_po       = po.id_po
 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
 WHERE
-    p.id_po IS NULL
-    OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP);
+    p.is_deleted = FALSE
+    AND (p.id_po IS NULL OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP));
  
  
 -- 2. VIEW: Transaksi Lengkap
@@ -628,6 +629,7 @@ SELECT
 FROM products p
 LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
 WHERE p.target_kuota IS NOT NULL
+  AND p.is_deleted = FALSE
 GROUP BY p.id_produk, p.nama_produk, p.target_kuota;
  
  
@@ -709,6 +711,7 @@ GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori));
 SELECT nama_produk, target_kuota
 FROM products p
 WHERE p.target_kuota IS NOT NULL
+ AND p.is_deleted = FALSE
   AND (
         p.target_kuota - (
             SELECT COALESCE(SUM(jumlah_pesanan), 0)

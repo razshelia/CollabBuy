@@ -9,13 +9,6 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    /// <summary>
-    /// Repository untuk mengakses data Produk.
-    /// Mengimplementasikan IQueryRepository dan ICommandRepository.
-    /// 
-    /// Fungsi utama: Menarik data Produk dari DB ke objek Model di RAM 
-    /// agar bisa dihitung logika bisnisnya (Harga Gotong Royong, Kuota).
-    /// </summary>
     public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>
     {
         private readonly string _connectionString;
@@ -25,7 +18,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
                 ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
         }
-
 
         // =======================================================
         // IMPLEMENTASI IQueryRepository<Product>
@@ -38,7 +30,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 SELECT id_produk, id_penjual, id_po, id_kategori, nama_produk, 
                        deskripsi, harga_dasar, harga_diskon, target_kuota, min_order 
                 FROM products 
-                WHERE id_produk = @id;";
+                WHERE id_produk = @id AND is_deleted = FALSE;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -71,7 +63,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return p;
         }
 
-
         // =======================================================
         // METHOD UNTUK UI (DATA TABLE)
         // =======================================================
@@ -93,8 +84,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN preorders   po  ON p.id_po       = po.id_po
                 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
                 LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-                WHERE p.id_po IS NULL
-                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP)
+                WHERE p.is_deleted = FALSE
+                  AND (p.id_po IS NULL
+                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP))
                 ORDER BY po.batas_waktu ASC NULLS LAST;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -111,11 +103,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT p.id_produk, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk 
+                SELECT p.id_produk, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk, p.deskripsi, p.min_order, p.id_kategori
                 FROM products p
                 JOIN categories k ON p.id_kategori = k.id_kategori
                 LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.id_penjual = @id
+                WHERE p.id_penjual = @id AND p.is_deleted = FALSE
                 ORDER BY p.id_produk DESC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -139,6 +131,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                        p.target_kuota, p.min_order, p.foto_produk, po.jenis_po
                 FROM products p
                 LEFT JOIN preorders po ON p.id_po = po.id_po
+                WHERE p.is_deleted = FALSE
                 ORDER BY p.nama_produk;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -171,8 +164,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN preorders   po  ON p.id_po       = po.id_po
                 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
                 LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-                WHERE p.id_po IS NULL
-                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP)
+                WHERE p.is_deleted = FALSE
+                  AND (p.id_po IS NULL
+                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP))
                 ORDER BY po.batas_waktu ASC NULLS LAST
                 LIMIT @limit;";
 
@@ -196,7 +190,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 FROM products p
                 LEFT JOIN categories c ON p.id_kategori = c.id_kategori
                 LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.id_penjual = @idPenjual
+                WHERE p.id_penjual = @idPenjual AND p.is_deleted = FALSE
                 ORDER BY p.nama_produk;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -211,7 +205,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-
         // =======================================================
         // IMPLEMENTASI ICommandRepository<Product>
         // =======================================================
@@ -221,8 +214,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             if (entity == null) throw new ArgumentNullException("Entity produk tidak boleh null.");
 
             string query = @"
-                INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) 
-                VALUES (@penjual, @po, @kategori, @nama, @deskripsi, @hargaDasar, @hargaDiskon, @targetKuota, @minOrder, @foto);";
+                INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk, is_deleted) 
+                VALUES (@penjual, @po, @kategori, @nama, @deskripsi, @hargaDasar, @hargaDiskon, @targetKuota, @minOrder, @foto, FALSE);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -244,7 +237,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 UPDATE products SET id_po = @po, id_kategori = @kategori, nama_produk = @nama, 
                 deskripsi = @deskripsi, harga_dasar = @hargaDasar, harga_diskon = @hargaDiskon, 
                 target_kuota = @targetKuota, min_order = @minOrder, foto_produk = @foto
-                WHERE id_produk = @id;";
+                WHERE id_produk = @id AND is_deleted = FALSE;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -259,6 +252,23 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
         }
 
+        /// <summary>
+        /// Soft delete: set is_deleted = TRUE, data tidak hilang dari DB.
+        /// </summary>
+        public void SoftDelete(int idProduk)
+        {
+            string query = "UPDATE products SET is_deleted = TRUE WHERE id_produk = @id;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idProduk);
+                    if (cmd.ExecuteNonQuery() == 0)
+                        throw new InvalidOrderException("Gagal menghapus produk, ID tidak ditemukan.", "id_produk", "DB_DELETE_PRODUCT_FAILED");
+                }
+            }
+        }
 
         // =======================================================
         // HELPER METHODS (DRY)
@@ -281,7 +291,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
                 produk.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
 
-            // REVISI: Pembacaan BYTEA foto_produk dari Database
             if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
                 produk.SetFotoProduk((byte[])reader["foto_produk"]);
 
@@ -303,25 +312,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             cmd.Parameters.AddWithValue("@hargaDiskon", entity.GetHargaDiskon().HasValue ? (object)entity.GetHargaDiskon().Value : DBNull.Value);
             cmd.Parameters.AddWithValue("@targetKuota", entity.GetTargetKuota() > 0 ? (object)entity.GetTargetKuota() : DBNull.Value);
             cmd.Parameters.AddWithValue("@minOrder", entity.GetMinOrder());
-            // REVISI: Penyimpanan BYTEA foto_produk ke Database
             cmd.Parameters.AddWithValue("@foto", (object)entity.GetFotoProduk() ?? DBNull.Value);
-        }
-
-        private void IsiJumlahTerpesanDiRam(Product produk)
-        {
-            string query = "SELECT COALESCE(SUM(jumlah_pesanan), 0) FROM transaction_details WHERE id_produk = @idProduk;";
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idProduk", produk.GetIdProduk());
-                    object result = cmd.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
-                        produk.TambahPesanan(Convert.ToInt32(result));
-                }
-            }
         }
 
         public DataTable GetPOHampirPenuh()
@@ -333,7 +324,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         FROM products p
         JOIN preorders po ON p.id_po = po.id_po
         LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
-        WHERE po.is_aktif = TRUE AND p.target_kuota IS NOT NULL
+        WHERE po.is_aktif = TRUE AND p.target_kuota IS NOT NULL AND p.is_deleted = FALSE
         GROUP BY p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk
         HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
            AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) > 0
