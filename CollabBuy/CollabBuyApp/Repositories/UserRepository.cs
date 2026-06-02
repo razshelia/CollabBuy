@@ -408,51 +408,49 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             User userObj;
 
-            if (peran == "Penjual")
+            // Peran di database hanya "Admin" atau "User".
+            // User yang sudah terverifikasi di tabel verifications (is_verifikasi=TRUE)
+            // diperlakukan sebagai Penjual meski kolom peran di DB masih "User".
+            bool adaDataVerif = this.HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim"));
+            bool sudahVerif = adaDataVerif
+                && this.HasColumn(reader, "is_verifikasi")
+                && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi"))
+                && reader.GetBoolean(reader.GetOrdinal("is_verifikasi"));
+
+            if (peran == "Admin")
+            {
+                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
+            }
+            else if (adaDataVerif) // Ada baris di verifications -> penjual (terverifikasi atau menunggu)
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
-                if (this.HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
-                {
+                if (!reader.IsDBNull(reader.GetOrdinal("nim")))
                     penjual.SetNim(reader.GetString(reader.GetOrdinal("nim")));
-                }
-                else { bool pass1 = true; }
 
                 if (this.HasColumn(reader, "nama_toko") && !reader.IsDBNull(reader.GetOrdinal("nama_toko")))
-                {
                     penjual.SetNamaToko(reader.GetString(reader.GetOrdinal("nama_toko")));
-                }
-                else { bool pass2 = true; }
 
                 if (this.HasColumn(reader, "tahun_masuk") && !reader.IsDBNull(reader.GetOrdinal("tahun_masuk")))
-                {
                     penjual.SetTahunMasuk(reader.GetInt32(reader.GetOrdinal("tahun_masuk")));
-                }
-                else { bool pass3 = true; }
 
-                if (this.HasColumn(reader, "is_verifikasi") && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi")) && reader.GetBoolean(reader.GetOrdinal("is_verifikasi")))
-                {
-                    penjual.Approve();
-                }
-                else { bool pass4 = true; }
+                if (sudahVerif)
+                    penjual.Approve(); // Set _isVerifikasi = true
 
+                // SESUDAH (fix):
                 if (this.HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
                 {
                     byte[] ktmBytes = (byte[])reader["bukti_ktm"];
-                    penjual.SetBuktiKtm(ktmBytes);
+                    // Skip kalau byte kosong (\x di PostgreSQL) agar tidak crash saat load dari DB.
+                    if (ktmBytes != null && ktmBytes.Length > 0)
+                        penjual.SetBuktiKtm(ktmBytes);
                 }
-                else { bool pass5 = true; }
 
                 userObj = penjual;
-            }
-            else if (peran == "Admin")
-            {
-                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
             }
             else
             {
                 userObj = new Pembeli(nama, username, password);
-                userObj.SetPeran(peran);
             }
 
             userObj.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));

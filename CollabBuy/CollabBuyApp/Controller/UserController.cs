@@ -59,12 +59,24 @@ namespace CollabBuy.CollabBuyApp.Controllers
                             }
                             else
                             {
+                                // Load ulang via GetById agar data verifikasi (is_verifikasi) ikut termuat.
+                                // GetAll() tidak JOIN tabel verifications, sehingga status penjual terverifikasi
+                                // tidak bisa diketahui tanpa langkah ini.
+                                User userLengkap = this._userRepo.GetById(u.GetIdUser());
+
+                                // Jika peran di DB adalah "User" tapi sudah terverifikasi sebagai penjual,
+                                // upgrade perannya menjadi "Penjual" agar sidebar penjual tampil.
+                                if (userLengkap is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
+                                {
+                                    try { userLengkap.SetPeran("Penjual"); } catch { bool skip = true; }
+                                }
+
                                 // Catat log aktivitas login
-                                ActivityLog log = new ActivityLog(u.GetIdUser(), "Berhasil login ke sistem");
+                                ActivityLog log = new ActivityLog(userLengkap.GetIdUser(), "Berhasil login ke sistem");
                                 this._logRepo.Insert(log);
 
-                                userDitemukan = u;
-                                pesanLogin = "Login berhasil! Selamat datang, " + u.GetNama();
+                                userDitemukan = userLengkap;
+                                pesanLogin = "Login berhasil! Selamat datang, " + userLengkap.GetNama();
                                 break;
                             }
                         }

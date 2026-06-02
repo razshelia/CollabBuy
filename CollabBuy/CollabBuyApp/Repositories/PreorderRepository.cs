@@ -14,6 +14,29 @@ namespace CollabBuy.CollabBuyApp.Repositories
             _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
                 ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
         }
+        public DataTable GetById(int idPo)
+        {
+            DataTable dt = new DataTable();
+
+            // Perhatikan alias info_rekening AS rekening agar sesuai dengan tarikan Controller
+            string query = "SELECT id_po, id_penjual, judul_po, jenis_po, info_rekening AS rekening, batas_waktu, is_aktif FROM preorders WHERE id_po = @id;";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            {
+                conn.Open();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPo);
+                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+
+            return dt;
+        }
+
 
         // Mengambil daftar sesi PO yang sedang aktif untuk User
         public DataTable GetSesiPOAktif(string keyword)
