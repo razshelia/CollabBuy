@@ -1,6 +1,6 @@
 ﻿using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories.Interfaces;
-using CollabBuy.CollabBuyApp.Exceptions; // <-- INI YANG BIKIN ERROR SEBELUMNYA!
+using CollabBuy.CollabBuyApp.Exceptions;
 using Npgsql;
 using System;
 using System.Collections.Generic;
@@ -15,23 +15,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// </summary>
     public class UserRepository : IQueryRepository<User>, ICommandRepository<User>
     {
-        // === PRIVATE FIELDS ===
         private readonly string _connectionString;
 
-        // === KONSTRUKTOR ===
         public UserRepository()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-
-            if (string.IsNullOrWhiteSpace(connStr))
-            {
+            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(_connectionString))
                 throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-            }
-            else
-            {
-                this._connectionString = connStr;
-            }
         }
+
 
         // =======================================================
         // IMPLEMENTASI IQueryRepository<User>
@@ -39,7 +31,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public User GetById(int idUser)
         {
-            User userObj;
+            User userObj = null;
             string query = @"
                 SELECT u.id_user, u.nama, u.nomor_telepon, u.email, u.username, u.password, u.peran, u.is_diblokir,
                        v.nim, v.nama_toko, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
@@ -47,84 +39,55 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN verifications v ON u.id_user = v.id_user
                 WHERE u.id_user = @id;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idUser);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        if (reader.Read())
-                        {
-                            userObj = this.MappingReaderToUser(reader);
-                        }
-                        else
-                        {
-                            userObj = null;
-                        }
+                        if (reader.Read()) userObj = MappingReaderToUser(reader);
                     }
                 }
             }
-
             return userObj;
         }
 
         public List<User> GetAll()
         {
-            List<User> listUser = new List<User>();
+            var listUser = new List<User>();
             string query = "SELECT id_user, nama, username, password, peran, is_diblokir FROM users ORDER BY nama;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            string peran = reader.GetString(reader.GetOrdinal("peran"));
-                            string nama = reader.GetString(reader.GetOrdinal("nama"));
-                            string username = reader.GetString(reader.GetOrdinal("username"));
-                            string password = reader.GetString(reader.GetOrdinal("password"));
+                        string peran = reader.GetString(reader.GetOrdinal("peran"));
+                        string nama = reader.GetString(reader.GetOrdinal("nama"));
+                        string username = reader.GetString(reader.GetOrdinal("username"));
+                        string password = reader.GetString(reader.GetOrdinal("password"));
 
-                            User user;
+                        // Polimorfisme: Instansiasi sesuai peran agar tidak crash
+                        User user = peran == "Penjual" ? new Penjual(nama, username, password)
+                                  : peran == "Admin" ? (User)new Admin(nama, username, password, "SISTEM_DEFAULT")
+                                  : new Pembeli(nama, username, password);
 
-                            // Polimorfisme: Instansiasi sesuai peran agar tidak crash
-                            if (peran == "Penjual")
-                            {
-                                user = new Penjual(nama, username, password);
-                            }
-                            else if (peran == "Admin")
-                            {
-                                user = new Admin(nama, username, password, "SISTEM_DEFAULT");
-                            }
-                            else
-                            {
-                                user = new Pembeli(nama, username, password);
-                            }
-
-                            user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
-                            user.SetPeran(peran);
-
-                            if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
-                            {
-                                user.Blokir("Diblokir oleh Admin");
-                            }
-                            else
-                            {
-                                bool skipBlokir = true; // Assignment nyata menghindari else kosong
-                            }
-
-                            listUser.Add(user);
-                        }
+                        user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
+                        user.SetPeran(peran);
+                        if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
+                            user.Blokir("Diblokir oleh Admin");
+                        listUser.Add(user);
                     }
                 }
             }
-
             return listUser;
         }
+
 
         // =======================================================
         // IMPLEMENTASI ICommandRepository<User>
@@ -132,103 +95,79 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public void Insert(User entity)
         {
-            if (entity == null)
+            if (entity == null) throw new ArgumentNullException("entity", "Entity user tidak boleh null.");
+
+            Penjual penjual = entity as Penjual;
+            if (penjual != null)
             {
-                throw new ArgumentNullException("entity", "Entity user tidak boleh null.");
+                InsertPenjualWithVerification(penjual);
+                return;
             }
-            else
+
+            string query = "INSERT INTO users (nama, nomor_telepon, email, username, password, peran) VALUES (@nama, @telp, @email, @uname, @pass, @peran);";
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
-                Penjual penjual = entity as Penjual;
-
-                if (penjual != null)
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    this.InsertPenjualWithVerification(penjual);
-                }
-                else
-                {
-                    string query = "INSERT INTO users (nama, nomor_telepon, email, username, password, peran) VALUES (@nama, @telp, @email, @uname, @pass, @peran);";
-
-                    using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
-                    {
-                        conn.Open();
-                        using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                        {
-                            this.MappingUserToParameters(cmd, entity);
-                            cmd.Parameters.AddWithValue("@peran", entity.GetPeran());
-
-                            int rowsAffected = cmd.ExecuteNonQuery();
-                            if (rowsAffected == 0)
-                            {
-                                throw new InvalidOrderException("Gagal menyimpan user baru.", "", "DB_INSERT_USER_FAILED");
-                            }
-                            else
-                            {
-                                bool sukses = true;
-                            }
-                        }
-                    }
+                    MappingUserToParameters(cmd, entity);
+                    cmd.Parameters.AddWithValue("@peran", entity.GetPeran());
+                    if (cmd.ExecuteNonQuery() == 0)
+                        throw new InvalidOrderException("Gagal menyimpan user baru.", "", "DB_INSERT_USER_FAILED");
                 }
             }
         }
 
         public void Update(User entity)
         {
-            if (entity == null)
+            if (entity == null) throw new ArgumentNullException("entity", "Entity user tidak boleh null.");
+
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
-                throw new ArgumentNullException("entity", "Entity user tidak boleh null.");
-            }
-            else
-            {
-                using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+                conn.Open();
+                using (var dbTx = conn.BeginTransaction())
                 {
-                    conn.Open();
-                    using (NpgsqlTransaction dbTx = conn.BeginTransaction())
+                    try
                     {
-                        try
+                        string queryUser = @"UPDATE users 
+                                             SET nama = @nama, email = @email, nomor_telepon = @telp, 
+                                                 password = @pass, is_diblokir = @isBlokir 
+                                             WHERE id_user = @id;";
+
+                        using (var cmd = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
-                            string queryUser = @"UPDATE users 
-                                                 SET nama = @nama, email = @email, nomor_telepon = @telp, 
-                                                     password = @pass, is_diblokir = @isBlokir 
-                                                 WHERE id_user = @id;";
-
-                            using (NpgsqlCommand cmd = new NpgsqlCommand(queryUser, conn, dbTx))
-                            {
-                                cmd.Parameters.AddWithValue("@id", entity.GetIdUser());
-                                cmd.Parameters.AddWithValue("@nama", entity.GetNama());
-                                cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
-                                cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
-                                cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
-                                cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir());
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            Penjual penjual = entity as Penjual;
-                            if (penjual != null)
-                            {
-                                string queryVerif = "UPDATE verifications SET is_verifikasi = @isVerif WHERE id_user = @idUser;";
-                                using (NpgsqlCommand cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
-                                {
-                                    cmdVerif.Parameters.AddWithValue("@idUser", penjual.GetIdUser());
-                                    cmdVerif.Parameters.AddWithValue("@isVerif", penjual.GetStatusPersetujuan());
-                                    cmdVerif.ExecuteNonQuery();
-                                }
-                            }
-                            else
-                            {
-                                bool skipVerif = true;
-                            }
-
-                            dbTx.Commit();
+                            cmd.Parameters.AddWithValue("@id", entity.GetIdUser());
+                            cmd.Parameters.AddWithValue("@nama", entity.GetNama());
+                            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
+                            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
+                            cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
+                            cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir());
+                            cmd.ExecuteNonQuery();
                         }
-                        catch (Exception ex)
+
+                        Penjual penjual = entity as Penjual;
+                        if (penjual != null)
                         {
-                            dbTx.Rollback();
-                            throw new InvalidOrderException("Update user dibatalkan: " + ex.Message, "", "DB_UPDATE_USER_FAILED", ex);
+                            string queryVerif = "UPDATE verifications SET is_verifikasi = @isVerif WHERE id_user = @idUser;";
+                            using (var cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
+                            {
+                                cmdVerif.Parameters.AddWithValue("@idUser", penjual.GetIdUser());
+                                cmdVerif.Parameters.AddWithValue("@isVerif", penjual.GetStatusPersetujuan());
+                                cmdVerif.ExecuteNonQuery();
+                            }
                         }
+
+                        dbTx.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        dbTx.Rollback();
+                        throw new InvalidOrderException("Update user dibatalkan: " + ex.Message, "", "DB_UPDATE_USER_FAILED", ex);
                     }
                 }
             }
         }
+
 
         // =======================================================
         // TAMBAHAN UNTUK FITUR DAFTAR TOKO & MANAJEMEN ADMIN
@@ -236,49 +175,30 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public bool CheckPendingVerification(int idUser)
         {
-            bool isPending;
             string query = "SELECT is_verifikasi FROM verifications WHERE id_user = @id";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idUser);
                     object result = cmd.ExecuteScalar();
-
-                    if (result != null && result != DBNull.Value)
-                    {
-                        bool isVerifikasi = Convert.ToBoolean(result);
-                        if (isVerifikasi == false)
-                        {
-                            isPending = true;
-                        }
-                        else
-                        {
-                            isPending = false;
-                        }
-                    }
-                    else
-                    {
-                        isPending = false;
-                    }
+                    return result != null && result != DBNull.Value && !Convert.ToBoolean(result);
                 }
             }
-            return isPending;
         }
 
         public void AjukanLapakBaru(int idUser, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlTransaction dbTx = conn.BeginTransaction())
+                using (var dbTx = conn.BeginTransaction())
                 {
                     try
                     {
                         string queryVerif = "INSERT INTO verifications (id_user, nim, nama_toko, tahun_masuk, bukti_ktm) VALUES (@id, @nim, @toko, @tahun, @ktm);";
-                        using (NpgsqlCommand cmd = new NpgsqlCommand(queryVerif, conn, dbTx))
+                        using (var cmd = new NpgsqlCommand(queryVerif, conn, dbTx))
                         {
                             cmd.Parameters.AddWithValue("@id", idUser);
                             cmd.Parameters.AddWithValue("@nim", nim);
@@ -289,7 +209,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         }
                         dbTx.Commit();
                     }
-                    catch (Exception)
+                    catch
                     {
                         dbTx.Rollback();
                         throw;
@@ -308,16 +228,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 WHERE v.is_verifikasi = FALSE 
                 ORDER BY v.id_verifikasi ASC;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
-                }
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
             }
             return dt;
         }
@@ -335,16 +251,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 FROM users u
                 ORDER BY u.peran, u.nama;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
-                }
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
             }
             return dt;
         }
@@ -352,27 +264,19 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public void ToggleBlokirUser(int idUser, bool blokir)
         {
             string query = "UPDATE users SET is_diblokir = @blokir WHERE id_user = @id;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@blokir", blokir);
                     cmd.Parameters.AddWithValue("@id", idUser);
-                    int rows = cmd.ExecuteNonQuery();
-
-                    if (rows == 0)
-                    {
+                    if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOperationException("User tidak ditemukan atau gagal diupdate.");
-                    }
-                    else
-                    {
-                        bool sukses = true;
-                    }
                 }
             }
         }
+
 
         // =======================================================
         // METHOD KHUSUS STORED PROCEDURE
@@ -381,11 +285,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public void TindakPenjualNakal(int idAduan, int idPenjual, string balasan)
         {
             string query = "CALL sp_tindak_penjual_nakal(@idAduan, @idPenjual, @balasan);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idAduan", idAduan);
                     cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
@@ -395,8 +298,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
         }
 
+
         // =======================================================
-        // HELPER METHOD (DRY - ANTI PEMBOROSAN KODE)
+        // HELPER METHODS (DRY)
         // =======================================================
 
         private User MappingReaderToUser(NpgsqlDataReader reader)
@@ -408,70 +312,40 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             User userObj;
 
-            // Peran di database hanya "Admin" atau "User".
-            // User yang sudah terverifikasi di tabel verifications (is_verifikasi=TRUE)
-            // diperlakukan sebagai Penjual meski kolom peran di DB masih "User".
-            bool adaDataVerif = this.HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim"));
-            bool sudahVerif = adaDataVerif
-                && this.HasColumn(reader, "is_verifikasi")
-                && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi"))
-                && reader.GetBoolean(reader.GetOrdinal("is_verifikasi"));
-
-            if (peran == "Admin")
-            {
-                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
-            }
-            else if (adaDataVerif) // Ada baris di verifications -> penjual (terverifikasi atau menunggu)
+            if (peran == "Penjual")
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
-                if (!reader.IsDBNull(reader.GetOrdinal("nim")))
+                if (HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
                     penjual.SetNim(reader.GetString(reader.GetOrdinal("nim")));
-
-                if (this.HasColumn(reader, "nama_toko") && !reader.IsDBNull(reader.GetOrdinal("nama_toko")))
+                if (HasColumn(reader, "nama_toko") && !reader.IsDBNull(reader.GetOrdinal("nama_toko")))
                     penjual.SetNamaToko(reader.GetString(reader.GetOrdinal("nama_toko")));
-
-                if (this.HasColumn(reader, "tahun_masuk") && !reader.IsDBNull(reader.GetOrdinal("tahun_masuk")))
+                if (HasColumn(reader, "tahun_masuk") && !reader.IsDBNull(reader.GetOrdinal("tahun_masuk")))
                     penjual.SetTahunMasuk(reader.GetInt32(reader.GetOrdinal("tahun_masuk")));
-
-                if (sudahVerif)
-                    penjual.Approve(); // Set _isVerifikasi = true
-
-                // SESUDAH (fix):
-                if (this.HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
-                {
-                    byte[] ktmBytes = (byte[])reader["bukti_ktm"];
-                    // Skip kalau byte kosong (\x di PostgreSQL) agar tidak crash saat load dari DB.
-                    if (ktmBytes != null && ktmBytes.Length > 0)
-                        penjual.SetBuktiKtm(ktmBytes);
-                }
+                if (HasColumn(reader, "is_verifikasi") && !reader.IsDBNull(reader.GetOrdinal("is_verifikasi")) && reader.GetBoolean(reader.GetOrdinal("is_verifikasi")))
+                    penjual.Approve();
+                if (HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
+                    penjual.SetBuktiKtm((byte[])reader["bukti_ktm"]);
 
                 userObj = penjual;
+            }
+            else if (peran == "Admin")
+            {
+                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
             }
             else
             {
                 userObj = new Pembeli(nama, username, password);
+                userObj.SetPeran(peran);
             }
 
             userObj.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
-
-            if (this.HasColumn(reader, "nomor_telepon") && !reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
-            {
+            if (HasColumn(reader, "nomor_telepon") && !reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
                 userObj.SetNomorTelepon(reader.GetString(reader.GetOrdinal("nomor_telepon")));
-            }
-            else { bool pass6 = true; }
-
-            if (this.HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
-            {
+            if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
                 userObj.SetEmail(reader.GetString(reader.GetOrdinal("email")));
-            }
-            else { bool pass7 = true; }
-
             if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
-            {
                 userObj.Blokir("Diblokir oleh Admin");
-            }
-            else { bool pass8 = true; }
 
             return userObj;
         }
@@ -481,102 +355,52 @@ namespace CollabBuy.CollabBuyApp.Repositories
             cmd.Parameters.AddWithValue("@nama", entity.GetNama());
             cmd.Parameters.AddWithValue("@uname", entity.GetUsername());
             cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
-
-            if (string.IsNullOrWhiteSpace(entity.GetNomorTelepon()))
-            {
-                cmd.Parameters.AddWithValue("@telp", DBNull.Value);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@telp", entity.GetNomorTelepon());
-            }
-
-            if (string.IsNullOrWhiteSpace(entity.GetEmail()))
-            {
-                cmd.Parameters.AddWithValue("@email", DBNull.Value);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@email", entity.GetEmail());
-            }
+            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
+            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
         }
 
         private bool HasColumn(NpgsqlDataReader reader, string columnName)
         {
-            bool adaKolom = false;
-
             for (int i = 0; i < reader.FieldCount; i++)
             {
                 if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
-                {
-                    adaKolom = true;
-                    break;
-                }
-                else
-                {
-                    adaKolom = false;
-                }
+                    return true;
             }
-
-            return adaKolom;
+            return false;
         }
 
         private void InsertPenjualWithVerification(Penjual penjual)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(this._connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlTransaction dbTx = conn.BeginTransaction())
+                using (var dbTx = conn.BeginTransaction())
                 {
                     try
                     {
                         string queryUser = "INSERT INTO users (nama, nomor_telepon, email, username, password, peran) VALUES (@nama, @telp, @email, @uname, @pass, @peran) RETURNING id_user;";
-                        int idUserBaru;
 
-                        using (NpgsqlCommand cmdUser = new NpgsqlCommand(queryUser, conn, dbTx))
+                        using (var cmdUser = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
-                            this.MappingUserToParameters(cmdUser, penjual);
+                            MappingUserToParameters(cmdUser, penjual);
                             cmdUser.Parameters.AddWithValue("@peran", "Penjual");
 
                             object result = cmdUser.ExecuteScalar();
-                            if (result != null && result != DBNull.Value)
-                            {
-                                idUserBaru = Convert.ToInt32(result);
-                                penjual.SetIdUser(idUserBaru);
-                            }
-                            else
-                            {
+                            if (result == null || result == DBNull.Value)
                                 throw new InvalidOrderException("Gagal mendapatkan ID User baru.", "", "DB_INSERT_USER_FAILED");
-                            }
+                            penjual.SetIdUser(Convert.ToInt32(result));
                         }
 
                         string queryVerif = "INSERT INTO verifications (id_user, nim, nama_toko, bukti_ktm, tahun_masuk) VALUES (@idUser, @nim, @toko, @ktm, @tahun);";
-
-                        using (NpgsqlCommand cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
+                        using (var cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
                         {
                             cmdVerif.Parameters.AddWithValue("@idUser", penjual.GetIdUser());
                             cmdVerif.Parameters.AddWithValue("@nim", penjual.GetNim());
                             cmdVerif.Parameters.AddWithValue("@toko", penjual.GetNamaToko());
                             cmdVerif.Parameters.AddWithValue("@tahun", penjual.GetTahunMasuk());
-
-                            if (penjual.GetBuktiKtm() != null)
-                            {
-                                cmdVerif.Parameters.AddWithValue("@ktm", penjual.GetBuktiKtm());
-                            }
-                            else
-                            {
-                                cmdVerif.Parameters.AddWithValue("@ktm", DBNull.Value);
-                            }
-
-                            int rowsVerif = cmdVerif.ExecuteNonQuery();
-                            if (rowsVerif == 0)
-                            {
+                            cmdVerif.Parameters.AddWithValue("@ktm", (object)penjual.GetBuktiKtm() ?? DBNull.Value);
+                            if (cmdVerif.ExecuteNonQuery() == 0)
                                 throw new InvalidOrderException("Gagal menyimpan data verifikasi penjual.", "", "DB_INSERT_VERIF_FAILED");
-                            }
-                            else
-                            {
-                                bool suksesVerif = true;
-                            }
                         }
 
                         dbTx.Commit();

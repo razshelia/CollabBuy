@@ -24,9 +24,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
-                }
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
             }
             return dt;
         }

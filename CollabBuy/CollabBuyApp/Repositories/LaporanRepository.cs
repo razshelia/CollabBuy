@@ -11,18 +11,29 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// </summary>
     public class LaporanRepository
     {
-        // === PRIVATE FIELDS ===
         private readonly string _connectionString;
 
-        // === KONSTRUKTOR ===
         public LaporanRepository()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-            if (string.IsNullOrEmpty(connStr))
+            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
+                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+        }
+
+        // Helper untuk mengisi DataTable dengan query + parameter opsional
+        private DataTable FillDataTable(string query, Action<NpgsqlCommand> addParams = null)
+        {
+            DataTable dt = new DataTable();
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
-                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    addParams?.Invoke(cmd);
+                    using (var da = new NpgsqlDataAdapter(cmd))
+                        da.Fill(dt);
+                }
             }
-            _connectionString = connStr;
+            return dt;
         }
 
 
@@ -30,64 +41,38 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // 0. METHOD KHUSUS UNTUK ANALITIK PENJUALAN (SELLER UI)
         // =======================================================
 
-        /// <summary>
-        /// Mengambil total pendapatan dan jumlah pesanan yang sudah 'Selesai'.
-        /// </summary>
         public (long totalPendapatan, int totalPesanan) GetRingkasanPenjualan(int idPenjual)
         {
-            long pendapatan = 0;
-            int pesanan = 0;
-
             string query = @"
                 SELECT COUNT(id_transaksi) as total_pesanan, COALESCE(SUM(total_harga), 0) as total_pendapatan 
                 FROM transactions 
                 WHERE id_koordinator = @id AND status_pesanan = 'Selesai';";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idPenjual);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
-                        {
-                            pesanan = reader.GetInt32(reader.GetOrdinal("total_pesanan"));
-                            pendapatan = reader.GetInt64(reader.GetOrdinal("total_pendapatan"));
-                        }
+                            return (reader.GetInt64(reader.GetOrdinal("total_pendapatan")), reader.GetInt32(reader.GetOrdinal("total_pesanan")));
                     }
                 }
             }
-            return (pendapatan, pesanan);
+            return (0, 0);
         }
 
-        /// <summary>
-        /// Mengambil daftar riwayat transaksi 'Selesai' untuk laporan.
-        /// </summary>
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT u.nama AS nama_pembeli, t.tanggal_pesanan, t.total_harga
                 FROM transactions t
                 JOIN users u ON t.id_pembeli = u.id_user
                 WHERE t.id_koordinator = @id AND t.status_pesanan = 'Selesai'
                 ORDER BY t.tanggal_pesanan DESC;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@id", idPenjual);
-                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@id", idPenjual));
         }
 
 
@@ -97,21 +82,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetTransaksiLengkap()
         {
-            DataTable dt = new DataTable();
-            string query = "SELECT * FROM vw_transaksi_lengkap ORDER BY tanggal_transaksi DESC;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable("SELECT * FROM vw_transaksi_lengkap ORDER BY tanggal_transaksi DESC;");
         }
 
 
@@ -119,125 +90,60 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // 2. IMPLEMENTASI PURE FUNCTION DATABASE
         // =======================================================
 
-        /// <summary>
-        /// Memanggil Function fn_statistik_dashboard_penjual.
-        /// </summary>
         public DataTable GetStatistikDashboardPenjual(int idPenjual)
         {
-            DataTable dt = new DataTable();
-            string query = "SELECT * FROM fn_statistik_dashboard_penjual(@idPenjual);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable("SELECT * FROM fn_statistik_dashboard_penjual(@idPenjual);",
+                cmd => cmd.Parameters.AddWithValue("@idPenjual", idPenjual));
         }
 
-        /// <summary>
-        /// BUKTI PEMANGGILAN FUNCTION: Memanggil langsung cek_harga_saat_ini() di DB.
-        /// </summary>
         public int CekHargaSaatIniViaDatabase(int idProduk)
         {
             string query = "SELECT cek_harga_saat_ini(@idProduk);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idProduk", idProduk);
                     object result = cmd.ExecuteScalar();
-
-                    if (result != null && result != DBNull.Value)
-                    {
-                        return Convert.ToInt32(result);
-                    }
-                    return 0;
+                    return (result != null && result != DBNull.Value) ? Convert.ToInt32(result) : 0;
                 }
             }
         }
 
 
         // =======================================================
-        // 3. IMPLEMENTASI TEORI HIMPUAN (SET OPERATIONS)
+        // 3. IMPLEMENTASI TEORI HIMPUNAN (SET OPERATIONS)
         // =======================================================
 
         public DataTable GetTransaksiAktifUnion()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Diproses'
                 UNION
                 SELECT id_transaksi, status_pesanan FROM transactions WHERE status_pesanan = 'Selesai';";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
         public DataTable GetSultanMemberIntersect()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT id_user, nama FROM users
                 WHERE id_user IN (SELECT id_user FROM verifications WHERE is_verifikasi = TRUE)
                 INTERSECT
                 SELECT u.id_user, u.nama FROM users u
                 JOIN transactions t ON u.id_user = t.id_koordinator;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
         public DataTable GetPenggunaPasifExcept()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT id_user, nama FROM users
                 EXCEPT
                 SELECT u.id_user, u.nama FROM users u
                 JOIN transactions t ON u.id_user = t.id_koordinator;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
 
@@ -247,7 +153,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetStatusKetersediaanKuota()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT
                     p.nama_produk,
@@ -264,28 +169,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
                 WHERE p.target_kuota IS NOT NULL
                 GROUP BY p.id_produk, p.nama_produk, p.target_kuota;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
-        /// <summary>
-        /// STATEMENT 2: Klasifikasi Performa Penjual (Tier Penjual).
-        /// DIPERBAIKI: Menggunakan hitungan Omzet Bersih sesuai SQL.
-        /// </summary>
         public DataTable GetKlasifikasiPerformaPenjual()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT
                     u.nama AS nama_penjual,
@@ -302,43 +190,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 JOIN users u    ON p.id_penjual = u.id_user
                 GROUP BY u.nama
                 ORDER BY total_omzet_bersih DESC;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
         public DataTable GetTotalBarangTerjual()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT p.nama_produk, SUM(td.jumlah_pesanan) AS total_terjual
                 FROM transaction_details td
                 JOIN products p ON td.id_produk = p.id_produk
                 GROUP BY p.nama_produk
                 ORDER BY total_terjual DESC;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
 
@@ -348,7 +211,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetAnalisisPasarCube()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT
                     COALESCE(kat.nama_kategori, 'Semua Kategori')     AS kategori,
@@ -359,28 +221,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN preorders   po  ON p.id_po        = po.id_po
                 LEFT JOIN categories  kat ON p.id_kategori  = kat.id_kategori
                 GROUP BY CUBE (kat.nama_kategori, po.jenis_po);";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
-        /// <summary>
-        /// ROLLUP: Hierarki Waktu → Total Tahun → Total Bulan.
-        /// DIPERBAIKI: Mengambil kolom Refund dan Omzet Bersih sesuai SQL.
-        /// </summary>
         public DataTable GetLaporanKeuanganRollup()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT
                     EXTRACT(YEAR  FROM t.tanggal_transaksi) AS tahun,
@@ -395,24 +240,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     EXTRACT(YEAR  FROM t.tanggal_transaksi),
                     EXTRACT(MONTH FROM t.tanggal_transaksi)
                 );";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
         public DataTable GetRingkasanGlobalGroupingSets()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT
                     u.nama            AS nama_penjual,
@@ -424,24 +256,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 JOIN categories    kat ON p.id_kategori   = kat.id_kategori
                 JOIN users         u   ON p.id_penjual    = u.id_user
                 GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori));";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
 
         public DataTable GetProdukSisaKuotaKritis()
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT nama_produk, target_kuota
                 FROM products p
@@ -453,41 +272,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             WHERE td.id_produk = p.id_produk
                         )
                       ) <= 5;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query);
         }
+
         public DataTable GetLpjDanusPerPo(int idPenjual)
         {
-            DataTable dt = new DataTable();
             string query = @"
                 SELECT v.* FROM vw_lpj_danus_per_po v
                 JOIN preorders po ON v.id_po = po.id_po
                 WHERE po.id_penjual = @idPenjual;";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-            return dt;
+            return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@idPenjual", idPenjual));
         }
     }
 }

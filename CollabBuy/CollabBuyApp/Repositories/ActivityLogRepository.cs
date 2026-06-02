@@ -15,12 +15,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public ActivityLogRepository()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-            if (string.IsNullOrEmpty(connStr))
-            {
-                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-            }
-            _connectionString = connStr;
+            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
+                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
         }
 
         public ActivityLog GetById(int idLog)
@@ -28,26 +24,20 @@ namespace CollabBuy.CollabBuyApp.Repositories
             ActivityLog log = null;
             string query = "SELECT id_log, id_user, aktivitas, waktu_akses FROM activity_logs WHERE id_log = @id;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idLog);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
-                            string aktivitas = reader.GetString(reader.GetOrdinal("aktivitas"));
-
-                            log = new ActivityLog(idUser, aktivitas);
+                            log = new ActivityLog(reader.GetInt32(reader.GetOrdinal("id_user")), reader.GetString(reader.GetOrdinal("aktivitas")));
                             log.SetIdLog(reader.GetInt32(reader.GetOrdinal("id_log")));
-
                             if (!reader.IsDBNull(reader.GetOrdinal("waktu_akses")))
-                            {
                                 log.SetWaktuAkses(reader.GetDateTime(reader.GetOrdinal("waktu_akses")));
-                            }
                         }
                     }
                 }
@@ -57,33 +47,22 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public List<ActivityLog> GetAll()
         {
-            List<ActivityLog> listLog = new List<ActivityLog>();
-            // PERBAIKAN: Select langsung ke base tabel agar id_user pasti ada untuk mem-build Objek
+            var listLog = new List<ActivityLog>();
             string query = "SELECT id_log, id_user, aktivitas, waktu_akses FROM activity_logs ORDER BY waktu_akses DESC LIMIT 100;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            int idUser = reader.GetInt32(reader.GetOrdinal("id_user"));
-                            string aktivitas = reader.GetString(reader.GetOrdinal("aktivitas"));
-
-                            ActivityLog log = new ActivityLog(idUser, aktivitas);
-                            log.SetIdLog(reader.GetInt32(reader.GetOrdinal("id_log")));
-
-                            // Sinkronkan waktu dengan database
-                            if (!reader.IsDBNull(reader.GetOrdinal("waktu_akses")))
-                            {
-                                log.SetWaktuAkses(reader.GetDateTime(reader.GetOrdinal("waktu_akses")));
-                            }
-
-                            listLog.Add(log);
-                        }
+                        var log = new ActivityLog(reader.GetInt32(reader.GetOrdinal("id_user")), reader.GetString(reader.GetOrdinal("aktivitas")));
+                        log.SetIdLog(reader.GetInt32(reader.GetOrdinal("id_log")));
+                        if (!reader.IsDBNull(reader.GetOrdinal("waktu_akses")))
+                            log.SetWaktuAkses(reader.GetDateTime(reader.GetOrdinal("waktu_akses")));
+                        listLog.Add(log);
                     }
                 }
             }
@@ -120,19 +99,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             string query = "INSERT INTO activity_logs (id_user, aktivitas) VALUES (@idUser, @aktivitas);";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
                     cmd.Parameters.AddWithValue("@aktivitas", entity.GetAktivitas());
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected == 0)
-                    {
+                    if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal menyimpan log aktivitas.", "", "DB_INSERT_LOG_FAILED");
-                    }
                 }
             }
         }

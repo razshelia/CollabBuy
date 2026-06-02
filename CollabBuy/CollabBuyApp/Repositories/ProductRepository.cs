@@ -18,18 +18,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// </summary>
     public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>
     {
-        // === PRIVATE FIELDS ===
         private readonly string _connectionString;
 
-        // === KONSTRUKTOR ===
         public ProductRepository()
         {
-            string connStr = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-            if (string.IsNullOrEmpty(connStr))
-            {
-                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-            }
-            _connectionString = connStr;
+            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
+                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
         }
 
 
@@ -56,28 +50,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            // 1. Ambil data wajib untuk constructor Product
-                            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
-                            int idKategori = reader.GetInt32(reader.GetOrdinal("id_kategori"));
-                            string nama = reader.GetString(reader.GetOrdinal("nama_produk"));
-                            int hargaDasar = reader.GetInt32(reader.GetOrdinal("harga_dasar"));
-
-                            p = new Product(idPenjual, idKategori, nama, hargaDasar);
+                            p = new Product(reader.GetInt32(reader.GetOrdinal("id_penjual")), reader.GetInt32(reader.GetOrdinal("id_kategori")),
+                                            reader.GetString(reader.GetOrdinal("nama_produk")), reader.GetInt32(reader.GetOrdinal("harga_dasar")));
                             p.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
 
-                            // 2. Ambil data opsional (Boleh Null di DB)
                             if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
                                 p.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
-
                             if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
                                 p.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
-
                             if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
                                 p.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
-
                             if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
                                 p.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
-
                             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
                                 p.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
                         }
@@ -87,9 +71,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return p;
         }
 
+
         // =======================================================
         // METHOD UNTUK UI (DATA TABLE)
         // =======================================================
+
         public DataTable GetKatalogUtama()
         {
             DataTable dt = new DataTable();
@@ -115,9 +101,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
-                }
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
             }
             return dt;
         }
@@ -147,9 +132,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public List<Product> GetAll()
         {
-            List<Product> listProduk = new List<Product>();
-
-            // REVISI: Penambahan p.foto_produk
+            var listProduk = new List<Product>();
             string query = @"
                 SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori, 
                        p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon, 
@@ -158,23 +141,19 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN preorders po ON p.id_po = po.id_po
                 ORDER BY p.nama_produk;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            listProduk.Add(MappingReaderToProduct(reader));
-                        }
-                    }
+                    while (reader.Read())
+                        listProduk.Add(MappingReaderToProduct(reader));
                 }
             }
-
             return listProduk;
         }
+
         public DataTable GetKatalogAktif(int limit = 100)
         {
             DataTable dtKatalog = new DataTable();
@@ -197,16 +176,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 ORDER BY po.batas_waktu ASC NULLS LAST
                 LIMIT @limit;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@limit", limit);
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dtKatalog);
-                    }
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dtKatalog);
                 }
             }
             return dtKatalog;
@@ -215,7 +191,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetProdukByPenjualDataTable(int idPenjual)
         {
             DataTable dt = new DataTable();
-            // Tambahin p.foto_produk di sini juga
             string query = @"
                 SELECT p.id_produk, p.nama_produk, c.nama_kategori, p.harga_dasar, p.target_kuota, po.judul_po, p.foto_produk
                 FROM products p
@@ -224,20 +199,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 WHERE p.id_penjual = @idPenjual
                 ORDER BY p.nama_produk;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
-                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
                 }
             }
             return dt;
         }
+
 
         // =======================================================
         // IMPLEMENTASI ICommandRepository<Product>
@@ -245,175 +218,112 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public void Insert(Product entity)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("Entity produk tidak boleh null.");
-            }
+            if (entity == null) throw new ArgumentNullException("Entity produk tidak boleh null.");
 
-            // REVISI: Penambahan kolom foto_produk
             string query = @"
                 INSERT INTO products (id_penjual, id_po, id_kategori, nama_produk, deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk) 
                 VALUES (@penjual, @po, @kategori, @nama, @deskripsi, @hargaDasar, @hargaDiskon, @targetKuota, @minOrder, @foto);";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     MappingProductToParameters(cmd, entity);
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected == 0)
-                    {
+                    if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal menyimpan produk baru ke database.", "", "DB_INSERT_PRODUCT_FAILED");
-                    }
                 }
             }
         }
 
         public void Update(Product entity)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("Entity produk tidak boleh null.");
-            }
+            if (entity == null) throw new ArgumentNullException("Entity produk tidak boleh null.");
 
-            // REVISI: Penambahan kolom foto_produk
             string query = @"
                 UPDATE products SET id_po = @po, id_kategori = @kategori, nama_produk = @nama, 
                 deskripsi = @deskripsi, harga_dasar = @hargaDasar, harga_diskon = @hargaDiskon, 
                 target_kuota = @targetKuota, min_order = @minOrder, foto_produk = @foto
                 WHERE id_produk = @id;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", entity.GetIdProduk());
                     MappingProductToParameters(cmd, entity);
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected == 0)
-                    {
+                    if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal mengupdate produk, ID tidak ditemukan.", "id_produk", "DB_UPDATE_PRODUCT_FAILED");
-                    }
                 }
             }
         }
 
 
         // =======================================================
-        // HELPER METHOD UNTUK MENGHINDARI REDUNDANSI KODE (DRY)
+        // HELPER METHODS (DRY)
         // =======================================================
 
-        /// <summary>
-        /// Method bantuan untuk memetakan data dari NpgsqlDataReader ke objek Product.
-        /// Menghindari penulisan kode yang sama di GetById dan GetAll.
-        /// </summary>
         private Product MappingReaderToProduct(NpgsqlDataReader reader)
         {
-            int idPenjual = reader.GetInt32(reader.GetOrdinal("id_penjual"));
-            int idKategori = reader.GetInt32(reader.GetOrdinal("id_kategori"));
-            string namaProduk = reader.GetString(reader.GetOrdinal("nama_produk"));
-            int hargaDasar = reader.GetInt32(reader.GetOrdinal("harga_dasar"));
-
-            Product produk = new Product(idPenjual, idKategori, namaProduk, hargaDasar);
+            var produk = new Product(reader.GetInt32(reader.GetOrdinal("id_penjual")), reader.GetInt32(reader.GetOrdinal("id_kategori")),
+                                     reader.GetString(reader.GetOrdinal("nama_produk")), reader.GetInt32(reader.GetOrdinal("harga_dasar")));
             produk.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
 
             if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
-            {
                 produk.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
-            }
             if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
-            {
                 produk.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
-            }
             if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
-            {
                 produk.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
-            }
             if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
-            {
                 produk.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
-            }
             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
-            {
                 produk.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
-            }
 
             // REVISI: Pembacaan BYTEA foto_produk dari Database
             if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
-            {
-                byte[] fotoBytes = (byte[])reader["foto_produk"];
-                produk.SetFotoProduk(fotoBytes);
-            }
+                produk.SetFotoProduk((byte[])reader["foto_produk"]);
 
-            if (!reader.IsDBNull(reader.GetOrdinal("jenis_po")))
-            {
-                produk.SetJenisPo(reader.GetString(reader.GetOrdinal("jenis_po")));
-            }
-            else
-            {
-                produk.SetJenisPo("Biasa");
-            }
+            produk.SetJenisPo(!reader.IsDBNull(reader.GetOrdinal("jenis_po"))
+                ? reader.GetString(reader.GetOrdinal("jenis_po"))
+                : "Biasa");
 
             return produk;
         }
 
-        /// <summary>
-        /// Method bantuan untuk memetakan objek Product ke parameter NpgsqlCommand.
-        /// Menghindari penulisan kode yang sama di Insert dan Update.
-        /// </summary>
         private void MappingProductToParameters(NpgsqlCommand cmd, Product entity)
         {
             cmd.Parameters.AddWithValue("@penjual", entity.GetIdPenjual());
             cmd.Parameters.AddWithValue("@kategori", entity.GetIdKategori());
             cmd.Parameters.AddWithValue("@nama", entity.GetNamaProduk());
             cmd.Parameters.AddWithValue("@hargaDasar", entity.GetHargaDasar());
-
-            // Handle nullable DB parameters
             cmd.Parameters.AddWithValue("@po", entity.GetIdPo().HasValue ? (object)entity.GetIdPo().Value : DBNull.Value);
             cmd.Parameters.AddWithValue("@deskripsi", string.IsNullOrEmpty(entity.GetDeskripsi()) ? (object)DBNull.Value : entity.GetDeskripsi());
             cmd.Parameters.AddWithValue("@hargaDiskon", entity.GetHargaDiskon().HasValue ? (object)entity.GetHargaDiskon().Value : DBNull.Value);
             cmd.Parameters.AddWithValue("@targetKuota", entity.GetTargetKuota() > 0 ? (object)entity.GetTargetKuota() : DBNull.Value);
             cmd.Parameters.AddWithValue("@minOrder", entity.GetMinOrder());
-
             // REVISI: Penyimpanan BYTEA foto_produk ke Database
             cmd.Parameters.AddWithValue("@foto", (object)entity.GetFotoProduk() ?? DBNull.Value);
         }
 
-
-        // =======================================================
-        // METHOD PRIVATE BANTUAN RAM (SUB-BAB 3.1 LAPORAN)
-        // =======================================================
-
-        /// <summary>
-        /// Method khusus untuk mengisi jumlah pesanan yang sudah ada di DB 
-        /// ke dalam properti In-Memory objek Product di RAM.
-        /// Tanpa ini, perhitungan Kuota Gotong Royong di Model akan salah.
-        /// </summary>
         private void IsiJumlahTerpesanDiRam(Product produk)
         {
             string query = "SELECT COALESCE(SUM(jumlah_pesanan), 0) FROM transaction_details WHERE id_produk = @idProduk;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idProduk", produk.GetIdProduk());
                     object result = cmd.ExecuteScalar();
-
                     if (result != null && result != DBNull.Value)
-                    {
-                        int totalTerpesan = Convert.ToInt32(result);
-                        // Sinkronisasi data DB ke RAM
-                        produk.TambahPesanan(totalTerpesan);
-                    }
+                        produk.TambahPesanan(Convert.ToInt32(result));
                 }
             }
         }
+
         public DataTable GetPOHampirPenuh()
         {
             DataTable dt = new DataTable();
@@ -429,13 +339,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
            AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) > 0
         ORDER BY (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) ASC;";
 
-            using (var conn = new Npgsql.NpgsqlConnection(_connectionString))
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (var cmd = new Npgsql.NpgsqlCommand(query, conn))
-                {
-                    using (var da = new Npgsql.NpgsqlDataAdapter(cmd)) da.Fill(dt);
-                }
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var da = new NpgsqlDataAdapter(cmd))
+                    da.Fill(dt);
             }
             return dt;
         }

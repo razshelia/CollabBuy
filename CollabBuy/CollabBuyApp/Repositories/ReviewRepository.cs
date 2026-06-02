@@ -42,12 +42,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return review;
         }
 
-        public List<Review> GetAll()
-        {
-            return new List<Review>();
-        }
+        public List<Review> GetAll() => new List<Review>();
 
-        // --- METHOD TAMBAHAN UNTUK UI REVIEW ---
         public DataTable GetReviewsByPenjual(int idPenjual)
         {
             DataTable dt = new DataTable();
