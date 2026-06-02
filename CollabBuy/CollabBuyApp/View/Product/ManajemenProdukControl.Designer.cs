@@ -18,52 +18,83 @@
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.pnlGrid = new System.Windows.Forms.Panel();
             this.btnRefresh = new System.Windows.Forms.Button();
+            this.btnTambahProduk = new System.Windows.Forms.Button();
             this.dgvLapak = new System.Windows.Forms.DataGridView();
+            // === PANEL FORM TAMBAH PRODUK ===
+            this.pnlTambahProduk = new System.Windows.Forms.Panel();
+            this.lblFormTitle = new System.Windows.Forms.Label();
+            this.lblNamaProduk = new System.Windows.Forms.Label();
+            this.txtNamaProduk = new System.Windows.Forms.TextBox();
+            this.lblKategoriProduk = new System.Windows.Forms.Label();
+            this.cbKategoriProduk = new System.Windows.Forms.ComboBox();
+            this.lblHargaProduk = new System.Windows.Forms.Label();
+            this.txtHargaProduk = new System.Windows.Forms.TextBox();
+            this.lblMinOrder = new System.Windows.Forms.Label();
+            this.txtMinOrder = new System.Windows.Forms.TextBox();
+            this.lblDeskripsiProduk = new System.Windows.Forms.Label();
+            this.txtDeskripsiProduk = new System.Windows.Forms.TextBox();
+            this.picFotoPreview = new System.Windows.Forms.PictureBox();
+            this.btnPilihFoto = new System.Windows.Forms.Button();
+            this.btnSimpanProduk = new System.Windows.Forms.Button();
+            this.btnBatalTambah = new System.Windows.Forms.Button();
+
             this.pnlGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvLapak)).BeginInit();
+            this.pnlTambahProduk.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picFotoPreview)).BeginInit();
             this.SuspendLayout();
-            // 
+
             // lblTitle
-            // 
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.lblTitle.Location = new System.Drawing.Point(30, 25);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(326, 37);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "Gudang Lapak Kamu 📦";
-            // 
+
             // lblSubtitle
-            // 
             this.lblSubtitle.AutoSize = true;
             this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lblSubtitle.ForeColor = System.Drawing.Color.DimGray;
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(364, 20);
             this.lblSubtitle.TabIndex = 1;
             this.lblSubtitle.Text = "Pantau daftar barang yang kamu jual di sistem Danus!";
-            // 
+
             // pnlGrid
-            // 
             this.pnlGrid.BackColor = System.Drawing.Color.White;
             this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlGrid.Controls.Add(this.btnTambahProduk);
             this.pnlGrid.Controls.Add(this.btnRefresh);
             this.pnlGrid.Controls.Add(this.dgvLapak);
             this.pnlGrid.Location = new System.Drawing.Point(36, 110);
             this.pnlGrid.Name = "pnlGrid";
             this.pnlGrid.Size = new System.Drawing.Size(920, 500);
             this.pnlGrid.TabIndex = 2;
-            // 
+
+            // btnTambahProduk
+            this.btnTambahProduk.BackColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.btnTambahProduk.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnTambahProduk.FlatAppearance.BorderSize = 0;
+            this.btnTambahProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTambahProduk.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnTambahProduk.ForeColor = System.Drawing.Color.White;
+            this.btnTambahProduk.Location = new System.Drawing.Point(570, 435);
+            this.btnTambahProduk.Name = "btnTambahProduk";
+            this.btnTambahProduk.Size = new System.Drawing.Size(160, 40);
+            this.btnTambahProduk.TabIndex = 4;
+            this.btnTambahProduk.Text = "➕ Tambah Produk";
+            this.btnTambahProduk.UseVisualStyleBackColor = false;
+            this.btnTambahProduk.Click += new System.EventHandler(this.btnTambahProduk_Click);
+
             // btnRefresh
-            // 
-            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            this.btnRefresh.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.btnRefresh.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnRefresh.FlatAppearance.BorderSize = 0;
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
+            this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
             this.btnRefresh.Location = new System.Drawing.Point(734, 435);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(150, 40);
@@ -71,19 +102,18 @@
             this.btnRefresh.Text = "🔄 Refresh";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-            // 
+
             // dgvLapak
-            // 
             this.dgvLapak.AllowUserToAddRows = false;
             this.dgvLapak.AllowUserToDeleteRows = false;
             this.dgvLapak.BackgroundColor = System.Drawing.Color.White;
             this.dgvLapak.BorderStyle = System.Windows.Forms.BorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(200, 182, 255);
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(182)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(200, 182, 255);
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvLapak.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvLapak.ColumnHeadersHeight = 45;
@@ -94,7 +124,7 @@
             this.dgvLapak.ReadOnly = true;
             this.dgvLapak.RowHeadersVisible = false;
             dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 10F);
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(235)))), ((int)(((byte)(230)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(235, 230, 255);
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Black;
             dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(5);
             this.dgvLapak.RowsDefaultCellStyle = dataGridViewCellStyle2;
@@ -102,12 +132,165 @@
             this.dgvLapak.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvLapak.Size = new System.Drawing.Size(850, 380);
             this.dgvLapak.TabIndex = 0;
-            // 
+
+            // ===========================================
+            // pnlTambahProduk - panel form input produk
+            // ===========================================
+            this.pnlTambahProduk.BackColor = System.Drawing.Color.FromArgb(224, 170, 255);
+            this.pnlTambahProduk.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlTambahProduk.Controls.Add(this.lblFormTitle);
+            this.pnlTambahProduk.Controls.Add(this.lblNamaProduk);
+            this.pnlTambahProduk.Controls.Add(this.txtNamaProduk);
+            this.pnlTambahProduk.Controls.Add(this.lblKategoriProduk);
+            this.pnlTambahProduk.Controls.Add(this.cbKategoriProduk);
+            this.pnlTambahProduk.Controls.Add(this.lblHargaProduk);
+            this.pnlTambahProduk.Controls.Add(this.txtHargaProduk);
+            this.pnlTambahProduk.Controls.Add(this.lblMinOrder);
+            this.pnlTambahProduk.Controls.Add(this.txtMinOrder);
+            this.pnlTambahProduk.Controls.Add(this.lblDeskripsiProduk);
+            this.pnlTambahProduk.Controls.Add(this.txtDeskripsiProduk);
+            this.pnlTambahProduk.Controls.Add(this.picFotoPreview);
+            this.pnlTambahProduk.Controls.Add(this.btnPilihFoto);
+            this.pnlTambahProduk.Controls.Add(this.btnSimpanProduk);
+            this.pnlTambahProduk.Controls.Add(this.btnBatalTambah);
+            this.pnlTambahProduk.Location = new System.Drawing.Point(36, 625);
+            this.pnlTambahProduk.Name = "pnlTambahProduk";
+            this.pnlTambahProduk.Size = new System.Drawing.Size(920, 310);
+            this.pnlTambahProduk.TabIndex = 3;
+            this.pnlTambahProduk.Visible = false;
+
+            // lblFormTitle
+            this.lblFormTitle.AutoSize = true;
+            this.lblFormTitle.Font = new System.Drawing.Font("Segoe UI Black", 13F, System.Drawing.FontStyle.Bold);
+            this.lblFormTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblFormTitle.Location = new System.Drawing.Point(20, 15);
+            this.lblFormTitle.Name = "lblFormTitle";
+            this.lblFormTitle.Text = "➕ Input Produk Baru";
+
+            // lblNamaProduk
+            this.lblNamaProduk.AutoSize = true;
+            this.lblNamaProduk.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblNamaProduk.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblNamaProduk.Location = new System.Drawing.Point(20, 52);
+            this.lblNamaProduk.Text = "Nama Produk *";
+
+            // txtNamaProduk
+            this.txtNamaProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtNamaProduk.Location = new System.Drawing.Point(20, 70);
+            this.txtNamaProduk.Name = "txtNamaProduk";
+            this.txtNamaProduk.Size = new System.Drawing.Size(340, 27);
+
+            // lblKategoriProduk
+            this.lblKategoriProduk.AutoSize = true;
+            this.lblKategoriProduk.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblKategoriProduk.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblKategoriProduk.Location = new System.Drawing.Point(375, 52);
+            this.lblKategoriProduk.Text = "Kategori *";
+
+            // cbKategoriProduk
+            this.cbKategoriProduk.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbKategoriProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cbKategoriProduk.Location = new System.Drawing.Point(375, 70);
+            this.cbKategoriProduk.Name = "cbKategoriProduk";
+            this.cbKategoriProduk.Size = new System.Drawing.Size(230, 27);
+
+            // lblHargaProduk
+            this.lblHargaProduk.AutoSize = true;
+            this.lblHargaProduk.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblHargaProduk.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblHargaProduk.Location = new System.Drawing.Point(20, 112);
+            this.lblHargaProduk.Text = "Harga Dasar (Rp) *";
+
+            // txtHargaProduk
+            this.txtHargaProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtHargaProduk.Location = new System.Drawing.Point(20, 130);
+            this.txtHargaProduk.Name = "txtHargaProduk";
+            this.txtHargaProduk.Size = new System.Drawing.Size(180, 27);
+
+            // lblMinOrder
+            this.lblMinOrder.AutoSize = true;
+            this.lblMinOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblMinOrder.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblMinOrder.Location = new System.Drawing.Point(215, 112);
+            this.lblMinOrder.Text = "Min. Order";
+
+            // txtMinOrder
+            this.txtMinOrder.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtMinOrder.Location = new System.Drawing.Point(215, 130);
+            this.txtMinOrder.Name = "txtMinOrder";
+            this.txtMinOrder.Size = new System.Drawing.Size(100, 27);
+            this.txtMinOrder.Text = "1";
+
+            // lblDeskripsiProduk
+            this.lblDeskripsiProduk.AutoSize = true;
+            this.lblDeskripsiProduk.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblDeskripsiProduk.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDeskripsiProduk.Location = new System.Drawing.Point(20, 172);
+            this.lblDeskripsiProduk.Text = "Deskripsi";
+
+            // txtDeskripsiProduk
+            this.txtDeskripsiProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtDeskripsiProduk.Location = new System.Drawing.Point(20, 190);
+            this.txtDeskripsiProduk.Multiline = true;
+            this.txtDeskripsiProduk.Name = "txtDeskripsiProduk";
+            this.txtDeskripsiProduk.Size = new System.Drawing.Size(585, 65);
+
+            // picFotoPreview
+            this.picFotoPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picFotoPreview.Location = new System.Drawing.Point(625, 70);
+            this.picFotoPreview.Name = "picFotoPreview";
+            this.picFotoPreview.Size = new System.Drawing.Size(80, 80);
+            this.picFotoPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picFotoPreview.BackColor = System.Drawing.Color.White;
+
+            // btnPilihFoto
+            this.btnPilihFoto.BackColor = System.Drawing.Color.FromArgb(200, 182, 255);
+            this.btnPilihFoto.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnPilihFoto.FlatAppearance.BorderSize = 0;
+            this.btnPilihFoto.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPilihFoto.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnPilihFoto.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.btnPilihFoto.Location = new System.Drawing.Point(715, 90);
+            this.btnPilihFoto.Name = "btnPilihFoto";
+            this.btnPilihFoto.Size = new System.Drawing.Size(110, 36);
+            this.btnPilihFoto.Text = "📷 Pilih Foto";
+            this.btnPilihFoto.UseVisualStyleBackColor = false;
+            this.btnPilihFoto.Click += new System.EventHandler(this.btnPilihFoto_Click);
+
+            // btnSimpanProduk
+            this.btnSimpanProduk.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.btnSimpanProduk.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnSimpanProduk.FlatAppearance.BorderSize = 0;
+            this.btnSimpanProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSimpanProduk.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.btnSimpanProduk.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
+            this.btnSimpanProduk.Location = new System.Drawing.Point(620, 215);
+            this.btnSimpanProduk.Name = "btnSimpanProduk";
+            this.btnSimpanProduk.Size = new System.Drawing.Size(185, 40);
+            this.btnSimpanProduk.Text = "✅ Simpan Produk";
+            this.btnSimpanProduk.UseVisualStyleBackColor = false;
+            this.btnSimpanProduk.Click += new System.EventHandler(this.btnSimpanProduk_Click);
+
+            // btnBatalTambah
+            this.btnBatalTambah.BackColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.btnBatalTambah.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnBatalTambah.FlatAppearance.BorderSize = 0;
+            this.btnBatalTambah.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBatalTambah.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnBatalTambah.ForeColor = System.Drawing.Color.White;
+            this.btnBatalTambah.Location = new System.Drawing.Point(620, 262);
+            this.btnBatalTambah.Name = "btnBatalTambah";
+            this.btnBatalTambah.Size = new System.Drawing.Size(185, 36);
+            this.btnBatalTambah.Text = "✖ Batal";
+            this.btnBatalTambah.UseVisualStyleBackColor = false;
+            this.btnBatalTambah.Click += new System.EventHandler(this.btnBatalTambah_Click);
+
             // ManajemenProdukControl
-            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
+            this.AutoScroll = true;
+            this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
+            this.Controls.Add(this.pnlTambahProduk);
             this.Controls.Add(this.pnlGrid);
             this.Controls.Add(this.lblSubtitle);
             this.Controls.Add(this.lblTitle);
@@ -116,6 +299,9 @@
             this.Load += new System.EventHandler(this.ManajemenProdukControl_Load);
             this.pnlGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvLapak)).EndInit();
+            this.pnlTambahProduk.ResumeLayout(false);
+            this.pnlTambahProduk.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picFotoPreview)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }
@@ -125,5 +311,23 @@
         private System.Windows.Forms.Panel pnlGrid;
         private System.Windows.Forms.DataGridView dgvLapak;
         private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.Button btnTambahProduk;
+        // Form tambah produk (inline panel)
+        private System.Windows.Forms.Panel pnlTambahProduk;
+        private System.Windows.Forms.Label lblFormTitle;
+        private System.Windows.Forms.Label lblNamaProduk;
+        private System.Windows.Forms.TextBox txtNamaProduk;
+        private System.Windows.Forms.Label lblKategoriProduk;
+        private System.Windows.Forms.ComboBox cbKategoriProduk;
+        private System.Windows.Forms.Label lblHargaProduk;
+        private System.Windows.Forms.TextBox txtHargaProduk;
+        private System.Windows.Forms.Label lblMinOrder;
+        private System.Windows.Forms.TextBox txtMinOrder;
+        private System.Windows.Forms.Label lblDeskripsiProduk;
+        private System.Windows.Forms.TextBox txtDeskripsiProduk;
+        private System.Windows.Forms.PictureBox picFotoPreview;
+        private System.Windows.Forms.Button btnPilihFoto;
+        private System.Windows.Forms.Button btnSimpanProduk;
+        private System.Windows.Forms.Button btnBatalTambah;
     }
 }

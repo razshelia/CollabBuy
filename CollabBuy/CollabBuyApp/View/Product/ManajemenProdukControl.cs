@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.View.Product
 {
@@ -11,6 +13,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
     {
         private readonly Models.User _currentUser;
         private readonly ProductController _productController;
+        private readonly CategoryRepository _categoryRepo;
+        private byte[] _fotoProdukBytes = null;
 
         public ManajemenProdukControl(Models.User currentUser)
         {
@@ -18,6 +22,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             this._currentUser = currentUser;
             this._productController = new ProductController();
+            this._categoryRepo = new CategoryRepository();
 
             this.Resize += (s, e) => this.AdjustLayout();
         }
@@ -27,11 +32,130 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this.AdjustLayout();
             this.SetupDataGridView();
             this.LoadDataProduk();
+            this.LoadKategori();
+            this.pnlTambahProduk.Visible = false; // Panel form tersembunyi saat awal
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             this.LoadDataProduk();
+        }
+
+        // === TOMBOL TAMBAH PRODUK: toggle show/hide panel ===
+        private void btnTambahProduk_Click(object sender, EventArgs e)
+        {
+            this.pnlTambahProduk.Visible = !this.pnlTambahProduk.Visible;
+            if (this.pnlTambahProduk.Visible)
+            {
+                this.ResetFormTambah();
+            }
+        }
+
+        private void btnBatalTambah_Click(object sender, EventArgs e)
+        {
+            this.pnlTambahProduk.Visible = false;
+            this.ResetFormTambah();
+        }
+
+        private void btnPilihFoto_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+                ofd.Title = "Pilih Foto Produk";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    FileInfo fi = new FileInfo(ofd.FileName);
+                    if (fi.Length > 2097152)
+                    {
+                        MessageBox.Show("Ukuran foto maksimal 2MB ya!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    _fotoProdukBytes = File.ReadAllBytes(ofd.FileName);
+                    picFotoPreview.Image = Image.FromFile(ofd.FileName);
+                }
+            }
+        }
+
+        private void btnSimpanProduk_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtNamaProduk.Text))
+            {
+                MessageBox.Show("Nama produk wajib diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNamaProduk.Focus();
+                return;
+            }
+
+            if (cbKategoriProduk.SelectedValue == null)
+            {
+                MessageBox.Show("Pilih kategori dulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!int.TryParse(txtHargaProduk.Text, out int harga) || harga <= 0)
+            {
+                MessageBox.Show("Harga harus berupa angka lebih dari 0!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtHargaProduk.Focus();
+                return;
+            }
+
+            if (!int.TryParse(txtMinOrder.Text, out int minOrder) || minOrder <= 0)
+            {
+                MessageBox.Show("Min. order harus berupa angka lebih dari 0!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMinOrder.Focus();
+                return;
+            }
+
+            int idKategori = Convert.ToInt32(cbKategoriProduk.SelectedValue);
+
+            var result = this._productController.TambahProdukBaru(
+                idPenjual: this._currentUser.GetIdUser(),
+                idKategori: idKategori,
+                namaProduk: txtNamaProduk.Text.Trim(),
+                hargaDasar: harga,
+                idPo: null,
+                targetKuota: null,
+                minOrder: minOrder,
+                fotoProduk: _fotoProdukBytes
+            );
+
+            if (result.sukses)
+            {
+                MessageBox.Show(result.pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.pnlTambahProduk.Visible = false;
+                this.ResetFormTambah();
+                this.LoadDataProduk();
+            }
+            else
+            {
+                MessageBox.Show(result.pesan, "Gagal Simpan", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadKategori()
+        {
+            try
+            {
+                DataTable dt = this._categoryRepo.GetAll();
+                cbKategoriProduk.DataSource = dt;
+                cbKategoriProduk.DisplayMember = "nama_kategori";
+                cbKategoriProduk.ValueMember = "id_kategori";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal load kategori: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ResetFormTambah()
+        {
+            txtNamaProduk.Clear();
+            txtHargaProduk.Clear();
+            txtMinOrder.Text = "1";
+            txtDeskripsiProduk.Clear();
+            picFotoPreview.Image = null;
+            _fotoProdukBytes = null;
+            if (cbKategoriProduk.Items.Count > 0) cbKategoriProduk.SelectedIndex = 0;
         }
 
         private void AdjustLayout()
@@ -42,22 +166,23 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this.pnlGrid.Width = w;
             this.dgvLapak.Width = this.pnlGrid.Width - 68;
             this.btnRefresh.Left = this.pnlGrid.Width - this.btnRefresh.Width - 34;
+            this.btnTambahProduk.Left = this.btnRefresh.Left - this.btnTambahProduk.Width - 12;
+
+            this.pnlTambahProduk.Width = w;
         }
 
         private void SetupDataGridView()
         {
             this.dgvLapak.AutoGenerateColumns = false;
             this.dgvLapak.Columns.Clear();
-            this.dgvLapak.RowTemplate.Height = 80; // Kasih space buat foto
+            this.dgvLapak.RowTemplate.Height = 80;
 
-            // Kolom Gambar Baru
             DataGridViewImageColumn colFoto = new DataGridViewImageColumn();
             colFoto.Name = "Foto";
             colFoto.HeaderText = "Foto";
             colFoto.DataPropertyName = "foto_image";
             colFoto.ImageLayout = DataGridViewImageCellLayout.Zoom;
             colFoto.Width = 80;
-
             this.dgvLapak.Columns.Add(colFoto);
 
             this.dgvLapak.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Barang", DataPropertyName = "nama_produk", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
@@ -95,9 +220,6 @@ namespace CollabBuy.CollabBuyApp.View.Product
                             judulPo = row["judul_po"].ToString();
                         }
 
-                        // =======================================================
-                        // OOP BEST PRACTICE: Pemanfaatan Model Category
-                        // =======================================================
                         string namaKatMentah;
                         if (row.IsNull("nama_kategori"))
                         {
@@ -137,9 +259,12 @@ namespace CollabBuy.CollabBuyApp.View.Product
                             try
                             {
                                 byte[] imgBytes = (byte[])row["foto_produk"];
-                                using (System.IO.MemoryStream ms = new System.IO.MemoryStream(imgBytes))
+                                if (imgBytes.Length > 1)
                                 {
-                                    foto = Image.FromStream(ms);
+                                    using (System.IO.MemoryStream ms = new System.IO.MemoryStream(imgBytes))
+                                    {
+                                        foto = Image.FromStream(ms);
+                                    }
                                 }
                             }
                             catch
@@ -149,7 +274,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         }
                         else
                         {
-                            bool fotoKosong = true; // Penugasan untuk menghindari else kosong
+                            bool fotoKosong = true;
                         }
 
                         dtUI.Rows.Add(foto, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);

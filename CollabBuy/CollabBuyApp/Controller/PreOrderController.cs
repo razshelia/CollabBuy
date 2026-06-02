@@ -120,16 +120,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public DataTable GetProdukTersedia(int idPenjual)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._poRepo.GetProdukTanpaPO(idPenjual);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            return this._poRepo.GetProdukTanpaPO(idPenjual);
         }
 
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)

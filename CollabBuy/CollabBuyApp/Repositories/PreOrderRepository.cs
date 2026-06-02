@@ -43,23 +43,23 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT 
-                    po.id_po, 
-                    po.judul_po AS nama_sesi, 
-                    v.nama_toko, 
-                    p.target_kuota AS kuota, 
-                    COALESCE(SUM(td.jumlah_pesanan), 0) AS terisi, 
-                    p.harga_dasar AS harga, 
-                    po.batas_waktu AS deadline, 
-                    po.is_aktif 
-                FROM preorders po
-                JOIN verifications v ON po.id_penjual = v.id_user
-                JOIN products p ON po.id_po = p.id_po
-                LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
-                WHERE po.is_aktif = TRUE
-                  AND (po.judul_po ILIKE @keyword OR v.nama_toko ILIKE @keyword)
-                GROUP BY po.id_po, po.judul_po, v.nama_toko, p.target_kuota, p.harga_dasar, po.batas_waktu, po.is_aktif
-                ORDER BY po.batas_waktu ASC;";
+    SELECT 
+        po.id_po, 
+        po.judul_po AS nama_sesi, 
+        v.nama_toko, 
+        COALESCE(MIN(p.target_kuota), 0) AS kuota, 
+        COALESCE(SUM(td.jumlah_pesanan), 0) AS terisi, 
+        MIN(p.harga_dasar) AS harga, 
+        po.batas_waktu AS deadline, 
+        po.is_aktif 
+    FROM preorders po
+    JOIN verifications v ON po.id_penjual = v.id_user
+    JOIN products p ON po.id_po = p.id_po
+    LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
+    WHERE po.is_aktif = TRUE
+      AND (po.judul_po ILIKE @keyword OR v.nama_toko ILIKE @keyword)
+    GROUP BY po.id_po, po.judul_po, v.nama_toko, po.batas_waktu, po.is_aktif
+    ORDER BY po.batas_waktu ASC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

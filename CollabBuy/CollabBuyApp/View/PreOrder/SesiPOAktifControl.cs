@@ -60,19 +60,31 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 DataTable dtPO = this._poController.GetActiveSesiPO(keyword);
 
                 if (dtPO != null && dtPO.Rows.Count > 0)
+                // ... seterusnya sama
                 {
                     foreach (DataRow row in dtPO.Rows)
                     {
-                        Panel pnlCard = this.BuatKartuPO(
-                            Convert.ToInt32(row["id_po"]),
-                            row["nama_sesi"].ToString(),
-                            row["nama_toko"].ToString(),
-                            Convert.ToInt32(row["kuota"]),
-                            Convert.ToInt32(row["terisi"]),
-                            Convert.ToDecimal(row["harga"]),
-                            Convert.ToDateTime(row["deadline"])
-                        );
-                        this.flpSesiPO.Controls.Add(pnlCard);
+                        try
+                        {
+                            int kuota = row["kuota"] == DBNull.Value ? 0 : Convert.ToInt32(row["kuota"]);
+                            int terisi = row["terisi"] == DBNull.Value ? 0 : Convert.ToInt32(row["terisi"]);
+                            decimal harga = row["harga"] == DBNull.Value ? 0 : Convert.ToDecimal(row["harga"]);
+
+                            Panel pnlCard = this.BuatKartuPO(
+                                Convert.ToInt32(row["id_po"]),
+                                row["nama_sesi"].ToString(),
+                                row["nama_toko"].ToString(),
+                                kuota,
+                                terisi,
+                                harga,
+                                Convert.ToDateTime(row["deadline"])
+                            );
+                            this.flpSesiPO.Controls.Add(pnlCard);
+                        }
+                        catch (Exception exRow)
+                        {
+                            MessageBox.Show("Error di baris: " + exRow.Message, "Debug Row");
+                        }
                     }
                 }
                 else
