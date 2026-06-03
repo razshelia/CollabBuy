@@ -11,7 +11,7 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class PreOrder : IValidatable, IStatusTrackable, IQuotaTrackable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idPo;
         private int _idPenjual;
         private string _judulPo;
@@ -19,144 +19,111 @@ namespace CollabBuy.CollabBuyApp.Models
         private string _infoRekening;
         private DateTime _batasWaktu;
         private bool _isAktif;
+        private List<Product> _produkDiPo; // Struktur Data In-Memory (Agregasi)
 
-        // Struktur Data In-Memory (Agregasi)
-        private List<Product> _produkDiPo;
+        // === PROPERTIES ===
+        public int IdPo
+        {
+            get { return this._idPo; }
+            set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID PO tidak valid!", "id_po", "PO_ID_INVALID");
+                this._idPo = value;
+            }
+        }
+
+        public int IdPenjual
+        {
+            get { return this._idPenjual; }
+            set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Penjual tidak valid!", "id_penjual", "PO_PENJUAL_INVALID");
+                this._idPenjual = value;
+            }
+        }
+
+        public string JudulPo
+        {
+            get { return this._judulPo; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Judul PO wajib diisi!", "judul_po", "PO_JUDUL_KOSONG");
+
+                if (value.Trim().Length < 5)
+                    throw new InvalidOrderException("Judul PO minimal 5 karakter!", "judul_po", "PO_JUDUL_PENDEK");
+
+                if (value.Trim().Length > 100)
+                    throw new InvalidOrderException("Judul PO maksimal 100 karakter!", "judul_po", "PO_JUDUL_PANJANG");
+
+                this._judulPo = value.Trim();
+            }
+        }
+
+        public string JenisPo
+        {
+            get { return this._jenisPo; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Jenis PO tidak boleh kosong!", "jenis_po", "PO_JENIS_KOSONG");
+
+                if (value != "Biasa" && value != "Gotong Royong")
+                    throw new InvalidOrderException("Jenis PO hanya boleh 'Biasa' atau 'Gotong Royong'!", "jenis_po", "PO_JENIS_INVALID");
+
+                this._jenisPo = value.Trim();
+            }
+        }
+
+        public string InfoRekening
+        {
+            get { return this._infoRekening; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Info rekening wajib diisi!", "info_rekening", "PO_REK_KOSONG");
+
+                if (value.Trim().Length < 10)
+                    throw new InvalidOrderException("Info rekening minimal 10 karakter! Contoh: 'BCA 1234567890 a/n Nama'", "info_rekening", "PO_REK_PENDEK");
+
+                if (value.Trim().Length > 200)
+                    throw new InvalidOrderException("Info rekening maksimal 200 karakter!", "info_rekening", "PO_REK_PANJANG");
+
+                this._infoRekening = value.Trim();
+            }
+        }
+
+        public DateTime BatasWaktu
+        {
+            get { return this._batasWaktu; }
+            set
+            {
+                if (value < DateTime.Now)
+                    throw new InvalidOrderException("Batas waktu PO tidak boleh di masa lalu!", "batas_waktu", "PO_WAKTU_INVALID");
+
+                this._batasWaktu = value;
+            }
+        }
+
+        // List hanya menggunakan get agar aman
+        public List<Product> ProdukDiPo
+        {
+            get { return this._produkDiPo; }
+        }
 
         // === KONSTRUKTOR ===
         public PreOrder(int idPenjual, string judulPo, string jenisPo, string infoRekening, DateTime batasWaktu)
         {
-            this.SetIdPenjual(idPenjual);
-            this.SetJudulPo(judulPo);
-            this.SetJenisPo(jenisPo);
-            this.SetInfoRekening(infoRekening);
-            this.SetBatasWaktu(batasWaktu);
+            this.IdPenjual = idPenjual;
+            this.JudulPo = judulPo;
+            this.JenisPo = jenisPo;
+            this.InfoRekening = infoRekening;
+            this.BatasWaktu = batasWaktu;
 
             this._isAktif = true;
             this._produkDiPo = new List<Product>();
-        }
-
-        // === GETTER & SETTER (STRICT ENCAPSULATION IF-ELSE) ===
-        public int GetIdPo()
-        {
-            return this._idPo;
-        }
-
-        public void SetIdPo(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID PO tidak valid!", "id_po", "PO_ID_INVALID");
-            }
-            else
-            {
-                this._idPo = id;
-            }
-        }
-
-        public int GetIdPenjual()
-        {
-            return this._idPenjual;
-        }
-
-        public void SetIdPenjual(int idPenjual)
-        {
-            if (idPenjual <= 0)
-            {
-                throw new InvalidOrderException("ID Penjual tidak valid!", "id_penjual", "PO_PENJUAL_INVALID");
-            }
-            else
-            {
-                this._idPenjual = idPenjual;
-            }
-        }
-
-        public string GetJudulPo()
-        {
-            return this._judulPo;
-        }
-
-        public void SetJudulPo(string judul)
-        {
-            if (string.IsNullOrWhiteSpace(judul))
-            {
-                throw new InvalidOrderException("Judul PO wajib diisi!", "judul_po", "PO_JUDUL_KOSONG");
-            }
-            else if (judul.Trim().Length < 5)
-            {
-                throw new InvalidOrderException("Judul PO minimal 5 karakter!", "judul_po", "PO_JUDUL_PENDEK");
-            }
-            else if (judul.Trim().Length > 100)
-            {
-                throw new InvalidOrderException("Judul PO maksimal 100 karakter!", "judul_po", "PO_JUDUL_PANJANG");
-            }
-            else
-            {
-                this._judulPo = judul.Trim();
-            }
-        }
-
-        public string GetJenisPo()
-        {
-            return this._jenisPo;
-        }
-
-        public void SetJenisPo(string jenis)
-        {
-            if (string.IsNullOrWhiteSpace(jenis))
-            {
-                throw new InvalidOrderException("Jenis PO tidak boleh kosong!", "jenis_po", "PO_JENIS_KOSONG");
-            }
-            else if (jenis != "Biasa" && jenis != "Gotong Royong")
-            {
-                throw new InvalidOrderException("Jenis PO hanya boleh 'Biasa' atau 'Gotong Royong'!", "jenis_po", "PO_JENIS_INVALID");
-            }
-            else
-            {
-                this._jenisPo = jenis.Trim();
-            }
-        }
-
-        public string GetInfoRekening()
-        {
-            return this._infoRekening;
-        }
-
-        public void SetInfoRekening(string rekening)
-        {
-            if (string.IsNullOrWhiteSpace(rekening))
-            {
-                throw new InvalidOrderException("Info rekening wajib diisi!", "info_rekening", "PO_REK_KOSONG");
-            }
-            else if (rekening.Trim().Length < 10)
-            {
-                throw new InvalidOrderException("Info rekening minimal 10 karakter! Contoh: 'BCA 1234567890 a/n Nama'", "info_rekening", "PO_REK_PENDEK");
-            }
-            else if (rekening.Trim().Length > 200)
-            {
-                throw new InvalidOrderException("Info rekening maksimal 200 karakter!", "info_rekening", "PO_REK_PANJANG");
-            }
-            else
-            {
-                this._infoRekening = rekening.Trim();
-            }
-        }
-
-        public DateTime GetBatasWaktu()
-        {
-            return this._batasWaktu;
-        }
-
-        public void SetBatasWaktu(DateTime batas)
-        {
-            if (batas < DateTime.Now)
-            {
-                throw new InvalidOrderException("Batas waktu PO tidak boleh di masa lalu!", "batas_waktu", "PO_WAKTU_INVALID");
-            }
-            else
-            {
-                this._batasWaktu = batas;
-            }
         }
 
         // =========================================================
@@ -166,17 +133,12 @@ namespace CollabBuy.CollabBuyApp.Models
         public void TambahProduk(Product produk)
         {
             if (produk == null)
-            {
                 throw new InvalidOrderException("Produk yang ditambahkan tidak boleh null!", "produk", "PO_PRODUK_NULL");
-            }
-            else if (produk.GetIdPenjual() != this._idPenjual)
-            {
+
+            if (produk.GetIdPenjual() != this._idPenjual) // Sesuaikan nama method jika sudah diubah jadi Property di kelas Product
                 throw new InvalidOrderException("Produk ini bukan milik penjual PO!", "id_penjual", "PO_KEPEMILIKAN_INVALID");
-            }
-            else
-            {
-                this._produkDiPo.Add(produk);
-            }
+
+            this._produkDiPo.Add(produk);
         }
 
         public List<Product> GetSemuaProduk()
@@ -189,18 +151,7 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public bool ApakahPoBerjalan()
         {
-            bool isBerjalan;
-
-            if (this._isAktif && this._batasWaktu > DateTime.Now)
-            {
-                isBerjalan = true;
-            }
-            else
-            {
-                isBerjalan = false;
-            }
-
-            return isBerjalan;
+            return this._isAktif && this._batasWaktu > DateTime.Now;
         }
 
         /// <summary>
@@ -209,27 +160,14 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanSisaWaktu()
         {
-            string sisaTeks;
+            if (!this._isAktif) return "🔒 PO Sudah Ditutup Manual";
+
             TimeSpan selisih = this._batasWaktu - DateTime.Now;
 
-            if (!this._isAktif)
-            {
-                sisaTeks = "🔒 PO Sudah Ditutup Manual";
-            }
-            else if (selisih.TotalSeconds <= 0)
-            {
-                sisaTeks = "⏳ Waktu Habis!";
-            }
-            else if (selisih.TotalDays >= 1)
-            {
-                sisaTeks = $"Sisa {selisih.Days} Hari {selisih.Hours} Jam";
-            }
-            else
-            {
-                sisaTeks = $"Sisa {selisih.Hours} Jam {selisih.Minutes} Menit";
-            }
+            if (selisih.TotalSeconds <= 0) return "⏳ Waktu Habis!";
+            if (selisih.TotalDays >= 1) return $"Sisa {selisih.Days} Hari {selisih.Hours} Jam";
 
-            return sisaTeks;
+            return $"Sisa {selisih.Hours} Jam {selisih.Minutes} Menit";
         }
 
         /// <summary>
@@ -241,11 +179,6 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 this._isAktif = false;
             }
-            else
-            {
-                // Tetap biarkan sesuai status aslinya
-                bool statusTetap = this._isAktif;
-            }
         }
 
         /// <summary>
@@ -253,174 +186,96 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public long EstimasiTotalPendapatan()
         {
+            if (this._produkDiPo == null) return 0;
+
             long total = 0;
-            if (this._produkDiPo != null)
+            foreach (Product p in this._produkDiPo)
             {
-                foreach (Product p in this._produkDiPo)
-                {
-                    total = total + (p.GetHargaDasar() * p.GetTargetKuota());
-                }
-            }
-            else
-            {
-                total = 0;
+                // Asumsi GetHargaDasar() dan GetTargetKuota() masih method. Ubah ke property (p.HargaDasar) jika sudah di-refactor.
+                total += (p.GetHargaDasar() * p.GetTargetKuota());
             }
             return total;
         }
 
         public string DapatkanInfoCardPO()
         {
-            string info;
+            if (string.IsNullOrWhiteSpace(this._judulPo)) return "Data PO Tidak Lengkap";
+
             string tipe = this._jenisPo == "Gotong Royong" ? "🤝" : "📦";
-
-            if (string.IsNullOrWhiteSpace(this._judulPo))
-            {
-                info = "Data PO Tidak Lengkap";
-            }
-            else
-            {
-                info = $"{tipe} {this._judulPo} | {this.DapatkanSisaWaktu()}";
-            }
-
-            return info;
+            return $"{tipe} {this._judulPo} | {this.DapatkanSisaWaktu()}";
         }
 
         // === IMPLEMENTASI IValidatable ===
         public void Validate()
         {
-            bool validasiJudul;
-            bool validasiJenis;
-
             if (string.IsNullOrWhiteSpace(this._judulPo))
-            {
                 throw new InvalidOrderException("Validasi gagal: Judul PO kosong.", "judul_po", "PO_INVALID");
-            }
-            else
-            {
-                validasiJudul = true;
-            }
 
             if (this._jenisPo != "Biasa" && this._jenisPo != "Gotong Royong")
-            {
                 throw new InvalidOrderException("Validasi gagal: Jenis PO tidak sesuai.", "jenis_po", "PO_INVALID");
-            }
-            else
-            {
-                validasiJenis = true;
-            }
         }
 
         // === IMPLEMENTASI IStatusTrackable ===
         public string GetStatus()
         {
-            string status;
-            if (this._isAktif)
-            {
-                status = "Aktif";
-            }
-            else
-            {
-                status = "Tutup";
-            }
-            return status;
+            return this._isAktif ? "Aktif" : "Tutup";
         }
 
         public bool BisaDiubahKe(string statusBaru)
         {
-            bool bisaUbah;
-            string statusSaatIni = this.GetStatus();
-
-            if (statusSaatIni == "Aktif" && statusBaru == "Tutup")
-            {
-                bisaUbah = true;
-            }
-            else
-            {
-                bisaUbah = false;
-            }
-
-            return bisaUbah;
+            return this.GetStatus() == "Aktif" && statusBaru == "Tutup";
         }
 
         public void UbahStatus(string statusBaru)
         {
             if (!this.BisaDiubahKe(statusBaru))
             {
-                throw new InvalidOrderException("Status PO tidak bisa diubah ke '" + statusBaru + "'!", "is_aktif", "PO_STATUS_INVALID");
+                throw new InvalidOrderException($"Status PO tidak bisa diubah ke '{statusBaru}'!", "is_aktif", "PO_STATUS_INVALID");
             }
-            else
-            {
-                this._isAktif = false;
-            }
+            this._isAktif = false;
         }
 
         // === IMPLEMENTASI IQuotaTrackable (Agregat) ===
         public int GetTargetKuota()
         {
+            if (this._produkDiPo == null) return 0;
+
             int total = 0;
-            if (this._produkDiPo != null)
+            foreach (Product p in this._produkDiPo)
             {
-                foreach (Product p in this._produkDiPo)
-                {
-                    total = total + p.GetTargetKuota();
-                }
-            }
-            else
-            {
-                total = 0;
+                total += p.GetTargetKuota();
             }
             return total;
         }
 
         public int GetTerpesan()
         {
+            if (this._produkDiPo == null) return 0;
+
             int total = 0;
-            if (this._produkDiPo != null)
+            foreach (Product p in this._produkDiPo)
             {
-                foreach (Product p in this._produkDiPo)
-                {
-                    total = total + p.GetTerpesan();
-                }
-            }
-            else
-            {
-                total = 0;
+                total += p.GetTerpesan();
             }
             return total;
         }
 
         public int GetSisaKuota()
         {
-            int sisa = this.GetTargetKuota() - this.GetTerpesan();
-            return sisa;
+            return this.GetTargetKuota() - this.GetTerpesan();
         }
 
         public bool IsKuotaTerpenuhi()
         {
-            bool semuaTerpenuhi = true;
+            if (this._produkDiPo == null || this._produkDiPo.Count == 0) return false;
 
-            if (this._produkDiPo == null || this._produkDiPo.Count == 0)
+            // Jika ada satu saja produk yang kuotanya belum terpenuhi, maka PO belum komplit
+            foreach (Product p in this._produkDiPo)
             {
-                semuaTerpenuhi = false;
-            }
-            else
-            {
-                foreach (Product p in this._produkDiPo)
-                {
-                    if (!p.IsKuotaTerpenuhi())
-                    {
-                        semuaTerpenuhi = false;
-                        break;
-                    }
-                    else
-                    {
-                        // Lanjut cek produk berikutnya
-                        bool lanjutCek = true;
-                    }
-                }
+                if (!p.IsKuotaTerpenuhi()) return false;
             }
 
-            return semuaTerpenuhi;
+            return true;
         }
     }
 }
