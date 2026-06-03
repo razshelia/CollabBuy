@@ -39,7 +39,8 @@ CREATE TABLE preorders (
     jenis_po VARCHAR(50) NOT NULL,
     info_rekening VARCHAR(255) NOT NULL,
     batas_waktu TIMESTAMP NOT NULL,
-    is_aktif BOOLEAN DEFAULT TRUE
+    is_aktif BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE products (
@@ -195,7 +196,7 @@ LEFT JOIN preorders   po  ON p.id_po       = po.id_po
 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
 WHERE
     p.is_deleted = FALSE
-    AND (p.id_po IS NULL OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP));
+   AND (p.id_po IS NULL OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP AND po.is_deleted = FALSE))
  
  
 -- 2. VIEW: Transaksi Lengkap
@@ -232,6 +233,7 @@ JOIN     products            p  ON po.id_po       = p.id_po
 LEFT JOIN transaction_details td ON p.id_produk   = td.id_produk
 LEFT JOIN transactions        t  ON td.id_transaksi = t.id_transaksi
     AND t.status_pesanan = 'Selesai'
+WHERE po.is_deleted = FALSE
 GROUP BY po.id_po, po.judul_po, po.jenis_po, p.nama_produk;
  
  
@@ -271,7 +273,8 @@ BEGIN
  
     SELECT jenis_po INTO v_jenis_po
     FROM preorders
-    WHERE id_po = v_id_po;
+    WHERE id_po = v_id_po
+        AND is_deleted = FALSE;
  
     SELECT COALESCE(SUM(jumlah_pesanan), 0) INTO v_total_dipesan
     FROM transaction_details
@@ -297,7 +300,7 @@ BEGIN
     RETURN QUERY
     SELECT
         (SELECT COUNT(id_produk) FROM products  WHERE id_penjual = p_id_penjual),
-        (SELECT COUNT(id_po)     FROM preorders WHERE id_penjual = p_id_penjual AND is_aktif = TRUE),
+        (SELECT COUNT(id_po)     FROM preorders WHERE id_penjual = p_id_penjual AND is_aktif = TRUE AND is_deleted = FALSE),
         (SELECT COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)
          FROM transaction_details td
          JOIN products p ON td.id_produk = p.id_produk
@@ -313,6 +316,14 @@ CREATE OR REPLACE PROCEDURE sp_update_status_massal_po(
 )
 LANGUAGE plpgsql AS $$
 BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM preorders
+        WHERE id_po    = p_id_po
+          AND is_deleted = FALSE
+    ) THEN
+        RAISE EXCEPTION 'PO dengan id_po=% tidak ditemukan atau sudah dihapus.', p_id_po;
+    END IF;
+    
     UPDATE transactions
     SET status_pesanan = p_status_baru
     WHERE id_transaksi IN (
@@ -448,6 +459,7 @@ DECLARE
     v_id_po       INT;
     v_is_aktif    BOOLEAN;
     v_batas_waktu TIMESTAMP;
+    v_is_deleted  BOOLEAN;
 BEGIN
     SELECT id_po INTO v_id_po
     FROM products
@@ -455,11 +467,15 @@ BEGIN
  
     IF v_id_po IS NULL THEN RETURN NEW; END IF;
  
-    SELECT po.is_aktif, po.batas_waktu
+    SELECT po.is_aktif, po.batas_waktu, po.is_deleted
     INTO v_is_aktif, v_batas_waktu
     FROM preorders po
     WHERE po.id_po = v_id_po;
- 
+
+    IF v_is_deleted = TRUE THEN
+        RAISE EXCEPTION 'TRANSAKSI DITOLAK: Sesi PO sudah dihapus!';
+    END IF;
+
     IF v_is_aktif = FALSE THEN
         RAISE EXCEPTION 'TRANSAKSI DITOLAK: Sesi PO sudah ditutup!';
     END IF;
@@ -671,6 +687,7 @@ SELECT
 FROM transaction_details td
 JOIN      products    p   ON td.id_produk   = p.id_produk
 LEFT JOIN preorders   po  ON p.id_po        = po.id_po
+AND po.is_deleted = FALSE 
 LEFT JOIN categories  kat ON p.id_kategori  = kat.id_kategori
 GROUP BY CUBE (kat.nama_kategori, po.jenis_po);
  
