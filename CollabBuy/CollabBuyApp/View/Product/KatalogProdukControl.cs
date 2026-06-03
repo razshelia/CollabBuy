@@ -239,6 +239,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         tipePo = "Reguler";
                     }
 
+
                     byte[] fotoData = null;
                     if (dt.Columns.Contains("foto_produk") && row["foto_produk"] != DBNull.Value)
                     {

@@ -3,7 +3,6 @@ using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
 
-// MENGGUNAKAN ALIAS UNTUK MENGHINDARI BENTROK NAMA (AMBIGUITY)
 using ViewAdmin = CollabBuy.CollabBuyApp.View.Admin;
 using ViewFeedback = CollabBuy.CollabBuyApp.View.Feedback;
 using ViewPreOrder = CollabBuy.CollabBuyApp.View.PreOrder;
@@ -146,6 +145,18 @@ namespace CollabBuy.CollabBuyApp.View.Main
             ctrl.OnNavigateKembali += () => this.ShowKeranjangBelanja();
             ctrl.OnCheckoutBerhasil += (_) => this.ShowUserControl(
                 new ViewTransaction.RiwayatPesananControl(this._currentUser));
+            this.ShowUserControl(ctrl);
+        }
+
+        private void ShowPesananMasuk()
+        {
+            var ctrl = new ViewTransaction.PesananMasukControl(this._currentUser);
+            ctrl.OnNavigateDetail += (idTrx, dtDetail) =>
+            {
+                var detailCtrl = new ViewTransaction.DetailPesananControl(idTrx, dtDetail);
+                detailCtrl.OnNavigateKembali += () => this.ShowPesananMasuk();
+                this.ShowUserControl(detailCtrl);
+            };
             this.ShowUserControl(ctrl);
         }
 
@@ -338,8 +349,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                     new ViewPreOrder.BukaSesiPOControl(this._currentUser)));
                 AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
                     new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
-                AddBtn("📥 Pesanan Masuk", () => this.ShowUserControl(
-                    new ViewTransaction.PesananMasukControl(this._currentUser)));
+                AddBtn("📥 Pesanan Masuk", () => this.ShowPesananMasuk());
                 AddBtn("⭐ Balas Ulasan", () => this.ShowUserControl(
                     new ViewFeedback.UlasanLapakControl(this._currentUser)));
                 AddBtn("📊 Analitik Penjualan", () => this.ShowUserControl(

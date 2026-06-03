@@ -22,7 +22,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             Models.PreOrder poObj;
             try
             {
-                // PERBAIKAN: Tangkap sebagai DataTable dulu, lalu mapping ke Model!
                 DataTable dt = this._poRepo.GetById(idPo);
 
                 if (dt != null)
@@ -31,7 +30,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     {
                         DataRow row = dt.Rows[0];
 
-                        // Ekstraksi data dengan proteksi DBNull
                         int idPenjual;
                         if (row["id_penjual"] != DBNull.Value)
                         {
@@ -64,12 +62,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     }
                     else
                     {
-                        poObj = null; // Data tidak ditemukan
+                        poObj = null; 
                     }
                 }
                 else
                 {
-                    poObj = null; // Tabel kosong/null
+                    poObj = null; 
                 }
             }
             catch (Exception)
@@ -118,9 +116,13 @@ namespace CollabBuy.CollabBuyApp.Controllers
             return dt;
         }
 
+        /// <summary>
+        /// Mengembalikan semua produk aktif milik penjual (is_deleted = FALSE),
+        /// termasuk yang sudah di dalam PO lain — agar satu produk bisa dimasukkan PO berkali-kali.
+        /// </summary>
         public DataTable GetProdukTersedia(int idPenjual)
         {
-            return this._poRepo.GetProdukTanpaPO(idPenjual);
+            return this._poRepo.GetSemuaProdukAktif(idPenjual);
         }
 
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)

@@ -12,6 +12,12 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private readonly User _currentUser;
         private readonly TransactionController _transactionController;
 
+        /// <summary>
+        /// Event yang dipanggil ketika penjual mau lihat detail pesanan.
+        /// Parameter: idTransaksi, dtDetail — diterima oleh MainForm untuk load DetailPesananControl.
+        /// </summary>
+        public event Action<int, DataTable> OnNavigateDetail;
+
         public PesananMasukControl(User currentUser)
         {
             InitializeComponent();
@@ -157,10 +163,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     return;
                 }
 
-                using (DetailPesananForm formDetail = new DetailPesananForm(idTrx, dtDetail))
-                {
-                    formDetail.ShowDialog(this);
-                }
+                // Navigasi inline (bukan ShowDialog) agar bisa di-scroll di dalam pnlContent
+                this.OnNavigateDetail?.Invoke(idTrx, dtDetail);
             }
             catch (Exception ex)
             {

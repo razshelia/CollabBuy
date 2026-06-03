@@ -53,6 +53,12 @@ namespace CollabBuy.CollabBuyApp.Models
             }
         }
 
+        //public string Nim
+        //{
+        //    get { return this._nim; }
+        //    set { this._nim = value; }
+        //}
+
         public string GetNamaToko()
         {
             return this._namaToko;

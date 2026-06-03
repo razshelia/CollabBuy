@@ -18,7 +18,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetById(int idPo)
         {
             DataTable dt = new DataTable();
-            // Perhatikan alias info_rekening AS rekening agar sesuai dengan tarikan Controller
             string query = "SELECT id_po, id_penjual, judul_po, jenis_po, info_rekening AS rekening, batas_waktu, is_aktif FROM preorders WHERE id_po = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -33,7 +32,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-        // Mengambil daftar sesi PO yang sedang aktif untuk User
         public DataTable GetSesiPOAktif(string keyword)
         {
             DataTable dt = new DataTable();
@@ -68,11 +66,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-        // Mengambil produk milik penjual yang belum dimasukkan ke sesi PO manapun
-        public DataTable GetProdukTanpaPO(int idPenjual)
+        public DataTable GetSemuaProdukAktif(int idPenjual)
         {
             DataTable dt = new DataTable();
-            string query = "SELECT id_produk, nama_produk FROM products WHERE id_penjual = @id AND id_po IS NULL;";
+            string query = @"
+                SELECT id_produk, nama_produk
+                FROM products
+                WHERE id_penjual = @id
+                  AND is_deleted = FALSE
+                ORDER BY nama_produk ASC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -86,7 +88,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-        // Menyimpan sesi PO baru DAN mengupdate produk menggunakan Transaction agar aman (ACID)
         public bool InsertPOAndUpdateProduct(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -96,7 +97,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
-                        // 1. Insert ke tabel preorders dan ambil id_po yang baru dibuat
                         string insertQuery = @"
                             INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) 
                             VALUES (@penjual, @judul, @jenis, @rekening, @batas, TRUE) RETURNING id_po;";
@@ -112,7 +112,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             newIdPo = (int)cmdInsert.ExecuteScalar();
                         }
 
-                        // 2. Update id_po dan target_kuota di tabel products
+                        
                         string updateQuery = "UPDATE products SET id_po = @idPo, target_kuota = @kuota WHERE id_produk = @idProduk;";
                         using (var cmdUpdate = new NpgsqlCommand(updateQuery, conn, dbTx))
                         {
@@ -128,7 +128,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     catch
                     {
                         dbTx.Rollback();
-                        throw; // Lempar ke controller agar bisa ditangkap catch blok
+                        throw; 
                     }
                 }
             }

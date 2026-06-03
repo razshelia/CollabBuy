@@ -26,7 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             this.AdjustLayout();
             this.dtpBatasWaktu.MinDate = DateTime.Now;
-            this.cbJenisPO.SelectedIndex = 0; // Default Biasa
+            this.cbJenisPO.SelectedIndex = 0; 
             this.LoadMasterProduk();
         }
 
@@ -63,7 +63,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                     {
                         MessageBox.Show(pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         this.ResetForm();
-                        this.LoadMasterProduk(); // Refresh produk yg belum ada PO
+                        this.LoadMasterProduk(); 
                     }
                     else
                     {
@@ -72,7 +72,6 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 }
                 else
                 {
-                    // Penjual batal launching PO
                     bool batalLaunch = true;
                 }
             }
@@ -90,7 +89,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
                 if (dtProduk != null && dtProduk.Rows.Count == 0)
                 {
-                    MessageBox.Show("Barang jualan lo udah masuk PO semua atau belum didaftarin nih. Input produk baru dulu gih di menu Manajemen Produk!",
+                    MessageBox.Show("Kamu belum punya produk aktif nih. Daftarin produk dulu di menu Manajemen Produk!",
                         "Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.btnSimpanSesi.Enabled = false;
                 }
@@ -125,7 +124,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             }
             else
             {
-                bool lebarAman = true; // Assignment nyata menghindari else kosong
+                bool lebarAman = true; 
             }
 
             this.pnlForm.Width = w;

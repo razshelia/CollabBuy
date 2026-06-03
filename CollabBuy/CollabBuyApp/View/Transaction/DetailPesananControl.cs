@@ -7,22 +7,26 @@ using System.Windows.Forms;
 namespace CollabBuy.CollabBuyApp.View.Transaction
 {
     /// <summary>
-    /// Form untuk menampilkan detail pesanan masuk milik penjual.
-    /// Menampilkan: info header transaksi, rincian item produk, dan bukti pembayaran pembeli.
+    /// UserControl untuk menampilkan detail pesanan masuk milik penjual.
+    /// Ditampilkan inline (scrollable) di pnlContent, bukan membuka tab/window baru.
     /// </summary>
-    public partial class DetailPesananForm : Form
+    public partial class DetailPesananControl : UserControl
     {
         private readonly int _idTransaksi;
         private readonly DataTable _dtDetail;
+        private byte[] _bytesBuktiBayar = null;
 
-        public DetailPesananForm(int idTransaksi, DataTable dtDetail)
+        /// <summary>Event untuk kembali ke halaman Pesanan Masuk.</summary>
+        public event Action OnNavigateKembali;
+
+        public DetailPesananControl(int idTransaksi, DataTable dtDetail)
         {
-            InitializeComponent();
+            this.InitializeComponent();
             this._idTransaksi = idTransaksi;
             this._dtDetail = dtDetail;
         }
 
-        private void DetailPesananForm_Load(object sender, EventArgs e)
+        private void DetailPesananControl_Load(object sender, EventArgs e)
         {
             this.LoadHeaderInfo();
             this.SetupDataGridView();
@@ -36,9 +40,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void LoadHeaderInfo()
         {
             if (this._dtDetail == null || this._dtDetail.Rows.Count == 0)
-            {
                 return;
-            }
 
             DataRow baris = this._dtDetail.Rows[0];
 
@@ -50,21 +52,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.lblStatus.Text = status;
 
             if (status == "Selesai")
-            {
                 this.lblStatus.ForeColor = Color.ForestGreen;
-            }
             else if (status == "Dibatalkan")
-            {
                 this.lblStatus.ForeColor = Color.LightCoral;
-            }
             else if (status == "Diproses")
-            {
                 this.lblStatus.ForeColor = Color.RoyalBlue;
-            }
             else
-            {
                 this.lblStatus.ForeColor = Color.DarkOrange;
-            }
         }
 
         // =======================================================
@@ -125,11 +119,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void LoadRincianItem()
         {
             if (this._dtDetail == null || this._dtDetail.Rows.Count == 0)
-            {
                 return;
-            }
 
-            // Buat DataTable baru hanya dengan kolom yang dibutuhkan grid
             DataTable dtGrid = new DataTable();
             dtGrid.Columns.Add("nama_produk", typeof(string));
             dtGrid.Columns.Add("nama_penitip", typeof(string));
@@ -199,8 +190,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     this.btnSimpanBukti.Visible = true;
                     this.btnSimpanBukti.Enabled = true;
                 }
-
-                // Simpan byte[] ke field form agar bisa di-download
                 this._bytesBuktiBayar = buktiBayar;
             }
             catch (Exception)
@@ -219,10 +208,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         }
 
         // =======================================================
-        // TOMBOL SIMPAN BUKTI BAYAR KE FILE
+        // TOMBOL SIMPAN BUKTI BAYAR
         // =======================================================
-        private byte[] _bytesBuktiBayar = null;
-
         private void btnSimpanBukti_Click(object sender, EventArgs e)
         {
             if (this._bytesBuktiBayar == null || this._bytesBuktiBayar.Length == 0)
@@ -253,16 +240,15 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-                else
-                {
-                    bool dibatal = true; // Penugasan nyata agar else tidak kosong
-                }
             }
         }
 
-        private void btnTutup_Click(object sender, EventArgs e)
+        // =======================================================
+        // TOMBOL KEMBALI — kembali ke PesananMasukControl
+        // =======================================================
+        private void btnKembali_Click(object sender, EventArgs e)
         {
-            this.Close();
+            this.OnNavigateKembali?.Invoke();
         }
     }
 }

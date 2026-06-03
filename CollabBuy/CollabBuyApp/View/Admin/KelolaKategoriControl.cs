@@ -68,11 +68,16 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             {
                 // 1. MENGGUNAKAN MODEL OOP
                 // Saat objek dibuat, Model otomatis memvalidasi kekosongan dan merapikan teks!
+                if (txtNama.Text.Length < 4)
+                {
+                    MessageBox.Show("Nama kategori minimal harus 4 karakter!", "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    
+                }
                 Category katBaru = new Category(txtNama.Text);
 
                 // 2. Ambil teks yang sudah dirapikan (Title Case) oleh Model untuk dilempar ke Controller
                 string namaBersih = katBaru.GetNamaKategori();
-
+                 
                 var res = _controller.TambahKategori(namaBersih);
                 if (res.sukses)
                 {
