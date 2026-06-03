@@ -92,6 +92,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Deskripsi kendala tidak boleh kosong bestie!", "deskripsi", "ADUAN_DESKRIPSI_KOSONG");
             }
+            else if (deskripsi.Trim().Length < 20)
+            {
+                throw new InvalidOrderException("Deskripsi kendala minimal 20 karakter. Ceritain lebih detail ya!", "deskripsi", "ADUAN_DESKRIPSI_PENDEK");
+            }
+            else if (deskripsi.Trim().Length > 1000)
+            {
+                throw new InvalidOrderException("Deskripsi kendala maksimal 1000 karakter!", "deskripsi", "ADUAN_DESKRIPSI_PANJANG");
+            }
             else
             {
                 this._deskripsi = deskripsi.Trim();

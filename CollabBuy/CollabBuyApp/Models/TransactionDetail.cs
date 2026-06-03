@@ -91,6 +91,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Nama penitip wajib diisi!", "nama_penitip", "PENITIP_KOSONG");
             }
+            else if (nama.Trim().Length < 3)
+            {
+                throw new InvalidOrderException("Nama penitip minimal 3 karakter!", "nama_penitip", "PENITIP_PENDEK");
+            }
+            else if (nama.Trim().Length > 100)
+            {
+                throw new InvalidOrderException("Nama penitip maksimal 100 karakter!", "nama_penitip", "PENITIP_PANJANG");
+            }
             else
             {
                 this._namaPenitip = nama.Trim();

@@ -32,6 +32,10 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Kode akses rahasia Admin tidak boleh kosong!", "kode_akses", "ADMIN_KODE_KOSONG");
             }
+            else if (kodeAkses.Trim().Length < 6)
+            {
+                throw new InvalidOrderException("Kode akses Admin minimal 6 karakter!", "kode_akses", "ADMIN_KODE_PENDEK");
+            }
             else
             {
                 this._kodeAksesAdmin = kodeAkses.Trim();

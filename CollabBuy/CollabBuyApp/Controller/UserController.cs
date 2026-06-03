@@ -271,25 +271,36 @@ namespace CollabBuy.CollabBuyApp.Controllers
             return tabelAntrean;
         }
 
-        public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru)
+        public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru, string rawPasswordLama = null)
         {
             (bool sukses, string pesan) hasil;
-
             try
             {
-                if (!string.IsNullOrEmpty(rawPasswordBaru))
+                // Ganti password hanya jika user centang dan isi form
+                if (!string.IsNullOrWhiteSpace(rawPasswordBaru) && rawPasswordLama != null)
                 {
-                    user.SetPassword(this.HashSha256(rawPasswordBaru));
+                    string hashLama = this.HashSha256(rawPasswordLama);
+                    if (user.GetPassword() != hashLama)
+                    {
+                        return (false, "Password lama salah! Coba lagi ya bestie.");
+                    }
+                    else
+                    {
+                        // Model SetPassword sudah validasi minimal 8 karakter
+                        user.SetPassword(this.HashSha256(rawPasswordBaru));
+                    }
                 }
                 else
                 {
-                    bool lewatiUbahPassword = true; // Penugasan nyata menghindari else kosong
+                    bool lewatiUbahPassword = true;
                 }
 
-                user.Validate();
                 this._userRepo.Update(user);
 
-                hasil = (true, "Yey! Profil kamu berhasil diperbarui.");
+                ActivityLog log = new ActivityLog(user.GetIdUser(), "Update profil akun.");
+                this._logRepo.Insert(log);
+
+                hasil = (true, "Profil berhasil disimpan! Lo makin kece bestie ✨");
             }
             catch (InvalidOrderException ex)
             {
@@ -297,9 +308,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (Exception ex)
             {
-                hasil = (false, "Yah gagal update profil: " + ex.Message);
+                hasil = (false, "Error sistem: " + ex.Message);
             }
-
             return hasil;
         }
 

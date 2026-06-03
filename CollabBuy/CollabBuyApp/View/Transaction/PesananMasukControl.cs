@@ -98,44 +98,52 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             {
                 MessageBox.Show("Pilih dulu pesanan mana yang mau di-update bestie!", "Oops",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int idTrx = Convert.ToInt32(this.dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
+            string namaPembeli = this.dgvPesanan.SelectedRows[0].Cells["Pembeli"].Value.ToString();
+            string statusLama = this.dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
+
+            // Validasi transisi berdasarkan aturan bisnis di Model
+            if (statusLama == "Selesai" || statusLama == "Dibatalkan")
+            {
+                MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            else if (statusLama == "Menunggu" && statusBaru == "Selesai")
+            {
+                MessageBox.Show(
+                    "Hei! Pesanan yang masih 'Menunggu' harus diubah ke 'Diproses' dulu ya.\n\nAlurnya: Menunggu → Diproses → Selesai 😊",
+                    "Alur Tidak Valid",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
             else
             {
-                int idTrx = Convert.ToInt32(this.dgvPesanan.SelectedRows[0].Cells["IdTrx"].Value);
-                string namaPembeli = this.dgvPesanan.SelectedRows[0].Cells["Pembeli"].Value.ToString();
-                string statusLama = this.dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
+                DialogResult dr = MessageBox.Show(
+                    pertanyaan + $"\n(Pembeli: {namaPembeli})",
+                    "Konfirmasi",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
-                if (statusLama == "Selesai" || statusLama == "Dibatalkan")
+                if (dr == DialogResult.Yes)
                 {
-                    MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    DialogResult dr = MessageBox.Show(
-                        pertanyaan + $"\n(Pembeli: {namaPembeli})",
-                        "Konfirmasi",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (dr == DialogResult.Yes)
+                    var (sukses, pesan) = this._transactionController.UbahStatusPesanan(idTrx, statusBaru);
+                    if (sukses)
                     {
-                        var (sukses, pesan) = this._transactionController.UbahStatusPesanan(idTrx, statusBaru);
-
-                        if (sukses)
-                        {
-                            MessageBox.Show(pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            this.LoadDataPesanan();
-                        }
-                        else
-                        {
-                            MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                        MessageBox.Show(pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        this.LoadDataPesanan();
                     }
                     else
                     {
-                        bool dibatalkanAksi = true; // Penugasan nyata menghindari else kosong
+                        MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
+                }
+                else
+                {
+                    bool dibatalkanAksi = true;
                 }
             }
         }

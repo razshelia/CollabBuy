@@ -269,8 +269,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             pnlHeader.Controls.Add(this.lblUserInfo);
 
             // Helper lokal
-            // WinForms Dock=Top: control terakhir ditambah = tampil PALING ATAS.
-            // Kumpulkan dulu semua item, lalu tambah ke pnlMenu secara terbalik.
             var items = new System.Collections.Generic.List<System.Windows.Forms.Control>();
 
             Action<string, Action> AddBtn = (text, onClick) =>
@@ -331,7 +329,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             if (peranUser == "Admin")
             {
                 AddCat("MANAGEMENT");
-                // FIX CS1729: KelolaUserControl() tidak menerima argumen
                 AddBtn("👥 Kelola User", () => this.ShowUserControl(new ViewAdmin.KelolaUserControl()));
                 AddBtn("🏢 Verifikasi Toko", () => this.ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
                 AddBtn("📁 Kelola Kategori", () => this.ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
@@ -347,6 +344,12 @@ namespace CollabBuy.CollabBuyApp.View.Main
                     new ViewProduct.ManajemenProdukControl(this._currentUser)));
                 AddBtn("🎁 Buka Sesi PO", () => this.ShowUserControl(
                     new ViewPreOrder.BukaSesiPOControl(this._currentUser)));
+
+                // --- PENAMBAHAN MENU KELOLA SESI PO DI SINI ---
+                AddBtn("⚙️ Kelola Sesi PO", () => this.ShowUserControl(
+                    new ViewPreOrder.KelolaSesiPOControl(this._currentUser)));
+                // ----------------------------------------------
+
                 AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
                     new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
                 AddBtn("📥 Pesanan Masuk", () => this.ShowPesananMasuk());

@@ -64,6 +64,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
             }
+            else if (nama.Trim().Length < 3)
+            {
+                throw new InvalidOrderException("Nama pengguna minimal 3 karakter!", "nama", "USER_NAMA_TERLALU_PENDEK");
+            }
+            else if (nama.Trim().Length > 100)
+            {
+                throw new InvalidOrderException("Nama pengguna maksimal 100 karakter!", "nama", "USER_NAMA_TERLALU_PANJANG");
+            }
             else
             {
                 this._nama = nama.Trim();
@@ -97,6 +105,10 @@ namespace CollabBuy.CollabBuyApp.Models
             if (string.IsNullOrWhiteSpace(password))
             {
                 throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
+            }
+            else if (password.Length < 8)
+            {
+                throw new InvalidOrderException("Password minimal 8 karakter!", "password", "USER_PASS_TERLALU_PENDEK");
             }
             else
             {
@@ -136,13 +148,25 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Email tidak boleh kosong!", "email", "USER_EMAIL_KOSONG");
             }
+            else if (email.Trim().Length < 6)
+            {
+                throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
+            }
             else if (!email.Contains("@") || !email.Contains("."))
             {
                 throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
             }
+            else if (email.IndexOf("@") < 1)
+            {
+                throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
+            }
+            else if (email.LastIndexOf(".") < email.IndexOf("@") + 2)
+            {
+                throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
+            }
             else
             {
-                this._email = email.Trim();
+                this._email = email.Trim().ToLower();
             }
         }
 

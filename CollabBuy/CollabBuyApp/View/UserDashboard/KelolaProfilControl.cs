@@ -15,44 +15,29 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         public KelolaProfilControl(Models.User currentUser)
         {
             this.InitializeComponent();
-
             this._currentUser = currentUser;
             this._userController = new UserController();
-
-            // Perbaikan masalah kepotong: Paksa Dock Fill dan handle Resize
             this.Dock = DockStyle.Fill;
             this.Resize += this.KelolaProfilControl_Resize;
         }
 
         private void KelolaProfilControl_Resize(object sender, EventArgs e)
         {
-            // Auto Center form kotak di tengah layar yang mekar
             if (this.pnlCard != null)
             {
                 this.pnlCard.Left = (this.Width - this.pnlCard.Width) / 2;
-                this.pnlCard.Top = (this.Height - this.pnlCard.Height) / 2;
+                this.pnlCard.Top = Math.Max(20, (this.Height - this.pnlCard.Height) / 2);
             }
             else
             {
-                bool panelBelumDimuat = true; // Assignment nyata untuk menghindari else kosong
+                bool panelBelumDimuat = true;
             }
         }
 
         private void KelolaProfilControl_Load(object sender, EventArgs e)
         {
             this.LoadDataProfil();
-        }
-
-        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.chkShowPassword.Checked)
-            {
-                this.txtPassword.PasswordChar = '\0';
-            }
-            else
-            {
-                this.txtPassword.PasswordChar = '●';
-            }
+            this.pnlGantiPassword.Visible = false;
         }
 
         private void LoadDataProfil()
@@ -60,32 +45,39 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             if (this._currentUser != null)
             {
                 this.txtNama.Text = this._currentUser.GetNama();
-
-                if (this._currentUser.GetEmail() != null)
-                {
-                    this.txtEmail.Text = this._currentUser.GetEmail();
-                }
-                else
-                {
-                    this.txtEmail.Text = "";
-                }
-
-                // PERBAIKAN: Ganti NIM jadi Nomor Telepon dengan Strict OOP
-                if (this._currentUser.GetNomorTelepon() != null)
-                {
-                    this.txtNoTelepon.Text = this._currentUser.GetNomorTelepon();
-                }
-                else
-                {
-                    this.txtNoTelepon.Text = "";
-                }
-
-                this.txtPassword.Clear();
+                this.txtEmail.Text = this._currentUser.GetEmail() ?? "";
+                this.txtNoTelepon.Text = this._currentUser.GetNomorTelepon() ?? "";
+                this.txtPasswordLama.Clear();
+                this.txtPasswordBaru.Clear();
+                this.txtKonfirmasiPassword.Clear();
             }
             else
             {
                 bool userKosong = true;
             }
+        }
+
+        private void chkGantiPassword_CheckedChanged(object sender, EventArgs e)
+        {
+            this.pnlGantiPassword.Visible = this.chkGantiPassword.Checked;
+            if (!this.chkGantiPassword.Checked)
+            {
+                this.txtPasswordLama.Clear();
+                this.txtPasswordBaru.Clear();
+                this.txtKonfirmasiPassword.Clear();
+            }
+            else
+            {
+                bool panelDitampilkan = true;
+            }
+        }
+
+        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+        {
+            char c = this.chkShowPassword.Checked ? '\0' : '●';
+            this.txtPasswordLama.PasswordChar = c;
+            this.txtPasswordBaru.PasswordChar = c;
+            this.txtKonfirmasiPassword.PasswordChar = c;
         }
 
         private void btnSimpan_Click(object sender, EventArgs e)
@@ -100,22 +92,65 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             {
                 try
                 {
+                    // Validasi panjang nama di Model (bukan di sini — PBO best practice)
                     this._currentUser.SetNama(this.txtNama.Text.Trim());
                     this._currentUser.SetEmail(this.txtEmail.Text.Trim());
-                    this._currentUser.SetNomorTelepon(this.txtNoTelepon.Text.Trim()); // Set Nomor Telepon
+                    this._currentUser.SetNomorTelepon(this.txtNoTelepon.Text.Trim());
 
-                    string passwordBaru = this.txtPassword.Text.Trim();
-                    var (sukses, pesan) = this._userController.UpdateProfil(this._currentUser, passwordBaru);
+                    string passwordBaru = "";
+
+                    if (this.chkGantiPassword.Checked)
+                    {
+                        string passLama = this.txtPasswordLama.Text;
+                        string passBaru = this.txtPasswordBaru.Text;
+                        string konfirmasi = this.txtKonfirmasiPassword.Text;
+
+                        if (string.IsNullOrWhiteSpace(passLama))
+                        {
+                            MessageBox.Show("Password lama wajib diisi!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            this.txtPasswordLama.Focus();
+                            return;
+                        }
+                        else if (string.IsNullOrWhiteSpace(passBaru))
+                        {
+                            MessageBox.Show("Password baru wajib diisi!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            this.txtPasswordBaru.Focus();
+                            return;
+                        }
+                        else if (passBaru != konfirmasi)
+                        {
+                            MessageBox.Show("Konfirmasi password tidak cocok dengan password baru!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            this.txtKonfirmasiPassword.Focus();
+                            return;
+                        }
+                        else
+                        {
+                            // Cek password lama cocok dengan yang tersimpan (via UbahPassword di Model)
+                            // UbahPassword di User model melakukan: hash passLama dulu kalau perlu
+                            passwordBaru = passBaru;
+                        }
+                    }
+                    else
+                    {
+                        bool tidakGantiPass = true;
+                    }
+
+                    var (sukses, pesan) = this._userController.UpdateProfil(
+                        this._currentUser,
+                        passwordBaru,
+                        this.chkGantiPassword.Checked ? this.txtPasswordLama.Text : null
+                    );
 
                     if (sukses)
                     {
                         MessageBox.Show(pesan, "Sukses Banget ✨", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.txtPassword.Clear();
+                        this.chkGantiPassword.Checked = false;
+                        this.LoadDataProfil();
                     }
                     else
                     {
                         MessageBox.Show(pesan, "Yah Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        this.LoadDataProfil(); // Kembalikan data lama jika gagal
+                        this.LoadDataProfil();
                     }
                 }
                 catch (InvalidOrderException ex)
@@ -125,7 +160,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             }
             else
             {
-                // User batal menyimpan
                 bool batalSimpan = true;
             }
         }

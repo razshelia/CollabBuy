@@ -90,6 +90,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 this._komentar = "Tidak ada komentar tertulis.";
             }
+            else if (komentar.Trim().Length < 10)
+            {
+                throw new InvalidOrderException("Komentar ulasan minimal 10 karakter kalau mau diisi ya!", "komentar", "REVIEW_KOMENTAR_PENDEK");
+            }
+            else if (komentar.Trim().Length > 500)
+            {
+                throw new InvalidOrderException("Komentar ulasan maksimal 500 karakter!", "komentar", "REVIEW_KOMENTAR_PANJANG");
+            }
             else
             {
                 this._komentar = komentar.Trim();
@@ -217,6 +225,14 @@ namespace CollabBuy.CollabBuyApp.Models
             if (string.IsNullOrWhiteSpace(tanggapan))
             {
                 throw new InvalidOrderException("Balasan penjual tidak boleh kosong!", "balasan_penjual", "REVIEW_BALAS_KOSONG");
+            }
+            else if (tanggapan.Trim().Length < 5)
+            {
+                throw new InvalidOrderException("Balasan penjual minimal 5 karakter!", "balasan_penjual", "REVIEW_BALAS_PENDEK");
+            }
+            else if (tanggapan.Trim().Length > 500)
+            {
+                throw new InvalidOrderException("Balasan penjual maksimal 500 karakter!", "balasan_penjual", "REVIEW_BALAS_PANJANG");
             }
             else
             {

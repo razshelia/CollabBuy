@@ -1,9 +1,10 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Exceptions;
+using CollabBuy.CollabBuyApp.Models; // PENTING: Untuk memanggil class Category
+using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Controllers;
-using CollabBuy.CollabBuyApp.Models; // PENTING: Untuk memanggil class Category
 
 namespace CollabBuy.CollabBuyApp.View.Admin
 {
@@ -67,26 +68,30 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             try
             {
                 // 1. MENGGUNAKAN MODEL OOP
-                // Saat objek dibuat, Model otomatis memvalidasi kekosongan dan merapikan teks!
-                if (txtNama.Text.Length < 4)
-                {
-                    MessageBox.Show("Nama kategori minimal harus 4 karakter!", "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    
-                }
+                // Model otomatis memvalidasi kekosongan, merapikan teks, dan mengecek minimal 4 karakter!
                 Category katBaru = new Category(txtNama.Text);
 
                 // 2. Ambil teks yang sudah dirapikan (Title Case) oleh Model untuk dilempar ke Controller
                 string namaBersih = katBaru.GetNamaKategori();
-                 
+
+                // Panggil controller dan ambil hasilnya
                 var res = _controller.TambahKategori(namaBersih);
+
                 if (res.sukses)
                 {
-                    MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(res.pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadDataGrid();
                 }
-                else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                else
+                {
+                    MessageBox.Show(res.pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
-            catch (Exception ex) // Akan menangkap InvalidOrderException dari Model jika TextBox kosong
+            catch (InvalidOrderException ex) // Menangkap custom exception khusus dari Model
+            {
+                MessageBox.Show(ex.GetPesanLengkap(), "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex) // Menangkap error umum lainnya
             {
                 MessageBox.Show(ex.Message, "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
@@ -104,14 +109,22 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
                 // 2. Ambil teks dan ID yang sudah diproses oleh Model
                 var res = _controller.EditKategori(katUpdate.GetIdKategori(), katUpdate.GetNamaKategori());
+
                 if (res.sukses)
                 {
-                    MessageBox.Show(res.pesan, "Suksesss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(res.pesan, "Sukses!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadDataGrid();
                 }
-                else MessageBox.Show(res.pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                else
+                {
+                    MessageBox.Show(res.pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
-            catch (Exception ex)
+            catch (InvalidOrderException ex) // Menangkap custom exception khusus dari Model
+            {
+                MessageBox.Show(ex.GetPesanLengkap(), "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex) // Menangkap error umum lainnya
             {
                 MessageBox.Show(ex.Message, "Validasi Ditolak", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }

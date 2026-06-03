@@ -333,11 +333,19 @@ namespace CollabBuy.CollabBuyApp.Models
         {
             bool bisaUbah;
 
-            if (this._statusPesanan == "Menunggu" && (statusBaru == "Diproses" || statusBaru == "Dibatalkan"))
+            // PENJUAL: Menunggu → Diproses (WAJIB lewat Diproses dulu, tidak bisa langsung Selesai)
+            if (this._statusPesanan == "Menunggu" && statusBaru == "Diproses")
             {
                 bisaUbah = true;
             }
-            else if (this._statusPesanan == "Diproses" && (statusBaru == "Selesai" || statusBaru == "Dibatalkan"))
+            // PENJUAL: Diproses → Selesai (setelah diproses baru bisa diselesaikan)
+            else if (this._statusPesanan == "Diproses" && statusBaru == "Selesai")
+            {
+                bisaUbah = true;
+            }
+            // PEMBELI: Hanya boleh batal saat masih Menunggu (belum diproses)
+            // Saat Diproses atau Selesai, pembeli TIDAK bisa batal (uang sudah dalam proses)
+            else if (this._statusPesanan == "Menunggu" && statusBaru == "Dibatalkan")
             {
                 bisaUbah = true;
             }

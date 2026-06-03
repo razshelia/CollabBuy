@@ -142,87 +142,95 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         private void btnKonfirmasiCheckout_Click(object sender, EventArgs e)
         {
+            // 1. Cek apakah sudah pernah checkout
             if (this._checkoutSudahDilakukan)
             {
                 this.TampilkanStatus("⚠️ Checkout udah diproses bestie, santai aja.", false);
+                return;
             }
-            else
-            {
-                DialogResult konfirmasi = MessageBox.Show(
-                    $"Udah yakin mau checkout?\n\nTotal Tagihan: Rp {this._totalTagihan:N0}\n\nJangan lupa upload bukti transfer ya biar pesanan kamu divalidasi!",
-                    "Konfirmasi Checkout",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
-                );
 
-                if (konfirmasi == DialogResult.Yes)
+            // 2. VALIDASI WAJIB: Bukti bayar harus diupload sebelum checkout
+            if (this._buktiBayar == null || this._buktiBayar.Length == 0)
+            {
+                MessageBox.Show(
+                    "Hei bestie! Upload bukti transfer dulu ya sebelum konfirmasi checkout. 🙏\n\nKlik tombol '📎 Upload Bukti Transfer' di atas.",
+                    "Bukti Bayar Belum Ada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 3. Konfirmasi dari user
+            DialogResult konfirmasi = MessageBox.Show(
+                $"Udah yakin mau checkout?\n\nTotal Tagihan: Rp {this._totalTagihan:N0}\n\nBukti transfer sudah diupload ✅",
+                "Konfirmasi Checkout",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (konfirmasi == DialogResult.Yes)
+            {
+                try
                 {
+                    // 4. Proses checkout ke Controller
                     var (sukses, pesan) = this._trxCtrl.ProsesCheckout();
 
                     if (!sukses)
                     {
                         this.TampilkanStatus($"❌ Checkout gagal: {pesan}", false);
+                        return;
                     }
-                    else
+
+                    // 5. Jika sukses, tandai checkout selesai
+                    this._checkoutSudahDilakukan = true;
+
+                    // 6. Parsing ID Transaksi dari string pesan (Mencegah error NullReference atau Controller gagal get ID)
+                    try
                     {
-                        this._checkoutSudahDilakukan = true;
-
-                        try
+                        string[] parts = pesan.Split(':');
+                        if (parts.Length >= 2)
                         {
-                            string[] parts = pesan.Split(':');
-                            if (parts.Length >= 2)
-                            {
-                                int.TryParse(parts[parts.Length - 1].Trim(), out this._idTransaksiBaru);
-                            }
-                            else
-                            {
-                                bool skipParse = true;
-                            }
+                            int.TryParse(parts[parts.Length - 1].Trim(), out this._idTransaksiBaru);
                         }
-                        catch
-                        {
-                            this._idTransaksiBaru = 0;
-                        }
-
-                        if (this._idTransaksiBaru > 0)
-                        {
-                            this.txtIdTransaksi.Text = this._idTransaksiBaru.ToString();
-                            this.txtIdTransaksi.Visible = true;
-                            this.lblIdTrxLabel.Visible = true;
-                            this.lblIdTrxHint.Visible = true;
-                        }
-                        else
-                        {
-                            bool idGagalMulai = true;
-                        }
-
-                        if (this._buktiBayar != null && this._buktiBayar.Length > 0)
-                        {
-                            this.UploadBuktiBayar();
-                        }
-                        else
-                        {
-                            this.TampilkanStatus($"✅ Checkout berhasil! ID: {this._idTransaksiBaru}. Buruan upload buktinya ya!", true);
-                        }
-
-                        this.btnKonfirmasiCheckout.Enabled = false;
-                        this.btnKonfirmasiCheckout.BackColor = Color.FromArgb(150, 150, 150);
-                        this.btnKonfirmasiCheckout.Text = "✅ Transaksi Diproses";
-
-                        System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-                        timer.Interval = 2500;
-                        timer.Tick += (s, ev) =>
-                        {
-                            timer.Stop();
-                            this.OnCheckoutBerhasil?.Invoke(this._idTransaksiBaru);
-                        };
-                        timer.Start();
                     }
+                    catch
+                    {
+                        this._idTransaksiBaru = 0; // Fallback aman jika parsing gagal
+                    }
+
+                    // 7. Update UI untuk memunculkan ID Transaksi
+                    if (this._idTransaksiBaru > 0)
+                    {
+                        this.txtIdTransaksi.Text = this._idTransaksiBaru.ToString();
+                        this.txtIdTransaksi.Visible = true;
+                        this.lblIdTrxLabel.Visible = true;
+                        this.lblIdTrxHint.Visible = true;
+                    }
+
+                    // 8. Upload bukti bayar dan tampilkan status
+                    this.UploadBuktiBayar();
+                    this.TampilkanStatus($"✅ Checkout berhasil! ID Transaksi: #{this._idTransaksiBaru}. Tunggu konfirmasi admin ya!", true);
+
+                    // 9. Update tampilan tombol agar tidak bisa diklik 2 kali
+                    this.btnKonfirmasiCheckout.Enabled = false;
+                    this.btnKonfirmasiCheckout.BackColor = System.Drawing.Color.FromArgb(150, 150, 150);
+                    this.btnKonfirmasiCheckout.ForeColor = System.Drawing.Color.White;
+                    this.btnKonfirmasiCheckout.Text = "✅ Transaksi Diproses";
+
+                    // 10. Gunakan Timer untuk mendelay event OnCheckoutBerhasil (Mencegah UI freeze)
+                    System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+                    timer.Interval = 2500; // Jeda 2,5 detik
+                    timer.Tick += (s, ev) =>
+                    {
+                        timer.Stop();
+                        // Menggunakan null-conditional operator (?) agar lebih aman & rapi
+                        this.OnCheckoutBerhasil?.Invoke(this._idTransaksiBaru);
+                    };
+                    timer.Start();
                 }
-                else
+                catch (Exception ex) // Menangkap error tak terduga agar aplikasi tidak langsung force close
                 {
-                    // User membatalkan checkout via MessageBox
-                    bool userBatal = true;
+                    this.TampilkanStatus("❌ Error sistem: " + ex.Message, false);
                 }
             }
         }

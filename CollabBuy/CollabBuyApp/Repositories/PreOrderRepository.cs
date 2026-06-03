@@ -50,6 +50,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 		JOIN products p ON po.id_po = p.id_po
 		LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
 		WHERE po.is_aktif = TRUE
+        AND po.is_deleted = FALSE
   		AND (po.judul_po ILIKE @keyword OR v.nama_toko ILIKE @keyword)
 		GROUP BY po.id_po, po.judul_po, v.nama_toko, po.batas_waktu, po.is_aktif
 		ORDER BY po.batas_waktu ASC;";
@@ -132,6 +133,60 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
+        }
+        public bool SoftDeletePO(int idPo)
+        {
+            string query = "UPDATE preorders SET is_aktif = FALSE, is_deleted = TRUE WHERE id_po = @id;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPo);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+        public bool UpdatePO(int idPo, string judulBaru, string jenisBaru, string rekeningBaru, DateTime batasWaktuBaru)
+        {
+            string query = @"
+        UPDATE preorders 
+        SET judul_po = @judul, jenis_po = @jenis, info_rekening = @rekening, batas_waktu = @batas
+        WHERE id_po = @id AND is_deleted = FALSE;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPo);
+                    cmd.Parameters.AddWithValue("@judul", judulBaru);
+                    cmd.Parameters.AddWithValue("@jenis", jenisBaru);
+                    cmd.Parameters.AddWithValue("@rekening", rekeningBaru);
+                    cmd.Parameters.AddWithValue("@batas", batasWaktuBaru);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
+
+        public DataTable GetPOByPenjual(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT id_po, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif
+        FROM preorders
+        WHERE id_penjual = @id AND is_deleted = FALSE
+        ORDER BY batas_waktu DESC;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
         }
     }
 }

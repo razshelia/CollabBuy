@@ -82,6 +82,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Judul PO wajib diisi!", "judul_po", "PO_JUDUL_KOSONG");
             }
+            else if (judul.Trim().Length < 5)
+            {
+                throw new InvalidOrderException("Judul PO minimal 5 karakter!", "judul_po", "PO_JUDUL_PENDEK");
+            }
+            else if (judul.Trim().Length > 100)
+            {
+                throw new InvalidOrderException("Judul PO maksimal 100 karakter!", "judul_po", "PO_JUDUL_PANJANG");
+            }
             else
             {
                 this._judulPo = judul.Trim();
@@ -119,6 +127,14 @@ namespace CollabBuy.CollabBuyApp.Models
             if (string.IsNullOrWhiteSpace(rekening))
             {
                 throw new InvalidOrderException("Info rekening wajib diisi!", "info_rekening", "PO_REK_KOSONG");
+            }
+            else if (rekening.Trim().Length < 10)
+            {
+                throw new InvalidOrderException("Info rekening minimal 10 karakter! Contoh: 'BCA 1234567890 a/n Nama'", "info_rekening", "PO_REK_PENDEK");
+            }
+            else if (rekening.Trim().Length > 200)
+            {
+                throw new InvalidOrderException("Info rekening maksimal 200 karakter!", "info_rekening", "PO_REK_PANJANG");
             }
             else
             {

@@ -47,6 +47,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("NIM penjual wajib diisi!", "nim", "PENJUAL_NIM_KOSONG");
             }
+            else if (nim.Trim().Length < 8)
+            {
+                throw new InvalidOrderException("NIM minimal 8 karakter!", "nim", "PENJUAL_NIM_PENDEK");
+            }
+            else if (nim.Trim().Length > 20)
+            {
+                throw new InvalidOrderException("NIM maksimal 20 karakter!", "nim", "PENJUAL_NIM_PANJANG");
+            }
             else
             {
                 this._nim = nim.Trim();
@@ -69,6 +77,14 @@ namespace CollabBuy.CollabBuyApp.Models
             if (string.IsNullOrWhiteSpace(namaToko))
             {
                 throw new InvalidOrderException("Nama toko wajib diisi!", "nama_toko", "PENJUAL_TOKO_KOSONG");
+            }
+            else if (namaToko.Trim().Length < 3)
+            {
+                throw new InvalidOrderException("Nama toko minimal 3 karakter!", "nama_toko", "PENJUAL_TOKO_PENDEK");
+            }
+            else if (namaToko.Trim().Length > 60)
+            {
+                throw new InvalidOrderException("Nama toko maksimal 60 karakter!", "nama_toko", "PENJUAL_TOKO_PANJANG");
             }
             else
             {

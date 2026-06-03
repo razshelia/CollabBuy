@@ -1,7 +1,8 @@
-﻿using System;
-using System.Data;
-using CollabBuy.CollabBuyApp.Repositories;
+﻿using CollabBuy.CollabBuyApp.Exceptions;
 using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.Repositories;
+using System;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -169,6 +170,63 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
 
             return hasil;
+        }
+        public (bool sukses, string pesan) EditSesiPO(int idPo, string judulBaru, string jenisBaru, string rekeningBaru, DateTime batasWaktuBaru)
+        {
+            try
+            {
+                // Validasi lewat Model
+                PreOrder po = new PreOrder(0, judulBaru, jenisBaru, rekeningBaru, batasWaktuBaru);
+                bool berhasil = this._poRepo.UpdatePO(idPo, judulBaru, jenisBaru, rekeningBaru, batasWaktuBaru);
+                if (berhasil)
+                {
+                    return (true, "Sesi PO berhasil diupdate!");
+                }
+                else
+                {
+                    return (false, "PO tidak ditemukan atau sudah dihapus.");
+                }
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error: " + ex.Message);
+            }
+        }
+
+        public (bool sukses, string pesan) TutupSesiPO(int idPo)
+        {
+            try
+            {
+                bool berhasil = this._poRepo.SoftDeletePO(idPo);
+                if (berhasil)
+                {
+                    return (true, "Sesi PO berhasil ditutup dan dihapus (soft delete).");
+                }
+                else
+                {
+                    return (false, "PO tidak ditemukan.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error: " + ex.Message);
+            }
+        }
+
+        public DataTable GetPOByPenjual(int idPenjual)
+        {
+            try
+            {
+                return this._poRepo.GetPOByPenjual(idPenjual);
+            }
+            catch
+            {
+                return new DataTable();
+            }
         }
     }
 }

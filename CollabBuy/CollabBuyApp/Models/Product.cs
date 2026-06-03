@@ -95,6 +95,14 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Nama produk tidak boleh kosong!", "nama_produk", "PRODUK_INVALID");
             }
+            else if (nama.Trim().Length < 3)
+            {
+                throw new InvalidOrderException("Nama produk minimal 3 karakter!", "nama_produk", "PRODUK_NAMA_PENDEK");
+            }
+            else if (nama.Trim().Length > 150)
+            {
+                throw new InvalidOrderException("Nama produk maksimal 150 karakter!", "nama_produk", "PRODUK_NAMA_PANJANG");
+            }
             else
             {
                 this._namaProduk = nama.Trim();

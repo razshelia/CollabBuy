@@ -51,7 +51,18 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Nama kategori tidak boleh kosong!", "nama_kategori", "KATEGORI_KOSONG");
             }
-            this._namaKategori = nama;
+            else if (nama.Trim().Length < 4)
+            {
+                throw new InvalidOrderException("Nama kategori minimal 4 karakter!", "nama_kategori", "KATEGORI_TERLALU_PENDEK");
+            }
+            else if (nama.Trim().Length > 50)
+            {
+                throw new InvalidOrderException("Nama kategori maksimal 50 karakter!", "nama_kategori", "KATEGORI_TERLALU_PANJANG");
+            }
+            else
+            {
+                this._namaKategori = nama;
+            }
         }
 
         // =========================================================
