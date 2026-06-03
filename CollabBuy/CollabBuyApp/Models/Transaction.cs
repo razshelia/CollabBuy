@@ -133,7 +133,7 @@ namespace CollabBuy.CollabBuyApp.Models
             int totalQty = 0;
             foreach (TransactionDetail detail in this._details)
             {
-                totalQty += detail.GetJumlahPesanan();
+                totalQty += detail.JumlahPesanan;
             }
             return totalQty;
         }

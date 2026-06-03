@@ -64,7 +64,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
                     // Buat Objek Model untuk memanfaatkan fungsi cerdasnya
                     ActivityLog logObj = new ActivityLog(1, teksAktivitas);
-                    logObj.SetWaktuAkses(waktuAkses);
+                    logObj.WaktuAkses = waktuAkses;
 
                     // Panggil Method / Behavior dari Model
                     string kategoriObjek = logObj.DapatkanKategori();

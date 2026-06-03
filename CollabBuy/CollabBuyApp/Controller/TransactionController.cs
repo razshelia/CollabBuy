@@ -139,7 +139,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
                     this._cartManager.KosongkanKeranjang();
 
-                    ActivityLog log = new ActivityLog(transaksiBaru.GetIdPembeli(), "Berhasil melakukan checkout Transaksi #" + idTransaksi);
+                    ActivityLog log = new ActivityLog(transaksiBaru.IdPembeli, "Berhasil melakukan checkout Transaksi #" + idTransaksi);
                     this._logRepo.Insert(log);
 
                     hasil = (true, "Checkout berhasil! ID Transaksi Anda: " + idTransaksi);
@@ -220,7 +220,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     foreach (Transaction trx in listTrx)
                     {
                         string statusBayar;
-                        if (trx.GetBuktiBayar() != null && trx.GetBuktiBayar().Length > 0)
+                        if (trx.BuktiBayar != null && trx.BuktiBayar.Length > 0)
                         {
                             statusBayar = "Sudah Upload";
                         }
@@ -230,8 +230,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
                         }
 
                         dt.Rows.Add(
-                            trx.GetIdTransaksi(),
-                            trx.GetTanggalTransaksi(),
+                            trx.IdTransaksi,
+                            trx.TanggalTransaksi,
                             trx.HitungTotal(),
                             trx.GetStatus(),
                             statusBayar
@@ -323,7 +323,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 }
                 else
                 {
-                    transaksi.SetBuktiBayar(buktiBayar);
+                    transaksi.BuktiBayar = buktiBayar;
                     this._transactionRepo.Update(transaksi);
 
                     ActivityLog log = new ActivityLog(idUserLog, "Mengupload bukti bayar Transaksi #" + idTransaksi);
@@ -372,14 +372,14 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 foreach (var detail in entry.Value)
                 {
-                    Product p = detail.GetProduk();
+                    Product p = detail.ProdukYangDipesan;
                     int hargaSatuan;
                     string namaItem;
 
                     if (p != null)
                     {
-                        hargaSatuan = p.GetHargaDasar();
-                        namaItem = p.GetNamaProduk();
+                        hargaSatuan = p.HargaDasar;
+                        namaItem = p.NamaProduk;
                     }
                     else
                     {
@@ -387,15 +387,15 @@ namespace CollabBuy.CollabBuyApp.Controllers
                         namaItem = "Produk Jastip";
                     }
 
-                    int subtotal = hargaSatuan * detail.GetJumlahPesanan();
+                    int subtotal = hargaSatuan * detail.JumlahPesanan;
 
                     dt.Rows.Add(
                         entry.Key,
                         namaItem,
-                        detail.GetNamaPenitip(),
-                        detail.GetCatatan() ?? "-",
+                        detail.NamaPenitip,
+                        detail.Catatan ?? "-",
                         hargaSatuan,
-                        detail.GetJumlahPesanan(),
+                        detail.JumlahPesanan,
                         subtotal
                     );
                 }
@@ -413,7 +413,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             var dict = this._cartManager.GetKeranjangDictionary();
             if (dict.ContainsKey(idProduk) && dict[idProduk].Count > 0)
             {
-                Product p = dict[idProduk][0].GetProduk();
+                Product p = dict[idProduk][0].ProdukYangDipesan;
                 this._cartManager.TambahItem(p, namaPenitip, jumlah, catatan);
             }
             else

@@ -135,7 +135,7 @@ namespace CollabBuy.CollabBuyApp.Models
             if (produk == null)
                 throw new InvalidOrderException("Produk yang ditambahkan tidak boleh null!", "produk", "PO_PRODUK_NULL");
 
-            if (produk.GetIdPenjual() != this._idPenjual) // Sesuaikan nama method jika sudah diubah jadi Property di kelas Product
+            if (produk.IdPenjual != this._idPenjual) // Sesuaikan nama method jika sudah diubah jadi Property di kelas Product
                 throw new InvalidOrderException("Produk ini bukan milik penjual PO!", "id_penjual", "PO_KEPEMILIKAN_INVALID");
 
             this._produkDiPo.Add(produk);
@@ -192,7 +192,7 @@ namespace CollabBuy.CollabBuyApp.Models
             foreach (Product p in this._produkDiPo)
             {
                 // Asumsi GetHargaDasar() dan GetTargetKuota() masih method. Ubah ke property (p.HargaDasar) jika sudah di-refactor.
-                total += (p.GetHargaDasar() * p.GetTargetKuota());
+                total += (p.HargaDasar * p.GetTargetKuota());
             }
             return total;
         }

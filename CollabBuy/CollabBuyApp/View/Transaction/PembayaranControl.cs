@@ -59,17 +59,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     ProductController pc = new ProductController();
                     Models.Product produkTeratas = pc.GetProdukById(idProdukPertama);
 
-                    if (produkTeratas != null && produkTeratas.GetIdPo().HasValue)
+                    if (produkTeratas != null && produkTeratas.IdPo.HasValue)
                     {
                         // =======================================================
                         // OOP BEST PRACTICE: PANGGIL LEWAT CONTROLLER & MODEL
                         // BUKAN NULIS QUERY SQL DI VIEW!
                         // =======================================================
-                        Models.PreOrder sesiPo = this._poCtrl.GetPreOrder(produkTeratas.GetIdPo().Value);
+                        Models.PreOrder sesiPo = this._poCtrl.GetPreOrder(produkTeratas.IdPo.Value);
 
                         if (sesiPo != null)
                         {
-                            this.lblRekeningInfo.Text = sesiPo.GetInfoRekening();
+                            this.lblRekeningInfo.Text = sesiPo.InfoRekening;
                         }
                         else
                         {

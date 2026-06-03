@@ -32,14 +32,21 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            // Mapping: subjek di DB masuk ke parameter jenisAduan di Model
                             aduan = new Complaint(reader.GetInt32(1), reader.GetString(2), reader.GetString(3));
-                            aduan.SetIdAduan(reader.GetInt32(0));
-                            if (!reader.IsDBNull(4)) aduan.SetTanggalAduan(reader.GetDateTime(4));
-                            // Translasi is_selesai (Boolean DB) -> Status (String OOP)
-                            if (reader.GetBoolean(5)) aduan.SetStatus("Selesai");
-                            // Mapping: balasan di DB -> TanggapanAdmin di Model
-                            if (!reader.IsDBNull(6)) aduan.SetTanggapanAdmin(reader.GetString(6));
+                            aduan.IdAduan = reader.GetInt32(0);
+
+                            if (!reader.IsDBNull(4))
+                            {
+                                aduan.TanggalAduan = reader.GetDateTime(4);
+                            }
+                            if (reader.GetBoolean(5))
+                            {
+                                aduan.Status = "Selesai";
+                            }
+                            if (!reader.IsDBNull(6))
+                            {
+                                aduan.TanggapanAdmin = reader.GetString(6);
+                            }
                         }
                     }
                 }
@@ -76,9 +83,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
-                    cmd.Parameters.AddWithValue("@subjek", entity.GetJenisAduan());
-                    cmd.Parameters.AddWithValue("@deskripsi", entity.GetDeskripsi());
+                    cmd.Parameters.AddWithValue("@idUser", entity.IdUser);
+                    cmd.Parameters.AddWithValue("@subjek", entity.JenisAduan);
+                    cmd.Parameters.AddWithValue("@deskripsi", entity.Deskripsi);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -92,10 +99,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", entity.GetIdAduan());
-                    // Translasi Status (String OOP) -> is_selesai (Boolean DB)
-                    cmd.Parameters.AddWithValue("@isSelesai", entity.GetStatus()?.ToLower() == "selesai");
-                    cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.GetTanggapanAdmin()) ? (object)DBNull.Value : entity.GetTanggapanAdmin());
+                    cmd.Parameters.AddWithValue("@id", entity.IdAduan);
+                    cmd.Parameters.AddWithValue("@isSelesai", entity.Status?.ToLower() == "selesai");
+                    cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.TanggapanAdmin) ? (object)DBNull.Value : entity.TanggapanAdmin);
+
                     cmd.ExecuteNonQuery();
                 }
             }

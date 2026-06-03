@@ -44,18 +44,28 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         {
                             p = new Product(reader.GetInt32(reader.GetOrdinal("id_penjual")), reader.GetInt32(reader.GetOrdinal("id_kategori")),
                                             reader.GetString(reader.GetOrdinal("nama_produk")), reader.GetInt32(reader.GetOrdinal("harga_dasar")));
-                            p.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
+                            p.IdProduk = reader.GetInt32(reader.GetOrdinal("id_produk"));
 
                             if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
-                                p.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
+                            {
+                                p.IdPo = reader.GetInt32(reader.GetOrdinal("id_po"));
+                            }
                             if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
-                                p.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
+                            {
+                                p.Deskripsi = reader.GetString(reader.GetOrdinal("deskripsi"));
+                            }
                             if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
-                                p.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
+                            {
+                                p.HargaDiskon = reader.GetInt32(reader.GetOrdinal("harga_diskon"));
+                            }
                             if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
-                                p.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
+                            {
+                                p.TargetKuota = reader.GetInt32(reader.GetOrdinal("target_kuota"));
+                            }
                             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
-                                p.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
+                            {
+                                p.MinOrder = reader.GetInt32(reader.GetOrdinal("min_order"));
+                            }
                         }
                     }
                 }
@@ -244,7 +254,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", entity.GetIdProduk());
+                    cmd.Parameters.AddWithValue("@id", entity.IdProduk);
                     MappingProductToParameters(cmd, entity);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal mengupdate produk, ID tidak ditemukan.", "id_produk", "DB_UPDATE_PRODUCT_FAILED");
@@ -278,41 +288,51 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             var produk = new Product(reader.GetInt32(reader.GetOrdinal("id_penjual")), reader.GetInt32(reader.GetOrdinal("id_kategori")),
                                      reader.GetString(reader.GetOrdinal("nama_produk")), reader.GetInt32(reader.GetOrdinal("harga_dasar")));
-            produk.SetIdProduk(reader.GetInt32(reader.GetOrdinal("id_produk")));
+            produk.IdProduk = reader.GetInt32(reader.GetOrdinal("id_produk"));
 
             if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
-                produk.SetIdPo(reader.GetInt32(reader.GetOrdinal("id_po")));
+            {
+                produk.IdPo = reader.GetInt32(reader.GetOrdinal("id_po"));
+            }
             if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
-                produk.SetDeskripsi(reader.GetString(reader.GetOrdinal("deskripsi")));
+            {
+                produk.Deskripsi = reader.GetString(reader.GetOrdinal("deskripsi"));
+            }
             if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
-                produk.SetHargaDiskon(reader.GetInt32(reader.GetOrdinal("harga_diskon")));
+            {
+                produk.HargaDiskon = reader.GetInt32(reader.GetOrdinal("harga_diskon"));
+            }
             if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
-                produk.SetTargetKuota(reader.GetInt32(reader.GetOrdinal("target_kuota")));
+            {
+                produk.TargetKuota = reader.GetInt32(reader.GetOrdinal("target_kuota"));
+            }
             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
-                produk.SetMinOrder(reader.GetInt32(reader.GetOrdinal("min_order")));
-
+            {
+                produk.MinOrder = reader.GetInt32(reader.GetOrdinal("min_order"));
+            }
             if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
-                produk.SetFotoProduk((byte[])reader["foto_produk"]);
-
-            produk.SetJenisPo(!reader.IsDBNull(reader.GetOrdinal("jenis_po"))
+            {
+                produk.FotoProduk = (byte[])reader["foto_produk"];
+            }
+            produk.JenisPo = !reader.IsDBNull(reader.GetOrdinal("jenis_po"))
                 ? reader.GetString(reader.GetOrdinal("jenis_po"))
-                : "Biasa");
+                : "Biasa";
 
             return produk;
         }
 
         private void MappingProductToParameters(NpgsqlCommand cmd, Product entity)
         {
-            cmd.Parameters.AddWithValue("@penjual", entity.GetIdPenjual());
-            cmd.Parameters.AddWithValue("@kategori", entity.GetIdKategori());
-            cmd.Parameters.AddWithValue("@nama", entity.GetNamaProduk());
-            cmd.Parameters.AddWithValue("@hargaDasar", entity.GetHargaDasar());
-            cmd.Parameters.AddWithValue("@po", entity.GetIdPo().HasValue ? (object)entity.GetIdPo().Value : DBNull.Value);
-            cmd.Parameters.AddWithValue("@deskripsi", string.IsNullOrEmpty(entity.GetDeskripsi()) ? (object)DBNull.Value : entity.GetDeskripsi());
-            cmd.Parameters.AddWithValue("@hargaDiskon", entity.GetHargaDiskon().HasValue ? (object)entity.GetHargaDiskon().Value : DBNull.Value);
-            cmd.Parameters.AddWithValue("@targetKuota", entity.GetTargetKuota() > 0 ? (object)entity.GetTargetKuota() : DBNull.Value);
-            cmd.Parameters.AddWithValue("@minOrder", entity.GetMinOrder());
-            cmd.Parameters.AddWithValue("@foto", (object)entity.GetFotoProduk() ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@penjual", entity.IdPenjual);
+            cmd.Parameters.AddWithValue("@kategori", entity.IdKategori);
+            cmd.Parameters.AddWithValue("@nama", entity.NamaProduk);
+            cmd.Parameters.AddWithValue("@hargaDasar", entity.HargaDasar);
+            cmd.Parameters.AddWithValue("@po", entity.IdPo.HasValue ? (object)entity.IdPo.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@deskripsi", string.IsNullOrEmpty(entity.Deskripsi) ? (object)DBNull.Value : entity.Deskripsi);
+            cmd.Parameters.AddWithValue("@hargaDiskon", entity.HargaDiskon.HasValue ? (object)entity.HargaDiskon.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@targetKuota", entity.TargetKuota > 0 ? (object)entity.TargetKuota : DBNull.Value);
+            cmd.Parameters.AddWithValue("@minOrder", entity.MinOrder);
+            cmd.Parameters.AddWithValue("@foto", (object)entity.FotoProduk ?? DBNull.Value);
         }
 
         public DataTable GetPOHampirPenuh()

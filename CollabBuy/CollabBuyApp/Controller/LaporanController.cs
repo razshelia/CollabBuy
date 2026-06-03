@@ -186,6 +186,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// <summary>
         /// Statement 2: Klasifikasi Performa Penjual (Leaderboard).
         /// </summary>
+
         public DataTable GetKlasifikasiPerformaPenjual()
         {
             try

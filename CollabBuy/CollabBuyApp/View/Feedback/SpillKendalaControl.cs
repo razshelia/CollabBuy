@@ -87,38 +87,18 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     // =======================================================
                     // OOP BEST PRACTICE: PEMANFAATAN BEHAVIOR MODEL
                     // =======================================================
-                    Complaint aduanObj = new Complaint(this._currentUser.GetIdUser(), subjek, deskripsiRaw);
+                    Complaint aduanObj = new Complaint(this._currentUser.IdUser, subjek, deskripsiRaw);
 
-                    if (isSelesai)
-                    {
-                        aduanObj.SetStatus("Selesai");
-                    }
-                    else
-                    {
-                        aduanObj.SetStatus("Menunggu");
-                    }
-
+                    aduanObj.Status = isSelesai ? "Selesai" : "Menunggu";
                     if (!string.IsNullOrWhiteSpace(balasan))
                     {
-                        aduanObj.SetTanggapanAdmin(balasan);
+                        aduanObj.TanggapanAdmin = balasan;
                     }
-                    else
-                    {
-                        bool skipTanggapan = true; // Assignment nyata menghindari else kosong
-                    }
-
                     string statusKece = aduanObj.DapatkanStatusUI();
                     string previewTeks = aduanObj.DapatkanPreviewDeskripsi(30);
-
-                    string previewBalasan;
-                    if (string.IsNullOrWhiteSpace(aduanObj.GetTanggapanAdmin()))
-                    {
-                        previewBalasan = "Belum direspon";
-                    }
-                    else
-                    {
-                        previewBalasan = aduanObj.GetTanggapanAdmin();
-                    }
+                    string previewBalasan = string.IsNullOrWhiteSpace(aduanObj.TanggapanAdmin)
+                        ? "Belum direspon"
+                        : aduanObj.TanggapanAdmin;
 
                     if (previewBalasan.Length > 35 && previewBalasan != "Belum direspon")
                     {

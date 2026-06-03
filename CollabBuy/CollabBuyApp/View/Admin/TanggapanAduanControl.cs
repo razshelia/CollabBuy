@@ -58,7 +58,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     // OOP BEST PRACTICE: PEMANFAATAN BEHAVIOR MODEL
                     // =======================================================
                     Complaint aduanObj = new Complaint(idUser, subjek, deskripsiRaw);
-                    aduanObj.SetStatus(statusRaw);
+                    aduanObj.Status = statusRaw;
 
                     string previewTeks = aduanObj.DapatkanPreviewDeskripsi(35);
                     string statusKece = aduanObj.DapatkanStatusUI();

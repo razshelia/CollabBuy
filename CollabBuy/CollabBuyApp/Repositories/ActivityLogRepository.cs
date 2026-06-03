@@ -35,9 +35,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         if (reader.Read())
                         {
                             log = new ActivityLog(reader.GetInt32(reader.GetOrdinal("id_user")), reader.GetString(reader.GetOrdinal("aktivitas")));
-                            log.SetIdLog(reader.GetInt32(reader.GetOrdinal("id_log")));
+                            log.IdLog = reader.GetInt32(reader.GetOrdinal("id_log"));
                             if (!reader.IsDBNull(reader.GetOrdinal("waktu_akses")))
-                                log.SetWaktuAkses(reader.GetDateTime(reader.GetOrdinal("waktu_akses")));
+                            {
+                                log.WaktuAkses = reader.GetDateTime(reader.GetOrdinal("waktu_akses"));
+                            }
                         }
                     }
                 }
@@ -59,9 +61,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     while (reader.Read())
                     {
                         var log = new ActivityLog(reader.GetInt32(reader.GetOrdinal("id_user")), reader.GetString(reader.GetOrdinal("aktivitas")));
-                        log.SetIdLog(reader.GetInt32(reader.GetOrdinal("id_log")));
+                        log.IdLog = reader.GetInt32(reader.GetOrdinal("id_log"));
                         if (!reader.IsDBNull(reader.GetOrdinal("waktu_akses")))
-                            log.SetWaktuAkses(reader.GetDateTime(reader.GetOrdinal("waktu_akses")));
+                        {
+                            log.WaktuAkses = reader.GetDateTime(reader.GetOrdinal("waktu_akses"));
+                        }
                         listLog.Add(log);
                     }
                 }
@@ -104,8 +108,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
-                    cmd.Parameters.AddWithValue("@aktivitas", entity.GetAktivitas());
+                    cmd.Parameters.AddWithValue("@idUser", entity.IdUser);
+                    cmd.Parameters.AddWithValue("@aktivitas", entity.Aktivitas);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal menyimpan log aktivitas.", "", "DB_INSERT_LOG_FAILED");
                 }

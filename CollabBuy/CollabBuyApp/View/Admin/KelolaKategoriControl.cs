@@ -72,7 +72,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 Category katBaru = new Category(txtNama.Text);
 
                 // 2. Ambil teks yang sudah dirapikan (Title Case) oleh Model untuk dilempar ke Controller
-                string namaBersih = katBaru.GetNamaKategori();
+                string namaBersih = katBaru.NamaKategori;
 
                 // Panggil controller dan ambil hasilnya
                 var res = _controller.TambahKategori(namaBersih);
@@ -105,10 +105,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             {
                 // 1. MENGGUNAKAN MODEL OOP UNTUK UPDATE
                 Category katUpdate = new Category(txtNama.Text);
-                katUpdate.SetIdKategori(_selectedId); // Memanfaatkan validasi Setter ID juga
-
-                // 2. Ambil teks dan ID yang sudah diproses oleh Model
-                var res = _controller.EditKategori(katUpdate.GetIdKategori(), katUpdate.GetNamaKategori());
+                katUpdate.IdKategori = _selectedId;
+                var res = _controller.EditKategori(katUpdate.IdKategori, katUpdate.NamaKategori);
 
                 if (res.sukses)
                 {

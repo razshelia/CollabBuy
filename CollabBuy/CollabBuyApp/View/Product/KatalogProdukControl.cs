@@ -120,7 +120,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         if (!string.IsNullOrWhiteSpace(namaKatMentah))
                         {
                             Models.Category katObj = new Models.Category(namaKatMentah);
-                            this._cmbKategori.Items.Add(katObj.GetNamaKategori());
+                            this._cmbKategori.Items.Add(katObj.NamaKategori);
                         }
                         else
                         {
@@ -468,9 +468,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     if (pUtuh != null)
                     {
                         int minOrder;
-                        if (pUtuh.GetMinOrder() > 0)
+                        if (pUtuh.MinOrder > 0)
                         {
-                            minOrder = pUtuh.GetMinOrder();
+                            minOrder = pUtuh.MinOrder;
                         }
                         else
                         {

@@ -72,7 +72,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     }
 
                     string bintangUI = ulasanObj.DapatkanBintangUI();
-                    string komenUI = ulasanObj.GetKomentar();
+                    string komenUI = ulasanObj.Komentar;
 
                     Label lblNama = new Label
                     {

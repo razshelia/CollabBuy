@@ -376,7 +376,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         string judulPo = row.IsNull("judul_po") ? "Reguler" : row["judul_po"].ToString();
                         string namaKatMentah = row.IsNull("nama_kategori") ? "Umum" : row["nama_kategori"].ToString();
                         Models.Category katObj = new Models.Category(namaKatMentah);
-                        string kategoriRapi = katObj.GetNamaKategori();
+                        string kategoriRapi = katObj.NamaKategori;
                         string harga = row["harga_dasar"] != DBNull.Value ? "Rp " + Convert.ToInt32(row["harga_dasar"]).ToString("N0") : "Rp 0";
                         string kuota = row.IsNull("target_kuota") ? "-" : row["target_kuota"].ToString();
 

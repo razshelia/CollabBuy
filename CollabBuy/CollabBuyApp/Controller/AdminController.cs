@@ -151,7 +151,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
                 // Karena _categoryRepo dari revisi UI minta parameter string, kita get dari object
                 // Jika repo lama kamu butuh objek, silakan diganti menjadi _categoryRepo.Insert(kategori);
-                _categoryRepo.Insert(kategori.GetNamaKategori());
+                _categoryRepo.Insert(kategori.NamaKategori);
 
                 return (true, "Kategori berhasil ditambahkan.");
             }

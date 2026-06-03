@@ -61,15 +61,15 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 else
                 {
                     // 1. Info Teks Dasar
-                    this.lblNamaProduk.Text = this._produk.GetNamaProduk();
-                    this.lblHeaderTitle.Text = "✨ Detail: " + this._produk.GetNamaProduk();
+                    this.lblNamaProduk.Text = this._produk.NamaProduk;
+                    this.lblHeaderTitle.Text = "✨ Detail: " + this._produk.NamaProduk;
 
                     // =======================================================
                     // OOP BEST PRACTICE: Panggil Method Behavior dari Model!
                     // =======================================================
-                    this.lblHarga.Text = this._produk.DapatkanFormatHargaUI();
+                    this.lblHarga.Text = this._produk.DapatkanFormatHargaUI(); // Tetap method
 
-                    string deskripsi = this._produk.GetDeskripsi();
+                    string deskripsi = this._produk.Deskripsi;
 
                     if (string.IsNullOrWhiteSpace(deskripsi) || deskripsi == "Tidak ada deskripsi.")
                     {
@@ -82,7 +82,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
                     // 2. Info PO & Slot
                     string tipePo;
-                    if (this._produk.GetIdPo().HasValue)
+                    if (this._produk.IdPo.HasValue) // Menggunakan property IdPo
                     {
                         tipePo = "Pre-Order (PO)";
                     }
@@ -96,11 +96,12 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     // =======================================================
                     // Mengambil langsung info slot dari Behavior Model
                     // =======================================================
-                    string slotInfo = this._produk.DapatkanInfoSlot();
+                    string slotInfo = this._produk.DapatkanInfoSlot(); // Tetap method
                     this.lblSlotNilai.Text = slotInfo;
-                    this.lblMinOrderNilai.Text = this._produk.GetMinOrder().ToString() + " pcs";
+                    this.lblMinOrderNilai.Text = this._produk.MinOrder.ToString() + " pcs";
 
-                    if (this._produk.GetSisaKuota() > 0 || !this._produk.GetIdPo().HasValue)
+                    // GetSisaKuota() tetap method sesuai dengan kontrak Interface
+                    if (this._produk.GetSisaKuota() > 0 || !this._produk.IdPo.HasValue)
                     {
                         this.lblSlotNilai.ForeColor = Color.FromArgb(200, 50, 50);
                         this.btnMasukKeranjang.Enabled = true;
@@ -115,9 +116,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     this.RenderFotoProduk();
 
                     // 4. Form Order (Hanya Quantity)
-                    if (this._produk.GetMinOrder() > 0)
+                    if (this._produk.MinOrder > 0)
                     {
-                        this.nudQty.Minimum = this._produk.GetMinOrder();
+                        this.nudQty.Minimum = this._produk.MinOrder;
                     }
                     else
                     {
@@ -141,7 +142,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             if (this._produk != null)
             {
-                fotoData = this._produk.GetFotoProduk();
+                fotoData = this._produk.FotoProduk;
             }
             else
             {
@@ -233,7 +234,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
                 if (sukses)
                 {
-                    MessageBox.Show($"✅ Yeay! '{this._produk.GetNamaProduk()}' udah masuk keranjang jajan lo bestie. Gas cek keranjang!",
+                    MessageBox.Show($"✅ Yeay! '{this._produk.NamaProduk}' udah masuk keranjang jajan lo bestie. Gas cek keranjang!",
                         "Masuk Keranjang!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else

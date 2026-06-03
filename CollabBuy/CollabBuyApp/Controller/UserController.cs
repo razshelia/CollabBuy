@@ -30,40 +30,40 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // FITUR AUTENTIKASI (LOGIN)
         // =======================================================
         public (User user, string pesan) Login(string username, string password)
+{
+    try
+    {
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            return (null, "Username dan Password tidak boleh kosong!");
+
+        string hashPasswordInput = this.HashSha256(password);
+        User userDitemukan = this._userRepo.GetByUsername(username);
+
+        if (userDitemukan == null)
+            return (null, "Username atau Password salah!");
+
+        if (userDitemukan.GetPassword() != hashPasswordInput)
+            return (null, "Username atau Password salah!");
+
+        if (userDitemukan.IsDiblokir())
+            return (null, "Akun Anda telah diblokir oleh Admin!");
+
+        // Upgrade peran jika Penjual sudah terverifikasi
+        if (userDitemukan is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
         {
-            try
-            {
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                    return (null, "Username dan Password tidak boleh kosong!");
-
-                string hashPasswordInput = this.HashSha256(password);
-                User userDitemukan = this._userRepo.GetByUsername(username);
-
-                if (userDitemukan == null)
-                    return (null, "Username atau Password salah!");
-
-                if (userDitemukan.GetPassword() != hashPasswordInput)
-                    return (null, "Username atau Password salah!");
-
-                if (userDitemukan.IsDiblokir())
-                    return (null, "Akun Anda telah diblokir oleh Admin!");
-
-                // Upgrade peran jika Penjual sudah terverifikasi
-                if (userDitemukan is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
-                {
-                    try { userDitemukan.SetPeran("Penjual"); } catch { }
-                }
-
-                ActivityLog log = new ActivityLog(userDitemukan.GetIdUser(), "Berhasil login ke sistem");
-                this._logRepo.Insert(log);
-
-                return (userDitemukan, "Login berhasil! Selamat datang, " + userDitemukan.GetNama());
-            }
-            catch (Exception ex)
-            {
-                return (null, "Terjadi error sistem saat login: " + ex.Message);
-            }
+            try { userDitemukan.SetPeran("Penjual"); } catch { }
         }
+
+        ActivityLog log = new ActivityLog(userDitemukan.GetIdUser(), "Berhasil login ke sistem");
+        this._logRepo.Insert(log);
+
+        return (userDitemukan, "Login berhasil! Selamat datang, " + userDitemukan.GetNama());
+    }
+    catch (Exception ex)
+    {
+        return (null, "Terjadi error sistem saat login: " + ex.Message);
+    }
+}
 
         // =======================================================
         // FITUR REGISTRASI
@@ -123,10 +123,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 string hashPassword = this.HashSha256(password);
                 Penjual penjualBaru = new Penjual(nama, username, hashPassword);
 
-                penjualBaru.SetNim(nim);
-                penjualBaru.SetNamaToko(namaToko);
-                penjualBaru.SetTahunMasuk(tahunMasuk);
-                penjualBaru.SetBuktiKtm(buktiKtm);
+                penjualBaru.Nim = nim;
+                penjualBaru.NamaToko = namaToko;
+                penjualBaru.TahunMasuk = tahunMasuk;
+                penjualBaru.BuktiKtm = buktiKtm;
 
                 penjualBaru.Validate();
                 this._userRepo.Insert(penjualBaru);
@@ -248,7 +248,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                         return (false, "Password lama salah! Coba lagi ya bestie.");
                     }
 
-                    user.SetPassword(this.HashSha256(rawPasswordBaru));
+                    user.Password = this.HashSha256(rawPasswordBaru);
                 }
 
                 this._userRepo.Update(user);

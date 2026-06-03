@@ -25,18 +25,18 @@ namespace CollabBuy.CollabBuyApp.Services
             }
             else
             {
-                if (produk.GetIdPo().HasValue == false)
+                if (produk.IdPo.HasValue == false)
                 {
                     throw new InvalidOrderException("Produk ini tidak terikat dalam sesi PO!", "id_po", "CART_NO_PO");
                 }
                 else
                 {
-                    TransactionDetail detailBaru = new TransactionDetail(produk.GetIdProduk(), namaPenitip, jumlah);
-                    detailBaru.SetCatatan(catatan);
-                    detailBaru.SetProduk(produk);
+                    TransactionDetail detailBaru = new TransactionDetail(produk.IdProduk, namaPenitip, jumlah);
+                    detailBaru.Catatan = catatan;
+                    detailBaru.ProdukYangDipesan = produk;
                     detailBaru.Validate();
 
-                    int keyProduk = produk.GetIdProduk();
+                    int keyProduk = produk.IdProduk;
 
                     // OOP BEST PRACTICE: Pemanggilan static member memakai nama Class
                     if (CartManager._keranjangDict.ContainsKey(keyProduk))
@@ -61,16 +61,16 @@ namespace CollabBuy.CollabBuyApp.Services
             {
                 foreach (TransactionDetail detail in entry.Value)
                 {
-                    Product produk = detail.GetProduk();
+                    Product produk = detail.ProdukYangDipesan;
 
                     if (produk != null)
                     {
                         long hargaSaatIni = produk.HitungTotal();
                         long? hargaDiskon;
 
-                        if (produk.GetHargaDiskon().HasValue)
+                        if (produk.HargaDiskon.HasValue)
                         {
-                            hargaDiskon = Convert.ToInt64(produk.GetHargaDiskon().Value);
+                            hargaDiskon = Convert.ToInt64(produk.HargaDiskon.Value);
                         }
                         else
                         {
@@ -144,7 +144,7 @@ namespace CollabBuy.CollabBuyApp.Services
             if (CartManager._keranjangDict.ContainsKey(idProduk))
             {
                 var list = CartManager._keranjangDict[idProduk];
-                list.RemoveAll(d => d.GetNamaPenitip() == namaPenitip);
+                list.RemoveAll(d => d.NamaPenitip == namaPenitip);
 
                 if (list.Count == 0)
                 {
@@ -165,18 +165,18 @@ namespace CollabBuy.CollabBuyApp.Services
         {
             if (CartManager._keranjangDict.ContainsKey(idProduk))
             {
-                var detail = CartManager._keranjangDict[idProduk].Find(d => d.GetNamaPenitip() == oldPenitip);
+                var detail = CartManager._keranjangDict[idProduk].Find(d => d.NamaPenitip == oldPenitip);
 
                 if (detail != null)
                 {
-                    Product p = detail.GetProduk();
-                    int selisih = jumlah - detail.GetJumlahPesanan();
+                    Product p = detail.ProdukYangDipesan;
+                    int selisih = jumlah - detail.JumlahPesanan;
 
                     CartManager._keranjangDict[idProduk].Remove(detail);
 
                     TransactionDetail newDetail = new TransactionDetail(idProduk, newPenitip, jumlah);
-                    newDetail.SetCatatan(catatan);
-                    newDetail.SetProduk(p);
+                    newDetail.Catatan = catatan;
+                    newDetail.ProdukYangDipesan = p;
                     CartManager._keranjangDict[idProduk].Add(newDetail);
 
                     p.TambahPesanan(selisih); // Update sisa kuota Gotong Royong di RAM

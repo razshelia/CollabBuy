@@ -40,7 +40,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         if (reader.Read())
                         {
                             transaksi = new Transaction(reader.GetInt32(reader.GetOrdinal("id_koordinator")));
-                            transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
+                            transaksi.IdTransaksi = reader.GetInt32(reader.GetOrdinal("id_transaksi"));
                             // PERBAIKAN: Gunakan helper method untuk set status langsung dari DB
                             // tanpa melewati state machine UbahStatus() yang mensyaratkan transisi valid.
                             SetStatusDariDatabase(transaksi, reader.GetString(reader.GetOrdinal("status_pesanan")));
@@ -73,7 +73,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                     hargaDiskon = Convert.ToInt64(reader.GetInt32(reader.GetOrdinal("harga_diskon_saat_beli")));
                                 detail.FinalisasiHargaSaatCheckout(Convert.ToInt64(reader.GetInt32(reader.GetOrdinal("harga_satuan_saat_beli"))), hargaDiskon);
                                 if (!reader.IsDBNull(reader.GetOrdinal("catatan")))
-                                    detail.SetCatatan(reader.GetString(reader.GetOrdinal("catatan")));
+                                    detail.Catatan = reader.GetString(reader.GetOrdinal("catatan"));
                                 transaksi.TambahDetail(detail);
                             }
                         }
@@ -98,7 +98,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     while (reader.Read())
                     {
                         var transaksi = new Transaction(reader.GetInt32(reader.GetOrdinal("id_koordinator")));
-                        transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
+                        transaksi.IdTransaksi = reader.GetInt32(reader.GetOrdinal("id_transaksi"));
                         // PERBAIKAN: Restore status dari DB tanpa state machine
                         SetStatusDariDatabase(transaksi, reader.GetString(reader.GetOrdinal("status_pesanan")));
                         if (!reader.IsDBNull(reader.GetOrdinal("is_valid")) && reader.GetBoolean(reader.GetOrdinal("is_valid")))
@@ -135,15 +135,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         while (reader.Read())
                         {
                             var transaksi = new Transaction(reader.GetInt32(reader.GetOrdinal("id_koordinator")));
-                            transaksi.SetIdTransaksi(reader.GetInt32(reader.GetOrdinal("id_transaksi")));
+                            transaksi.IdTransaksi = reader.GetInt32(reader.GetOrdinal("id_transaksi"));
                             SetStatusDariDatabase(transaksi, reader.GetString(reader.GetOrdinal("status_pesanan")));
                             if (!reader.IsDBNull(reader.GetOrdinal("is_valid")) && reader.GetBoolean(reader.GetOrdinal("is_valid")))
                                 transaksi.Approve();
                             if (!reader.IsDBNull(reader.GetOrdinal("tanggal_transaksi")))
-                                transaksi.SetTanggalTransaksi(reader.GetDateTime(reader.GetOrdinal("tanggal_transaksi")));
+                                transaksi.TanggalTransaksi = reader.GetDateTime(reader.GetOrdinal("tanggal_transaksi"));
                             // PERBAIKAN: Ambil array gambar resi dari database ke object
                             if (!reader.IsDBNull(reader.GetOrdinal("bukti_bayar")))
-                                transaksi.SetBuktiBayar((byte[])reader["bukti_bayar"]);
+                                transaksi.BuktiBayar = (byte[])reader["bukti_bayar"];
                             listTransaksi.Add(transaksi);
                         }
                     }
@@ -164,7 +164,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     conn2.Open();
                     using (var cmd2 = new NpgsqlCommand(queryDetail, conn2))
                     {
-                        cmd2.Parameters.AddWithValue("@idTrx", trx.GetIdTransaksi());
+                        cmd2.Parameters.AddWithValue("@idTrx", trx.IdTransaksi);
                         using (var reader2 = cmd2.ExecuteReader())
                         {
                             while (reader2.Read())
@@ -177,9 +177,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                     hargaDiskon = Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_diskon_saat_beli")));
                                 detail.FinalisasiHargaSaatCheckout(Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_satuan_saat_beli"))), hargaDiskon);
                                 if (!reader2.IsDBNull(reader2.GetOrdinal("catatan")))
-                                    detail.SetCatatan(reader2.GetString(reader2.GetOrdinal("catatan")));
+                                    detail.Catatan = reader2.GetString(reader2.GetOrdinal("catatan"));
                                 if (!reader2.IsDBNull(reader2.GetOrdinal("nama_produk_snapshot")))
-                                    detail.SetNamaProdukSnapshot(reader2.GetString(reader2.GetOrdinal("nama_produk_snapshot")));
+                                    detail.NamaProdukSnapshot = reader2.GetString(reader2.GetOrdinal("nama_produk_snapshot"));
                                 trx.TambahDetail(detail);
                             }
                         }
@@ -216,12 +216,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         int idTransaksiGenerated;
                         using (var cmdHeader = new NpgsqlCommand(insertHeaderQuery, conn, dbTx))
                         {
-                            cmdHeader.Parameters.AddWithValue("@koord", transaksi.GetIdPembeli());
+                            cmdHeader.Parameters.AddWithValue("@koord", transaksi.IdPembeli);
                             cmdHeader.Parameters.AddWithValue("@status", transaksi.GetStatus());
-                            byte[] buktiBayar = transaksi.GetBuktiBayar();
+                            byte[] buktiBayar = transaksi.BuktiBayar;
                             cmdHeader.Parameters.AddWithValue("@bukti", (buktiBayar != null && buktiBayar.Length > 0) ? (object)buktiBayar : DBNull.Value);
                             idTransaksiGenerated = Convert.ToInt32(cmdHeader.ExecuteScalar());
-                            transaksi.SetIdTransaksi(idTransaksiGenerated);
+                            transaksi.IdTransaksi =idTransaksiGenerated;
                         }
 
                         // 2. Loop insert setiap detail item (Titipan) ke 'transaction_details'
@@ -236,10 +236,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             using (var cmdDetail = new NpgsqlCommand(insertDetailQuery, conn, dbTx))
                             {
                                 cmdDetail.Parameters.AddWithValue("@idTrx", idTransaksiGenerated);
-                                cmdDetail.Parameters.AddWithValue("@idProduk", detail.GetIdProduk());
-                                cmdDetail.Parameters.AddWithValue("@penitip", detail.GetNamaPenitip());
-                                cmdDetail.Parameters.AddWithValue("@jumlah", detail.GetJumlahPesanan());
-                                cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(detail.GetCatatan()) ? (object)DBNull.Value : detail.GetCatatan());
+                                cmdDetail.Parameters.AddWithValue("@idProduk", detail.IdProduk);
+                                cmdDetail.Parameters.AddWithValue("@penitip", detail.NamaPenitip);
+                                cmdDetail.Parameters.AddWithValue("@jumlah", detail.JumlahPesanan);
+                                cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(detail.Catatan) ? (object)DBNull.Value : detail.Catatan);
                                 cmdDetail.ExecuteNonQuery();
                             }
                         }
@@ -270,8 +270,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     cmd.Parameters.AddWithValue("@status", entity.GetStatus());
                     cmd.Parameters.AddWithValue("@isValid", entity.GetStatusPersetujuan());
-                    cmd.Parameters.AddWithValue("@id", entity.GetIdTransaksi());
-                    cmd.Parameters.AddWithValue("@bukti", (object)entity.GetBuktiBayar() ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@id", entity.IdTransaksi);
+                    cmd.Parameters.AddWithValue("@bukti", (object)entity.BuktiBayar ?? DBNull.Value);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal mengupdate transaksi, ID tidak ditemukan di database.", "id_transaksi", "DB_UPDATE_FAILED");
                 }
@@ -301,15 +301,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                         using (var cmdHeader = new NpgsqlCommand(queryHeader, conn, dbTx))
                         {
-                            cmdHeader.Parameters.AddWithValue("@koord", transaksi.GetIdPembeli());
-                            cmdHeader.Parameters.AddWithValue("@bukti", (object)transaksi.GetBuktiBayar() ?? DBNull.Value);
+                            cmdHeader.Parameters.AddWithValue("@koord", transaksi.IdPembeli);
+                            cmdHeader.Parameters.AddWithValue("@bukti", (object)transaksi.BuktiBayar ?? DBNull.Value);
                             cmdHeader.Parameters.AddWithValue("@status", transaksi.GetStatus());
 
                             object result = cmdHeader.ExecuteScalar();
                             if (result == null || result == DBNull.Value)
                                 throw new InvalidOrderException("Gagal mendapatkan ID Transaksi dari database.", "", "DB_INSERT_HEADER_FAILED");
                             idTransaksiBaru = Convert.ToInt32(result);
-                            transaksi.SetIdTransaksi(idTransaksiBaru);
+                            transaksi.IdTransaksi = idTransaksiBaru;
                         }
 
                         // 2. Insert Detail Transaksi 
@@ -322,10 +322,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             using (var cmdDetail = new NpgsqlCommand(queryDetail, conn, dbTx))
                             {
                                 cmdDetail.Parameters.AddWithValue("@trx", idTransaksiBaru);
-                                cmdDetail.Parameters.AddWithValue("@produk", detail.GetIdProduk());
-                                cmdDetail.Parameters.AddWithValue("@penitip", detail.GetNamaPenitip());
-                                cmdDetail.Parameters.AddWithValue("@jumlah", detail.GetJumlahPesanan());
-                                cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrEmpty(detail.GetCatatan()) ? (object)DBNull.Value : detail.GetCatatan());
+                                cmdDetail.Parameters.AddWithValue("@produk", detail.IdProduk);
+                                cmdDetail.Parameters.AddWithValue("@penitip", detail.NamaPenitip);
+                                cmdDetail.Parameters.AddWithValue("@jumlah", detail.JumlahPesanan);
+                                cmdDetail.Parameters.AddWithValue("@catatan", string.IsNullOrEmpty(detail.Catatan) ? (object)DBNull.Value : detail.Catatan);
                                 if (cmdDetail.ExecuteNonQuery() == 0)
                                     throw new InvalidOrderException("Gagal menyimpan detail item transaksi.", "details", "DB_INSERT_DETAIL_FAILED");
                             }

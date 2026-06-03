@@ -345,20 +345,26 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
-                if (HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
-                    penjual.SetNim(reader.GetString(reader.GetOrdinal("nim")));
+                if(HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
+{
+                    penjual.Nim = reader.GetString(reader.GetOrdinal("nim"));
+                }
                 if (HasColumn(reader, "nama_toko") && !reader.IsDBNull(reader.GetOrdinal("nama_toko")))
-                    penjual.SetNamaToko(reader.GetString(reader.GetOrdinal("nama_toko")));
+                {
+                    penjual.NamaToko = reader.GetString(reader.GetOrdinal("nama_toko"));
+                }
                 if (HasColumn(reader, "tahun_masuk") && !reader.IsDBNull(reader.GetOrdinal("tahun_masuk")))
-                    penjual.SetTahunMasuk(reader.GetInt32(reader.GetOrdinal("tahun_masuk")));
-
+                {
+                    penjual.TahunMasuk = reader.GetInt32(reader.GetOrdinal("tahun_masuk"));
+                }
                 penjual.Approve();
-
                 if (HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
                 {
                     byte[] ktmBytes = (byte[])reader["bukti_ktm"];
                     if (ktmBytes != null && ktmBytes.Length > 0)
-                        penjual.SetBuktiKtm(ktmBytes);
+                    {
+                        penjual.BuktiKtm = ktmBytes;
+                    }
                 }
 
                 try { penjual.SetPeran("Penjual"); } catch { }
@@ -418,22 +424,27 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                             object result = cmdUser.ExecuteScalar();
                             if (result == null || result == DBNull.Value)
+                            {
                                 throw new InvalidOrderException("Gagal mendapatkan ID User baru.", "", "DB_INSERT_USER_FAILED");
-                            penjual.SetIdUser(Convert.ToInt32(result));
+                            }
+                            penjual.IdUser = Convert.ToInt32(result);
                         }
 
                         string queryVerif = "INSERT INTO verifications (id_user, nim, nama_toko, bukti_ktm, tahun_masuk) VALUES (@idUser, @nim, @toko, @ktm, @tahun);";
+
                         using (var cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
                         {
-                            cmdVerif.Parameters.AddWithValue("@idUser", penjual.GetIdUser());
-                            cmdVerif.Parameters.AddWithValue("@nim", penjual.GetNim());
-                            cmdVerif.Parameters.AddWithValue("@toko", penjual.GetNamaToko());
-                            cmdVerif.Parameters.AddWithValue("@tahun", penjual.GetTahunMasuk());
-                            cmdVerif.Parameters.AddWithValue("@ktm", (object)penjual.GetBuktiKtm() ?? DBNull.Value);
-                            if (cmdVerif.ExecuteNonQuery() == 0)
-                                throw new InvalidOrderException("Gagal menyimpan data verifikasi penjual.", "", "DB_INSERT_VERIF_FAILED");
-                        }
+                            cmdVerif.Parameters.AddWithValue("@idUser", penjual.IdUser);
+                            cmdVerif.Parameters.AddWithValue("@nim", penjual.Nim);
+                            cmdVerif.Parameters.AddWithValue("@toko", penjual.NamaToko);
+                            cmdVerif.Parameters.AddWithValue("@tahun", penjual.TahunMasuk);
+                            cmdVerif.Parameters.AddWithValue("@ktm", (object)penjual.BuktiKtm ?? DBNull.Value);
 
+                            if (cmdVerif.ExecuteNonQuery() == 0)
+                            {
+                                throw new InvalidOrderException("Gagal menyimpan data verifikasi penjual.", "", "DB_INSERT_VERIF_FAILED");
+                            }
+                        }
                         dbTx.Commit();
                     }
                     catch (Exception ex)

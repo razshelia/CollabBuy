@@ -35,10 +35,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try
             {
                 Product produk = new Product(idPenjual, idKategori, namaProduk, hargaDasar);
-                if (idPo.HasValue) produk.SetIdPo(idPo.Value);
-                if (targetKuota.HasValue) produk.SetTargetKuota(targetKuota);
-                produk.SetMinOrder(minOrder);
-                if (fotoProduk != null) produk.SetFotoProduk(fotoProduk);
+                if (idPo.HasValue) produk.IdPo = idPo.Value;
+                if (targetKuota.HasValue) produk.TargetKuota = targetKuota;
+                produk.MinOrder = minOrder;
+                if (fotoProduk != null) produk.FotoProduk = fotoProduk;
                 produk.Validate();
                 _productRepo.Insert(produk);
 
@@ -56,10 +56,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try
             {
                 Product produk = new Product(idPenjual, idKategori, namaProduk, hargaDasar);
-                produk.SetIdProduk(idProduk);
-                produk.SetMinOrder(minOrder);
-                if (!string.IsNullOrEmpty(deskripsi)) produk.SetDeskripsi(deskripsi);
-                if (fotoProduk != null) produk.SetFotoProduk(fotoProduk);
+                produk.IdProduk = idProduk;
+                produk.MinOrder = minOrder;
+                if (!string.IsNullOrEmpty(deskripsi)) produk.Deskripsi = deskripsi;
+                if (fotoProduk != null) produk.FotoProduk = fotoProduk;
                 produk.Validate();
                 _productRepo.Update(produk);
 

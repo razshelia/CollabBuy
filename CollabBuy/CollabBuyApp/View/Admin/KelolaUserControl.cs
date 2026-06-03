@@ -34,17 +34,19 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.dgvUser.AutoGenerateColumns = false;
             this.dgvUser.Columns.Clear();
 
-            // Kolom Tersembunyi untuk kebutuhan logika
+            // Kolom tersembunyi untuk logika internal
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdUser", DataPropertyName = "id_user", Visible = false });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "RawStatus", DataPropertyName = "raw_status", Visible = false });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "EmailRaw", DataPropertyName = "email", Visible = false });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "TeleponRaw", DataPropertyName = "nomor_telepon", Visible = false });
+            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamaRaw", DataPropertyName = "nama_raw", Visible = false });
+            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "UsernameRaw", DataPropertyName = "username_raw", Visible = false });
 
-            // Kolom UI Kece
+            // Kolom tampilan UI
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nama", HeaderText = "Nama Lengkap", DataPropertyName = "nama", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Username", HeaderText = "Username", DataPropertyName = "username", Width = 110 });
-            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "InfoKontak", HeaderText = "Info Kontak (Auto)", DataPropertyName = "info_kontak", Width = 230 });
-            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Peran", HeaderText = "Peran (Tipe)", DataPropertyName = "peran", Width = 140 });
+            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "InfoKontak", HeaderText = "Info Kontak", DataPropertyName = "info_kontak", Width = 230 });
+            this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Peran", HeaderText = "Peran", DataPropertyName = "peran", Width = 140 });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Akun", DataPropertyName = "status_akun", Width = 140 });
         }
 
@@ -55,11 +57,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 DataTable dtRaw = this._adminController.GetSemuaUser();
                 DataTable dtUI = new DataTable();
 
-                // Pembuatan kerangka DataTable untuk UI
+                // Definisi kolom DataTable UI
                 dtUI.Columns.Add("id_user", typeof(int));
                 dtUI.Columns.Add("raw_status", typeof(string));
                 dtUI.Columns.Add("email", typeof(string));
                 dtUI.Columns.Add("nomor_telepon", typeof(string));
+                dtUI.Columns.Add("nama_raw", typeof(string)); // nama asli tanpa format
+                dtUI.Columns.Add("username_raw", typeof(string)); // username asli tanpa @
                 dtUI.Columns.Add("nama", typeof(string));
                 dtUI.Columns.Add("username", typeof(string));
                 dtUI.Columns.Add("info_kontak", typeof(string));
@@ -73,51 +77,42 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     string email = row["email"].ToString();
                     string telepon = row["nomor_telepon"].ToString();
                     string peran = row["peran"].ToString();
-                    string statusRaw = row["status_akun"].ToString();
+                    string statusRaw = row["status_akun"].ToString(); // "Aktif" atau "Diblokir"
 
-                    // =======================================================
-                    // OOP BEST PRACTICE: POLIMORFISME & BEHAVIOR
-                    // =======================================================
+                    // Buat objek User menggunakan backing field bypass (password "dummy" aman
+                    // karena konstruktor User sudah set _password langsung ke backing field)
                     User userObj;
                     if (peran == "Penjual")
-                    {
                         userObj = new Penjual(nama, username, "dummy");
-                    }
                     else if (peran == "Admin")
-                    {
                         userObj = new Models.Admin(nama, username, "dummy", "dummy");
-                    }
                     else
-                    {
                         userObj = new Pembeli(nama, username, "dummy");
-                    }
 
                     userObj.SetEmail(email);
                     userObj.SetNomorTelepon(telepon);
 
-                    // Hydration Status Pemblokiran
+                    // Set status blokir dari database
                     if (statusRaw == "Diblokir")
-                    {
                         userObj.Blokir("Terdeteksi pelanggaran sistem");
-                    }
                     else
-                    {
                         userObj.BukaBlokir();
-                    }
 
-                    // Pemanfaatan Method Cerdas Model
-                    string kontakKece = userObj.DapatkanInfoKontak();
+                    // Gunakan method OOP untuk data tampilan
+                    string infoKontak = userObj.DapatkanInfoKontak();
                     string statusKece = userObj.DapatkanStatusAkun();
-                    string tipeUser = userObj.GetTipeUser(); // Pembuktian Overriding/Polimorfisme
+                    string tipeUser = userObj.GetTipeUser();
 
                     dtUI.Rows.Add(
                         Convert.ToInt32(row["id_user"]),
-                        statusRaw,
-                        email,
-                        telepon,
-                        nama,
-                        "@" + username,
-                        kontakKece,
+                        statusRaw,           // raw: "Aktif" / "Diblokir"
+                        email,               // email asli untuk detail panel
+                        telepon,             // telepon asli untuk detail panel
+                        nama,                // nama asli (tanpa format) untuk detail panel
+                        username,            // username asli (tanpa @) untuk detail panel
+                        nama,                // kolom tampilan Nama
+                        "@" + username,      // kolom tampilan Username
+                        infoKontak,
                         tipeUser,
                         statusKece
                     );
@@ -129,95 +124,72 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal muat data user: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal muat data user: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void dgvUser_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
+            if (e.RowIndex < 0) return;
+
+            var row = this.dgvUser.Rows[e.RowIndex];
+
+            this._selectedIdUser = Convert.ToInt32(row.Cells["IdUser"].Value);
+            this._selectedRawStatus = row.Cells["RawStatus"].Value?.ToString() ?? "";
+
+            // Gunakan kolom raw (tanpa prefix @ atau format panjang) untuk panel detail
+            this.lblDetailNama.Text = row.Cells["NamaRaw"].Value?.ToString() ?? "-";
+            this.lblDetailUsername.Text = "@" + (row.Cells["UsernameRaw"].Value?.ToString() ?? "-");
+            this.lblDetailEmail.Text = row.Cells["EmailRaw"].Value?.ToString() ?? "-";
+            this.lblDetailTelepon.Text = row.Cells["TeleponRaw"].Value?.ToString() ?? "-";
+            this.lblDetailPeran.Text = row.Cells["Peran"].Value?.ToString() ?? "-";
+
+            // Status tampil dengan warna
+            if (this._selectedRawStatus == "Aktif")
             {
-                return;
+                this.lblDetailStatus.Text = "✅ Aktif";
+                this.lblDetailStatus.ForeColor = Color.ForestGreen;
+                this.btnBlokir.Text = "🚫 Blokir Akun";
+                this.btnBlokir.BackColor = Color.FromArgb(200, 0, 0);
             }
             else
             {
-                var row = this.dgvUser.Rows[e.RowIndex];
-
-                this._selectedIdUser = Convert.ToInt32(row.Cells["IdUser"].Value);
-                this._selectedRawStatus = row.Cells["RawStatus"].Value.ToString();
-
-                this.lblDetailNama.Text = row.Cells["Nama"].Value.ToString();
-                this.lblDetailUsername.Text = row.Cells["Username"].Value.ToString();
-
-                // Ambil dari kolom hidden yang kita siapkan khusus detail panel
-                this.lblDetailEmail.Text = row.Cells["EmailRaw"].Value.ToString();
-                this.lblDetailTelepon.Text = row.Cells["TeleponRaw"].Value.ToString();
-                this.lblDetailPeran.Text = row.Cells["Peran"].Value.ToString();
-
-                string statusKece = row.Cells["Status"].Value.ToString();
-                this.lblDetailStatus.Text = statusKece;
-
-                if (this._selectedRawStatus == "Aktif")
-                {
-                    this.lblDetailStatus.ForeColor = Color.ForestGreen;
-                    this.btnBlokir.Text = "🚫 Blokir Akun";
-                    this.btnBlokir.BackColor = Color.FromArgb(200, 0, 0);
-                }
-                else
-                {
-                    this.lblDetailStatus.ForeColor = Color.Red;
-                    this.btnBlokir.Text = "✅ Aktifkan Akun";
-                    this.btnBlokir.BackColor = Color.ForestGreen;
-                }
-
-                this.btnBlokir.Enabled = true;
+                this.lblDetailStatus.Text = "🚫 Diblokir";
+                this.lblDetailStatus.ForeColor = Color.Red;
+                this.btnBlokir.Text = "✅ Aktifkan Akun";
+                this.btnBlokir.BackColor = Color.ForestGreen;
             }
+
+            this.btnBlokir.Enabled = true;
         }
 
         private void btnBlokir_Click(object sender, EventArgs e)
         {
-            if (this._selectedIdUser == 0)
+            if (this._selectedIdUser == 0) return;
+
+            bool sedangDiblokir = (this._selectedRawStatus == "Diblokir");
+            string aksi = sedangDiblokir ? "mengaktifkan kembali" : "memblokir";
+
+            DialogResult dr = MessageBox.Show(
+                $"Yakin mau {aksi} akun '{this.lblDetailNama.Text}'?",
+                "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (dr != DialogResult.Yes) return;
+
+            // Jika sedang diblokir → kita AKTIFKAN → blokir = false
+            // Jika sedang aktif    → kita BLOKIR   → blokir = true
+            bool blokirBaru = !sedangDiblokir;
+
+            var (sukses, pesan) = this._adminController.ToggleBlokirUser(this._selectedIdUser, blokirBaru);
+            if (sukses)
             {
-                return;
+                MessageBox.Show(pesan, "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.LoadDataUser();
             }
             else
             {
-                bool isDiblokir;
-                string aksi;
-
-                if (this._selectedRawStatus == "Diblokir")
-                {
-                    isDiblokir = true;
-                    aksi = "mengaktifkan kembali";
-                }
-                else
-                {
-                    isDiblokir = false;
-                    aksi = "memblokir";
-                }
-
-                DialogResult dr = MessageBox.Show(
-                    $"Yakin mau {aksi} akun '{this.lblDetailNama.Text}'?",
-                    "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (dr == DialogResult.Yes)
-                {
-                    var (sukses, pesan) = this._adminController.ToggleBlokirUser(this._selectedIdUser, !isDiblokir);
-                    if (sukses)
-                    {
-                        MessageBox.Show(pesan, "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.LoadDataUser();
-                    }
-                    else
-                    {
-                        MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else
-                {
-                    // Eksekusi dibatalkan oleh pengguna
-                    bool cancel = true;
-                }
+                MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -230,6 +202,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             this._selectedIdUser = 0;
             this._selectedRawStatus = "";
+
             this.lblDetailNama.Text = "Klik baris untuk lihat detail";
             this.lblDetailUsername.Text = "-";
             this.lblDetailEmail.Text = "-";

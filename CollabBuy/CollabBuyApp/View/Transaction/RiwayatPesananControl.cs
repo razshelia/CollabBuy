@@ -84,13 +84,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     foreach (Models.Transaction trx in listTrx)
                     {
                         // Memanfaatkan Behavior / Method UI dari kelas Transaction
-                        string waktuFormat = trx.GetTanggalTransaksi().ToString("dd MMM yyyy, HH:mm");
+                        string waktuFormat = trx.TanggalTransaksi.ToString("dd MMM yyyy, HH:mm");
                         string hargaFormat = trx.DapatkanFormatTagihanUI();
                         string statusBayar = trx.DapatkanStatusPembayaranUI();
                         string statusTrx = trx.GetStatus();
 
                         dtUI.Rows.Add(
-                            trx.GetIdTransaksi(),
+                            trx.IdTransaksi,
                             statusBayar,
                             waktuFormat,
                             hargaFormat,

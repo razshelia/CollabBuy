@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         if (reader.Read())
                         {
                             review = new Review(reader.GetInt32(1), reader.GetInt32(2), reader.GetInt32(3), reader.IsDBNull(4) ? "" : reader.GetString(4));
-                            review.SetIdUlasan(reader.GetInt32(0));
+                            review.IdUlasan = reader.GetInt32(0);
                             if (!reader.IsDBNull(5)) review.BeriTanggapan(reader.GetString(5));
                         }
                     }
@@ -98,10 +98,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idProduk", entity.GetIdProduk());
-                    cmd.Parameters.AddWithValue("@idUser", entity.GetIdUser());
-                    cmd.Parameters.AddWithValue("@rating", entity.GetRating());
-                    cmd.Parameters.AddWithValue("@komentar", string.IsNullOrEmpty(entity.GetKomentar()) ? (object)DBNull.Value : entity.GetKomentar());
+                    cmd.Parameters.AddWithValue("@idProduk", entity.IdProduk);
+                    cmd.Parameters.AddWithValue("@idUser", entity.IdUser);
+                    cmd.Parameters.AddWithValue("@rating", entity.Rating);
+                    cmd.Parameters.AddWithValue("@komentar", string.IsNullOrEmpty(entity.Komentar) ? (object)DBNull.Value : entity.Komentar);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -115,7 +115,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", entity.GetIdUlasan());
+                    cmd.Parameters.AddWithValue("@id", entity.IdUlasan);
                     cmd.Parameters.AddWithValue("@balasan", string.IsNullOrEmpty(entity.GetTanggapan()) ? (object)DBNull.Value : entity.GetTanggapan());
                     cmd.ExecuteNonQuery();
                 }
