@@ -1,6 +1,6 @@
-﻿using System;
-using CollabBuy.CollabBuyApp.Models.Interfaces;
+﻿using CollabBuy.CollabBuyApp.Models.Interfaces;
 using CollabBuy.CollabBuyApp.Exceptions;
+using System;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
@@ -11,102 +11,72 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class Review : IValidatable, IResolvable
     {
-        // === PRIVATE FIELDS (Strict Encapsulation) ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idUlasan;
-        private int _idProduk;
-        private int _idUser;
         private int _rating;
         private string _komentar;
-        private DateTime _tanggalUlasan;
         private string _balasanPenjual;
+
+        // === PROPERTIES ===
+
+        // Auto-Properties (Read-only dari luar)
+        public int IdProduk { get; private set; }
+        public int IdUser { get; private set; }
+        public DateTime TanggalUlasan { get; private set; }
+
+        public int IdUlasan
+        {
+            get { return this._idUlasan; }
+            set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Ulasan tidak valid!", "id_ulasan", "ULASAN_ID_INVALID");
+                this._idUlasan = value;
+            }
+        }
+
+        public int Rating
+        {
+            get { return this._rating; }
+            set
+            {
+                // Pemetaan CHECK Constraint Database: rating >= 1 AND rating <= 5
+                if (value < 1 || value > 5)
+                    throw new InvalidOrderException("Rating harus di antara 1 sampai 5!", "rating", "RATING_INVALID");
+                this._rating = value;
+            }
+        }
+
+        public string Komentar
+        {
+            get { return this._komentar; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    this._komentar = "Tidak ada komentar tertulis.";
+                    return; // Early return pengganti else
+                }
+
+                if (value.Trim().Length < 10)
+                    throw new InvalidOrderException("Komentar ulasan minimal 10 karakter kalau mau diisi ya!", "komentar", "REVIEW_KOMENTAR_PENDEK");
+
+                if (value.Trim().Length > 500)
+                    throw new InvalidOrderException("Komentar ulasan maksimal 500 karakter!", "komentar", "REVIEW_KOMENTAR_PANJANG");
+
+                this._komentar = value.Trim();
+            }
+        }
 
         // === KONSTRUKTOR ===
         public Review(int idProduk, int idUser, int rating, string komentar)
         {
-            this._idProduk = idProduk;
-            this._idUser = idUser;
-
-            this.SetRating(rating);
-            this.SetKomentar(komentar);
-
-            this._tanggalUlasan = DateTime.Now;
+            this.IdProduk = idProduk;
+            this.IdUser = idUser;
+            this.Rating = rating;
+            this.Komentar = komentar;
+            this.TanggalUlasan = DateTime.Now;
             this._balasanPenjual = "";
-        }
-
-        // === GETTER & SETTER DENGAN ENKAPSULASI KETAT (IF-ELSE) ===
-        public int GetIdUlasan()
-        {
-            return this._idUlasan;
-        }
-
-        public void SetIdUlasan(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID Ulasan tidak valid!", "id_ulasan", "ULASAN_ID_INVALID");
-            }
-            else
-            {
-                this._idUlasan = id;
-            }
-        }
-
-        public int GetIdProduk()
-        {
-            return this._idProduk;
-        }
-
-        public int GetIdUser()
-        {
-            return this._idUser;
-        }
-
-        public int GetRating()
-        {
-            return this._rating;
-        }
-
-        public void SetRating(int rating)
-        {
-            // Pemetaan CHECK Constraint Database: rating >= 1 AND rating <= 5
-            if (rating < 1 || rating > 5)
-            {
-                throw new InvalidOrderException("Rating harus di antara 1 sampai 5!", "rating", "RATING_INVALID");
-            }
-            else
-            {
-                this._rating = rating;
-            }
-        }
-
-        public string GetKomentar()
-        {
-            return this._komentar;
-        }
-
-        public void SetKomentar(string komentar)
-        {
-            if (string.IsNullOrWhiteSpace(komentar))
-            {
-                this._komentar = "Tidak ada komentar tertulis.";
-            }
-            else if (komentar.Trim().Length < 10)
-            {
-                throw new InvalidOrderException("Komentar ulasan minimal 10 karakter kalau mau diisi ya!", "komentar", "REVIEW_KOMENTAR_PENDEK");
-            }
-            else if (komentar.Trim().Length > 500)
-            {
-                throw new InvalidOrderException("Komentar ulasan maksimal 500 karakter!", "komentar", "REVIEW_KOMENTAR_PANJANG");
-            }
-            else
-            {
-                this._komentar = komentar.Trim();
-            }
-        }
-
-        public DateTime GetTanggalUlasan()
-        {
-            return this._tanggalUlasan;
         }
 
         // =========================================================
@@ -118,34 +88,13 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanBintangUI()
         {
-            string bintangVisual;
-
-            if (this._rating == 5)
+            // Trik C# untuk mencetak karakter berulang tanpa looping atau if-else panjang!
+            if (this.Rating >= 1 && this.Rating <= 5)
             {
-                bintangVisual = "⭐⭐⭐⭐⭐";
-            }
-            else if (this._rating == 4)
-            {
-                bintangVisual = "⭐⭐⭐⭐";
-            }
-            else if (this._rating == 3)
-            {
-                bintangVisual = "⭐⭐⭐";
-            }
-            else if (this._rating == 2)
-            {
-                bintangVisual = "⭐⭐";
-            }
-            else if (this._rating == 1)
-            {
-                bintangVisual = "⭐";
-            }
-            else
-            {
-                bintangVisual = "Belum Ada Rating";
+                return new string('⭐', this.Rating);
             }
 
-            return bintangVisual;
+            return "Belum Ada Rating";
         }
 
         /// <summary>
@@ -153,110 +102,58 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanPreviewKomentar(int batasKarakter)
         {
-            string preview;
-
-            if (this._komentar == "Tidak ada komentar tertulis.")
+            if (this.Komentar == "Tidak ada komentar tertulis." || this.Komentar.Length <= batasKarakter)
             {
-                preview = this._komentar;
-            }
-            else if (this._komentar.Length <= batasKarakter)
-            {
-                preview = this._komentar;
-            }
-            else
-            {
-                preview = this._komentar.Substring(0, batasKarakter) + "...";
+                return this.Komentar;
             }
 
-            return preview;
+            return this.Komentar.Substring(0, batasKarakter) + "...";
         }
 
         public string DapatkanStatusBalasan()
         {
-            string statusUi;
-
-            if (this.IsSelesai())
-            {
-                statusUi = "✅ Telah Dibalas Penjual";
-            }
-            else
-            {
-                statusUi = "⏳ Menunggu Balasan";
-            }
-
-            return statusUi;
+            // Menggunakan Ternary Operator (? :)
+            return this.IsSelesai() ? "✅ Telah Dibalas Penjual" : "⏳ Menunggu Balasan";
         }
 
         public string DapatkanWaktuFormatUI()
         {
-            string waktuFormat;
-
-            if (this._tanggalUlasan != DateTime.MinValue)
-            {
-                waktuFormat = this._tanggalUlasan.ToString("dd MMM yyyy, HH:mm");
-            }
-            else
-            {
-                waktuFormat = "Tanggal tidak diketahui";
-            }
-
-            return waktuFormat;
+            return this.TanggalUlasan != DateTime.MinValue
+                ? this.TanggalUlasan.ToString("dd MMM yyyy, HH:mm")
+                : "Tanggal tidak diketahui";
         }
 
         // === IMPLEMENTASI IValidatable ===
         public void Validate()
         {
-            bool validasiUlasanSelesai;
-
             if (this._rating < 1 || this._rating > 5)
-            {
                 throw new InvalidOrderException("Review tidak valid: Rating di luar jangkauan.", "rating", "REVIEW_INVALID");
-            }
-            else
-            {
-                validasiUlasanSelesai = true; // Penugasan nyata agar else tidak kosong
-            }
+
+            // Variabel dummy validasiUlasanSelesai dihapus karena tidak berguna
         }
 
         // === IMPLEMENTASI IResolvable ===
-
         public void BeriTanggapan(string tanggapan)
         {
             if (string.IsNullOrWhiteSpace(tanggapan))
-            {
                 throw new InvalidOrderException("Balasan penjual tidak boleh kosong!", "balasan_penjual", "REVIEW_BALAS_KOSONG");
-            }
-            else if (tanggapan.Trim().Length < 5)
-            {
+
+            if (tanggapan.Trim().Length < 5)
                 throw new InvalidOrderException("Balasan penjual minimal 5 karakter!", "balasan_penjual", "REVIEW_BALAS_PENDEK");
-            }
-            else if (tanggapan.Trim().Length > 500)
-            {
+
+            if (tanggapan.Trim().Length > 500)
                 throw new InvalidOrderException("Balasan penjual maksimal 500 karakter!", "balasan_penjual", "REVIEW_BALAS_PANJANG");
-            }
-            else
-            {
-                this._balasanPenjual = tanggapan.Trim();
-            }
+
+            this._balasanPenjual = tanggapan.Trim();
         }
 
         public bool IsSelesai()
         {
-            bool sudahDibalas;
-
-            // Review dianggap "selesai/resolusi" jika sudah dibalas penjual
-            if (string.IsNullOrWhiteSpace(this._balasanPenjual))
-            {
-                sudahDibalas = false;
-            }
-            else
-            {
-                sudahDibalas = true;
-            }
-
-            return sudahDibalas;
+            // Cukup 1 baris: Mengembalikan True jika balasan_penjual TIDAK kosong
+            return !string.IsNullOrWhiteSpace(this._balasanPenjual);
         }
 
+        // Tetap menggunakan method karena merupakan kontrak dari interface IResolvable
         public string GetTanggapan()
         {
             return this._balasanPenjual;

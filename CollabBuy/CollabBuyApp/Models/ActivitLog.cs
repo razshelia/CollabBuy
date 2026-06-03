@@ -1,5 +1,4 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Models.Interfaces;
+﻿using CollabBuy.CollabBuyApp.Models.Interfaces;
 using CollabBuy.CollabBuyApp.Exceptions;
 using System;
 
@@ -11,75 +10,72 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class ActivityLog : IValidatable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idLog;
         private int _idUser;
         private string _aktivitas;
         private DateTime _waktuAkses;
 
+        // === PROPERTIES (Get & Set dalam satu blok) ===
+        public int IdLog
+        {
+            get { return this._idLog; }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new InvalidOrderException("ID Log tidak boleh kurang dari atau sama dengan nol!", "id_log", "LOG_ID_INVALID");
+                }
+                this._idLog = value;
+            }
+        }
+
+        public int IdUser
+        {
+            get { return this._idUser; }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new InvalidOrderException("ID User tidak boleh kurang dari atau sama dengan nol!", "id_user", "USER_ID_INVALID");
+                }
+                this._idUser = value;
+            }
+        }
+
+        public string Aktivitas
+        {
+            get { return this._aktivitas; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new InvalidOrderException("Deskripsi aktivitas log tidak boleh kosong!", "aktivitas", "LOG_KOSONG");
+                }
+                this._aktivitas = value;
+            }
+        }
+
+        public DateTime WaktuAkses
+        {
+            get { return this._waktuAkses; }
+            set
+            {
+                if (value == DateTime.MinValue)
+                {
+                    throw new InvalidOrderException("Waktu akses tidak valid!", "waktu_akses", "WAKTU_INVALID");
+                }
+                this._waktuAkses = value;
+            }
+        }
+
         // === KONSTRUKTOR ===
         public ActivityLog(int idUser, string aktivitas)
         {
-            this.SetIdUser(idUser);
-            this.SetAktivitas(aktivitas);
-            this.SetWaktuAkses(DateTime.Now);
-        }
-
-        // === GETTER & SETTER DENGAN GUARD CLAUSES ===
-        public int GetIdLog()
-        {
-            return this._idLog;
-        }
-
-        public void SetIdLog(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID Log tidak boleh kurang dari atau sama dengan nol!", "id_log", "LOG_ID_INVALID");
-            }
-            this._idLog = id;
-        }
-
-        public int GetIdUser()
-        {
-            return this._idUser;
-        }
-
-        public void SetIdUser(int idUser)
-        {
-            if (idUser <= 0)
-            {
-                throw new InvalidOrderException("ID User tidak boleh kurang dari atau sama dengan nol!", "id_user", "USER_ID_INVALID");
-            }
-            this._idUser = idUser;
-        }
-
-        public string GetAktivitas()
-        {
-            return this._aktivitas;
-        }
-
-        public void SetAktivitas(string aktivitas)
-        {
-            if (string.IsNullOrEmpty(aktivitas))
-            {
-                throw new InvalidOrderException("Deskripsi aktivitas log tidak boleh kosong!", "aktivitas", "LOG_KOSONG");
-            }
-            this._aktivitas = aktivitas;
-        }
-
-        public DateTime GetWaktuAkses()
-        {
-            return this._waktuAkses;
-        }
-
-        public void SetWaktuAkses(DateTime waktu)
-        {
-            if (waktu == DateTime.MinValue)
-            {
-                throw new InvalidOrderException("Waktu akses tidak valid!", "waktu_akses", "WAKTU_INVALID");
-            }
-            this._waktuAkses = waktu;
+            // Memanggil setter dari Properti agar validasi tetap berjalan saat objek dibuat
+            this.IdUser = idUser;
+            this.Aktivitas = aktivitas;
+            this.WaktuAkses = DateTime.Now;
         }
 
         // =========================================================

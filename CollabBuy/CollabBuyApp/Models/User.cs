@@ -10,7 +10,7 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public abstract class User : IValidatable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idUser;
         private string _nama;
         private string _nomorTelepon;
@@ -18,187 +18,138 @@ namespace CollabBuy.CollabBuyApp.Models
         private string _username;
         private string _password;
         private string _peran;
-        private bool _isDiblokir;
-        private string _alasanBlokir;
+
+        // === PROPERTIES ===
+
+        // Auto-Properties untuk status blokir agar aman (Read-Only dari luar)
+        public bool IsDiblokir { get; private set; }
+        public string AlasanBlokir { get; private set; }
+
+        public int IdUser
+        {
+            get { return this._idUser; }
+            set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID User tidak valid!", "id_user", "USER_ID_INVALID");
+                this._idUser = value;
+            }
+        }
+
+        public string Nama
+        {
+            get { return this._nama; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
+
+                if (value.Trim().Length < 3)
+                    throw new InvalidOrderException("Nama pengguna minimal 3 karakter!", "nama", "USER_NAMA_TERLALU_PENDEK");
+
+                if (value.Trim().Length > 100)
+                    throw new InvalidOrderException("Nama pengguna maksimal 100 karakter!", "nama", "USER_NAMA_TERLALU_PANJANG");
+
+                this._nama = value.Trim();
+            }
+        }
+
+        public string Username
+        {
+            get { return this._username; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value) || value.Length < 4)
+                    throw new InvalidOrderException("Username minimal 4 karakter!", "username", "USER_UNAME_INVALID");
+                this._username = value.Trim();
+            }
+        }
+
+        public string Password
+        {
+            get { return this._password; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
+
+                if (value.Length < 8)
+                    throw new InvalidOrderException("Password minimal 8 karakter!", "password", "USER_PASS_TERLALU_PENDEK");
+
+                this._password = value;
+            }
+        }
+
+        public string NomorTelepon
+        {
+            get { return this._nomorTelepon; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Nomor WhatsApp tidak boleh kosong!", "nomorTelepon", "USER_TELP_KOSONG");
+
+                if (value.Length < 9 || value.Length > 15)
+                    throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
+
+                this._nomorTelepon = value.Trim();
+            }
+        }
+
+        public string Email
+        {
+            get { return this._email; }
+            set
+            {
+                // Boleh kosong (nullable di DB), validasi berlapis hanya jika diisi
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    this._email = "";
+                    return;
+                }
+
+                if (value.Trim().Length < 6)
+                    throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
+
+                if (!value.Contains("@") || !value.Contains("."))
+                    throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
+
+                if (value.IndexOf("@") < 1)
+                    throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
+
+                if (value.LastIndexOf(".") < value.IndexOf("@") + 2)
+                    throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
+
+                this._email = value.Trim().ToLower();
+            }
+        }
+
+        public string Peran
+        {
+            get { return this._peran; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new InvalidOrderException("Peran pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
+
+                if (value != "Admin" && value != "Penjual" && value != "User")
+                    throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, atau User.", "peran", "USER_PERAN_INVALID");
+
+                this._peran = value.Trim();
+            }
+        }
 
         // === KONSTRUKTOR ===
         protected User(string nama, string username, string password, string peran)
         {
-            this.SetNama(nama);
-            this.SetUsername(username);
-            this.SetPassword(password);
-            this.SetPeran(peran);
+            this.Nama = nama;
+            this.Username = username;
+            this.Password = password;
+            this.Peran = peran;
 
-            this._isDiblokir = false;
-            this._alasanBlokir = "";
-            this._nomorTelepon = "";
-            this._email = "";
-        }
-
-        // === GETTER & SETTER (ENKAPSULASI STRICT IF-ELSE) ===
-        public int GetIdUser()
-        {
-            return this._idUser;
-        }
-
-        public void SetIdUser(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID User tidak valid!", "id_user", "USER_ID_INVALID");
-            }
-            else
-            {
-                this._idUser = id;
-            }
-        }
-
-        public string GetNama()
-        {
-            return this._nama;
-        }
-
-        public void SetNama(string nama)
-        {
-            if (string.IsNullOrWhiteSpace(nama))
-            {
-                throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
-            }
-            else if (nama.Trim().Length < 3)
-            {
-                throw new InvalidOrderException("Nama pengguna minimal 3 karakter!", "nama", "USER_NAMA_TERLALU_PENDEK");
-            }
-            else if (nama.Trim().Length > 100)
-            {
-                throw new InvalidOrderException("Nama pengguna maksimal 100 karakter!", "nama", "USER_NAMA_TERLALU_PANJANG");
-            }
-            else
-            {
-                this._nama = nama.Trim();
-            }
-        }
-
-        public string GetUsername()
-        {
-            return this._username;
-        }
-
-        public void SetUsername(string username)
-        {
-            if (string.IsNullOrWhiteSpace(username) || username.Length < 4)
-            {
-                throw new InvalidOrderException("Username minimal 4 karakter!", "username", "USER_UNAME_INVALID");
-            }
-            else
-            {
-                this._username = username.Trim();
-            }
-        }
-
-        public string GetPassword()
-        {
-            return this._password;
-        }
-
-        public void SetPassword(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
-            }
-            else if (password.Length < 8)
-            {
-                throw new InvalidOrderException("Password minimal 8 karakter!", "password", "USER_PASS_TERLALU_PENDEK");
-            }
-            else
-            {
-                this._password = password;
-            }
-        }
-
-        public string GetNomorTelepon()
-        {
-            return this._nomorTelepon;
-        }
-
-        public void SetNomorTelepon(string telp)
-        {
-            if (string.IsNullOrWhiteSpace(telp))
-            {
-                throw new InvalidOrderException("Nomor WhatsApp tidak boleh kosong!", "nomorTelepon", "USER_TELP_KOSONG");
-            }
-            else if (telp.Length < 9 || telp.Length > 15)
-            {
-                throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
-            }
-            else
-            {
-                this._nomorTelepon = telp.Trim();
-            }
-        }
-
-        public string GetEmail()
-        {
-            return this._email;
-        }
-
-        public void SetEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new InvalidOrderException("Email tidak boleh kosong!", "email", "USER_EMAIL_KOSONG");
-            }
-            else if (email.Trim().Length < 6)
-            {
-                throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
-            }
-            else if (!email.Contains("@") || !email.Contains("."))
-            {
-                throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
-            }
-            else if (email.IndexOf("@") < 1)
-            {
-                throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
-            }
-            else if (email.LastIndexOf(".") < email.IndexOf("@") + 2)
-            {
-                throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
-            }
-            else
-            {
-                this._email = email.Trim().ToLower();
-            }
-        }
-
-        public string GetPeran()
-        {
-            return this._peran;
-        }
-
-        public void SetPeran(string peran)
-        {
-            if (string.IsNullOrWhiteSpace(peran))
-            {
-                throw new InvalidOrderException("Peran pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
-            }
-            else if (peran != "Admin" && peran != "Penjual" && peran != "User")
-            {
-                throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, atau User.", "peran", "USER_PERAN_INVALID");
-            }
-            else
-            {
-                this._peran = peran.Trim();
-            }
-        }
-
-        public bool IsDiblokir()
-        {
-            return this._isDiblokir;
-        }
-
-        public string GetAlasanBlokir()
-        {
-            return this._alasanBlokir;
+            this.IsDiblokir = false;
+            this.AlasanBlokir = "";
+            this._nomorTelepon = ""; // Direct assignment menghindari Guard Clause
+            this._email = "";        // Direct assignment menghindari Guard Clause
         }
 
         // === METHOD ABSTRAK ===
@@ -211,148 +162,72 @@ namespace CollabBuy.CollabBuyApp.Models
         public void Blokir(string alasan)
         {
             if (string.IsNullOrWhiteSpace(alasan))
-            {
                 throw new InvalidOrderException("Alasan pemblokiran wajib diisi!", "alasan_blokir", "BLOKIR_INVALID");
-            }
-            else
-            {
-                this._isDiblokir = true;
-                this._alasanBlokir = alasan.Trim();
-            }
+
+            this.IsDiblokir = true;
+            this.AlasanBlokir = alasan.Trim();
         }
 
         public void BukaBlokir()
         {
-            this._isDiblokir = false;
-            this._alasanBlokir = "";
+            this.IsDiblokir = false;
+            this.AlasanBlokir = "";
         }
 
         public string DapatkanStatusAkun()
         {
-            string statusUi;
-            if (this._isDiblokir)
-            {
-                statusUi = "🚫 Terblokir: " + this._alasanBlokir;
-            }
-            else
-            {
-                statusUi = "✅ Aktif & Aman";
-            }
-            return statusUi;
+            return this.IsDiblokir ? $"🚫 Terblokir: {this.AlasanBlokir}" : "✅ Aktif & Aman";
         }
 
         public string DapatkanInfoKontak()
         {
-            string infoTelp;
-            string infoEmail;
+            string infoTelp = string.IsNullOrWhiteSpace(this.NomorTelepon) ? "No HP Belum Diisi" : this.NomorTelepon;
+            string infoEmail = string.IsNullOrWhiteSpace(this.Email) ? "Email Belum Diisi" : this.Email;
 
-            if (string.IsNullOrWhiteSpace(this._nomorTelepon))
-            {
-                infoTelp = "No HP Belum Diisi";
-            }
-            else
-            {
-                infoTelp = this._nomorTelepon;
-            }
-
-            if (string.IsNullOrWhiteSpace(this._email))
-            {
-                infoEmail = "Email Belum Diisi";
-            }
-            else
-            {
-                infoEmail = this._email;
-            }
-
-            return $"{this._nama} | 📞 {infoTelp} | ✉️ {infoEmail}";
+            return $"{this.Nama} | 📞 {infoTelp} | ✉️ {infoEmail}";
         }
 
         public bool ApakahAkunAman()
         {
-            bool statusAman;
-            if (this._isDiblokir)
-            {
-                statusAman = false;
-            }
-            else
-            {
-                statusAman = true;
-            }
-            return statusAman;
+            // Tinggal kembalikan negasi dari IsDiblokir
+            return !this.IsDiblokir;
         }
 
         // === METHOD TAMBAHAN MAKSIMAL (REAL-WORLD SCENARIO) ===
 
         public bool UbahPassword(string passLama, string passBaru)
         {
-            bool isBerhasil;
-            if (this._password != passLama)
-            {
+            if (this.Password != passLama)
                 throw new InvalidOrderException("Gagal: Password lama tidak cocok!", "password", "UBAH_PASS_GAGAL");
-            }
-            else
-            {
-                this.SetPassword(passBaru);
-                isBerhasil = true;
-            }
-            return isBerhasil;
+
+            this.Password = passBaru;
+            return true; // Langsung kembalikan true jika sukses melewati Guard Clause
         }
 
         public string DapatkanInisialProfil()
         {
-            string inisial;
-            if (string.IsNullOrWhiteSpace(this._nama))
-            {
-                inisial = "U";
-            }
-            else
-            {
-                inisial = this._nama.Substring(0, 1).ToUpper();
-            }
-            return inisial;
+            return string.IsNullOrWhiteSpace(this.Nama) ? "U" : this.Nama.Substring(0, 1).ToUpper();
         }
 
         public string DapatkanLinkWhatsApp()
         {
-            string linkWa;
-            if (string.IsNullOrWhiteSpace(this._nomorTelepon))
-            {
-                linkWa = "";
-            }
-            else if (this._nomorTelepon.StartsWith("0"))
-            {
-                linkWa = "https://wa.me/62" + this._nomorTelepon.Substring(1);
-            }
-            else
-            {
-                linkWa = "https://wa.me/" + this._nomorTelepon;
-            }
-            return linkWa;
+            if (string.IsNullOrWhiteSpace(this.NomorTelepon)) return "";
+
+            if (this.NomorTelepon.StartsWith("0"))
+                return "https://wa.me/62" + this.NomorTelepon.Substring(1);
+
+            return "https://wa.me/" + this.NomorTelepon;
         }
 
-        // === IMPLEMENTASI IValidatable (TANPA ELSE KOSONG) ===
+        // === IMPLEMENTASI IValidatable ===
         public virtual void Validate()
         {
-            bool lolosTahapSatu;
-            bool lolosTahapDua;
-
-            if (string.IsNullOrWhiteSpace(this._nama) || string.IsNullOrWhiteSpace(this._username))
-            {
+            // Tidak perlu dummy variable, jika error langsung mental ke Exception!
+            if (string.IsNullOrWhiteSpace(this.Nama) || string.IsNullOrWhiteSpace(this.Username))
                 throw new InvalidOrderException("Validasi gagal: Nama/Username tidak boleh kosong.", "nama_username", "USER_INVALID");
-            }
-            else
-            {
-                lolosTahapSatu = true; // Assignment nyata
-            }
 
-            if (string.IsNullOrWhiteSpace(this._email) || string.IsNullOrWhiteSpace(this._nomorTelepon))
-            {
+            if (string.IsNullOrWhiteSpace(this.Email) || string.IsNullOrWhiteSpace(this.NomorTelepon))
                 throw new InvalidOrderException("Validasi gagal: Kontak Email/Telepon belum lengkap.", "kontak", "USER_INVALID");
-            }
-            else
-            {
-                lolosTahapDua = lolosTahapSatu; // Assignment nyata berantai
-            }
         }
     }
 }

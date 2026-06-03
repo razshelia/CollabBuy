@@ -31,82 +31,38 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // =======================================================
         public (User user, string pesan) Login(string username, string password)
         {
-            (User user, string pesan) hasil;
-
             try
             {
                 if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                    return (null, "Username dan Password tidak boleh kosong!");
+
+                string hashPasswordInput = this.HashSha256(password);
+                User userDitemukan = this._userRepo.GetByUsername(username);
+
+                if (userDitemukan == null)
+                    return (null, "Username atau Password salah!");
+
+                if (userDitemukan.GetPassword() != hashPasswordInput)
+                    return (null, "Username atau Password salah!");
+
+                if (userDitemukan.IsDiblokir())
+                    return (null, "Akun Anda telah diblokir oleh Admin!");
+
+                // Upgrade peran jika Penjual sudah terverifikasi
+                if (userDitemukan is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
                 {
-                    hasil = (null, "Username dan Password tidak boleh kosong!");
+                    try { userDitemukan.SetPeran("Penjual"); } catch { }
                 }
-                else
-                {
-                    List<User> semuaUser = this._userRepo.GetAll();
-                    string hashPasswordInput = this.HashSha256(password);
 
-                    User userDitemukan = null;
-                    string pesanLogin = "";
+                ActivityLog log = new ActivityLog(userDitemukan.GetIdUser(), "Berhasil login ke sistem");
+                this._logRepo.Insert(log);
 
-                    foreach (User u in semuaUser)
-                    {
-                        if (u.GetUsername() == username && u.GetPassword() == hashPasswordInput)
-                        {
-                            if (u.IsDiblokir())
-                            {
-                                userDitemukan = null;
-                                pesanLogin = "Akun Anda telah diblokir oleh Admin!";
-                                break;
-                            }
-                            else
-                            {
-                                // Load ulang via GetById agar data verifikasi (is_verifikasi) ikut termuat.
-                                // GetAll() tidak JOIN tabel verifications, sehingga status penjual terverifikasi
-                                // tidak bisa diketahui tanpa langkah ini.
-                                User userLengkap = this._userRepo.GetById(u.GetIdUser());
-
-                                // Jika peran di DB adalah "User" tapi sudah terverifikasi sebagai penjual,
-                                // upgrade perannya menjadi "Penjual" agar sidebar penjual tampil.
-                                if (userLengkap is Penjual penjualCek && penjualCek.GetStatusPersetujuan())
-                                {
-                                    try { userLengkap.SetPeran("Penjual"); } catch { }
-                                }
-
-                                // Catat log aktivitas login
-                                ActivityLog log = new ActivityLog(userLengkap.GetIdUser(), "Berhasil login ke sistem");
-                                this._logRepo.Insert(log);
-
-                                userDitemukan = userLengkap;
-                                pesanLogin = "Login berhasil! Selamat datang, " + userLengkap.GetNama();
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            bool lanjutCari = true; // Penugasan nyata menghindari else kosong
-                        }
-                    }
-
-                    // Evaluasi hasil pencarian dari loop
-                    if (userDitemukan != null)
-                    {
-                        hasil = (userDitemukan, pesanLogin);
-                    }
-                    else if (pesanLogin != "") // Tertangkap kasus akun diblokir
-                    {
-                        hasil = (null, pesanLogin);
-                    }
-                    else
-                    {
-                        hasil = (null, "Username atau Password salah!");
-                    }
-                }
+                return (userDitemukan, "Login berhasil! Selamat datang, " + userDitemukan.GetNama());
             }
             catch (Exception ex)
             {
-                hasil = (null, "Terjadi error sistem saat login: " + ex.Message);
+                return (null, "Terjadi error sistem saat login: " + ex.Message);
             }
-
-            return hasil;
         }
 
         // =======================================================
@@ -118,6 +74,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
+                // Validasi panjang password RAW dulu sebelum di-hash
+                if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+                {
+                    return (false, "Password minimal 8 karakter ya!");
+                }
+
                 string hashPassword = this.HashSha256(password);
                 Pembeli pembeliBaru = new Pembeli(nama, username, hashPassword);
 
@@ -136,17 +98,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex)
             {
                 if (ex.Message.Contains("username"))
-                {
                     hasil = (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
-                }
                 else if (ex.Message.Contains("email"))
-                {
                     hasil = (false, "Email ini udah pernah didaftarin. Lupa password kah?");
-                }
                 else
-                {
                     hasil = (false, "Waduh error sistem nih: " + ex.Message);
-                }
             }
 
             return hasil;
@@ -158,6 +114,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
+                // Validasi panjang password RAW dulu sebelum di-hash
+                if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+                {
+                    return (false, "Password minimal 8 karakter ya!");
+                }
+
                 string hashPassword = this.HashSha256(password);
                 Penjual penjualBaru = new Penjual(nama, username, hashPassword);
 
@@ -178,13 +140,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex)
             {
                 if (ex.Message.Contains("username") || ex.Message.Contains("nim"))
-                {
                     hasil = (false, "Username atau NIM sudah terdaftar!");
-                }
                 else
-                {
                     hasil = (false, "Error sistem: " + ex.Message);
-                }
             }
 
             return hasil;
@@ -276,23 +234,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
             (bool sukses, string pesan) hasil;
             try
             {
-                // Ganti password hanya jika user centang dan isi form
                 if (!string.IsNullOrWhiteSpace(rawPasswordBaru) && rawPasswordLama != null)
                 {
+                    // Validasi panjang password RAW sebelum di-hash
+                    if (rawPasswordBaru.Length < 8)
+                    {
+                        return (false, "Password baru minimal 8 karakter ya!");
+                    }
+
                     string hashLama = this.HashSha256(rawPasswordLama);
                     if (user.GetPassword() != hashLama)
                     {
                         return (false, "Password lama salah! Coba lagi ya bestie.");
                     }
-                    else
-                    {
-                        // Model SetPassword sudah validasi minimal 8 karakter
-                        user.SetPassword(this.HashSha256(rawPasswordBaru));
-                    }
-                }
-                else
-                {
-                    bool lewatiUbahPassword = true;
+
+                    user.SetPassword(this.HashSha256(rawPasswordBaru));
                 }
 
                 this._userRepo.Update(user);
@@ -308,9 +264,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (Exception ex)
             {
-                hasil = (false, "Error sistem: " + ex.Message);
+                if (ex.Message.Contains("username"))
+                    hasil = (false, "Username sudah dipakai orang lain, coba username lain!");
+                else
+                    hasil = (false, "Error sistem: " + ex.Message);
             }
             return hasil;
+        }
+        public bool IsUsernameAvailable(int idUserSaatIni, string username)
+        {
+            return this._userRepo.IsUsernameAvailable(idUserSaatIni, username);
         }
 
         public bool CekPendingVerifikasi(int idUser)

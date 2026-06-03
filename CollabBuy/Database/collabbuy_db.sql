@@ -9,7 +9,7 @@ CREATE SCHEMA public;
 CREATE TABLE users (
     id_user SERIAL PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    nomor_telepon VARCHAR(20),
+    nomor_telepon VARCHAR(20) NOT NULL,
     email VARCHAR(100) UNIQUE,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using CollabBuy.CollabBuyApp.Models.Interfaces;
 using CollabBuy.CollabBuyApp.Exceptions;
-using System.Collections.Generic;
 
 namespace CollabBuy.CollabBuyApp.Models
 {
@@ -11,8 +11,16 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class Pembeli : User
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Field) ===
         private List<Transaction> _riwayatTransaksi;
+
+        // === PROPERTIES ===
+        // Best Practice: Untuk List, gunakan get saja agar isi List tidak bisa di-overwrite
+        // oleh class lain (mencegah data riwayat hilang tidak sengaja).
+        public List<Transaction> RiwayatTransaksi
+        {
+            get { return this._riwayatTransaksi; }
+        }
 
         // === KONSTRUKTOR ===
         public Pembeli(string nama, string username, string password)
@@ -21,22 +29,16 @@ namespace CollabBuy.CollabBuyApp.Models
             this._riwayatTransaksi = new List<Transaction>();
         }
 
-        // === GETTER & SETTER DENGAN ENKAPSULASI STRICT ===
-        public List<Transaction> GetRiwayatTransaksi()
-        {
-            return this._riwayatTransaksi;
-        }
-
+        // === ENKAPSULASI STRICT (BEHAVIOR LIST) ===
         public void TambahRiwayatTransaksi(Transaction transaksi)
         {
+            // Guard clause tanpa else
             if (transaksi == null)
             {
                 throw new InvalidOrderException("Transaksi tidak boleh kosong/null!", "transaksi", "TRX_NULL");
             }
-            else
-            {
-                this._riwayatTransaksi.Add(transaksi);
-            }
+
+            this._riwayatTransaksi.Add(transaksi);
         }
 
         // === OVERRIDE METHOD ABSTRAK (POLIMORFISME) ===
@@ -52,16 +54,8 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public int DapatkanTotalTransaksi()
         {
-            int total;
-            if (this._riwayatTransaksi == null)
-            {
-                total = 0;
-            }
-            else
-            {
-                total = this._riwayatTransaksi.Count;
-            }
-            return total;
+            // Menggunakan Ternary Operator agar ringkas jadi 1 baris
+            return this._riwayatTransaksi == null ? 0 : this._riwayatTransaksi.Count;
         }
 
         /// <summary>
@@ -70,40 +64,26 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanLevelPembeli()
         {
-            string level;
             int jumlahJajan = this.DapatkanTotalTransaksi();
 
-            if (jumlahJajan > 20)
-            {
-                level = "👑 Sultan Jajan";
-            }
-            else if (jumlahJajan > 5)
-            {
-                level = "🌟 Langganan Setia";
-            }
-            else
-            {
-                level = "🌱 Member Baru";
-            }
+            // Early return beruntun tanpa pusing pakai else if / else
+            if (jumlahJajan > 20) return "👑 Sultan Jajan";
+            if (jumlahJajan > 5) return "🌟 Langganan Setia";
 
-            return level;
+            return "🌱 Member Baru";
         }
 
-        // === OVERRIDE VALIDATE (IF-ELSE KETAT) ===
+        // === OVERRIDE VALIDATE ===
         public override void Validate()
         {
-            bool validasiListSelesai;
-
             base.Validate(); // Panggil validasi dari class Induk (User)
 
             if (this._riwayatTransaksi == null)
             {
                 throw new InvalidOrderException("Validasi gagal: List riwayat transaksi belum diinisialisasi.", "riwayat_transaksi", "PEMBELI_INVALID");
             }
-            else
-            {
-                validasiListSelesai = true; // Assignment nyata agar else tidak kosong
-            }
+
+            // Variabel 'validasiListSelesai' dihapus karena itu dead code (tidak pernah dibaca sistem)
         }
     }
 }

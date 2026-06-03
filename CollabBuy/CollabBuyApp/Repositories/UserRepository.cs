@@ -130,14 +130,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     try
                     {
                         string queryUser = @"UPDATE users 
-                                             SET nama = @nama, email = @email, nomor_telepon = @telp, 
-                                                 password = @pass, is_diblokir = @isBlokir 
-                                             WHERE id_user = @id;";
+                                     SET nama = @nama, email = @email, nomor_telepon = @telp, 
+                                         password = @pass, is_diblokir = @isBlokir,
+                                         username = @uname
+                                     WHERE id_user = @id;";
 
                         using (var cmd = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
                             cmd.Parameters.AddWithValue("@id", entity.GetIdUser());
                             cmd.Parameters.AddWithValue("@nama", entity.GetNama());
+                            cmd.Parameters.AddWithValue("@uname", entity.GetUsername());
                             cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
                             cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
                             cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
@@ -164,6 +166,25 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         dbTx.Rollback();
                         throw new InvalidOrderException("Update user dibatalkan: " + ex.Message, "", "DB_UPDATE_USER_FAILED", ex);
                     }
+                }
+            }
+        }
+        /// <summary>
+        /// Mengecek apakah username tersedia untuk dipakai user lain
+        /// (mengecualikan user dengan id yang sama — untuk update profil).
+        /// </summary>
+        public bool IsUsernameAvailable(int idUserSaatIni, string username)
+        {
+            string query = "SELECT COUNT(*) FROM users WHERE username = @uname AND id_user <> @id;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@uname", username.Trim());
+                    cmd.Parameters.AddWithValue("@id", idUserSaatIni);
+                    long count = Convert.ToInt64(cmd.ExecuteScalar());
+                    return count == 0;
                 }
             }
         }
@@ -422,6 +443,33 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
+        }
+        /// <summary>
+        /// Mengambil user berdasarkan username untuk kebutuhan login (lebih efisien dari GetAll).
+        /// </summary>
+        public User GetByUsername(string username)
+        {
+            User userObj = null;
+            string query = @"
+        SELECT u.id_user, u.nama, u.nomor_telepon, u.email, u.username, u.password, u.peran, u.is_diblokir,
+               v.nim, v.nama_toko, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
+        FROM users u
+        LEFT JOIN verifications v ON u.id_user = v.id_user
+        WHERE u.username = @username;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username.Trim());
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) userObj = MappingReaderToUser(reader);
+                    }
+                }
+            }
+            return userObj;
         }
     }
 }

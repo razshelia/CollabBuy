@@ -17,6 +17,8 @@
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.lblNama = new System.Windows.Forms.Label();
             this.txtNama = new System.Windows.Forms.TextBox();
+            this.lblUsername = new System.Windows.Forms.Label();
+            this.txtUsername = new System.Windows.Forms.TextBox();
             this.lblEmail = new System.Windows.Forms.Label();
             this.txtEmail = new System.Windows.Forms.TextBox();
             this.lblNoTelepon = new System.Windows.Forms.Label();
@@ -42,6 +44,8 @@
             this.pnlCard.Controls.Add(this.lblSubtitle);
             this.pnlCard.Controls.Add(this.lblNama);
             this.pnlCard.Controls.Add(this.txtNama);
+            this.pnlCard.Controls.Add(this.lblUsername);
+            this.pnlCard.Controls.Add(this.txtUsername);
             this.pnlCard.Controls.Add(this.lblEmail);
             this.pnlCard.Controls.Add(this.txtEmail);
             this.pnlCard.Controls.Add(this.lblNoTelepon);
@@ -49,9 +53,9 @@
             this.pnlCard.Controls.Add(this.chkGantiPassword);
             this.pnlCard.Controls.Add(this.pnlGantiPassword);
             this.pnlCard.Controls.Add(this.btnSimpan);
-            this.pnlCard.Location = new System.Drawing.Point(250, 55);
+            this.pnlCard.Location = new System.Drawing.Point(250, 40);
             this.pnlCard.Name = "pnlCard";
-            this.pnlCard.Size = new System.Drawing.Size(500, 620);
+            this.pnlCard.Size = new System.Drawing.Size(500, 700);
 
             // lblTitle
             this.lblTitle.AutoSize = true;
@@ -71,25 +75,38 @@
             this.lblNama.AutoSize = true;
             this.lblNama.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblNama.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblNama.Location = new System.Drawing.Point(35, 90);
+            this.lblNama.Location = new System.Drawing.Point(35, 85);
             this.lblNama.Text = "Nama Lengkap *";
 
             // txtNama
             this.txtNama.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.txtNama.Location = new System.Drawing.Point(39, 113);
+            this.txtNama.Location = new System.Drawing.Point(39, 108);
             this.txtNama.Name = "txtNama";
             this.txtNama.Size = new System.Drawing.Size(420, 29);
+
+            // lblUsername
+            this.lblUsername.AutoSize = true;
+            this.lblUsername.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblUsername.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblUsername.Location = new System.Drawing.Point(35, 150);
+            this.lblUsername.Text = "Username *";
+
+            // txtUsername
+            this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.txtUsername.Location = new System.Drawing.Point(39, 173);
+            this.txtUsername.Name = "txtUsername";
+            this.txtUsername.Size = new System.Drawing.Size(420, 29);
 
             // lblEmail
             this.lblEmail.AutoSize = true;
             this.lblEmail.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblEmail.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblEmail.Location = new System.Drawing.Point(35, 158);
-            this.lblEmail.Text = "Email Aktif *";
+            this.lblEmail.Location = new System.Drawing.Point(35, 215);
+            this.lblEmail.Text = "Email Aktif";
 
             // txtEmail
             this.txtEmail.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.txtEmail.Location = new System.Drawing.Point(39, 181);
+            this.txtEmail.Location = new System.Drawing.Point(39, 238);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.Size = new System.Drawing.Size(420, 29);
 
@@ -97,12 +114,12 @@
             this.lblNoTelepon.AutoSize = true;
             this.lblNoTelepon.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblNoTelepon.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblNoTelepon.Location = new System.Drawing.Point(35, 226);
-            this.lblNoTelepon.Text = "No WhatsApp *";
+            this.lblNoTelepon.Location = new System.Drawing.Point(35, 280);
+            this.lblNoTelepon.Text = "No WhatsApp";
 
             // txtNoTelepon
             this.txtNoTelepon.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.txtNoTelepon.Location = new System.Drawing.Point(39, 249);
+            this.txtNoTelepon.Location = new System.Drawing.Point(39, 303);
             this.txtNoTelepon.Name = "txtNoTelepon";
             this.txtNoTelepon.Size = new System.Drawing.Size(420, 29);
 
@@ -110,7 +127,7 @@
             this.chkGantiPassword.AutoSize = true;
             this.chkGantiPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.chkGantiPassword.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.chkGantiPassword.Location = new System.Drawing.Point(39, 295);
+            this.chkGantiPassword.Location = new System.Drawing.Point(39, 348);
             this.chkGantiPassword.Name = "chkGantiPassword";
             this.chkGantiPassword.Text = "🔐 Ganti Password";
             this.chkGantiPassword.UseVisualStyleBackColor = true;
@@ -126,7 +143,7 @@
             this.pnlGantiPassword.Controls.Add(this.lblKonfirmasiPassword);
             this.pnlGantiPassword.Controls.Add(this.txtKonfirmasiPassword);
             this.pnlGantiPassword.Controls.Add(this.chkShowPassword);
-            this.pnlGantiPassword.Location = new System.Drawing.Point(39, 325);
+            this.pnlGantiPassword.Location = new System.Drawing.Point(39, 378);
             this.pnlGantiPassword.Name = "pnlGantiPassword";
             this.pnlGantiPassword.Size = new System.Drawing.Size(420, 220);
             this.pnlGantiPassword.Visible = false;
@@ -190,7 +207,7 @@
             this.btnSimpan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpan.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
             this.btnSimpan.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnSimpan.Location = new System.Drawing.Point(39, 558);
+            this.btnSimpan.Location = new System.Drawing.Point(39, 638);
             this.btnSimpan.Name = "btnSimpan";
             this.btnSimpan.Size = new System.Drawing.Size(420, 48);
             this.btnSimpan.Text = "💾 Simpan Perubahan";
@@ -204,7 +221,7 @@
             this.BackColor = System.Drawing.Color.White;
             this.Controls.Add(this.pnlCard);
             this.Name = "KelolaProfilControl";
-            this.Size = new System.Drawing.Size(1000, 700);
+            this.Size = new System.Drawing.Size(1000, 760);
             this.Load += new System.EventHandler(this.KelolaProfilControl_Load);
 
             this.pnlGantiPassword.ResumeLayout(false);
@@ -219,6 +236,8 @@
         private System.Windows.Forms.Label lblSubtitle;
         private System.Windows.Forms.Label lblNama;
         private System.Windows.Forms.TextBox txtNama;
+        private System.Windows.Forms.Label lblUsername;
+        private System.Windows.Forms.TextBox txtUsername;
         private System.Windows.Forms.Label lblEmail;
         private System.Windows.Forms.TextBox txtEmail;
         private System.Windows.Forms.Label lblNoTelepon;

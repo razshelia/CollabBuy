@@ -10,36 +10,37 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class Admin : User
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Field) ===
         private string _kodeAksesAdmin;
+
+        // === PROPERTIES (Get & Set dalam satu blok) ===
+        public string KodeAksesAdmin
+        {
+            get { return this._kodeAksesAdmin; }
+            set
+            {
+                // Guard clause 1
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOrderException("Kode akses rahasia Admin tidak boleh kosong!", "kode_akses", "ADMIN_KODE_KOSONG");
+                }
+
+                // Guard clause 2 (Tidak perlu else)
+                if (value.Trim().Length < 6)
+                {
+                    throw new InvalidOrderException("Kode akses Admin minimal 6 karakter!", "kode_akses", "ADMIN_KODE_PENDEK");
+                }
+
+                this._kodeAksesAdmin = value.Trim();
+            }
+        }
 
         // === KONSTRUKTOR ===
         public Admin(string nama, string username, string password, string kodeAkses)
             : base(nama, username, password, "Admin")
         {
-            this.SetKodeAksesAdmin(kodeAkses);
-        }
-
-        // === ENKAPSULASI STRICT ===
-        public string GetKodeAksesAdmin()
-        {
-            return this._kodeAksesAdmin;
-        }
-
-        public void SetKodeAksesAdmin(string kodeAkses)
-        {
-            if (string.IsNullOrWhiteSpace(kodeAkses))
-            {
-                throw new InvalidOrderException("Kode akses rahasia Admin tidak boleh kosong!", "kode_akses", "ADMIN_KODE_KOSONG");
-            }
-            else if (kodeAkses.Trim().Length < 6)
-            {
-                throw new InvalidOrderException("Kode akses Admin minimal 6 karakter!", "kode_akses", "ADMIN_KODE_PENDEK");
-            }
-            else
-            {
-                this._kodeAksesAdmin = kodeAkses.Trim();
-            }
+            // Memanggil setter dari Properti
+            this.KodeAksesAdmin = kodeAkses;
         }
 
         // === OVERRIDE METHOD ABSTRAK (POLIMORFISME) ===
@@ -55,16 +56,8 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public bool ApakahKodeAksesValid(string inputKode)
         {
-            bool isValid;
-            if (this._kodeAksesAdmin == inputKode)
-            {
-                isValid = true;
-            }
-            else
-            {
-                isValid = false;
-            }
-            return isValid;
+            // Best Practice: Langsung return hasil evaluasi boolean, tidak perlu if-else
+            return this._kodeAksesAdmin == inputKode;
         }
 
         /// <summary>
@@ -72,33 +65,26 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanNamaResmiMimin()
         {
-            string namaResmi;
+            // Best Practice: Early return, hapus else
             if (string.IsNullOrWhiteSpace(this.GetNama()))
             {
-                namaResmi = "CS CollabBuy";
+                return "CS CollabBuy";
             }
-            else
-            {
-                namaResmi = "[ADMIN] " + this.GetNama();
-            }
-            return namaResmi;
+
+            return "[ADMIN] " + this.GetNama();
         }
 
         // === OVERRIDE VALIDATE ===
         public override void Validate()
         {
-            bool validasiAdminSelesai;
-
             base.Validate(); // Validasi nama, email, username dari class induk
 
             if (string.IsNullOrWhiteSpace(this._kodeAksesAdmin))
             {
                 throw new InvalidOrderException("Validasi Admin Gagal: Kode Akses tidak ada.", "kode_akses", "ADMIN_INVALID");
             }
-            else
-            {
-                validasiAdminSelesai = true; // Assignment nyata
-            }
+
+            // Variabel validasiAdminSelesai dan blok else dihapus karena tidak memberikan efek apa-apa di metode void
         }
     }
 }

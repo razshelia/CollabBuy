@@ -10,7 +10,7 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class Complaint : IValidatable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idAduan;
         private int _idUser;
         private string _jenisAduan;
@@ -19,145 +19,120 @@ namespace CollabBuy.CollabBuyApp.Models
         private DateTime _tanggalAduan;
         private string _tanggapanAdmin;
 
+        // === PROPERTIES (Get & Set dalam satu blok dengan Guard Clauses) ===
+        public int IdAduan
+        {
+            get { return this._idAduan; }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new InvalidOrderException("ID Aduan tidak valid!", "id_aduan", "ADUAN_ID_INVALID");
+                }
+                this._idAduan = value;
+            }
+        }
+
+        public int IdUser
+        {
+            get { return this._idUser; }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new InvalidOrderException("ID User pelapor tidak valid!", "id_user", "ADUAN_USER_INVALID");
+                }
+                this._idUser = value;
+            }
+        }
+
+        public string JenisAduan
+        {
+            get { return this._jenisAduan; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOrderException("Jenis aduan wajib diisi!", "jenis_aduan", "ADUAN_JENIS_KOSONG");
+                }
+                this._jenisAduan = value.Trim();
+            }
+        }
+
+        public string Deskripsi
+        {
+            get { return this._deskripsi; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOrderException("Deskripsi kendala tidak boleh kosong bestie!", "deskripsi", "ADUAN_DESKRIPSI_KOSONG");
+                }
+
+                if (value.Trim().Length < 20)
+                {
+                    throw new InvalidOrderException("Deskripsi kendala minimal 20 karakter. Ceritain lebih detail ya!", "deskripsi", "ADUAN_DESKRIPSI_PENDEK");
+                }
+
+                if (value.Trim().Length > 1000)
+                {
+                    throw new InvalidOrderException("Deskripsi kendala maksimal 1000 karakter!", "deskripsi", "ADUAN_DESKRIPSI_PANJANG");
+                }
+
+                this._deskripsi = value.Trim();
+            }
+        }
+
+        public string Status
+        {
+            get { return this._status; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOrderException("Status tidak boleh kosong!", "status", "ADUAN_STATUS_KOSONG");
+                }
+                this._status = value.Trim();
+            }
+        }
+
+        public DateTime TanggalAduan
+        {
+            get { return this._tanggalAduan; }
+            set
+            {
+                if (value == DateTime.MinValue)
+                {
+                    throw new InvalidOrderException("Tanggal aduan tidak valid!", "tanggal", "ADUAN_TANGGAL_INVALID");
+                }
+                this._tanggalAduan = value;
+            }
+        }
+
+        public string TanggapanAdmin
+        {
+            get { return this._tanggapanAdmin; }
+            set
+            {
+                // Tanggapan admin boleh null jika memang belum dibalas
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    this._tanggapanAdmin = "";
+                    return; // Early return sebagai pengganti else
+                }
+                this._tanggapanAdmin = value.Trim();
+            }
+        }
+
         // === KONSTRUKTOR ===
         public Complaint(int idUser, string jenisAduan, string deskripsi)
         {
-            this.SetIdUser(idUser);
-            this.SetJenisAduan(jenisAduan);
-            this.SetDeskripsi(deskripsi);
-            this.SetStatus("Menunggu"); // Status default saat baru dibuat
-            this.SetTanggalAduan(DateTime.Now);
+            this.IdUser = idUser;
+            this.JenisAduan = jenisAduan;
+            this.Deskripsi = deskripsi;
+            this.Status = "Menunggu"; // Status default saat baru dibuat
+            this.TanggalAduan = DateTime.Now;
         }
-
-        // === GETTER & SETTER DENGAN ENKAPSULASI PENUH (IF-ELSE) ===
-        public int GetIdAduan()
-        {
-            return this._idAduan;
-        }
-
-        public void SetIdAduan(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID Aduan tidak valid!", "id_aduan", "ADUAN_ID_INVALID");
-            }
-            else
-            {
-                this._idAduan = id;
-            }
-        }
-
-        public int GetIdUser()
-        {
-            return this._idUser;
-        }
-
-        public void SetIdUser(int idUser)
-        {
-            if (idUser <= 0)
-            {
-                throw new InvalidOrderException("ID User pelapor tidak valid!", "id_user", "ADUAN_USER_INVALID");
-            }
-            else
-            {
-                this._idUser = idUser;
-            }
-        }
-
-        public string GetJenisAduan()
-        {
-            return this._jenisAduan;
-        }
-
-        public void SetJenisAduan(string jenis)
-        {
-            if (string.IsNullOrWhiteSpace(jenis))
-            {
-                throw new InvalidOrderException("Jenis aduan wajib diisi!", "jenis_aduan", "ADUAN_JENIS_KOSONG");
-            }
-            else
-            {
-                this._jenisAduan = jenis.Trim();
-            }
-        }
-
-        public string GetDeskripsi()
-        {
-            return this._deskripsi;
-        }
-
-        public void SetDeskripsi(string deskripsi)
-        {
-            if (string.IsNullOrWhiteSpace(deskripsi))
-            {
-                throw new InvalidOrderException("Deskripsi kendala tidak boleh kosong bestie!", "deskripsi", "ADUAN_DESKRIPSI_KOSONG");
-            }
-            else if (deskripsi.Trim().Length < 20)
-            {
-                throw new InvalidOrderException("Deskripsi kendala minimal 20 karakter. Ceritain lebih detail ya!", "deskripsi", "ADUAN_DESKRIPSI_PENDEK");
-            }
-            else if (deskripsi.Trim().Length > 1000)
-            {
-                throw new InvalidOrderException("Deskripsi kendala maksimal 1000 karakter!", "deskripsi", "ADUAN_DESKRIPSI_PANJANG");
-            }
-            else
-            {
-                this._deskripsi = deskripsi.Trim();
-            }
-        }
-
-        public string GetStatus()
-        {
-            return this._status;
-        }
-
-        public void SetStatus(string status)
-        {
-            if (string.IsNullOrWhiteSpace(status))
-            {
-                throw new InvalidOrderException("Status tidak boleh kosong!", "status", "ADUAN_STATUS_KOSONG");
-            }
-            else
-            {
-                this._status = status.Trim();
-            }
-        }
-
-        public DateTime GetTanggalAduan()
-        {
-            return this._tanggalAduan;
-        }
-
-        public void SetTanggalAduan(DateTime tanggal)
-        {
-            if (tanggal == DateTime.MinValue)
-            {
-                throw new InvalidOrderException("Tanggal aduan tidak valid!", "tanggal", "ADUAN_TANGGAL_INVALID");
-            }
-            else
-            {
-                this._tanggalAduan = tanggal;
-            }
-        }
-
-        public string GetTanggapanAdmin()
-        {
-            return this._tanggapanAdmin;
-        }
-
-        public void SetTanggapanAdmin(string tanggapan)
-        {
-            // Tanggapan admin boleh null jika memang belum dibalas
-            if (string.IsNullOrWhiteSpace(tanggapan))
-            {
-                this._tanggapanAdmin = "";
-            }
-            else
-            {
-                this._tanggapanAdmin = tanggapan.Trim();
-            }
-        }
-
 
         // =========================================================
         // IMPLEMENTASI METODE BISNIS / BEHAVIOR (OOP BEST PRACTICE)
@@ -170,10 +145,7 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Aduan tidak valid, jenis dan deskripsi harus lengkap.", "validasi_aduan", "ADUAN_INVALID");
             }
-            else
-            {
-                // Lolos validasi
-            }
+            // Blok else yang kosong dihapus karena tidak berguna (dead code)
         }
 
         // Method 2: Cerdas Menampilkan Preview Teks (Untuk Datagrid)
@@ -182,21 +154,11 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public string DapatkanPreviewDeskripsi(int batasKarakter)
         {
-            if (string.IsNullOrWhiteSpace(this._deskripsi))
-            {
-                return "";
-            }
-            else
-            {
-                if (this._deskripsi.Length <= batasKarakter)
-                {
-                    return this._deskripsi;
-                }
-                else
-                {
-                    return this._deskripsi.Substring(0, batasKarakter) + "...";
-                }
-            }
+            if (string.IsNullOrWhiteSpace(this._deskripsi)) return "";
+
+            if (this._deskripsi.Length <= batasKarakter) return this._deskripsi;
+
+            return this._deskripsi.Substring(0, batasKarakter) + "...";
         }
 
         // Method 3: Formatting Status UI
@@ -207,26 +169,13 @@ namespace CollabBuy.CollabBuyApp.Models
         {
             string statusLower = this._status.ToLower();
 
-            if (statusLower == "menunggu")
-            {
-                return "⏳ Menunggu Respon";
-            }
-            else if (statusLower == "diproses")
-            {
-                return "⚙️ Sedang Dicek";
-            }
-            else if (statusLower == "selesai")
-            {
-                return "✅ Selesai";
-            }
-            else if (statusLower == "ditolak")
-            {
-                return "❌ Ditolak";
-            }
-            else
-            {
-                return "❓ " + this._status;
-            }
+            // Menggunakan multiple if dengan return akan otomatis memutus eksekusi ke bawah
+            if (statusLower == "menunggu") return "⏳ Menunggu Respon";
+            if (statusLower == "diproses") return "⚙️ Sedang Dicek";
+            if (statusLower == "selesai") return "✅ Selesai";
+            if (statusLower == "ditolak") return "❌ Ditolak";
+
+            return "❓ " + this._status;
         }
 
         // Method 4: Logika Membalas Aduan (Behavior Utama Admin)
@@ -239,19 +188,12 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 throw new InvalidOrderException("Balasan admin tidak boleh kosong!", "tanggapan", "ADUAN_BALASAN_KOSONG");
             }
-            else
-            {
-                this.SetTanggapanAdmin(teksBalasan);
 
-                if (isSelesai)
-                {
-                    this.SetStatus("Selesai");
-                }
-                else
-                {
-                    this.SetStatus("Diproses");
-                }
-            }
+            // Gunakan setter property yang sudah kita buat
+            this.TanggapanAdmin = teksBalasan;
+
+            // Menggunakan Ternary Operator C# agar ringkas pengganti if-else
+            this.Status = isSelesai ? "Selesai" : "Diproses";
         }
     }
 }

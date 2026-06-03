@@ -1,5 +1,4 @@
-﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Models.Interfaces;
+﻿using CollabBuy.CollabBuyApp.Models.Interfaces;
 using CollabBuy.CollabBuyApp.Exceptions;
 using System;
 using System.Globalization;
@@ -12,57 +11,57 @@ namespace CollabBuy.CollabBuyApp.Models
     /// </summary>
     public class Category : IValidatable
     {
-        // === PRIVATE FIELDS ===
+        // === PRIVATE FIELDS (Backing Fields) ===
         private int _idKategori;
         private string _namaKategori;
+
+        // === PROPERTIES (Get & Set dalam satu blok) ===
+        public int IdKategori
+        {
+            get { return this._idKategori; }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new InvalidOrderException("ID Kategori tidak valid!", "id_kategori", "KAT_ID_INVALID");
+                }
+                this._idKategori = value;
+            }
+        }
+
+        public string NamaKategori
+        {
+            get { return this._namaKategori; }
+            set
+            {
+                // Guard Clauses murni tanpa else if / else
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOrderException("Nama kategori tidak boleh kosong!", "nama_kategori", "KATEGORI_KOSONG");
+                }
+
+                if (value.Trim().Length < 4)
+                {
+                    throw new InvalidOrderException("Nama kategori minimal 4 karakter!", "nama_kategori", "KATEGORI_TERLALU_PENDEK");
+                }
+
+                if (value.Trim().Length > 50)
+                {
+                    throw new InvalidOrderException("Nama kategori maksimal 50 karakter!", "nama_kategori", "KATEGORI_TERLALU_PANJANG");
+                }
+
+                this._namaKategori = value;
+            }
+        }
 
         // === KONSTRUKTOR ===
         public Category(string namaKategori)
         {
-            this.SetNamaKategori(namaKategori);
+            // Memanggil setter dari Properti
+            this.NamaKategori = namaKategori;
 
             // Otomatis merapikan nama saat objek dibuat
             this.RapikanNamaKategori();
-        }
-
-        // === GETTER & SETTER DENGAN GUARD CLAUSES ===
-        public int GetIdKategori()
-        {
-            return this._idKategori;
-        }
-
-        public void SetIdKategori(int id)
-        {
-            if (id <= 0)
-            {
-                throw new InvalidOrderException("ID Kategori tidak valid!", "id_kategori", "KAT_ID_INVALID");
-            }
-            this._idKategori = id;
-        }
-
-        public string GetNamaKategori()
-        {
-            return this._namaKategori;
-        }
-
-        public void SetNamaKategori(string nama)
-        {
-            if (string.IsNullOrWhiteSpace(nama))
-            {
-                throw new InvalidOrderException("Nama kategori tidak boleh kosong!", "nama_kategori", "KATEGORI_KOSONG");
-            }
-            else if (nama.Trim().Length < 4)
-            {
-                throw new InvalidOrderException("Nama kategori minimal 4 karakter!", "nama_kategori", "KATEGORI_TERLALU_PENDEK");
-            }
-            else if (nama.Trim().Length > 50)
-            {
-                throw new InvalidOrderException("Nama kategori maksimal 50 karakter!", "nama_kategori", "KATEGORI_TERLALU_PANJANG");
-            }
-            else
-            {
-                this._namaKategori = nama;
-            }
         }
 
         // =========================================================
@@ -85,6 +84,7 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public void RapikanNamaKategori()
         {
+            // Early return jika kosong, langsung keluar dari method
             if (string.IsNullOrWhiteSpace(this._namaKategori)) return;
 
             // Hapus spasi depan belakang dan ubah ke Title Case
@@ -110,7 +110,8 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public bool PencarianCocok(string keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword)) return true; // Kalau kolom search kosong, anggap cocok
+            // Early return untuk optimasi
+            if (string.IsNullOrWhiteSpace(keyword)) return true;
 
             return this._namaKategori.ToLower().Contains(keyword.ToLower());
         }
