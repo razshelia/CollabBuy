@@ -130,6 +130,29 @@ namespace CollabBuy.CollabBuyApp.View.Main
             };
             this.ShowUserControl(ctrl);
         }
+        private void ShowSesiPOAktif()
+        {
+            var ctrl = new ViewPreOrder.SesiPOAktifControl(this._currentUser);
+            ctrl.OnNavigateKeProdukPO += (idPO) =>
+            {
+                this.ShowKatalogProdukPO(idPO);
+            };
+            ctrl.OnNavigateKeKeranjang += () => this.ShowKeranjangBelanja();
+            this.ShowUserControl(ctrl);
+        }
+
+        private void ShowKatalogProdukPO(int idPO)
+        {
+            var prodCtrl = new ViewProduct.KatalogProdukControl(this._currentUser, idPO);
+            prodCtrl.OnNavigateDetailProduk += (idProduk) =>
+            {
+                var detail = new ViewProduct.DetailProdukControl(this._currentUser, idProduk);
+                detail.OnNavigateKembali += () => this.ShowKatalogProdukPO(idPO);
+                detail.OnNavigateKeranjang += () => this.ShowKeranjangBelanja();
+                this.ShowUserControl(detail);
+            };
+            this.ShowUserControl(prodCtrl);
+        }
 
         private void ShowKeranjangBelanja()
         {
@@ -356,8 +379,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AddSep();
                 AddCat("JAJAN YUK (BUYER)");
                 AddBtn("🏪 Katalog Produk", () => this.ShowKatalogProduk());
-                AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
-                    new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
+                AddBtn("📋 Sesi PO Aktif", () => this.ShowSesiPOAktif());
                 AddBtn("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
                 AddBtn("📋 Riwayat Pesanan", () => this.ShowUserControl(
                     new ViewTransaction.RiwayatPesananControl(this._currentUser)));

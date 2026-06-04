@@ -83,40 +83,42 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     }
 
                     // 2. Info PO & Slot
-                    string tipePo;
-                    if (this._produk.IdPo.HasValue) // Menggunakan property IdPo
-                    {
-                        tipePo = "Pre-Order (PO)";
-                    }
-                    else
-                    {
-                        tipePo = "Ready Stock (Langsung Gass)";
-                    }
+                    bool dalamSesiPO = this._produk.IdPo.HasValue;
 
-                    this.lblTipePoNilai.Text = tipePo;
+                    this.lblTipePoNilai.Text = dalamSesiPO
+                        ? "Pre-Order (PO)"
+                        : "Tidak dalam Sesi PO";
 
-                    // =======================================================
-                    // Mengambil langsung info slot dari Behavior Model
-                    // =======================================================
-                    string slotInfo = this._produk.DapatkanInfoSlot(); // Tetap method
-                    this.lblSlotNilai.Text = slotInfo;
-                    this.lblMinOrderNilai.Text = this._produk.MinOrder.ToString() + " pcs";
-
-                    // GetSisaKuota() tetap method sesuai dengan kontrak Interface
-                    if (this._produk.GetSisaKuota() > 0 || !this._produk.IdPo.HasValue)
+                    // Ketersediaan: produk tanpa PO tidak bisa dipesan
+                    if (!dalamSesiPO)
                     {
-                        this.lblSlotNilai.ForeColor = Color.FromArgb(200, 50, 50);
-                        this.btnMasukKeranjang.Enabled = true;
-                        this.btnMasukKeranjang.BackColor = Color.FromArgb(36, 0, 70);
-                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(253, 255, 182);
+                        this.lblSlotNilai.Text = "⛔ Tidak tersedia untuk dipesan";
+                        this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
+                        this.btnMasukKeranjang.Enabled = false;
+                        this.btnMasukKeranjang.Text = "Tidak Dalam Sesi PO";
+                        this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
+                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
                     }
-                    else
+                    else if (this._produk.GetSisaKuota() <= 0 && this._produk.GetTargetKuota() > 0)
                     {
+                        // Kuota penuh
+                        this.lblSlotNilai.Text = this._produk.DapatkanInfoSlot();
                         this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
                         this.btnMasukKeranjang.Enabled = false;
                         this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
                         this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
                     }
+                    else
+                    {
+                        // Bisa dipesan
+                        this.lblSlotNilai.Text = this._produk.DapatkanInfoSlot();
+                        this.lblSlotNilai.ForeColor = Color.FromArgb(0, 130, 50);
+                        this.btnMasukKeranjang.Enabled = true;
+                        this.btnMasukKeranjang.BackColor = Color.FromArgb(36, 0, 70);
+                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(253, 255, 182);
+                    }
+
+                    this.lblMinOrderNilai.Text = this._produk.MinOrder.ToString() + " pcs";
 
                     // 3. Multi-Foto (Byte Packing System)
                     this.RenderFotoProduk();

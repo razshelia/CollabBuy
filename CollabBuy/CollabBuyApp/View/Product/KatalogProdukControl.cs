@@ -16,6 +16,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private readonly TransactionController _trxCtrl;
 
         private DataTable _dtSemua;
+        private readonly int? _filterIdPO;
         private System.Windows.Forms.Timer _timerInfo;
 
         private ComboBox _cmbKategori;
@@ -43,6 +44,11 @@ namespace CollabBuy.CollabBuyApp.View.Product
             };
 
             this.Dock = DockStyle.Fill;
+        }
+        public KatalogProdukControl(Models.User user, int idPO)
+            : this(user)
+        {
+            this._filterIdPO = idPO;
         }
 
         private void KatalogProdukControl_Load(object sender, EventArgs e)
@@ -79,7 +85,11 @@ namespace CollabBuy.CollabBuyApp.View.Product
         {
             try
             {
-                this._dtSemua = this._prodCtrl.GetKatalogUtama();
+                if (this._filterIdPO.HasValue)
+                    this._dtSemua = this._prodCtrl.GetProdukDalamPO(this._filterIdPO.Value);
+                else
+                    this._dtSemua = this._prodCtrl.GetKatalogUtama();
+
                 this.PopulasiDropdownKategori();
                 this.TampilkanKartu(this._dtSemua);
             }
@@ -160,104 +170,50 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 {
                     int idProduk = 0;
                     if (dt.Columns.Contains("id_produk") && row["id_produk"] != DBNull.Value)
-                    {
                         int.TryParse(row["id_produk"].ToString(), out idProduk);
-                    }
-                    else
-                    {
-                        bool idLewati = true;
-                    }
 
-                    string nama;
-                    if (dt.Columns.Contains("nama_produk") && row["nama_produk"] != DBNull.Value)
-                    {
-                        nama = row["nama_produk"].ToString();
-                    }
-                    else
-                    {
-                        nama = "-";
-                    }
+                    string nama = (dt.Columns.Contains("nama_produk") && row["nama_produk"] != DBNull.Value)
+                        ? row["nama_produk"].ToString() : "-";
 
-                    string penjual;
-                    if (dt.Columns.Contains("nama_toko") && row["nama_toko"] != DBNull.Value)
-                    {
-                        penjual = row["nama_toko"].ToString();
-                    }
-                    else
-                    {
-                        penjual = "Penjual Anonim";
-                    }
+                    string penjual = (dt.Columns.Contains("nama_toko") && row["nama_toko"] != DBNull.Value)
+                        ? row["nama_toko"].ToString() : "Penjual Anonim";
 
                     long harga = 0;
                     if (dt.Columns.Contains("harga_dasar") && row["harga_dasar"] != DBNull.Value)
-                    {
                         long.TryParse(row["harga_dasar"].ToString(), out harga);
-                    }
-                    else
-                    {
-                        bool hargaLewati = true;
-                    }
                     string hargaStr = "Rp " + harga.ToString("N0");
 
                     string slot = "Ready (Bebas)";
                     if (dt.Columns.Contains("target_kuota") && row["target_kuota"] != DBNull.Value)
                     {
                         int kuota = Convert.ToInt32(row["target_kuota"]);
-                        int terpesan = 0;
-
-                        if (dt.Columns.Contains("terpesan") && row["terpesan"] != DBNull.Value)
-                        {
-                            terpesan = Convert.ToInt32(row["terpesan"]);
-                        }
-                        else
-                        {
-                            bool kuotaLewati = true;
-                        }
-
+                        int terpesan = (dt.Columns.Contains("terpesan") && row["terpesan"] != DBNull.Value)
+                            ? Convert.ToInt32(row["terpesan"]) : 0;
                         int sisa = kuota - terpesan;
-                        if (sisa > 0)
-                        {
-                            slot = $"Sisa {sisa} Slot!";
-                        }
-                        else
-                        {
-                            slot = "⛔ Ludes/Penuh!";
-                        }
-                    }
-                    else
-                    {
-                        bool slotBebas = true;
+                        slot = sisa > 0 ? $"Sisa {sisa} Slot!" : "⛔ Ludes/Penuh!";
                     }
 
-                    string tipePo;
-                    if (dt.Columns.Contains("judul_po") && row["judul_po"] != DBNull.Value)
-                    {
-                        tipePo = row["judul_po"].ToString();
-                    }
-                    else
-                    {
-                        tipePo = "Reguler";
-                    }
+                    string tipePo = (dt.Columns.Contains("judul_po") && row["judul_po"] != DBNull.Value)
+                        ? row["judul_po"].ToString() : "Reguler";
 
+                    byte[] fotoData = (dt.Columns.Contains("foto_produk") && row["foto_produk"] != DBNull.Value)
+                        ? (byte[])row["foto_produk"] : null;
 
-                    byte[] fotoData = null;
-                    if (dt.Columns.Contains("foto_produk") && row["foto_produk"] != DBNull.Value)
-                    {
-                        fotoData = (byte[])row["foto_produk"];
-                    }
-                    else
-                    {
-                        bool tanpaFoto = true;
-                    }
+                    // Kolom in_sesi_po dari query yang sudah diupdate di ProductRepository
+                    bool inSesiPo = true;
+                    if (dt.Columns.Contains("in_sesi_po") && row["in_sesi_po"] != DBNull.Value)
+                        inSesiPo = Convert.ToBoolean(row["in_sesi_po"]);
 
-                    this.flpKartu.Controls.Add(this.BuatKartu(idProduk, nama, penjual, hargaStr, slot, tipePo, fotoData));
+                    this.flpKartu.Controls.Add(
+                        this.BuatKartu(idProduk, nama, penjual, hargaStr, slot, tipePo, fotoData, inSesiPo));
                 }
             }
 
             this.flpKartu.ResumeLayout();
         }
 
-        private Panel BuatKartu(int idProduk, string nama, string penjual, string harga, string slot, string tipePo, byte[] fotoData)
+        private Panel BuatKartu(int idProduk, string nama, string penjual, string harga,
+            string slot, string tipePo, byte[] fotoData, bool inSesiPo = true)
         {
             Panel pnl = new Panel
             {
@@ -269,9 +225,11 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             pnl.Paint += (s, e) =>
             {
-                ControlPaint.DrawBorder(e.Graphics, pnl.ClientRectangle, Color.FromArgb(36, 0, 70), ButtonBorderStyle.Solid);
+                ControlPaint.DrawBorder(e.Graphics, pnl.ClientRectangle,
+                    Color.FromArgb(36, 0, 70), ButtonBorderStyle.Solid);
             };
 
+            // ── Foto ──
             PictureBox pbFoto = new PictureBox
             {
                 Width = 200,
@@ -291,13 +249,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     if (images.Count > 0 && images[0].Length > 0)
                     {
                         using (MemoryStream ms = new MemoryStream(images[0]))
-                        {
                             pbFoto.Image = new Bitmap(Image.FromStream(ms));
-                        }
-                    }
-                    else
-                    {
-                        bool formatSalah = true;
                     }
                 }
                 catch
@@ -305,41 +257,27 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     pbFoto.Image = null;
                 }
             }
-            else
-            {
-                bool tidakAdaGambar = true;
-            }
 
             if (pbFoto.Image == null)
             {
-                Label lblNoImage = new Label
+                pbFoto.Controls.Add(new Label
                 {
                     Text = "No Image",
                     ForeColor = Color.Gray,
                     AutoSize = false,
                     TextAlign = ContentAlignment.MiddleCenter,
                     Dock = DockStyle.Fill
-                };
-                pbFoto.Controls.Add(lblNoImage);
-            }
-            else
-            {
-                bool gambarAda = true;
+                });
             }
 
             pnl.Controls.Add(pbFoto);
 
-            Color bgColorTipe;
-            if (tipePo == "Reguler")
-            {
-                bgColorTipe = Color.FromArgb(155, 246, 255);
-            }
-            else
-            {
-                bgColorTipe = Color.FromArgb(253, 255, 182);
-            }
+            // ── Badge tipe PO ──
+            Color bgColorTipe = tipePo == "Reguler"
+                ? Color.FromArgb(155, 246, 255)
+                : Color.FromArgb(253, 255, 182);
 
-            Label lblTipe = new Label
+            pnl.Controls.Add(new Label
             {
                 Text = tipePo,
                 Font = new Font("Segoe UI", 7.5F, FontStyle.Bold),
@@ -348,10 +286,10 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 Location = new Point(10, 170),
                 AutoSize = true,
                 Padding = new Padding(3)
-            };
-            pnl.Controls.Add(lblTipe);
+            });
 
-            Label lblNama = new Label
+            // ── Nama produk ──
+            pnl.Controls.Add(new Label
             {
                 Text = nama,
                 Font = new Font("Segoe UI Black", 11F, FontStyle.Bold),
@@ -359,30 +297,21 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 Location = new Point(10, 195),
                 Size = new Size(CARD_W - 20, 45),
                 AutoSize = false
-            };
-            pnl.Controls.Add(lblNama);
+            });
 
-            Label lblHarga = new Label
+            // ── Harga ──
+            pnl.Controls.Add(new Label
             {
                 Text = harga,
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(90, 24, 154),
                 Location = new Point(10, 245),
                 AutoSize = true
-            };
-            pnl.Controls.Add(lblHarga);
+            });
 
-            Color lblSlotWarna;
-            if (slot.Contains("Penuh"))
-            {
-                lblSlotWarna = Color.Red;
-            }
-            else
-            {
-                lblSlotWarna = Color.FromArgb(110, 80, 140);
-            }
-
-            Label lblPenjualSlot = new Label
+            // ── Penjual & slot ──
+            Color lblSlotWarna = slot.Contains("Penuh") ? Color.Red : Color.FromArgb(110, 80, 140);
+            pnl.Controls.Add(new Label
             {
                 Text = $"🏪 {penjual}\n🔥 {slot}",
                 Font = new Font("Segoe UI", 8F, FontStyle.Bold),
@@ -390,11 +319,14 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 Location = new Point(10, 270),
                 Size = new Size(CARD_W - 20, 30),
                 AutoSize = false
-            };
-            pnl.Controls.Add(lblPenjualSlot);
+            });
 
+            // ── Logika tombol ──
             bool isPenuh = slot.Contains("Penuh");
+            // bisaDipesan: harus dalam sesi PO aktif DAN belum penuh
+            bool bisaDipesan = inSesiPo && !isPenuh;
 
+            // ── Tombol Detail ──
             Button btnDetail = new Button
             {
                 Text = "🔍 Cek Detail",
@@ -407,7 +339,6 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 Size = new Size(96, 30)
             };
             btnDetail.FlatAppearance.BorderSize = 0;
-
             btnDetail.Click += (s, e) =>
             {
                 if (this.OnNavigateDetailProduk != null)
@@ -424,79 +355,70 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         detailPage.Dock = DockStyle.Fill;
                         parentPanel.Controls.Add(detailPage);
                     }
-                    else
-                    {
-                        bool panelIndukKosong = true;
-                    }
                 }
             };
             pnl.Controls.Add(btnDetail);
 
+            // ── Tombol Keranjang / Sikat ──
+            string teksBtn;
             Color btnSikatBg;
             Color btnSikatTeks;
 
             if (isPenuh)
             {
+                teksBtn = "Habis😭";
                 btnSikatBg = Color.Gray;
                 btnSikatTeks = Color.White;
             }
+            else if (!inSesiPo)
+            {
+                // Produk tidak dalam sesi PO aktif — hanya bisa lihat detail
+                teksBtn = "👁️ Lihat Saja";
+                btnSikatBg = Color.FromArgb(180, 180, 180);
+                btnSikatTeks = Color.FromArgb(80, 80, 80);
+            }
             else
             {
+                teksBtn = "🛒 Sikat!";
                 btnSikatBg = Color.FromArgb(254, 245, 100);
                 btnSikatTeks = Color.FromArgb(70, 50, 0);
             }
 
             Button btnKeranjang = new Button
             {
-                Text = isPenuh ? "Habis😭" : "🛒 Sikat!",
+                Text = teksBtn,
                 Font = new Font("Segoe UI Black", 8F, FontStyle.Bold),
                 BackColor = btnSikatBg,
                 ForeColor = btnSikatTeks,
                 FlatStyle = FlatStyle.Flat,
-                Cursor = isPenuh ? Cursors.No : Cursors.Hand,
+                Cursor = bisaDipesan ? Cursors.Hand : Cursors.No,
                 Location = new Point(112, 305),
                 Size = new Size(98, 30),
-                Enabled = !isPenuh
+                Enabled = bisaDipesan
             };
             btnKeranjang.FlatAppearance.BorderSize = 0;
 
-            if (!isPenuh)
+            if (bisaDipesan)
             {
                 btnKeranjang.Click += (s, e) =>
                 {
                     Models.Product pUtuh = this._prodCtrl.GetProdukById(idProduk);
                     if (pUtuh != null)
                     {
-                        int minOrder;
-                        if (pUtuh.MinOrder > 0)
-                        {
-                            minOrder = pUtuh.MinOrder;
-                        }
-                        else
-                        {
-                            minOrder = 1;
-                        }
-
-                        var (sukses, pesan) = this._trxCtrl.TambahItemKeKeranjang(idProduk, this._user.GetNama(), minOrder, "");
+                        int minOrder = pUtuh.MinOrder > 0 ? pUtuh.MinOrder : 1;
+                        var (sukses, pesan) = this._trxCtrl.TambahItemKeKeranjang(
+                            idProduk, this._user.GetNama(), minOrder, "");
 
                         if (sukses)
-                        {
                             this.TampilkanInfo($"✅ '{nama}' berhasil masuk keranjang!", true);
-                        }
                         else
-                        {
                             this.TampilkanInfo($"❌ {pesan}", false);
-                        }
                     }
                     else
                     {
                         this.TampilkanInfo("Gagal mengambil data produk secara penuh.", false);
                     }
                 };
-            }
-            else
-            {
-                bool lewatiEventKeranjang = true;
             }
 
             pnl.Controls.Add(btnKeranjang);
@@ -507,17 +429,12 @@ namespace CollabBuy.CollabBuyApp.View.Product
         {
             this.lblInfo.Text = pesan;
             this.lblInfo.Visible = true;
-
-            if (sukses)
-            {
-                this.lblInfo.BackColor = Color.FromArgb(210, 255, 230);
-                this.lblInfo.ForeColor = Color.FromArgb(0, 100, 50);
-            }
-            else
-            {
-                this.lblInfo.BackColor = Color.FromArgb(255, 220, 220);
-                this.lblInfo.ForeColor = Color.FromArgb(150, 0, 0);
-            }
+            this.lblInfo.BackColor = sukses
+                ? Color.FromArgb(210, 255, 230)
+                : Color.FromArgb(255, 220, 220);
+            this.lblInfo.ForeColor = sukses
+                ? Color.FromArgb(0, 100, 50)
+                : Color.FromArgb(150, 0, 0);
 
             this._timerInfo.Stop();
             this._timerInfo.Start();
@@ -536,170 +453,70 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private void txtCari_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
-            {
                 this.TerapkanFilterGabungan();
-            }
-            else
-            {
-                bool bukanEnter = true;
-            }
         }
 
         private void btnReset_Click(object sender, EventArgs e)
         {
-            if (this.txtCari != null)
-            {
-                this.txtCari.Text = "";
-            }
-            else
-            {
-                bool pencarianNull = true;
-            }
-
-            if (this._cmbKategori != null)
-            {
-                this._cmbKategori.SelectedIndex = 0;
-            }
-            else
-            {
-                bool kategoriNull = true;
-            }
-
-            if (this._dtSemua != null)
-            {
-                this.TampilkanKartu(this._dtSemua);
-            }
-            else
-            {
-                bool dataNull = true;
-            }
+            if (this.txtCari != null) this.txtCari.Text = "";
+            if (this._cmbKategori != null) this._cmbKategori.SelectedIndex = 0;
+            if (this._dtSemua != null) this.TampilkanKartu(this._dtSemua);
         }
 
         private void TerapkanFilterGabungan()
         {
-            if (this._dtSemua == null)
+            if (this._dtSemua == null) return;
+
+            string kataKunci = this.txtCari?.Text?.Trim() ?? "";
+            string kategoriPilihan = (this._cmbKategori != null
+                && this._cmbKategori.SelectedIndex > 0
+                && this._cmbKategori.SelectedItem != null)
+                ? this._cmbKategori.SelectedItem.ToString() : "";
+
+            DataTable dtFilter = this._dtSemua.Clone();
+
+            foreach (DataRow row in this._dtSemua.Rows)
             {
-                bool dataAwalKosong = true;
+                // Filter teks
+                bool lolosTeks = string.IsNullOrEmpty(kataKunci);
+                if (!lolosTeks)
+                {
+                    foreach (DataColumn col in this._dtSemua.Columns)
+                    {
+                        if (row[col] != DBNull.Value &&
+                            row[col].ToString().ToLower().Contains(kataKunci.ToLower()))
+                        {
+                            lolosTeks = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Filter kategori
+                bool lolosKategori = string.IsNullOrEmpty(kategoriPilihan);
+                if (!lolosKategori && this._dtSemua.Columns.Contains("nama_kategori"))
+                {
+                    string namaKatDb = row["nama_kategori"] != DBNull.Value
+                        ? row["nama_kategori"].ToString() : "";
+                    Models.Category katRow = new Models.Category(namaKatDb);
+                    lolosKategori = katRow.PencarianCocok(kategoriPilihan);
+                }
+
+                if (lolosTeks && lolosKategori)
+                    dtFilter.ImportRow(row);
             }
-            else
-            {
-                string kataKunci;
-                if (this.txtCari != null && this.txtCari.Text != null)
-                {
-                    kataKunci = this.txtCari.Text.Trim();
-                }
-                else
-                {
-                    kataKunci = "";
-                }
 
-                string kategoriPilihan;
-                if (this._cmbKategori != null && this._cmbKategori.SelectedIndex > 0 && this._cmbKategori.SelectedItem != null)
-                {
-                    kategoriPilihan = this._cmbKategori.SelectedItem.ToString();
-                }
-                else
-                {
-                    kategoriPilihan = "";
-                }
-
-                DataTable dtFilter = this._dtSemua.Clone();
-
-                foreach (DataRow row in this._dtSemua.Rows)
-                {
-                    bool lolosTeks;
-                    if (string.IsNullOrEmpty(kataKunci))
-                    {
-                        lolosTeks = true;
-                    }
-                    else
-                    {
-                        lolosTeks = false;
-                        foreach (DataColumn col in this._dtSemua.Columns)
-                        {
-                            if (row[col] != DBNull.Value && row[col].ToString().ToLower().Contains(kataKunci.ToLower()))
-                            {
-                                lolosTeks = true;
-                                break;
-                            }
-                            else
-                            {
-                                bool iterasiTeksBerlanjut = true;
-                            }
-                        }
-                    }
-
-                    bool lolosKategori;
-                    if (string.IsNullOrEmpty(kategoriPilihan))
-                    {
-                        lolosKategori = true;
-                    }
-                    else
-                    {
-                        if (this._dtSemua.Columns.Contains("nama_kategori"))
-                        {
-                            string namaKatDb;
-                            if (row["nama_kategori"] != DBNull.Value)
-                            {
-                                namaKatDb = row["nama_kategori"].ToString();
-                            }
-                            else
-                            {
-                                namaKatDb = "";
-                            }
-
-                            Models.Category katRow = new Models.Category(namaKatDb);
-
-                            if (katRow.PencarianCocok(kategoriPilihan))
-                            {
-                                lolosKategori = true;
-                            }
-                            else
-                            {
-                                lolosKategori = false;
-                            }
-                        }
-                        else
-                        {
-                            lolosKategori = false;
-                        }
-                    }
-
-                    if (lolosTeks && lolosKategori)
-                    {
-                        dtFilter.ImportRow(row);
-                    }
-                    else
-                    {
-                        bool barisDitendang = true;
-                    }
-                }
-
-                this.TampilkanKartu(dtFilter);
-            }
+            this.TampilkanKartu(dtFilter);
         }
 
         private void AturLayout()
         {
             int w = Math.Max(this.Width, 600);
 
-            if (this.pnlFilter != null)
-            {
-                this.pnlFilter.Width = w;
-            }
-            else { bool pass1 = true; }
-
-            if (this.lblInfo != null)
-            {
-                this.lblInfo.Width = w - 60;
-            }
-            else { bool pass2 = true; }
-
+            if (this.pnlFilter != null) this.pnlFilter.Width = w;
+            if (this.lblInfo != null) this.lblInfo.Width = w - 60;
             if (this.flpKartu != null)
-            {
                 this.flpKartu.SetBounds(0, 190, w, Math.Max(300, this.Height - 190));
-            }
-            else { bool pass3 = true; }
 
             if (this._cmbKategori != null && this.txtCari != null)
             {
@@ -711,25 +528,14 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     this.btnCari.Top = this.txtCari.Top - 1;
                     this.btnCari.Left = this._cmbKategori.Left + this._cmbKategori.Width + 15;
                 }
-                else { bool pass4 = true; }
 
                 if (this.btnReset != null)
                 {
                     this.btnReset.Top = this.txtCari.Top - 1;
-                    if (this.btnCari != null)
-                    {
-                        this.btnReset.Left = this.btnCari.Left + this.btnCari.Width + 10;
-                    }
-                    else
-                    {
-                        this.btnReset.Left = this._cmbKategori.Left + this._cmbKategori.Width + 10;
-                    }
+                    this.btnReset.Left = this.btnCari != null
+                        ? this.btnCari.Left + this.btnCari.Width + 10
+                        : this._cmbKategori.Left + this._cmbKategori.Width + 10;
                 }
-                else { bool pass5 = true; }
-            }
-            else
-            {
-                bool pass6 = true;
             }
         }
     }

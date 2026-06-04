@@ -136,6 +136,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     this.numQty.Value = Convert.ToInt32(this.dgvKeranjang.Rows[e.RowIndex].Cells["Kuantitas"].Value);
 
                     this.pnlTitipan.Enabled = true;
+                    this.btnSimpanTitipan.BackColor = Color.FromArgb(155, 246, 255);
+                    this.btnSimpanTitipan.ForeColor = Color.FromArgb(36, 0, 70);
+                    this.btnTambahTitipan.BackColor = Color.FromArgb(36, 0, 70);
+                    this.btnTambahTitipan.ForeColor = Color.White;
                 }
             }
         }
@@ -179,6 +183,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.txtCatatan.Clear();
             this.numQty.Value = 1;
             this.pnlTitipan.Enabled = false;
+            this.btnSimpanTitipan.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnSimpanTitipan.ForeColor = Color.FromArgb(140, 140, 140);
+            this.btnTambahTitipan.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnTambahTitipan.ForeColor = Color.FromArgb(140, 140, 140);
         }
 
         private void btnKosongkan_Click(object sender, EventArgs e)

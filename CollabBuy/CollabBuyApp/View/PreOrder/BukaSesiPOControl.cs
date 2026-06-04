@@ -32,80 +32,44 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
         private void btnSimpanSesi_Click(object sender, EventArgs e)
         {
-            if (this.cbProduk.SelectedValue == null)
+            if (string.IsNullOrWhiteSpace(this.txtNamaSesi.Text) || string.IsNullOrWhiteSpace(this.txtRekening.Text))
             {
-                MessageBox.Show("Pilih dulu barang yang mau dijual ngab!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Nama sesi dan rekening tidak boleh kosong!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            DialogResult confirm = MessageBox.Show(
+                $"Buka sesi PO '{this.txtNamaSesi.Text}'?\n\nSetelah ini, tambahkan produk ke sesi ini lewat menu Manajemen Produk.",
+                "Konfirmasi",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes) return;
+
+            var (sukses, pesan, _) = this._poController.BukaSesiPOBaru(
+                this._currentSeller.GetIdUser(),
+                this.txtNamaSesi.Text,
+                this.cbJenisPO.Text,
+                this.txtRekening.Text,
+                this.dtpBatasWaktu.Value
+            );
+
+            if (sukses)
+            {
+                MessageBox.Show(pesan, "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.ResetForm();
             }
             else
             {
-                DialogResult confirm = MessageBox.Show(
-                    $"Udah yakin mau launching sesi '{this.txtNamaSesi.Text}'? Gaskeun?",
-                    "CollabBuy - Konfirmasi",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (confirm == DialogResult.Yes)
-                {
-                    int idProduk = Convert.ToInt32(this.cbProduk.SelectedValue);
-                    int targetKuota = Convert.ToInt32(this.numQuota.Value);
-
-                    var (sukses, pesan) = this._poController.GasLuncurkanPO(
-                        this._currentSeller.GetIdUser(),
-                        this.txtNamaSesi.Text,
-                        this.cbJenisPO.Text,
-                        this.txtRekening.Text,
-                        this.dtpBatasWaktu.Value,
-                        idProduk,
-                        targetKuota
-                    );
-
-                    if (sukses)
-                    {
-                        MessageBox.Show(pesan, "CollabBuy - Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.ResetForm();
-                        this.LoadMasterProduk(); 
-                    }
-                    else
-                    {
-                        MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else
-                {
-                    bool batalLaunch = true;
-                }
+                MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void LoadMasterProduk()
         {
-            try
-            {
-                DataTable dtProduk = this._poController.GetProdukTersedia(this._currentSeller.GetIdUser());
-
-                this.cbProduk.DataSource = dtProduk;
-                this.cbProduk.DisplayMember = "nama_produk";
-                this.cbProduk.ValueMember = "id_produk";
-
-                if (dtProduk != null && dtProduk.Rows.Count == 0)
-                {
-                    MessageBox.Show("Kamu belum punya produk aktif nih. Daftarin produk dulu di menu Manajemen Produk!",
-                        "Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    this.btnSimpanSesi.Enabled = false;
-                    this.btnSimpanSesi.BackColor = Color.FromArgb(210, 210, 210);
-                    this.btnSimpanSesi.ForeColor = Color.FromArgb(140, 140, 140);
-                }
-                else
-                {
-                    this.btnSimpanSesi.Enabled = true;
-                    this.btnSimpanSesi.BackColor = Color.FromArgb(36, 0, 70);
-                    this.btnSimpanSesi.ForeColor = Color.FromArgb(253, 255, 182);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Gagal muat produk: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            this.btnSimpanSesi.Enabled = true;
+            this.btnSimpanSesi.BackColor = Color.FromArgb(36, 0, 70);
+            this.btnSimpanSesi.ForeColor = Color.FromArgb(253, 255, 182);
         }
 
         private void ResetForm()

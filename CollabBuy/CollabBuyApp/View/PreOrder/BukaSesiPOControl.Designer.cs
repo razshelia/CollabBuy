@@ -137,6 +137,8 @@
             this.cbProduk.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cbProduk.FormattingEnabled = true;
             this.cbProduk.Location = new System.Drawing.Point(34, 120);
+            this.cbProduk.Visible = false;
+            this.lblProduk.Visible = false;
             this.cbProduk.Name = "cbProduk";
             this.cbProduk.Size = new System.Drawing.Size(580, 28);
             this.cbProduk.TabIndex = 3;
@@ -156,6 +158,8 @@
             // 
             this.numQuota.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.numQuota.Location = new System.Drawing.Point(34, 190);
+            this.numQuota.Visible = false;
+            this.lblQuota.Visible = false;
             this.numQuota.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             this.numQuota.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numQuota.Name = "numQuota";
@@ -189,7 +193,7 @@
             this.lblRekening.AutoSize = true;
             this.lblRekening.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblRekening.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.lblRekening.Location = new System.Drawing.Point(30, 240);
+            this.lblRekening.Location = new System.Drawing.Point(30, 100);
             this.lblRekening.Name = "lblRekening";
             this.lblRekening.Size = new System.Drawing.Size(155, 19);
             this.lblRekening.TabIndex = 8;
@@ -198,7 +202,7 @@
             // txtRekening
             // 
             this.txtRekening.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtRekening.Location = new System.Drawing.Point(34, 265);
+            this.txtRekening.Location = new System.Drawing.Point(34, 125);
             this.txtRekening.Multiline = true;
             this.txtRekening.Name = "txtRekening";
             this.txtRekening.Size = new System.Drawing.Size(580, 80);
@@ -213,7 +217,7 @@
             this.btnSimpanSesi.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpanSesi.Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnSimpanSesi.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182))))); // Soft yellow text
-            this.btnSimpanSesi.Location = new System.Drawing.Point(34, 405);
+            this.btnSimpanSesi.Location = new System.Drawing.Point(34, 265);
             this.btnSimpanSesi.Name = "btnSimpanSesi";
             this.btnSimpanSesi.Size = new System.Drawing.Size(580, 45);
             this.btnSimpanSesi.TabIndex = 10;

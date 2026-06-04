@@ -125,7 +125,24 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             return this._poRepo.GetSemuaProdukAktif(idPenjual);
         }
+        public (bool sukses, string pesan, int idPO) BukaSesiPOBaru(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
+        {
+            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
+                return (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
 
+            if (batasWaktu <= DateTime.Now)
+                return (false, "Waktu tutup harus di masa depan!", 0);
+
+            try
+            {
+                int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
+                return (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error: " + ex.Message, 0);
+            }
+        }
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
             (bool sukses, string pesan) hasil;

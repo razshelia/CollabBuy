@@ -83,8 +83,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
             string query = @"
                 SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
                        p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
-                       u.nama AS nama_penjual, po.jenis_po,
+                       COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
                        p.target_kuota,
+                       CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po,
                        COALESCE((SELECT SUM(td.jumlah_pesanan)
                                  FROM transaction_details td
                                  JOIN transactions t ON td.id_transaksi = t.id_transaksi
@@ -94,6 +95,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 LEFT JOIN preorders   po  ON p.id_po       = po.id_po
                 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
                 LEFT JOIN users       u   ON p.id_penjual  = u.id_user
+                LEFT JOIN verifications v ON p.id_penjual  = v.id_user
                 WHERE p.is_deleted = FALSE
                   AND (p.id_po IS NULL
                    OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP))
@@ -334,7 +336,42 @@ namespace CollabBuy.CollabBuyApp.Repositories
             cmd.Parameters.AddWithValue("@minOrder", entity.MinOrder);
             cmd.Parameters.AddWithValue("@foto", (object)entity.FotoProduk ?? DBNull.Value);
         }
+        public DataTable GetProdukDalamPO(int idPo)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+                SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
+                       p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
+                       COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
+                       p.target_kuota,
+                       COALESCE((SELECT SUM(td.jumlah_pesanan)
+                                 FROM transaction_details td
+                                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                                 WHERE td.id_produk = p.id_produk
+                                   AND t.status_pesanan NOT IN ('Batal', 'Gagal')), 0) AS terpesan,
+                       TRUE AS in_sesi_po
+                FROM products p
+                LEFT JOIN preorders   po  ON p.id_po       = po.id_po
+                LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
+                LEFT JOIN users       u   ON p.id_penjual  = u.id_user
+                LEFT JOIN verifications v ON p.id_penjual  = v.id_user
+                WHERE p.id_po = @idPo
+                  AND p.is_deleted = FALSE
+                  AND po.is_aktif = TRUE
+                  AND po.is_deleted = FALSE
+                ORDER BY p.nama_produk ASC;";
 
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idPo", idPo);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
         public DataTable GetPOHampirPenuh()
         {
             DataTable dt = new DataTable();
@@ -344,7 +381,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
         FROM products p
         JOIN preorders po ON p.id_po = po.id_po
         LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
-        WHERE po.is_aktif = TRUE AND p.target_kuota IS NOT NULL AND p.is_deleted = FALSE
+        WHERE po.is_aktif = TRUE
+          AND po.is_deleted = FALSE
+          AND po.batas_waktu >= CURRENT_TIMESTAMP
+          AND p.target_kuota IS NOT NULL
+          AND p.is_deleted = FALSE
         GROUP BY p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk
         HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
            AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) > 0
