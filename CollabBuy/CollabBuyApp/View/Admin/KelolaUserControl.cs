@@ -205,21 +205,44 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private void AdjustLayout()
         {
             int margin = 36;
-            int w = this.Width - (margin * 2);
-            int gridW = (int)(w * 0.62);
+            int totalW = this.Width;
+            if (totalW < 700) return;
 
+            int w = totalW - (margin * 2);
+            int gridW = (int)(w * 0.60);
+
+            // Panel kiri
+            this.pnlCard.Left = margin;
             this.pnlCard.Width = gridW;
             this.pnlCard.Height = this.Height - this.pnlCard.Top - margin;
+
             this.dgvUser.Width = this.pnlCard.Width - 48;
             this.dgvUser.Height = this.pnlCard.Height - this.btnRefresh.Height - 70;
+
             this.btnRefresh.Top = this.pnlCard.Height - this.btnRefresh.Height - 20;
             this.btnRefresh.Left = this.pnlCard.Width - this.btnRefresh.Width - 14;
 
-            int detailLeft = margin + gridW + 24;
+            // Panel kanan — jangan sampai terpotong
+            int detailLeft = margin + gridW + 20;
+            int detailWidth = totalW - detailLeft - margin;
+            if (detailWidth < 250) detailWidth = 250;
+
             this.pnlDetail.Left = detailLeft;
-            this.pnlDetail.Width = this.Width - detailLeft - margin;
-            this.pnlDetail.Height = this.Height - this.pnlDetail.Top - margin;
-            this.btnBlokir.Width = this.pnlDetail.Width - 40;
+            this.pnlDetail.Top = this.pnlCard.Top;
+            this.pnlDetail.Width = detailWidth;
+            this.pnlDetail.Height = this.pnlCard.Height;
+
+            // Sesuaikan lebar semua label nilai agar tidak terpotong
+            int lblWidth = detailWidth - 40;
+            this.lblDetailNama.Width = lblWidth;
+            this.lblDetailUsername.Width = lblWidth;
+            this.lblDetailEmail.Width = lblWidth;
+            this.lblDetailTelepon.Width = lblWidth;
+            this.lblDetailPeran.Width = lblWidth;
+            this.lblDetailStatus.Width = lblWidth;
+
+            // Tombol blokir ikuti lebar panel
+            this.btnBlokir.Width = lblWidth;
         }
     }
 }

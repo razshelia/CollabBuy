@@ -35,6 +35,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.dgvPO.Columns.Clear();
 
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdPo", DataPropertyName = "id_po", Visible = false });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "BatasRaw", DataPropertyName = "batas_waktu_raw", Visible = false });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Judul", HeaderText = "Nama Sesi", DataPropertyName = "judul_po", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Jenis", HeaderText = "Tipe", DataPropertyName = "jenis_po", Width = 110 });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu_format", Width = 155 });
@@ -50,6 +51,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 // Buat DataTable baru dengan kolom yang sudah diformat agar tampil rapi
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_po", typeof(int));
+                dtUI.Columns.Add("batas_waktu_raw", typeof(string));
                 dtUI.Columns.Add("judul_po", typeof(string));
                 dtUI.Columns.Add("jenis_po", typeof(string));
                 dtUI.Columns.Add("batas_waktu_format", typeof(string));
@@ -71,6 +73,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
                     dtUI.Rows.Add(
                         Convert.ToInt32(row["id_po"]),
+                        batas.ToString("yyyy-MM-dd HH:mm:ss"),
                         row["judul_po"].ToString(),
                         row["jenis_po"].ToString(),
                         batasFormat,
@@ -107,17 +110,10 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
             string jenis = row.Cells["Jenis"].Value.ToString();
             this.cbJenis.SelectedItem = jenis;
-
-            if (DateTime.TryParse(row.Cells["Batas"].Value.ToString(), out DateTime batas))
+            string rawBatas = row.Cells["BatasRaw"].Value?.ToString() ?? "";
+            if (DateTime.TryParse(rawBatas, out DateTime batas))
             {
-                if (batas > DateTime.Now)
-                {
-                    this.dtpBatas.Value = batas;
-                }
-                else
-                {
-                    this.dtpBatas.Value = DateTime.Now.AddDays(1);
-                }
+                this.dtpBatas.Value = batas > DateTime.Now ? batas : DateTime.Now.AddDays(1);
             }
             else
             {
@@ -250,8 +246,24 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
+            if (w < 100) return;
+
+            this.dgvPO.Left = margin;
             this.dgvPO.Width = w;
+            int dgvTop = this.btnRefresh.Top + this.btnRefresh.Height + 10;
+            this.dgvPO.Top = dgvTop;
+            this.dgvPO.Height = 220;
+            int pnlEditTop = this.dgvPO.Top + this.dgvPO.Height + 15;
+            this.pnlEdit.Left = margin;
+            this.pnlEdit.Top = pnlEditTop;
             this.pnlEdit.Width = w;
+            int innerW = this.pnlEdit.Width - 30;
+            this.txtJudul.Width = Math.Min(280, (int)(innerW * 0.32));
+            this.cbJenis.Left = this.txtJudul.Left + this.txtJudul.Width + 20;
+            this.dtpBatas.Left = this.cbJenis.Left + this.cbJenis.Width + 20;
+            this.btnHapusPO.Left = innerW - this.btnHapusPO.Width + 15;
+            this.btnSimpanEdit.Left = this.btnHapusPO.Left - this.btnSimpanEdit.Width - 10;
+            this.txtRekening.Width = this.btnSimpanEdit.Left - this.txtRekening.Left - 10;
         }
     }
 }

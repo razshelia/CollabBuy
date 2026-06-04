@@ -102,6 +102,23 @@ namespace CollabBuy.CollabBuyApp.Services
             else
             {
                 this.HitungTotalKeranjang();
+                foreach (var entry in CartManager._keranjangDict)
+                {
+                    int totalQtyProdukIni = 0;
+                    Product produkRef = null;
+
+                    foreach (var detail in entry.Value)
+                    {
+                        totalQtyProdukIni += detail.JumlahPesanan;
+                        if (produkRef == null) produkRef = detail.ProdukYangDipesan;
+                    }
+
+                    if (produkRef != null)
+                    {
+                        produkRef.ValidasiTotalPesanan(totalQtyProdukIni);
+                    }
+                }
+
                 transaksi = new Transaction(this._idPembeli);
 
                 foreach (KeyValuePair<int, List<TransactionDetail>> entry in CartManager._keranjangDict)

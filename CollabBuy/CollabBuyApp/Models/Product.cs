@@ -161,15 +161,32 @@ namespace CollabBuy.CollabBuyApp.Models
         // IMPLEMENTASI METODE BISNIS / BEHAVIOR (OOP BEST PRACTICE)
         // =========================================================
 
+        // SESUDAH (TIDAK CRASH SAAT TAMBAH, VALIDASI DIPINDAH KE CHECKOUT):
         public void TambahPesanan(int jumlah)
         {
-            if (jumlah < this.MinOrder)
+            // Validasi hanya jumlah tidak boleh negatif/nol; min order dicek saat checkout
+            if (jumlah <= 0)
             {
-                throw new InvalidOrderException($"Jumlah pesanan kurang dari minimal order ({this.MinOrder})!", "jumlah_pesanan", "QTY_MIN_INVALID");
+                throw new InvalidOrderException("Jumlah pesanan harus lebih dari 0!", "jumlah_pesanan", "QTY_INVALID");
             }
-
-            // Menggunakan operator assignment += agar lebih ringkas
             this.Terpesan += jumlah;
+        }
+
+        /// <summary>
+        /// Validasi total pesanan (seluruh titipan) terhadap MinOrder.
+        /// Dipanggil saat checkout, bukan saat TambahItem.
+        /// </summary>
+        public void ValidasiTotalPesanan(int totalJumlah)
+        {
+            if (totalJumlah < this.MinOrder)
+            {
+                throw new InvalidOrderException(
+                    $"Total pesanan untuk produk '{this.NamaProduk}' adalah {totalJumlah} pcs, " +
+                    $"kurang dari minimal order {this.MinOrder} pcs!",
+                    "jumlah_pesanan",
+                    "QTY_MIN_INVALID"
+                );
+            }
         }
 
         /// <summary>

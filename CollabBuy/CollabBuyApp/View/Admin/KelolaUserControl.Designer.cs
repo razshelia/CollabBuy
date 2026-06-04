@@ -100,7 +100,9 @@
             // pnlDetail
             this.pnlDetail.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
             this.pnlDetail.Location = new System.Drawing.Point(636, 110);
-            this.pnlDetail.Size = new System.Drawing.Size(320, 500);
+            this.pnlDetail.Size = new System.Drawing.Size(320, 560);
+            this.pnlDetail.Visible = true;
+            this.pnlDetail.BringToFront();
             this.pnlDetail.Controls.Add(this.lblDetailTitle);
             this.pnlDetail.Controls.Add(this.lblNamaLabel);
             this.pnlDetail.Controls.Add(this.lblDetailNama);
@@ -124,8 +126,8 @@
             this.lblDetailTitle.Text = "📋 Detail Profil User";
 
             // Helper labels & values
-            int yPos = 60;
-            int gap = 50;
+            int yPos = 55;
+            int gap = 44;
 
             SetLabel(ref this.lblNamaLabel, "Nama Lengkap", 20, yPos); yPos += 22;
             SetValueLabel(ref this.lblDetailNama, "-", 20, yPos); yPos += gap;
@@ -162,7 +164,7 @@
             this.Controls.Add(this.lblSubtitle);
             this.Controls.Add(this.lblTitle);
             this.Name = "KelolaUserControl";
-            this.Size = new System.Drawing.Size(1000, 650);
+            this.Size = new System.Drawing.Size(1100, 680);
             this.Load += new System.EventHandler(this.KelolaUserControl_Load);
 
             this.pnlCard.ResumeLayout(false);

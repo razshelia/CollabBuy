@@ -205,19 +205,25 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             if (total <= 0)
             {
                 this.TampilkanInfo("⚠️ Keranjang masih kosong! Jajan dulu yuk.", false);
+                return;
             }
-            else
+
+            // Jalankan validasi (termasuk min order) sebelum navigasi ke pembayaran
+            var (validasi, pesanValidasi) = this._trxCtrl.ValidasiKeranjangSebelumCheckout();
+            if (!validasi)
             {
-                // Arahkan ke form pembayaran dan kirim data total tagihan
-                if (this.OnNavigatePembayaran != null)
-                {
-                    this.OnNavigatePembayaran.Invoke(total);
-                }
-                else
-                {
-                    // Tidak ada subscriber event
-                    bool noEventSubscriber = true;
-                }
+                MessageBox.Show(
+                    pesanValidasi,
+                    "⚠️ Tidak Bisa Lanjut,Periksa kembali Keranjang Anda",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
+            if (this.OnNavigatePembayaran != null)
+            {
+                this.OnNavigatePembayaran.Invoke(total);
             }
         }
 

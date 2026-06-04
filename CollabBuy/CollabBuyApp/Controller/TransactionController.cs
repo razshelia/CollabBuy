@@ -156,6 +156,56 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             return hasil;
         }
+        /// <summary>
+        /// Validasi keranjang sebelum pindah ke halaman pembayaran.
+        /// Mengecek min order per produk (total semua titipan, bukan per baris).
+        /// Tidak melakukan checkout — hanya validasi.
+        /// </summary>
+        public (bool valid, string pesan) ValidasiKeranjangSebelumCheckout()
+        {
+            try
+            {
+                var dict = this._cartManager.GetKeranjangDictionary();
+
+                if (dict.Count == 0)
+                    return (false, "Keranjang masih kosong!");
+
+                var pelanggaranMinOrder = new System.Collections.Generic.List<string>();
+
+                foreach (var entry in dict)
+                {
+                    int totalQty = 0;
+                    Product produkRef = null;
+
+                    foreach (var detail in entry.Value)
+                    {
+                        totalQty += detail.JumlahPesanan;
+                        if (produkRef == null) produkRef = detail.ProdukYangDipesan;
+                    }
+
+                    if (produkRef != null && totalQty < produkRef.MinOrder)
+                    {
+                        pelanggaranMinOrder.Add(
+                            $"• {produkRef.NamaProduk}: pesan {totalQty} pcs (min. {produkRef.MinOrder} pcs)"
+                        );
+                    }
+                }
+
+                if (pelanggaranMinOrder.Count > 0)
+                {
+                    string detail = string.Join("\n", pelanggaranMinOrder);
+                    return (false,
+                        "Beberapa produk belum memenuhi minimal order:\n\n" + detail +
+                        "\n\nTambah jumlah pesanan atau hapus produk tersebut dari keranjang.");
+                }
+
+                return (true, "OK");
+            }
+            catch (Exception ex)
+            {
+                return (false, "Terjadi error saat validasi: " + ex.Message);
+            }
+        }
 
         // =======================================================
         // FITUR MANAJEMEN TRANSAKSI (QUERY & UPDATE STATUS)
