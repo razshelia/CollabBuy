@@ -37,20 +37,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
             DataTable dt = new DataTable();
             string query = @"
         SELECT 
-            po.id_po, 
+            po.id_po,
             po.judul_po     AS nama_sesi,
             po.jenis_po,
-            v.nama_toko, 
-            COALESCE(MIN(p.target_kuota), 0)        AS kuota, 
-            COALESCE(SUM(td.jumlah_pesanan), 0)     AS terisi, 
-            MIN(p.harga_dasar)                      AS harga,
-            MIN(p.harga_diskon)                     AS harga_diskon,
-            po.batas_waktu  AS deadline, 
-            po.is_aktif 
+            v.nama_toko,
+            COUNT(p.id_produk)                      AS jumlah_produk,
+            COALESCE(MIN(p.harga_dasar), 0)         AS harga_min,
+            COALESCE(MAX(p.harga_dasar), 0)         AS harga_max,
+            po.batas_waktu  AS deadline,
+            po.is_aktif
         FROM preorders po
         JOIN verifications v ON po.id_penjual = v.id_user
-        JOIN products p ON po.id_po = p.id_po
-        LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
+        LEFT JOIN products p ON po.id_po = p.id_po AND p.is_deleted = FALSE
         WHERE po.is_aktif = TRUE
         AND po.is_deleted = FALSE
         AND po.batas_waktu >= CURRENT_TIMESTAMP
@@ -91,7 +89,26 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
-
+        public int InsertPOSaja(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                string insertQuery = @"
+                    INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif, is_deleted)
+                    VALUES (@penjual, @judul, @jenis, @rekening, @batas, TRUE, FALSE)
+                    RETURNING id_po;";
+                using (var cmd = new NpgsqlCommand(insertQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@penjual", idPenjual);
+                    cmd.Parameters.AddWithValue("@judul", judul);
+                    cmd.Parameters.AddWithValue("@jenis", jenis);
+                    cmd.Parameters.AddWithValue("@rekening", rekening);
+                    cmd.Parameters.AddWithValue("@batas", batasWaktu);
+                    return (int)cmd.ExecuteScalar();
+                }
+            }
+        }
         public bool InsertPOAndUpdateProduct(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -102,8 +119,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     try
                     {
                         string insertQuery = @"
-                            INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif) 
-                            VALUES (@penjual, @judul, @jenis, @rekening, @batas, TRUE) RETURNING id_po;";
+                            INSERT INTO preorders (id_penjual, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif, is_deleted) 
+                            VALUES (@penjual, @judul, @jenis, @rekening, @batas, TRUE, FALSE) RETURNING id_po;";
 
                         int newIdPo;
                         using (var cmdInsert = new NpgsqlCommand(insertQuery, conn, dbTx))
