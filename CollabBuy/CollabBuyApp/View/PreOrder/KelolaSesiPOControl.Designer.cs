@@ -30,7 +30,6 @@
             this.btnHapusPO = new System.Windows.Forms.Button();
 
             ((System.ComponentModel.ISupportInitialize)(this.dgvPO)).BeginInit();
-            this.pnlEdit.SuspendLayout();
             this.SuspendLayout();
 
             // lblTitle
@@ -55,7 +54,6 @@
             this.btnRefresh.Font = new System.Drawing.Font("Segoe UI Black", 9.75F, System.Drawing.FontStyle.Bold);
             this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.btnRefresh.Location = new System.Drawing.Point(36, 95);
-            this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(120, 32);
             this.btnRefresh.Text = "🔄 Refresh";
             this.btnRefresh.UseVisualStyleBackColor = false;
@@ -75,7 +73,6 @@
             this.dgvPO.EnableHeadersVisualStyles = false;
             this.dgvPO.Location = new System.Drawing.Point(36, 140);
             this.dgvPO.MultiSelect = false;
-            this.dgvPO.Name = "dgvPO";
             this.dgvPO.ReadOnly = true;
             this.dgvPO.RowHeadersVisible = false;
             this.dgvPO.RowTemplate.Height = 38;
@@ -83,23 +80,7 @@
             this.dgvPO.Size = new System.Drawing.Size(920, 220);
             this.dgvPO.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPO_CellClick);
 
-            // pnlEdit
-            this.pnlEdit.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
-            this.pnlEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlEdit.Controls.Add(this.lblEditTitle);
-            this.pnlEdit.Controls.Add(this.lblJudul);
-            this.pnlEdit.Controls.Add(this.txtJudul);
-            this.pnlEdit.Controls.Add(this.lblJenis);
-            this.pnlEdit.Controls.Add(this.cbJenis);
-            this.pnlEdit.Controls.Add(this.lblBatas);
-            this.pnlEdit.Controls.Add(this.dtpBatas);
-            this.pnlEdit.Controls.Add(this.lblRekening);
-            this.pnlEdit.Controls.Add(this.txtRekening);
-            this.pnlEdit.Controls.Add(this.btnSimpanEdit);
-            this.pnlEdit.Controls.Add(this.btnHapusPO);
-            this.pnlEdit.Location = new System.Drawing.Point(36, 375);
-            this.pnlEdit.Name = "pnlEdit";
-            this.pnlEdit.Size = new System.Drawing.Size(920, 200);
+            // ── pnlEdit: konfigurasi semua kontrol DULU, baru Controls.Add ──
 
             // lblEditTitle
             this.lblEditTitle.AutoSize = true;
@@ -108,63 +89,44 @@
             this.lblEditTitle.Location = new System.Drawing.Point(15, 12);
             this.lblEditTitle.Text = "✏️ Edit Sesi PO yang Dipilih";
 
-            // lblJudul
+            // lblJudul + txtJudul
             this.lblJudul.AutoSize = true;
             this.lblJudul.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblJudul.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblJudul.Location = new System.Drawing.Point(15, 45);
+            this.lblJudul.Location = new System.Drawing.Point(15, 48);
             this.lblJudul.Text = "Nama Sesi";
 
-            // txtJudul
             this.txtJudul.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.txtJudul.Location = new System.Drawing.Point(15, 63);
-            this.txtJudul.Name = "txtJudul";
-            this.txtJudul.Size = new System.Drawing.Size(280, 27);
+            this.txtJudul.Location = new System.Drawing.Point(15, 66);
+            this.txtJudul.Size = new System.Drawing.Size(260, 27);
 
-            // lblJenis
+            // lblJenis + cbJenis
             this.lblJenis.AutoSize = true;
             this.lblJenis.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblJenis.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblJenis.Location = new System.Drawing.Point(310, 45);
+            this.lblJenis.Location = new System.Drawing.Point(290, 48);
             this.lblJenis.Text = "Tipe PO";
 
-            // cbJenis
             this.cbJenis.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbJenis.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.cbJenis.Items.AddRange(new object[] { "Biasa", "Gotong Royong" });
-            this.cbJenis.Location = new System.Drawing.Point(310, 63);
-            this.cbJenis.Name = "cbJenis";
+            this.cbJenis.Location = new System.Drawing.Point(290, 66);
             this.cbJenis.Size = new System.Drawing.Size(160, 28);
 
-            // lblBatas
+            // lblBatas + dtpBatas
             this.lblBatas.AutoSize = true;
             this.lblBatas.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblBatas.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblBatas.Location = new System.Drawing.Point(485, 45);
+            this.lblBatas.Location = new System.Drawing.Point(465, 48);
             this.lblBatas.Text = "Waktu Tutup";
 
-            // dtpBatas
             this.dtpBatas.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.dtpBatas.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.dtpBatas.Location = new System.Drawing.Point(485, 63);
+            this.dtpBatas.Location = new System.Drawing.Point(465, 66);
             this.dtpBatas.MinDate = System.DateTime.Now;
-            this.dtpBatas.Name = "dtpBatas";
-            this.dtpBatas.Size = new System.Drawing.Size(200, 27);
+            this.dtpBatas.Size = new System.Drawing.Size(180, 27);
 
-            // lblRekening
-            this.lblRekening.AutoSize = true;
-            this.lblRekening.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblRekening.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblRekening.Location = new System.Drawing.Point(15, 105);
-            this.lblRekening.Text = "Info Rekening / QRIS (wajib diisi ulang) *";
-
-            // txtRekening
-            this.txtRekening.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.txtRekening.Location = new System.Drawing.Point(15, 123);
-            this.txtRekening.Name = "txtRekening";
-            this.txtRekening.Size = new System.Drawing.Size(580, 27);
-
-            // btnSimpanEdit
+            // btnSimpanEdit + btnHapusPO (di sebelah kanan baris atas)
             this.btnSimpanEdit.BackColor = System.Drawing.Color.FromArgb(160, 160, 160);
             this.btnSimpanEdit.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnSimpanEdit.Enabled = false;
@@ -172,14 +134,12 @@
             this.btnSimpanEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpanEdit.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnSimpanEdit.ForeColor = System.Drawing.Color.White;
-            this.btnSimpanEdit.Location = new System.Drawing.Point(615, 63);
-            this.btnSimpanEdit.Name = "btnSimpanEdit";
-            this.btnSimpanEdit.Size = new System.Drawing.Size(140, 40);
+            this.btnSimpanEdit.Location = new System.Drawing.Point(660, 58);
+            this.btnSimpanEdit.Size = new System.Drawing.Size(130, 40);
             this.btnSimpanEdit.Text = "💾 Simpan Edit";
             this.btnSimpanEdit.UseVisualStyleBackColor = false;
             this.btnSimpanEdit.Click += new System.EventHandler(this.btnSimpanEdit_Click);
 
-            // btnHapusPO
             this.btnHapusPO.BackColor = System.Drawing.Color.FromArgb(160, 160, 160);
             this.btnHapusPO.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnHapusPO.Enabled = false;
@@ -187,12 +147,39 @@
             this.btnHapusPO.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnHapusPO.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnHapusPO.ForeColor = System.Drawing.Color.White;
-            this.btnHapusPO.Location = new System.Drawing.Point(765, 63);
-            this.btnHapusPO.Name = "btnHapusPO";
-            this.btnHapusPO.Size = new System.Drawing.Size(135, 40);
+            this.btnHapusPO.Location = new System.Drawing.Point(800, 58);
+            this.btnHapusPO.Size = new System.Drawing.Size(110, 40);
             this.btnHapusPO.Text = "🗑️ Hapus PO";
             this.btnHapusPO.UseVisualStyleBackColor = false;
             this.btnHapusPO.Click += new System.EventHandler(this.btnHapusPO_Click);
+
+            // lblRekening + txtRekening (baris bawah)
+            this.lblRekening.AutoSize = true;
+            this.lblRekening.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblRekening.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblRekening.Location = new System.Drawing.Point(15, 113);
+            this.lblRekening.Text = "Info Rekening / QRIS (wajib diisi ulang) *";
+
+            this.txtRekening.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtRekening.Location = new System.Drawing.Point(15, 131);
+            this.txtRekening.Size = new System.Drawing.Size(895, 27);
+
+            // pnlEdit — Controls.Add SETELAH semua kontrol dikonfigurasi
+            this.pnlEdit.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
+            this.pnlEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlEdit.Location = new System.Drawing.Point(36, 375);
+            this.pnlEdit.Size = new System.Drawing.Size(920, 175);
+            this.pnlEdit.Controls.Add(this.lblEditTitle);
+            this.pnlEdit.Controls.Add(this.lblJudul);
+            this.pnlEdit.Controls.Add(this.txtJudul);
+            this.pnlEdit.Controls.Add(this.lblJenis);
+            this.pnlEdit.Controls.Add(this.cbJenis);
+            this.pnlEdit.Controls.Add(this.lblBatas);
+            this.pnlEdit.Controls.Add(this.dtpBatas);
+            this.pnlEdit.Controls.Add(this.btnSimpanEdit);
+            this.pnlEdit.Controls.Add(this.btnHapusPO);
+            this.pnlEdit.Controls.Add(this.lblRekening);
+            this.pnlEdit.Controls.Add(this.txtRekening);
 
             // KelolaSesiPOControl
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -209,8 +196,6 @@
             this.Load += new System.EventHandler(this.KelolaSesiPOControl_Load);
 
             ((System.ComponentModel.ISupportInitialize)(this.dgvPO)).EndInit();
-            this.pnlEdit.ResumeLayout(false);
-            this.pnlEdit.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
         }

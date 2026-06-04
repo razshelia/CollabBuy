@@ -33,7 +33,6 @@
 
             this.pnlCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUser)).BeginInit();
-            this.pnlDetail.SuspendLayout();
             this.SuspendLayout();
 
             // lblTitle
@@ -49,14 +48,6 @@
             this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Text = "Pantau dan kelola semua akun pengguna CollabBuy";
-
-            // pnlCard
-            this.pnlCard.BackColor = System.Drawing.Color.White;
-            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlCard.Controls.Add(this.btnRefresh);
-            this.pnlCard.Controls.Add(this.dgvUser);
-            this.pnlCard.Location = new System.Drawing.Point(36, 110);
-            this.pnlCard.Size = new System.Drawing.Size(580, 500);
 
             // dgvUser
             headerStyle.BackColor = System.Drawing.Color.FromArgb(200, 182, 255);
@@ -97,12 +88,127 @@
             this.btnRefresh.Text = "🔄 Refresh Data";
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
 
-            // pnlDetail
+            // pnlCard
+            this.pnlCard.BackColor = System.Drawing.Color.White;
+            this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.btnRefresh);
+            this.pnlCard.Controls.Add(this.dgvUser);
+            this.pnlCard.Location = new System.Drawing.Point(36, 110);
+            this.pnlCard.Size = new System.Drawing.Size(580, 500);
+
+            // ── pnlDetail: setup semua label DULU, baru Controls.Add ──
+
+            // lblDetailTitle
+            this.lblDetailTitle.AutoSize = true;
+            this.lblDetailTitle.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
+            this.lblDetailTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailTitle.Location = new System.Drawing.Point(20, 18);
+            this.lblDetailTitle.Text = "📋 Detail Profil User";
+
+            // Nama Lengkap
+            this.lblNamaLabel.AutoSize = true;
+            this.lblNamaLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblNamaLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblNamaLabel.Location = new System.Drawing.Point(20, 55);
+            this.lblNamaLabel.Text = "Nama Lengkap";
+
+            this.lblDetailNama.AutoSize = false;
+            this.lblDetailNama.Width = 260;
+            this.lblDetailNama.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailNama.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailNama.Location = new System.Drawing.Point(20, 73);
+            this.lblDetailNama.Text = "Klik baris untuk lihat detail";
+
+            // Username
+            this.lblUsernameLabel.AutoSize = true;
+            this.lblUsernameLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblUsernameLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblUsernameLabel.Location = new System.Drawing.Point(20, 118);
+            this.lblUsernameLabel.Text = "Username";
+
+            this.lblDetailUsername.AutoSize = false;
+            this.lblDetailUsername.Width = 260;
+            this.lblDetailUsername.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailUsername.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailUsername.Location = new System.Drawing.Point(20, 136);
+            this.lblDetailUsername.Text = "-";
+
+            // Email
+            this.lblEmailLabel.AutoSize = true;
+            this.lblEmailLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblEmailLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblEmailLabel.Location = new System.Drawing.Point(20, 181);
+            this.lblEmailLabel.Text = "Email";
+
+            this.lblDetailEmail.AutoSize = false;
+            this.lblDetailEmail.Width = 260;
+            this.lblDetailEmail.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailEmail.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailEmail.Location = new System.Drawing.Point(20, 199);
+            this.lblDetailEmail.Text = "-";
+
+            // No. WhatsApp
+            this.lblTeleponLabel.AutoSize = true;
+            this.lblTeleponLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblTeleponLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblTeleponLabel.Location = new System.Drawing.Point(20, 244);
+            this.lblTeleponLabel.Text = "No. WhatsApp";
+
+            this.lblDetailTelepon.AutoSize = false;
+            this.lblDetailTelepon.Width = 260;
+            this.lblDetailTelepon.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailTelepon.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailTelepon.Location = new System.Drawing.Point(20, 262);
+            this.lblDetailTelepon.Text = "-";
+
+            // Peran
+            this.lblPeranLabel.AutoSize = true;
+            this.lblPeranLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblPeranLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblPeranLabel.Location = new System.Drawing.Point(20, 307);
+            this.lblPeranLabel.Text = "Peran";
+
+            this.lblDetailPeran.AutoSize = false;
+            this.lblDetailPeran.Width = 260;
+            this.lblDetailPeran.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailPeran.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailPeran.Location = new System.Drawing.Point(20, 325);
+            this.lblDetailPeran.Text = "-";
+
+            // Status Akun
+            this.lblStatusLabel.AutoSize = true;
+            this.lblStatusLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblStatusLabel.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
+            this.lblStatusLabel.Location = new System.Drawing.Point(20, 370);
+            this.lblStatusLabel.Text = "Status Akun";
+
+            this.lblDetailStatus.AutoSize = false;
+            this.lblDetailStatus.Width = 260;
+            this.lblDetailStatus.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.lblDetailStatus.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblDetailStatus.Location = new System.Drawing.Point(20, 388);
+            this.lblDetailStatus.Text = "-";
+
+            // btnBlokir
+            this.btnBlokir.BackColor = System.Drawing.Color.FromArgb(200, 0, 0);
+            this.btnBlokir.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnBlokir.FlatAppearance.BorderSize = 0;
+            this.btnBlokir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBlokir.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
+            this.btnBlokir.ForeColor = System.Drawing.Color.White;
+            this.btnBlokir.Location = new System.Drawing.Point(20, 445);
+            this.btnBlokir.Size = new System.Drawing.Size(280, 45);
+            this.btnBlokir.Text = "🚫 Blokir Akun";
+            this.btnBlokir.Enabled = false;
+            this.btnBlokir.BackColor = System.Drawing.Color.FromArgb(210, 210, 210);
+            this.btnBlokir.ForeColor = System.Drawing.Color.FromArgb(140, 140, 140);
+            this.btnBlokir.Click += new System.EventHandler(this.btnBlokir_Click);
+
+            // pnlDetail — Controls.Add SETELAH semua label sudah dikonfigurasi
             this.pnlDetail.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
+            this.pnlDetail.AutoScroll = true;
             this.pnlDetail.Location = new System.Drawing.Point(636, 110);
-            this.pnlDetail.Size = new System.Drawing.Size(320, 560);
-            this.pnlDetail.Visible = true;
-            this.pnlDetail.BringToFront();
+            this.pnlDetail.Size = new System.Drawing.Size(320, 510);
             this.pnlDetail.Controls.Add(this.lblDetailTitle);
             this.pnlDetail.Controls.Add(this.lblNamaLabel);
             this.pnlDetail.Controls.Add(this.lblDetailNama);
@@ -118,43 +224,6 @@
             this.pnlDetail.Controls.Add(this.lblDetailStatus);
             this.pnlDetail.Controls.Add(this.btnBlokir);
 
-            // lblDetailTitle
-            this.lblDetailTitle.AutoSize = true;
-            this.lblDetailTitle.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
-            this.lblDetailTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblDetailTitle.Location = new System.Drawing.Point(20, 20);
-            this.lblDetailTitle.Text = "📋 Detail Profil User";
-
-            // Helper labels & values
-            int yPos = 55;
-            int gap = 44;
-
-            SetLabel(ref this.lblNamaLabel, "Nama Lengkap", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailNama, "-", 20, yPos); yPos += gap;
-            SetLabel(ref this.lblUsernameLabel, "Username", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailUsername, "-", 20, yPos); yPos += gap;
-            SetLabel(ref this.lblEmailLabel, "Email", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailEmail, "-", 20, yPos); yPos += gap;
-            SetLabel(ref this.lblTeleponLabel, "No. WhatsApp", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailTelepon, "-", 20, yPos); yPos += gap;
-            SetLabel(ref this.lblPeranLabel, "Peran", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailPeran, "-", 20, yPos); yPos += gap;
-            SetLabel(ref this.lblStatusLabel, "Status Akun", 20, yPos); yPos += 22;
-            SetValueLabel(ref this.lblDetailStatus, "-", 20, yPos); yPos += gap;
-
-            // btnBlokir
-            this.btnBlokir.BackColor = System.Drawing.Color.FromArgb(200, 0, 0);
-            this.btnBlokir.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnBlokir.FlatAppearance.BorderSize = 0;
-            this.btnBlokir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBlokir.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
-            this.btnBlokir.ForeColor = System.Drawing.Color.White;
-            this.btnBlokir.Location = new System.Drawing.Point(20, yPos);
-            this.btnBlokir.Size = new System.Drawing.Size(280, 45);
-            this.btnBlokir.Text = "🚫 Blokir Akun";
-            this.btnBlokir.Enabled = false;
-            this.btnBlokir.Click += new System.EventHandler(this.btnBlokir_Click);
-
             // Main control
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -164,36 +233,13 @@
             this.Controls.Add(this.lblSubtitle);
             this.Controls.Add(this.lblTitle);
             this.Name = "KelolaUserControl";
-            this.Size = new System.Drawing.Size(1100, 680);
+            this.Size = new System.Drawing.Size(1000, 650);
             this.Load += new System.EventHandler(this.KelolaUserControl_Load);
 
             this.pnlCard.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvUser)).EndInit();
-            this.pnlDetail.ResumeLayout(false);
-            this.pnlDetail.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-        }
-
-        private void SetLabel(ref System.Windows.Forms.Label lbl, string text, int x, int y)
-        {
-            lbl = new System.Windows.Forms.Label();
-            lbl.AutoSize = true;
-            lbl.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            lbl.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
-            lbl.Location = new System.Drawing.Point(x, y);
-            lbl.Text = text;
-        }
-
-        private void SetValueLabel(ref System.Windows.Forms.Label lbl, string text, int x, int y)
-        {
-            lbl = new System.Windows.Forms.Label();
-            lbl.AutoSize = false;
-            lbl.Width = 280;
-            lbl.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
-            lbl.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            lbl.Location = new System.Drawing.Point(x, y);
-            lbl.Text = text;
         }
 
         private System.Windows.Forms.Label lblTitle, lblSubtitle;

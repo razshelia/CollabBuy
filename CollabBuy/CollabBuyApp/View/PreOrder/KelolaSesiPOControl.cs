@@ -23,10 +23,10 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
         private void KelolaSesiPOControl_Load(object sender, EventArgs e)
         {
-            this.AdjustLayout();
             this.SetupDataGridView();
             this.LoadDataPO();
             this.SetFormEnabled(false);
+            this.AdjustLayout(); // dipanggil TERAKHIR setelah kontrol sudah siap
         }
 
         private void SetupDataGridView()
@@ -37,9 +37,9 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdPo", DataPropertyName = "id_po", Visible = false });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "BatasRaw", DataPropertyName = "batas_waktu_raw", Visible = false });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Judul", HeaderText = "Nama Sesi", DataPropertyName = "judul_po", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Jenis", HeaderText = "Tipe", DataPropertyName = "jenis_po", Width = 110 });
-            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu_format", Width = 155 });
-            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", DataPropertyName = "status_label", Width = 90 });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Jenis", HeaderText = "Tipe", DataPropertyName = "jenis_po", Width = 130 });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu_format", Width = 175 });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", DataPropertyName = "status_label", Width = 100 });
         }
 
         private void LoadDataPO()
@@ -48,10 +48,9 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             {
                 DataTable dtRaw = this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
 
-                // Buat DataTable baru dengan kolom yang sudah diformat agar tampil rapi
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_po", typeof(int));
-                dtUI.Columns.Add("batas_waktu_raw", typeof(string));
+                dtUI.Columns.Add("batas_waktu_raw", typeof(string)); // raw ISO untuk TryParse
                 dtUI.Columns.Add("judul_po", typeof(string));
                 dtUI.Columns.Add("jenis_po", typeof(string));
                 dtUI.Columns.Add("batas_waktu_format", typeof(string));
@@ -63,7 +62,9 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
                     DateTime batas = row["batas_waktu"] != DBNull.Value
                         ? Convert.ToDateTime(row["batas_waktu"])
-                        : DateTime.Now;
+                        : DateTime.Now.AddDays(1);
+
+                    string batasRaw = batas.ToString("yyyy-MM-dd HH:mm:ss");
 
                     string batasFormat = batas < DateTime.Now
                         ? "⛔ " + batas.ToString("dd MMM yyyy")
@@ -73,7 +74,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
                     dtUI.Rows.Add(
                         Convert.ToInt32(row["id_po"]),
-                        batas.ToString("yyyy-MM-dd HH:mm:ss"),
+                        batasRaw,
                         row["judul_po"].ToString(),
                         row["jenis_po"].ToString(),
                         batasFormat,
@@ -87,14 +88,15 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
                 if (dtUI.Rows.Count == 0)
                 {
-                    // Tampilkan pesan jika belum ada PO
-                    MessageBox.Show("Kamu belum punya sesi PO. Buka sesi dulu lewat menu 'Buka Sesi PO'!",
+                    MessageBox.Show(
+                        "Kamu belum punya sesi PO. Buka sesi dulu lewat menu 'Buka Sesi PO'!",
                         "Belum Ada Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal muat data PO: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal muat data PO: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -105,20 +107,20 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             DataGridViewRow row = this.dgvPO.Rows[e.RowIndex];
             this._selectedIdPo = Convert.ToInt32(row.Cells["IdPo"].Value);
 
-            this.txtJudul.Text = row.Cells["Judul"].Value.ToString();
+            this.txtJudul.Text = row.Cells["Judul"].Value?.ToString() ?? "";
             this.txtRekening.Text = "";
 
-            string jenis = row.Cells["Jenis"].Value.ToString();
-            this.cbJenis.SelectedItem = jenis;
+            // Pilih jenis dari kolom raw (bukan format emoji)
+            string jenis = row.Cells["Jenis"].Value?.ToString() ?? "Biasa";
+            int idx = this.cbJenis.FindStringExact(jenis);
+            this.cbJenis.SelectedIndex = idx >= 0 ? idx : 0;
+
+            // Baca tanggal dari kolom raw ISO, bukan kolom format emoji
             string rawBatas = row.Cells["BatasRaw"].Value?.ToString() ?? "";
             if (DateTime.TryParse(rawBatas, out DateTime batas))
-            {
                 this.dtpBatas.Value = batas > DateTime.Now ? batas : DateTime.Now.AddDays(1);
-            }
             else
-            {
                 this.dtpBatas.Value = DateTime.Now.AddDays(1);
-            }
 
             this.SetFormEnabled(true);
         }
@@ -127,22 +129,22 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             if (this._selectedIdPo == 0)
             {
-                MessageBox.Show("Pilih dulu sesi PO yang mau diedit!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Pilih dulu sesi PO yang mau diedit!", "Oops",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(this.txtRekening.Text))
             {
-                MessageBox.Show("Info rekening wajib diisi ulang untuk konfirmasi update!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Info rekening wajib diisi ulang untuk konfirmasi update!", "Validasi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.txtRekening.Focus();
                 return;
             }
 
             DialogResult dr = MessageBox.Show(
                 $"Yakin update sesi '{this.txtJudul.Text}'?",
-                "Konfirmasi Edit",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+                "Konfirmasi Edit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (dr == DialogResult.Yes)
             {
@@ -164,25 +166,20 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                     MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            else
-            {
-                bool batalEdit = true;
-            }
         }
 
         private void btnHapusPO_Click(object sender, EventArgs e)
         {
             if (this._selectedIdPo == 0)
             {
-                MessageBox.Show("Pilih dulu sesi PO yang mau dihapus!", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Pilih dulu sesi PO yang mau dihapus!", "Oops",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             DialogResult dr = MessageBox.Show(
                 $"Yakin mau tutup & hapus sesi '{this.txtJudul.Text}'?\n\nData tidak akan muncul lagi di katalog (soft delete, data aman di DB).",
-                "Konfirmasi Hapus",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
+                "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (dr == DialogResult.Yes)
             {
@@ -196,10 +193,6 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 {
                     MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
-            else
-            {
-                bool batalHapus = true;
             }
         }
 
@@ -227,43 +220,40 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
             this.btnSimpanEdit.Enabled = enabled;
             this.btnSimpanEdit.BackColor = enabled
-                ? Color.FromArgb(36, 0, 70)
-                : Color.FromArgb(210, 210, 210);
+                ? Color.FromArgb(36, 0, 70) : Color.FromArgb(210, 210, 210);
             this.btnSimpanEdit.ForeColor = enabled
-                ? Color.White
-                : Color.FromArgb(140, 140, 140);
+                ? Color.White : Color.FromArgb(140, 140, 140);
 
             this.btnHapusPO.Enabled = enabled;
             this.btnHapusPO.BackColor = enabled
-                ? Color.FromArgb(220, 53, 69)
-                : Color.FromArgb(210, 210, 210);
+                ? Color.FromArgb(220, 53, 69) : Color.FromArgb(210, 210, 210);
             this.btnHapusPO.ForeColor = enabled
-                ? Color.White
-                : Color.FromArgb(140, 140, 140);
+                ? Color.White : Color.FromArgb(140, 140, 140);
         }
 
         private void AdjustLayout()
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            if (w < 100) return;
+            if (w < 200) return; // jangan layout kalau belum siap
 
+            // Tabel PO
             this.dgvPO.Left = margin;
             this.dgvPO.Width = w;
-            int dgvTop = this.btnRefresh.Top + this.btnRefresh.Height + 10;
-            this.dgvPO.Top = dgvTop;
-            this.dgvPO.Height = 220;
-            int pnlEditTop = this.dgvPO.Top + this.dgvPO.Height + 15;
+
+            // Panel edit tepat di bawah tabel
             this.pnlEdit.Left = margin;
-            this.pnlEdit.Top = pnlEditTop;
+            this.pnlEdit.Top = this.dgvPO.Top + this.dgvPO.Height + 15;
             this.pnlEdit.Width = w;
-            int innerW = this.pnlEdit.Width - 30;
-            this.txtJudul.Width = Math.Min(280, (int)(innerW * 0.32));
-            this.cbJenis.Left = this.txtJudul.Left + this.txtJudul.Width + 20;
-            this.dtpBatas.Left = this.cbJenis.Left + this.cbJenis.Width + 20;
+
+            // Sesuaikan lebar txtRekening mengikuti lebar panel
+            int innerW = w - 30;
+            int btnTotalW = this.btnSimpanEdit.Width + this.btnHapusPO.Width + 10;
+            this.txtRekening.Width = innerW - btnTotalW - this.txtRekening.Left - 10;
+
+            // Tombol di kanan panel edit
             this.btnHapusPO.Left = innerW - this.btnHapusPO.Width + 15;
             this.btnSimpanEdit.Left = this.btnHapusPO.Left - this.btnSimpanEdit.Width - 10;
-            this.txtRekening.Width = this.btnSimpanEdit.Left - this.txtRekening.Left - 10;
         }
     }
 }
