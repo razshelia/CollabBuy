@@ -44,9 +44,18 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             txtNama.Clear();
             _selectedId = 0;
+
             btnTambah.Enabled = true;
+            btnTambah.BackColor = Color.FromArgb(36, 0, 70);
+            btnTambah.ForeColor = Color.FromArgb(253, 255, 182);
+
             btnUpdate.Enabled = false;
+            btnUpdate.BackColor = Color.FromArgb(210, 210, 210);
+            btnUpdate.ForeColor = Color.FromArgb(140, 140, 140);
+
             btnHapus.Enabled = false;
+            btnHapus.BackColor = Color.FromArgb(210, 210, 210);
+            btnHapus.ForeColor = Color.FromArgb(140, 140, 140);
         }
 
         private void dgvKategori_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -58,8 +67,16 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 txtNama.Text = row.Cells["nama_kategori"].Value.ToString();
 
                 btnTambah.Enabled = false;
+                btnTambah.BackColor = Color.FromArgb(210, 210, 210);
+                btnTambah.ForeColor = Color.FromArgb(140, 140, 140);
+
                 btnUpdate.Enabled = true;
+                btnUpdate.BackColor = Color.FromArgb(155, 246, 255);
+                btnUpdate.ForeColor = Color.FromArgb(36, 0, 70);
+
                 btnHapus.Enabled = true;
+                btnHapus.BackColor = Color.FromArgb(255, 173, 173);
+                btnHapus.ForeColor = Color.FromArgb(36, 0, 70);
             }
         }
 

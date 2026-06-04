@@ -37,11 +37,15 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             if (dt.Rows.Count == 0)
             {
                 this.btnKirim.Enabled = false;
+                this.btnKirim.BackColor = Color.FromArgb(210, 210, 210);
+                this.btnKirim.ForeColor = Color.FromArgb(140, 140, 140);
                 MessageBox.Show("Belum ada barang beres yang bisa di-review nih. Jajan dulu gih!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
                 this.btnKirim.Enabled = true;
+                this.btnKirim.BackColor = Color.FromArgb(36, 0, 70);
+                this.btnKirim.ForeColor = Color.FromArgb(224, 170, 255);
             }
         }
 

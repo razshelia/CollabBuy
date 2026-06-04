@@ -37,18 +37,57 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdPo", DataPropertyName = "id_po", Visible = false });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Judul", HeaderText = "Nama Sesi", DataPropertyName = "judul_po", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Jenis", HeaderText = "Tipe", DataPropertyName = "jenis_po", Width = 110 });
-            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu", Width = 155 });
-            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", DataPropertyName = "is_aktif", Width = 70 });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu_format", Width = 155 });
+            this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", DataPropertyName = "status_label", Width = 90 });
         }
 
         private void LoadDataPO()
         {
             try
             {
-                DataTable dt = this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
-                this.dgvPO.DataSource = dt;
+                DataTable dtRaw = this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
+
+                // Buat DataTable baru dengan kolom yang sudah diformat agar tampil rapi
+                DataTable dtUI = new DataTable();
+                dtUI.Columns.Add("id_po", typeof(int));
+                dtUI.Columns.Add("judul_po", typeof(string));
+                dtUI.Columns.Add("jenis_po", typeof(string));
+                dtUI.Columns.Add("batas_waktu_format", typeof(string));
+                dtUI.Columns.Add("status_label", typeof(string));
+
+                foreach (DataRow row in dtRaw.Rows)
+                {
+                    bool isAktif = row["is_aktif"] != DBNull.Value && Convert.ToBoolean(row["is_aktif"]);
+
+                    DateTime batas = row["batas_waktu"] != DBNull.Value
+                        ? Convert.ToDateTime(row["batas_waktu"])
+                        : DateTime.Now;
+
+                    string batasFormat = batas < DateTime.Now
+                        ? "⛔ " + batas.ToString("dd MMM yyyy")
+                        : "📅 " + batas.ToString("dd MMM yyyy HH:mm");
+
+                    string statusLabel = isAktif ? "🟢 Aktif" : "🔴 Tutup";
+
+                    dtUI.Rows.Add(
+                        Convert.ToInt32(row["id_po"]),
+                        row["judul_po"].ToString(),
+                        row["jenis_po"].ToString(),
+                        batasFormat,
+                        statusLabel
+                    );
+                }
+
+                this.dgvPO.DataSource = dtUI;
                 this.dgvPO.ClearSelection();
                 this.ResetForm();
+
+                if (dtUI.Rows.Count == 0)
+                {
+                    // Tampilkan pesan jika belum ada PO
+                    MessageBox.Show("Kamu belum punya sesi PO. Buka sesi dulu lewat menu 'Buka Sesi PO'!",
+                        "Belum Ada Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
@@ -190,18 +229,21 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.dtpBatas.Enabled = enabled;
             this.txtRekening.Enabled = enabled;
 
-            // Tombol edit & hapus: tampak pudar kalau tidak aktif (sesuai permintaan)
             this.btnSimpanEdit.Enabled = enabled;
             this.btnSimpanEdit.BackColor = enabled
-                ? System.Drawing.Color.FromArgb(36, 0, 70)
-                : System.Drawing.Color.FromArgb(160, 160, 160);
-            this.btnSimpanEdit.ForeColor = System.Drawing.Color.White;
+                ? Color.FromArgb(36, 0, 70)
+                : Color.FromArgb(210, 210, 210);
+            this.btnSimpanEdit.ForeColor = enabled
+                ? Color.White
+                : Color.FromArgb(140, 140, 140);
 
             this.btnHapusPO.Enabled = enabled;
             this.btnHapusPO.BackColor = enabled
-                ? System.Drawing.Color.FromArgb(220, 53, 69)
-                : System.Drawing.Color.FromArgb(160, 160, 160);
-            this.btnHapusPO.ForeColor = System.Drawing.Color.White;
+                ? Color.FromArgb(220, 53, 69)
+                : Color.FromArgb(210, 210, 210);
+            this.btnHapusPO.ForeColor = enabled
+                ? Color.White
+                : Color.FromArgb(140, 140, 140);
         }
 
         private void AdjustLayout()

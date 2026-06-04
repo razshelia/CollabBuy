@@ -92,10 +92,14 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                     MessageBox.Show("Kamu belum punya produk aktif nih. Daftarin produk dulu di menu Manajemen Produk!",
                         "Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     this.btnSimpanSesi.Enabled = false;
+                    this.btnSimpanSesi.BackColor = Color.FromArgb(210, 210, 210);
+                    this.btnSimpanSesi.ForeColor = Color.FromArgb(140, 140, 140);
                 }
                 else
                 {
                     this.btnSimpanSesi.Enabled = true;
+                    this.btnSimpanSesi.BackColor = Color.FromArgb(36, 0, 70);
+                    this.btnSimpanSesi.ForeColor = Color.FromArgb(253, 255, 182);
                 }
             }
             catch (Exception ex)

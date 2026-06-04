@@ -77,31 +77,17 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     string email = row["email"].ToString();
                     string telepon = row["nomor_telepon"].ToString();
                     string peran = row["peran"].ToString();
-                    string statusRaw = row["status_akun"].ToString(); // "Aktif" atau "Diblokir"
+                    string statusRaw = row["status_akun"].ToString();
 
-                    // Buat objek User menggunakan backing field bypass (password "dummy" aman
-                    // karena konstruktor User sudah set _password langsung ke backing field)
-                    User userObj;
-                    if (peran == "Penjual")
-                        userObj = new Penjual(nama, username, "dummy");
-                    else if (peran == "Admin")
-                        userObj = new Models.Admin(nama, username, "dummy", "dummy");
-                    else
-                        userObj = new Pembeli(nama, username, "dummy");
+                    string infoKontak = string.IsNullOrWhiteSpace(email) || email == "-"
+                        ? (string.IsNullOrWhiteSpace(telepon) || telepon == "-" ? "Belum ada kontak" : telepon)
+                        : email + ((!string.IsNullOrWhiteSpace(telepon) && telepon != "-") ? " | " + telepon : "");
 
-                    userObj.SetEmail(email);
-                    userObj.SetNomorTelepon(telepon);
+                    string tipeUser = peran == "Admin" ? "Administrator Sistem"
+                        : peran == "Penjual" ? "Penjual Terverifikasi"
+                        : "Pembeli";
 
-                    // Set status blokir dari database
-                    if (statusRaw == "Diblokir")
-                        userObj.Blokir("Terdeteksi pelanggaran sistem");
-                    else
-                        userObj.BukaBlokir();
-
-                    // Gunakan method OOP untuk data tampilan
-                    string infoKontak = userObj.DapatkanInfoKontak();
-                    string statusKece = userObj.DapatkanStatusAkun();
-                    string tipeUser = userObj.GetTipeUser();
+                    string statusKece = statusRaw == "Diblokir" ? "🚫 Diblokir" : "✅ Aktif";
 
                     dtUI.Rows.Add(
                         Convert.ToInt32(row["id_user"]),
@@ -211,6 +197,9 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.lblDetailStatus.Text = "-";
             this.lblDetailStatus.ForeColor = Color.Gray;
             this.btnBlokir.Enabled = false;
+            this.btnBlokir.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnBlokir.ForeColor = Color.FromArgb(140, 140, 140);
+            this.btnBlokir.Text = "— Pilih User Dulu —";
         }
 
         private void AdjustLayout()

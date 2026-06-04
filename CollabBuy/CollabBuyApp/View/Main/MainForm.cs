@@ -334,6 +334,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AddBtn("📁 Kelola Kategori", () => this.ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
                 AddBtn("📣 Tanggapan Aduan", () => this.ShowUserControl(
                     new ViewAdmin.TanggapanAduanControl(this._currentUser)));
+                AddBtn("📋 Log Aktivitas", () => this.ShowUserControl(
+                    new ViewAdmin.LogAktivitasControl()));
                 AddBtn("📊 Laporan Sistem", () => this.ShowUserControl(
                     new ViewReport.AnalitikPenjualanControl(this._currentUser)));
             }

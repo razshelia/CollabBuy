@@ -57,6 +57,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 {
                     this.lblNamaProduk.Text = "Waduh, barangnya ngilang bestie 😭";
                     this.btnMasukKeranjang.Enabled = false;
+                    this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
+                    this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
                 }
                 else
                 {
@@ -105,11 +107,15 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     {
                         this.lblSlotNilai.ForeColor = Color.FromArgb(200, 50, 50);
                         this.btnMasukKeranjang.Enabled = true;
+                        this.btnMasukKeranjang.BackColor = Color.FromArgb(36, 0, 70);
+                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(253, 255, 182);
                     }
                     else
                     {
                         this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
                         this.btnMasukKeranjang.Enabled = false;
+                        this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
+                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
                     }
 
                     // 3. Multi-Foto (Byte Packing System)

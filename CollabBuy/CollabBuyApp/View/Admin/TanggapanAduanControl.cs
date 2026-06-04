@@ -114,7 +114,12 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this._selectedIdAduan = 0;
             this.txtBalasan.Clear();
             this.btnBalas.Enabled = false;
+            this.btnBalas.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnBalas.ForeColor = Color.FromArgb(140, 140, 140);
+
             this.btnBlokir.Enabled = false;
+            this.btnBlokir.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnBlokir.ForeColor = Color.FromArgb(140, 140, 140);
         }
 
         private void dgvAduan_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -127,7 +132,12 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             {
                 this._selectedIdAduan = Convert.ToInt32(this.dgvAduan.Rows[e.RowIndex].Cells["id_aduan"].Value);
                 this.btnBalas.Enabled = true;
+                this.btnBalas.BackColor = Color.FromArgb(36, 0, 70);
+                this.btnBalas.ForeColor = Color.FromArgb(253, 255, 182);
+
                 this.btnBlokir.Enabled = true;
+                this.btnBlokir.BackColor = Color.DarkRed;
+                this.btnBlokir.ForeColor = Color.White;
             }
         }
 

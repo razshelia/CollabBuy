@@ -106,6 +106,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             string statusLama = this.dgvPesanan.SelectedRows[0].Cells["Status"].Value.ToString();
 
             // Validasi transisi berdasarkan aturan bisnis di Model
+            // Validasi transisi berdasarkan aturan bisnis
             if (statusLama == "Selesai" || statusLama == "Dibatalkan")
             {
                 MessageBox.Show($"Pesanan ini udah '{statusLama}', nggak bisa diubah lagi ya.", "Info",
@@ -117,6 +118,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 MessageBox.Show(
                     "Hei! Pesanan yang masih 'Menunggu' harus diubah ke 'Diproses' dulu ya.\n\nAlurnya: Menunggu → Diproses → Selesai 😊",
                     "Alur Tidak Valid",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            else if (statusLama == "Diproses" && statusBaru == "Dibatalkan")
+            {
+                // 🚫 ATURAN BISNIS: Pesanan yang sudah diproses TIDAK boleh dibatalkan oleh penjual
+                // Pembeli sudah bayar, penjual sudah mulai garap — batalkan hanya bisa lewat mediasi admin
+                MessageBox.Show(
+                    "Pesanan yang sudah 'Diproses' tidak bisa dibatalkan begitu saja.\n\n" +
+                    "Pembeli sudah melakukan pembayaran. Jika ada masalah, minta pembeli untuk menghubungi Admin. 🙏",
+                    "Tidak Diizinkan",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }

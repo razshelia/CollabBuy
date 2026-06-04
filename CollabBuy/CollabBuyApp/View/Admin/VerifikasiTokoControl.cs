@@ -114,6 +114,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
             this.pbKTM.Image = null;
             this.btnApprove.Enabled = false;
+            this.btnApprove.BackColor = Color.FromArgb(210, 210, 210);
+            this.btnApprove.ForeColor = Color.FromArgb(140, 140, 140);
             this._selectedIdUser = 0;
         }
 
@@ -128,6 +130,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 DataGridViewRow row = this.dgvVerifikasi.Rows[e.RowIndex];
                 this._selectedIdUser = Convert.ToInt32(row.Cells["id_user"].Value);
                 this.btnApprove.Enabled = true;
+                this.btnApprove.BackColor = Color.FromArgb(36, 0, 70);
+                this.btnApprove.ForeColor = Color.FromArgb(253, 255, 182);
 
                 if (row.Cells["bukti_ktm"].Value != DBNull.Value)
                 {

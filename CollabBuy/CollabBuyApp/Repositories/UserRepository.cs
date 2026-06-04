@@ -74,7 +74,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                         // Polimorfisme: Instansiasi sesuai peran agar tidak crash
                         User user = peran == "Penjual" ? new Penjual(nama, username, password)
-                                  : peran == "Admin" ? (User)new Admin(nama, username, password, "SISTEM_DEFAULT")
+                                  : peran == "Admin" ? (User)new Admin(nama, username, password)
                                   : new Pembeli(nama, username, password);
 
                         user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
@@ -338,7 +338,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             if (peranDb.ToLower() == "admin")
             {
-                userObj = new Admin(nama, username, password, "SISTEM_DEFAULT");
+                userObj = new Admin(nama, username, password);
                 userObj.SetPeran("Admin");
             }
             else if (sudahVerifikasiPenjual)
