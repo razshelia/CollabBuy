@@ -108,8 +108,9 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
 
         private Panel BuatKartuPO(int idPO, string namaSesi, string namaToko, int kuota, int terisi, decimal harga, DateTime deadline)
         {
+            // kuota 0 artinya tidak ada target kuota → tidak bisa penuh
             bool isPenuh;
-            if (terisi >= kuota)
+            if (kuota > 0 && terisi >= kuota)
             {
                 isPenuh = true;
             }
@@ -118,18 +119,8 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 isPenuh = false;
             }
 
-            bool isExpired;
-            if (DateTime.Now > deadline)
-            {
-                isExpired = true;
-            }
-            else
-            {
-                isExpired = false;
-            }
-
             bool isTutup;
-            if (isPenuh || isExpired)
+            if (isPenuh)
             {
                 isTutup = true;
             }

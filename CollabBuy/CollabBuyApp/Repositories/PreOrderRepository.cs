@@ -51,6 +51,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 		LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
 		WHERE po.is_aktif = TRUE
         AND po.is_deleted = FALSE
+        AND po.batas_waktu >= CURRENT_TIMESTAMP
   		AND (po.judul_po ILIKE @keyword OR v.nama_toko ILIKE @keyword)
 		GROUP BY po.id_po, po.judul_po, v.nama_toko, po.batas_waktu, po.is_aktif
 		ORDER BY po.batas_waktu ASC;";

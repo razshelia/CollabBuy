@@ -205,48 +205,32 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private void AdjustLayout()
         {
             int margin = 36;
-            int totalW = this.Width;
-            if (totalW < 700) return;
-
-            int w = totalW - (margin * 2);
+            int w = this.Width - (margin * 2);
             int gridW = (int)(w * 0.60);
 
-            // Panel kiri
-            this.pnlCard.Left = margin;
-            this.pnlCard.Width = gridW;
-            this.pnlCard.Height = this.Height - this.pnlCard.Top - margin;
+            // pnlCard mengikuti tinggi form
+            pnlCard.Width = gridW;
+            pnlCard.Height = this.Height - pnlCard.Top - margin;
 
-            this.dgvUser.Width = this.pnlCard.Width - 48;
-            this.dgvUser.Height = this.pnlCard.Height - this.btnRefresh.Height - 70;
+            // dgvUser mengisi panel, sisakan ruang untuk btnRefresh
+            dgvUser.Width = pnlCard.Width - 48;
+            dgvUser.Height = pnlCard.Height - btnRefresh.Height - 60;
 
-            this.btnRefresh.Top = this.pnlCard.Height - this.btnRefresh.Height - 20;
-            this.btnRefresh.Left = this.pnlCard.Width - this.btnRefresh.Width - 14;
+            // btnRefresh di pojok kanan bawah pnlCard
+            btnRefresh.Top = pnlCard.Height - btnRefresh.Height - 15;
+            btnRefresh.Left = pnlCard.Width - btnRefresh.Width - 14;
 
-            // Panel kanan
+            // pnlDetail di sebelah kanan pnlCard
             int detailLeft = margin + gridW + 20;
-            int detailWidth = totalW - detailLeft - margin;
-            if (detailWidth < 260) detailWidth = 260;
+            pnlDetail.Left = detailLeft;
+            pnlDetail.Width = this.Width - detailLeft - margin;
+            pnlDetail.Height = this.Height - pnlDetail.Top - margin;
+            pnlDetail.AutoScroll = true;
+            pnlDetail.AutoScrollMinSize = new System.Drawing.Size(0, 625);
 
-            this.pnlDetail.Left = detailLeft;
-            this.pnlDetail.Top = this.pnlCard.Top;
-            this.pnlDetail.Width = detailWidth;
-            this.pnlDetail.Height = this.pnlCard.Height;
-
-            // Lebar label & tombol ikut lebar panel
-            int lblWidth = detailWidth - 44;
-            if (lblWidth < 200) lblWidth = 200;
-
-            this.lblDetailNama.Width = lblWidth;
-            this.lblDetailUsername.Width = lblWidth;
-            this.lblDetailEmail.Width = lblWidth;
-            this.lblDetailTelepon.Width = lblWidth;
-            this.lblDetailPeran.Width = lblWidth;
-            this.lblDetailStatus.Width = lblWidth;
-
-            // Tombol blokir: lebar ikut panel, Top tetap 445 agar AutoScroll aktif jika layar pendek
-            this.btnBlokir.Width = lblWidth;
-            this.btnBlokir.Height = 38;
-            this.btnBlokir.Top = 430;
+            // Sesuaikan lebar tombol blokir dengan panel
+            btnBlokir.Width = 160;
+            btnBlokir.Left = (pnlDetail.Width - btnBlokir.Width) / 2;
         }
     }
 }

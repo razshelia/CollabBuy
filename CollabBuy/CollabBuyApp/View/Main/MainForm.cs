@@ -229,7 +229,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                     Text = "CollabBuy",
                     ForeColor = System.Drawing.Color.FromArgb(253, 255, 182),
                     Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold),
-                    Location = new System.Drawing.Point(92, 16),
+                    Location = new System.Drawing.Point(92, 32),
                     AutoSize = true,
                     BackColor = System.Drawing.Color.Transparent
                 };

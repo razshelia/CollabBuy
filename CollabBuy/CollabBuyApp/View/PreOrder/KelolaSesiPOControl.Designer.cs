@@ -124,7 +124,7 @@
             this.dtpBatas.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.dtpBatas.Location = new System.Drawing.Point(465, 66);
             this.dtpBatas.MinDate = System.DateTime.Now;
-            this.dtpBatas.Size = new System.Drawing.Size(180, 27);
+            this.dtpBatas.Size = new System.Drawing.Size(200, 27);
 
             // btnSimpanEdit + btnHapusPO (di sebelah kanan baris atas)
             this.btnSimpanEdit.BackColor = System.Drawing.Color.FromArgb(160, 160, 160);
@@ -134,8 +134,8 @@
             this.btnSimpanEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpanEdit.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnSimpanEdit.ForeColor = System.Drawing.Color.White;
-            this.btnSimpanEdit.Location = new System.Drawing.Point(660, 58);
-            this.btnSimpanEdit.Size = new System.Drawing.Size(130, 40);
+            this.btnSimpanEdit.Location = new System.Drawing.Point(648, 165);
+            this.btnSimpanEdit.Size = new System.Drawing.Size(130, 34);
             this.btnSimpanEdit.Text = "💾 Simpan Edit";
             this.btnSimpanEdit.UseVisualStyleBackColor = false;
             this.btnSimpanEdit.Click += new System.EventHandler(this.btnSimpanEdit_Click);
@@ -147,8 +147,8 @@
             this.btnHapusPO.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnHapusPO.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnHapusPO.ForeColor = System.Drawing.Color.White;
-            this.btnHapusPO.Location = new System.Drawing.Point(800, 58);
-            this.btnHapusPO.Size = new System.Drawing.Size(110, 40);
+            this.btnHapusPO.Location = new System.Drawing.Point(786, 165);
+            this.btnHapusPO.Size = new System.Drawing.Size(120, 34);
             this.btnHapusPO.Text = "🗑️ Hapus PO";
             this.btnHapusPO.UseVisualStyleBackColor = false;
             this.btnHapusPO.Click += new System.EventHandler(this.btnHapusPO_Click);
@@ -157,18 +157,18 @@
             this.lblRekening.AutoSize = true;
             this.lblRekening.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblRekening.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblRekening.Location = new System.Drawing.Point(15, 113);
+            this.lblRekening.Location = new System.Drawing.Point(15, 108);
             this.lblRekening.Text = "Info Rekening / QRIS (wajib diisi ulang) *";
 
             this.txtRekening.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.txtRekening.Location = new System.Drawing.Point(15, 131);
+            this.txtRekening.Location = new System.Drawing.Point(15, 126);
             this.txtRekening.Size = new System.Drawing.Size(895, 27);
 
             // pnlEdit — Controls.Add SETELAH semua kontrol dikonfigurasi
             this.pnlEdit.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
             this.pnlEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlEdit.Location = new System.Drawing.Point(36, 360);
-            this.pnlEdit.Size = new System.Drawing.Size(920, 170);
+            this.pnlEdit.Size = new System.Drawing.Size(920, 215);
             this.pnlEdit.Controls.Add(this.lblEditTitle);
             this.pnlEdit.Controls.Add(this.lblJudul);
             this.pnlEdit.Controls.Add(this.txtJudul);
