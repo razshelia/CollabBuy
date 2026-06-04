@@ -69,14 +69,19 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                             int kuota = row["kuota"] == DBNull.Value ? 0 : Convert.ToInt32(row["kuota"]);
                             int terisi = row["terisi"] == DBNull.Value ? 0 : Convert.ToInt32(row["terisi"]);
                             decimal harga = row["harga"] == DBNull.Value ? 0 : Convert.ToDecimal(row["harga"]);
+                            string jenisPO = row["jenis_po"].ToString();                                           
+                            decimal hargaDiskon = row["harga_diskon"] == DBNull.Value ? 0
+                                                  : Convert.ToDecimal(row["harga_diskon"]);
 
                             Panel pnlCard = this.BuatKartuPO(
                                 Convert.ToInt32(row["id_po"]),
                                 row["nama_sesi"].ToString(),
                                 row["nama_toko"].ToString(),
+                                jenisPO,
                                 kuota,
                                 terisi,
                                 harga,
+                                hargaDiskon,
                                 Convert.ToDateTime(row["deadline"])
                             );
                             this.flpSesiPO.Controls.Add(pnlCard);
@@ -106,57 +111,64 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             }
         }
 
-        private Panel BuatKartuPO(int idPO, string namaSesi, string namaToko, int kuota, int terisi, decimal harga, DateTime deadline)
+        private Panel BuatKartuPO(int idPO, string namaSesi, string namaToko,
+    string jenisPO, int kuota, int terisi, decimal harga, decimal hargaDiskon, DateTime deadline)
         {
-            // kuota 0 artinya tidak ada target kuota → tidak bisa penuh
-            bool isPenuh;
-            if (kuota > 0 && terisi >= kuota)
+            bool isGotongRoyong = jenisPO == "Gotong Royong";
+            bool isTargetTercapai = isGotongRoyong && kuota > 0 && terisi >= kuota;
+
+            // PO tidak pernah "penuh/tutup" karena kuota bukan batas keras
+            // Hanya tutup kalau deadline lewat (sudah difilter DB, tapi jaga-jaga)
+            bool isTutup = deadline < DateTime.Now;
+
+            // Badge
+            string badgeText;
+            Color badgeColor;
+            if (isTutup)
             {
-                isPenuh = true;
+                badgeText = "SESI BERAKHIR";
+                badgeColor = Color.FromArgb(255, 173, 173);
+            }
+            else if (isTargetTercapai)
+            {
+                badgeText = "🎉 TARGET TERCAPAI";
+                badgeColor = Color.FromArgb(180, 255, 180); // hijau muda
+            }
+            else if (isGotongRoyong)
+            {
+                badgeText = "GOTONG ROYONG";
+                badgeColor = Color.FromArgb(255, 236, 153); // kuning
             }
             else
             {
-                isPenuh = false;
+                badgeText = "GASKEUN";
+                badgeColor = Color.FromArgb(155, 246, 255);
             }
 
-            bool isTutup;
-            if (isPenuh)
-            {
-                isTutup = true;
-            }
-            else
-            {
-                isTutup = false;
-            }
-
-            // NEO-RETRO COLORS
-            Color bgCard = Color.FromArgb(235, 204, 255); // Sangat Soft Purple
+            Color bgCard = Color.FromArgb(235, 204, 255);
             Color accentPurple = Color.FromArgb(36, 0, 70);
             Color highlightYellow = Color.FromArgb(253, 255, 182);
 
             Panel card = new Panel
             {
                 Width = 270,
-                Height = 190,
+                Height = 210,  // sedikit lebih tinggi untuk info harga diskon
                 BackColor = bgCard,
                 Margin = new Padding(10, 10, 15, 15),
                 BorderStyle = BorderStyle.None
             };
-
-            // Tambahkan border melengkung imajiner dengan warna tegas
-            card.Paint += (s, e) => {
+            card.Paint += (s, e) =>
                 ControlPaint.DrawBorder(e.Graphics, card.ClientRectangle, accentPurple, ButtonBorderStyle.Solid);
-            };
 
             Label lblBadge = new Label
             {
-                Text = isTutup ? "YAH, LATE" : "GASKEUN",
+                Text = badgeText,
                 Font = new Font("Segoe UI", 8F, FontStyle.Bold),
-                BackColor = isTutup ? Color.FromArgb(255, 173, 173) : Color.FromArgb(155, 246, 255),
+                BackColor = badgeColor,
                 ForeColor = accentPurple,
                 AutoSize = true,
                 Top = 10,
-                Left = 200,
+                Left = 10,
                 Padding = new Padding(3)
             };
 
@@ -165,9 +177,9 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 Text = namaSesi.ToUpper(),
                 Font = new Font("Segoe UI Black", 11F, FontStyle.Bold),
                 ForeColor = accentPurple,
-                Top = 10,
+                Top = 35,
                 Left = 10,
-                Width = 180,
+                Width = 250,
                 AutoSize = false,
                 Height = 45
             };
@@ -177,37 +189,47 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 Text = $"🏪 {namaToko}",
                 Font = new Font("Segoe UI Semibold", 8.5F),
                 ForeColor = Color.FromArgb(90, 24, 154),
-                Top = 55,
-                Left = 10,
-                AutoSize = true
-            };
-
-            Label lblHarga = new Label
-            {
-                Text = $"Rp {harga:N0}",
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                ForeColor = accentPurple,
                 Top = 80,
                 Left = 10,
                 AutoSize = true
             };
 
+            // Harga — tampilkan harga diskon kalau target sudah tercapai
+            string teksHarga = isTargetTercapai && hargaDiskon > 0
+                ? $"Rp {hargaDiskon:N0}  (diskon dari Rp {harga:N0})"
+                : $"Rp {harga:N0}";
+            Color warnaHarga = isTargetTercapai && hargaDiskon > 0
+                ? Color.FromArgb(0, 150, 0)   // hijau kalau dapat diskon
+                : accentPurple;
+
+            Label lblHarga = new Label
+            {
+                Text = teksHarga,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = warnaHarga,
+                Top = 105,
+                Left = 10,
+                Width = 250,
+                AutoSize = false,
+                Height = 35
+            };
+
             Label lblInfo = new Label
             {
-                Text = $"Slot: {terisi}/{kuota}  •  Tutup: {deadline.ToString("dd MMM HH:mm")}",
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
-                ForeColor = isTutup ? Color.Red : accentPurple,
-                Top = 115,
+                Text = $"Slot: {terisi}/{(kuota == 0 ? "∞" : kuota.ToString())}  •  Tutup: {deadline:dd MMM HH:mm}",
+                Font = new Font("Segoe UI", 8.5F),
+                ForeColor = accentPurple,
+                Top = 140,
                 Left = 10,
                 AutoSize = true
             };
 
             Button btnIkut = new Button
             {
-                Text = isTutup ? "Udah Habis Bestie 😭" : "🛒 Checkout Yuk!",
+                Text = isTutup ? "Sesi Sudah Berakhir" : "🛒 Checkout Yuk!",
                 Width = 250,
                 Height = 35,
-                Top = 145,
+                Top = 165,
                 Left = 10,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = isTutup ? Color.Gray : accentPurple,
@@ -220,14 +242,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             btnIkut.FlatAppearance.BorderSize = 0;
 
             if (!isTutup)
-            {
                 btnIkut.Click += this.BtnIkut_Click;
-            }
-            else
-            {
-                // Tombol tidak bisa diklik, event tidak di-attach
-                bool disableIkut = true;
-            }
 
             card.Controls.Add(lblBadge);
             card.Controls.Add(lblNama);
