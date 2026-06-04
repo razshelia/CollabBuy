@@ -26,7 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.SetupDataGridView();
             this.LoadDataPO();
             this.SetFormEnabled(false);
-            this.AdjustLayout(); // dipanggil TERAKHIR setelah kontrol sudah siap
+            this.BeginInvoke(new Action(() => this.AdjustLayout()));
         }
 
         private void SetupDataGridView()
@@ -235,25 +235,30 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-            if (w < 200) return; // jangan layout kalau belum siap
+            if (w < 400) return;
 
-            // Tabel PO
+            // Tabel PO: lebar penuh, tinggi pas untuk beberapa baris
             this.dgvPO.Left = margin;
             this.dgvPO.Width = w;
+            this.dgvPO.Height = 200;
 
-            // Panel edit tepat di bawah tabel
+            // Panel edit: tepat di bawah tabel + gap 15px
             this.pnlEdit.Left = margin;
-            this.pnlEdit.Top = this.dgvPO.Top + this.dgvPO.Height + 15;
             this.pnlEdit.Width = w;
+            this.pnlEdit.Top = this.dgvPO.Top + this.dgvPO.Height + 15;
 
-            // Sesuaikan lebar txtRekening mengikuti lebar panel
-            int innerW = w - 30;
-            int btnTotalW = this.btnSimpanEdit.Width + this.btnHapusPO.Width + 10;
-            this.txtRekening.Width = innerW - btnTotalW - this.txtRekening.Left - 10;
+            // Kontrol dalam pnlEdit: sesuaikan lebar txtRekening
+            int innerW = this.pnlEdit.Width - 30;
 
-            // Tombol di kanan panel edit
-            this.btnHapusPO.Left = innerW - this.btnHapusPO.Width + 15;
-            this.btnSimpanEdit.Left = this.btnHapusPO.Left - this.btnSimpanEdit.Width - 10;
+            // Tombol di kanan (posisi relatif terhadap innerW)
+            this.btnSimpanEdit.Left = innerW - this.btnHapusPO.Width - this.btnSimpanEdit.Width - 10;
+            this.btnHapusPO.Left = innerW - this.btnHapusPO.Width;
+
+            // txtRekening: isi sisa lebar
+            this.txtRekening.Left = 15;
+            int rekeningWidth = innerW - 15;
+            if (rekeningWidth < 150) rekeningWidth = 150;
+            this.txtRekening.Width = rekeningWidth;
         }
     }
 }

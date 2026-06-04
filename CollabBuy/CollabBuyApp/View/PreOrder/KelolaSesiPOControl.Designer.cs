@@ -77,7 +77,7 @@
             this.dgvPO.RowHeadersVisible = false;
             this.dgvPO.RowTemplate.Height = 38;
             this.dgvPO.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvPO.Size = new System.Drawing.Size(920, 220);
+            this.dgvPO.Size = new System.Drawing.Size(920, 200);
             this.dgvPO.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPO_CellClick);
 
             // ── pnlEdit: konfigurasi semua kontrol DULU, baru Controls.Add ──
@@ -167,8 +167,8 @@
             // pnlEdit — Controls.Add SETELAH semua kontrol dikonfigurasi
             this.pnlEdit.BackColor = System.Drawing.Color.FromArgb(235, 204, 255);
             this.pnlEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlEdit.Location = new System.Drawing.Point(36, 375);
-            this.pnlEdit.Size = new System.Drawing.Size(920, 175);
+            this.pnlEdit.Location = new System.Drawing.Point(36, 360);
+            this.pnlEdit.Size = new System.Drawing.Size(920, 170);
             this.pnlEdit.Controls.Add(this.lblEditTitle);
             this.pnlEdit.Controls.Add(this.lblJudul);
             this.pnlEdit.Controls.Add(this.txtJudul);

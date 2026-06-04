@@ -346,14 +346,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
                     new ViewProduct.ManajemenProdukControl(this._currentUser)));
                 AddBtn("🎁 Buka Sesi PO", () => this.ShowUserControl(
                     new ViewPreOrder.BukaSesiPOControl(this._currentUser)));
-
-                // --- PENAMBAHAN MENU KELOLA SESI PO DI SINI ---
                 AddBtn("⚙️ Kelola Sesi PO", () => this.ShowUserControl(
                     new ViewPreOrder.KelolaSesiPOControl(this._currentUser)));
-                // ----------------------------------------------
-
-                AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
-                    new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
                 AddBtn("📥 Pesanan Masuk", () => this.ShowPesananMasuk());
                 AddBtn("⭐ Balas Ulasan", () => this.ShowUserControl(
                     new ViewFeedback.UlasanLapakControl(this._currentUser)));
@@ -362,6 +356,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 AddSep();
                 AddCat("JAJAN YUK (BUYER)");
                 AddBtn("🏪 Katalog Produk", () => this.ShowKatalogProduk());
+                AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
+                    new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
                 AddBtn("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
                 AddBtn("📋 Riwayat Pesanan", () => this.ShowUserControl(
                     new ViewTransaction.RiwayatPesananControl(this._currentUser)));
@@ -374,6 +370,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
             {
                 AddCat("JAJAN YUK (BUYER)");
                 AddBtn("🏪 Katalog Produk", () => this.ShowKatalogProduk());
+                AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
+                    new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
                 AddBtn("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
                 AddBtn("📋 Riwayat Pesanan", () => this.ShowUserControl(
                     new ViewTransaction.RiwayatPesananControl(this._currentUser)));

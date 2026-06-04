@@ -195,8 +195,10 @@ namespace CollabBuy.CollabBuyApp.Services
                     newDetail.Catatan = catatan;
                     newDetail.ProdukYangDipesan = p;
                     CartManager._keranjangDict[idProduk].Add(newDetail);
-
-                    p.TambahPesanan(selisih); // Update sisa kuota Gotong Royong di RAM
+                    if (selisih > 0)
+                        p.TambahPesanan(selisih);
+                    else if (selisih < 0)
+                        p.KurangiPesanan(-selisih);
                 }
                 else
                 {

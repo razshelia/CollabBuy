@@ -163,6 +163,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public (bool valid, string pesan) ValidasiKeranjangSebelumCheckout()
         {
+            // Null-check wajib: _cartManager bisa null jika konstruktor tanpa idPembeli dipakai
+            if (this._cartManager == null)
+                return (false, "Sesi keranjang tidak tersedia.");
+
             try
             {
                 var dict = this._cartManager.GetKeranjangDictionary();

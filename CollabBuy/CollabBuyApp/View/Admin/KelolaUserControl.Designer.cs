@@ -184,6 +184,7 @@
 
             this.lblDetailStatus.AutoSize = false;
             this.lblDetailStatus.Width = 260;
+            this.lblDetailStatus.Height = 24;
             this.lblDetailStatus.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblDetailStatus.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.lblDetailStatus.Location = new System.Drawing.Point(20, 388);
@@ -196,8 +197,8 @@
             this.btnBlokir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBlokir.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnBlokir.ForeColor = System.Drawing.Color.White;
-            this.btnBlokir.Location = new System.Drawing.Point(20, 445);
-            this.btnBlokir.Size = new System.Drawing.Size(280, 45);
+            this.btnBlokir.Location = new System.Drawing.Point(20, 430);
+            this.btnBlokir.Size = new System.Drawing.Size(280, 38);
             this.btnBlokir.Text = "🚫 Blokir Akun";
             this.btnBlokir.Enabled = false;
             this.btnBlokir.BackColor = System.Drawing.Color.FromArgb(210, 210, 210);

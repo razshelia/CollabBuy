@@ -223,9 +223,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 return this._poRepo.GetPOByPenjual(idPenjual);
             }
-            catch
+            catch (Exception ex)
             {
-                return new DataTable();
+                throw new Exception("Gagal memuat sesi PO dari database: " + ex.Message, ex);
             }
         }
     }

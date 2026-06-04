@@ -171,6 +171,13 @@ namespace CollabBuy.CollabBuyApp.Models
             }
             this.Terpesan += jumlah;
         }
+        public void KurangiPesanan(int jumlah)
+        {
+            // Mengurangi Terpesan saat titipan diedit ke qty lebih kecil
+            if (jumlah <= 0) return;
+            this.Terpesan -= jumlah;
+            if (this.Terpesan < 0) this.Terpesan = 0;
+        }
 
         /// <summary>
         /// Validasi total pesanan (seluruh titipan) terhadap MinOrder.

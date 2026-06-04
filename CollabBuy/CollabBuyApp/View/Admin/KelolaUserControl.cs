@@ -26,7 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.SetupDataGridView();
             this.LoadDataUser();
             this.Resize += (s, ev) => this.AdjustLayout();
-            this.AdjustLayout();
+            this.BeginInvoke(new Action(() => this.AdjustLayout()));
         }
 
         private void SetupDataGridView()
@@ -222,18 +222,20 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.btnRefresh.Top = this.pnlCard.Height - this.btnRefresh.Height - 20;
             this.btnRefresh.Left = this.pnlCard.Width - this.btnRefresh.Width - 14;
 
-            // Panel kanan — jangan sampai terpotong
+            // Panel kanan
             int detailLeft = margin + gridW + 20;
             int detailWidth = totalW - detailLeft - margin;
-            if (detailWidth < 250) detailWidth = 250;
+            if (detailWidth < 260) detailWidth = 260;
 
             this.pnlDetail.Left = detailLeft;
             this.pnlDetail.Top = this.pnlCard.Top;
             this.pnlDetail.Width = detailWidth;
             this.pnlDetail.Height = this.pnlCard.Height;
 
-            // Sesuaikan lebar semua label nilai agar tidak terpotong
-            int lblWidth = detailWidth - 40;
+            // Lebar label & tombol ikut lebar panel
+            int lblWidth = detailWidth - 44;
+            if (lblWidth < 200) lblWidth = 200;
+
             this.lblDetailNama.Width = lblWidth;
             this.lblDetailUsername.Width = lblWidth;
             this.lblDetailEmail.Width = lblWidth;
@@ -241,8 +243,10 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.lblDetailPeran.Width = lblWidth;
             this.lblDetailStatus.Width = lblWidth;
 
-            // Tombol blokir ikuti lebar panel
+            // Tombol blokir: lebar ikut panel, Top tetap 445 agar AutoScroll aktif jika layar pendek
             this.btnBlokir.Width = lblWidth;
+            this.btnBlokir.Height = 38;
+            this.btnBlokir.Top = 430;
         }
     }
 }
