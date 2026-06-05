@@ -535,6 +535,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             DataTable dt = new DataTable();
             dt.Columns.Add("tanggal_transaksi", typeof(string));
             dt.Columns.Add("status_pesanan", typeof(string));
+            dt.Columns.Add("bukti_bayar", typeof(byte[]));  // ← BARU
             dt.Columns.Add("nama_produk", typeof(string));
             dt.Columns.Add("nama_penitip", typeof(string));
             dt.Columns.Add("jumlah", typeof(int));
@@ -543,13 +544,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
             dt.Columns.Add("catatan", typeof(string));
             dt.Columns.Add("selisih_refund", typeof(long));
 
+
             string queryHeader = @"
-                SELECT t.tanggal_transaksi, t.status_pesanan
-                FROM transactions t
-                WHERE t.id_transaksi = @idTrx;";
+        SELECT t.tanggal_transaksi, t.status_pesanan, t.bukti_bayar
+        FROM transactions t
+        WHERE t.id_transaksi = @idTrx;";
 
             string tanggalStr = "";
             string statusPesanan = "";
+            byte[] buktiBayar = null;
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -562,20 +565,22 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         if (rdr.Read())
                         {
                             tanggalStr = rdr.GetDateTime(rdr.GetOrdinal("tanggal_transaksi"))
-                                              .ToString("dd MMM yyyy, HH:mm");
+                                               .ToString("dd MMM yyyy, HH:mm");
                             statusPesanan = rdr.GetString(rdr.GetOrdinal("status_pesanan"));
+                            if (!rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")))
+                                buktiBayar = (byte[])rdr["bukti_bayar"];
                         }
                     }
                 }
             }
 
             string queryDetail = @"
-                SELECT td.nama_produk_snapshot, td.nama_penitip,
-                       td.jumlah_pesanan, td.harga_satuan_saat_beli,
-                       td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
-                FROM transaction_details td
-                WHERE td.id_transaksi = @idTrx
-                ORDER BY td.nama_penitip, td.nama_produk_snapshot;";
+        SELECT td.nama_produk_snapshot, td.nama_penitip,
+               td.jumlah_pesanan, td.harga_satuan_saat_beli,
+               td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
+        FROM transaction_details td
+        WHERE td.id_transaksi = @idTrx
+        ORDER BY td.nama_penitip, td.nama_produk_snapshot;";
 
             using (var conn2 = new NpgsqlConnection(_connectionString))
             {
@@ -591,10 +596,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             long harga = Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("harga_satuan_saat_beli")));
                             long subtotal = jumlah * harga;
                             long selisih = rdr2.IsDBNull(rdr2.GetOrdinal("selisih_refund"))
-                                ? 0 : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
+                                            ? 0 : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
 
                             dt.Rows.Add(
                                 tanggalStr, statusPesanan,
+                                (object)buktiBayar ?? DBNull.Value, 
                                 rdr2.IsDBNull(rdr2.GetOrdinal("nama_produk_snapshot")) ? "-"
                                     : rdr2.GetString(rdr2.GetOrdinal("nama_produk_snapshot")),
                                 rdr2.GetString(rdr2.GetOrdinal("nama_penitip")),

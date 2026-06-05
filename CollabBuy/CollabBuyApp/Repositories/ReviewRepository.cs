@@ -71,12 +71,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             // User hanya bisa review barang yang pernah dia beli dan status transaksinya selesai
+            // GANTI DENGAN INI:
             string query = @"
-                SELECT DISTINCT p.id_produk, p.nama_produk
-                FROM transaction_details td
-                JOIN transactions t ON td.id_transaksi = t.id_transaksi
-                JOIN products p ON td.id_produk = p.id_produk
-                WHERE t.id_koordinator = @id AND t.status_pesanan = 'Selesai';";
+            SELECT DISTINCT p.id_produk, p.nama_produk
+            FROM transaction_details td
+            JOIN transactions t ON td.id_transaksi = t.id_transaksi
+            JOIN products p ON td.id_produk = p.id_produk
+            WHERE t.id_koordinator = @id
+              AND t.status_pesanan IN ('Diproses', 'Selesai');";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

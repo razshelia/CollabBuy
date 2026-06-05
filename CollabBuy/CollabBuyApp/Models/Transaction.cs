@@ -56,15 +56,14 @@ namespace CollabBuy.CollabBuyApp.Models
             }
         }
 
+        // GANTI DENGAN INI:
         public byte[] BuktiBayar
         {
             get { return this._buktiBayar; }
             set
             {
-                if (value == null || value.Length == 0)
-                    throw new InvalidOrderException("Bukti bayar tidak boleh kosong!", "bukti_bayar", "BUKTI_KOSONG");
-
-                if (value.Length > 5242880) // 5MB
+                // Validasi ukuran saja; null/kosong diizinkan (transaksi belum upload bukti bayar)
+                if (value != null && value.Length > 5242880) // 5MB
                     throw new InvalidOrderException("Ukuran file bukti bayar maksimal 5MB!", "bukti_bayar", "BUKTI_OVERSIZE");
 
                 this._buktiBayar = value;
