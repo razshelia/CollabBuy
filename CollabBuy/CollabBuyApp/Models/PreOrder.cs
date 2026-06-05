@@ -100,8 +100,8 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._batasWaktu; }
             set
             {
-                if (value < DateTime.Now)
-                    throw new InvalidOrderException("Batas waktu PO tidak boleh di masa lalu!", "batas_waktu", "PO_WAKTU_INVALID");
+                if (value == DateTime.MinValue)
+                    throw new InvalidOrderException("Tanggal tidak boleh kosong!", "batas_waktu", "PO_DATE_EMPTY");
 
                 this._batasWaktu = value;
             }
@@ -169,7 +169,18 @@ namespace CollabBuy.CollabBuyApp.Models
 
             return $"Sisa {selisih.Hours} Jam {selisih.Minutes} Menit";
         }
-
+        public void BukaSesiBaru(DateTime waktuTenggatBaru)
+        {
+            // VALIDASINYA PINDAH KE SINI!
+            if (waktuTenggatBaru <= DateTime.Now)
+            {
+                throw new InvalidOrderException("Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!", "batas_waktu", "PO_WAKTU_INVALID");
+            }
+            else
+            {
+                this._batasWaktu = waktuTenggatBaru;
+            }
+        }
         /// <summary>
         /// Method maintenance. Dipanggil saat meload data agar PO basi otomatis nonaktif di memori.
         /// </summary>

@@ -346,7 +346,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 }
                 else
                 {
-                    bool listKosong = true;
+                    // listTrx null berarti repository tidak menemukan data — kembalikan DataTable kosong
+                    Console.WriteLine($"[GetRiwayatPesanan] Tidak ada riwayat untuk pembeli ID {idPembeli}");
                 }
             }
             catch (Exception ex)
@@ -474,6 +475,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
             dt.Columns.Add("Kuantitas", typeof(int));
             dt.Columns.Add("Subtotal", typeof(int));
 
+            if (this._cartManager == null) return dt;
+
             foreach (var entry in this._cartManager.GetKeranjangDictionary())
             {
                 foreach (var detail in entry.Value)
@@ -524,7 +527,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             else
             {
-                bool keyTidakAda = true;
+                throw new InvalidOperationException(
+                    $"Produk ID {idProduk} tidak ada di keranjang. Tambah produk dulu sebelum menambah titipan.");
             }
         }
 
@@ -555,15 +559,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 dt = new DataTable();
             }
             return dt;
-        }
-        /// <summary>
-        /// Cek apakah produk Gotong Royong sudah mencapai kuota setelah checkout terbaru,
-        /// lalu trigger recalculate cashback untuk semua pembeli sebelumnya.
-        /// Dipanggil setelah ProsesCheckout() berhasil.
-        /// </summary>
-        public void TriggerCashbackJikaKuotaTerpenuhi()
-        {
-            
         }
     }
 }

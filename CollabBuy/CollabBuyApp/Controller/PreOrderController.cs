@@ -57,18 +57,17 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
                         // =======================================================
                         // OOP BEST PRACTICE: Instansiasi Model dengan Constructor
-                        // Sesuaikan urutan parameter ini dengan constructor di class PreOrder.cs milikmu!
                         // =======================================================
                         poObj = new Models.PreOrder(idPenjual, judulPo, jenisPo, rekening, batasWaktu);
                     }
                     else
                     {
-                        poObj = null; 
+                        poObj = null;
                     }
                 }
                 else
                 {
-                    poObj = null; 
+                    poObj = null;
                 }
             }
             catch (Exception)
@@ -123,26 +122,54 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public DataTable GetProdukTersedia(int idPenjual)
         {
-            return this._poRepo.GetSemuaProdukAktif(idPenjual);
-        }
-        public (bool sukses, string pesan, int idPO) BukaSesiPOBaru(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
-        {
-            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
-                return (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
-
-            if (batasWaktu <= DateTime.Now)
-                return (false, "Waktu tutup harus di masa depan!", 0);
-
+            DataTable dt;
             try
             {
-                int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
-                return (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
+                dt = this._poRepo.GetSemuaProdukAktif(idPenjual);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return (false, "Error: " + ex.Message, 0);
+                dt = new DataTable();
             }
+            return dt;
         }
+
+        public (bool sukses, string pesan, int idPO) BukaSesiPOBaru(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
+        {
+            (bool sukses, string pesan, int idPO) hasil;
+
+            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
+            {
+                hasil = (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
+            }
+            else
+            {
+                try
+                {
+                    // OOP BEST PRACTICE: 
+                    // Kita gunakan DateTime.Now sebagai dummy awal agar lolos "Sanity Check" di dalam Model Setter.
+                    Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
+
+                    // Kita panggil Method Behavior untuk melakukan Validasi Bisnis (Masa Depan)
+                    poBaru.BukaSesiBaru(batasWaktu);
+
+                    int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
+                    hasil = (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
+                }
+                catch (InvalidOrderException ex)
+                {
+                    // Menangkap Exception tolakan dari Model jika tanggalnya di masa lalu
+                    hasil = (false, ex.GetPesanLengkap(), 0);
+                }
+                catch (Exception ex)
+                {
+                    hasil = (false, "Error: " + ex.Message, 0);
+                }
+            }
+
+            return hasil;
+        }
+
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
             (bool sukses, string pesan) hasil;
@@ -153,60 +180,67 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             else
             {
-                if (batasWaktu <= DateTime.Now)
+                if (idProduk <= 0)
                 {
-                    hasil = (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
+                    hasil = (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
                 }
                 else
                 {
-                    if (idProduk <= 0)
+                    try
                     {
-                        hasil = (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
-                    }
-                    else
-                    {
-                        try
-                        {
-                            bool result = this._poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+                        // OOP BEST PRACTICE: Validasi didelegasikan ke Model
+                        Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
+                        poBaru.BukaSesiBaru(batasWaktu);
 
-                            if (result)
-                            {
-                                hasil = (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
-                            }
-                            else
-                            {
-                                hasil = (false, "Hmm, gagal nyimpen ke database nih.");
-                            }
-                        }
-                        catch (Exception ex)
+                        bool result = this._poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+
+                        if (result)
                         {
-                            hasil = (false, "Waduh error server: " + ex.Message);
+                            hasil = (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
                         }
+                        else
+                        {
+                            hasil = (false, "Hmm, gagal nyimpen ke database nih.");
+                        }
+                    }
+                    catch (InvalidOrderException ex)
+                    {
+                        hasil = (false, ex.GetPesanLengkap());
+                    }
+                    catch (Exception ex)
+                    {
+                        hasil = (false, "Waduh error server: " + ex.Message);
                     }
                 }
             }
 
             return hasil;
         }
+
         public (bool sukses, string pesan) EditSesiPO(int idPo, string judulBaru, string jenisBaru, string rekeningBaru, DateTime batasWaktuBaru)
         {
+            // Validasi input langsung di sini, tanpa buat objek dummy
+            if (string.IsNullOrWhiteSpace(judulBaru) || judulBaru.Trim().Length < 5)
+                return (false, "Judul PO minimal 5 karakter!");
+
+            if (judulBaru.Trim().Length > 100)
+                return (false, "Judul PO maksimal 100 karakter!");
+
+            if (jenisBaru != "Biasa" && jenisBaru != "Gotong Royong")
+                return (false, "Jenis PO hanya boleh 'Biasa' atau 'Gotong Royong'!");
+
+            if (string.IsNullOrWhiteSpace(rekeningBaru) || rekeningBaru.Trim().Length < 10)
+                return (false, "Info rekening minimal 10 karakter! Contoh: 'BCA 1234567890 a/n Nama'");
+
+            if (batasWaktuBaru <= DateTime.Now)
+                return (false, "Waktu tutup harus di masa depan!");
+
             try
             {
-                // Validasi lewat Model
-                PreOrder po = new PreOrder(0, judulBaru, jenisBaru, rekeningBaru, batasWaktuBaru);
-                bool berhasil = this._poRepo.UpdatePO(idPo, judulBaru, jenisBaru, rekeningBaru, batasWaktuBaru);
-                if (berhasil)
-                {
-                    return (true, "Sesi PO berhasil diupdate!");
-                }
-                else
-                {
-                    return (false, "PO tidak ditemukan atau sudah dihapus.");
-                }
-            }
-            catch (InvalidOrderException ex)
-            {
-                return (false, ex.GetPesanLengkap());
+                bool berhasil = this._poRepo.UpdatePO(idPo, judulBaru.Trim(), jenisBaru, rekeningBaru.Trim(), batasWaktuBaru);
+                return berhasil
+                    ? (true, "Sesi PO berhasil diupdate!")
+                    : (false, "PO tidak ditemukan atau sudah dihapus.");
             }
             catch (Exception ex)
             {
@@ -216,39 +250,55 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public (bool sukses, string pesan) TutupSesiPO(int idPo)
         {
+            (bool sukses, string pesan) hasil;
+
             try
             {
                 bool berhasil = this._poRepo.SoftDeletePO(idPo);
+
                 if (berhasil)
                 {
-                    return (true, "Sesi PO berhasil ditutup dan dihapus (soft delete).");
+                    hasil = (true, "Sesi PO berhasil ditutup dan dihapus (soft delete).");
                 }
                 else
                 {
-                    return (false, "PO tidak ditemukan.");
+                    hasil = (false, "PO tidak ditemukan.");
                 }
             }
             catch (Exception ex)
             {
-                return (false, "Error: " + ex.Message);
+                hasil = (false, "Error: " + ex.Message);
             }
+
+            return hasil;
         }
 
         public DataTable GetPOByPenjual(int idPenjual)
         {
+            DataTable dt;
             try
             {
-                return this._poRepo.GetPOByPenjual(idPenjual);
+                dt = this._poRepo.GetPOByPenjual(idPenjual);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception("Gagal memuat sesi PO dari database: " + ex.Message, ex);
+                dt = new DataTable();
             }
+            return dt;
         }
+
         public DataTable GetPOAktifByPenjual(int idPenjual)
         {
-            try { return this._poRepo.GetPOAktifByPenjual(idPenjual); }
-            catch (Exception ex) { throw new Exception("Gagal load PO aktif: " + ex.Message); }
+            DataTable dt;
+            try
+            {
+                dt = this._poRepo.GetPOAktifByPenjual(idPenjual);
+            }
+            catch (Exception)
+            {
+                dt = new DataTable();
+            }
+            return dt;
         }
     }
 }

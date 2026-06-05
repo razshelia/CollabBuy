@@ -181,8 +181,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         return;
                     }
 
-                    this._trxCtrl.TriggerCashbackJikaKuotaTerpenuhi();
-
                     // 6. Parsing ID Transaksi dari string pesan (Mencegah error NullReference atau Controller gagal get ID)
                     try
                     {
