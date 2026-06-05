@@ -103,156 +103,217 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void TampilkanFormLupaPassword()
         {
-            Color purple = Color.FromArgb(36, 0, 70);
-            Color lilac = Color.FromArgb(235, 204, 255);
-            Color btnPurple = Color.FromArgb(200, 182, 255);
-            Color yellow = Color.FromArgb(253, 255, 182);
+            // 1. Sembunyikan panel login utama
+            this.pnlCard.Visible = false;
 
-            Form frm = new Form
+            System.Drawing.Color purple = System.Drawing.Color.FromArgb(36, 0, 70);
+            System.Drawing.Color btnPurple = System.Drawing.Color.FromArgb(200, 182, 255);
+            System.Drawing.Color yellow = System.Drawing.Color.FromArgb(253, 255, 182);
+
+            // 2. Buat panel Lupa Password yang posisinya presisi menimpa pnlCard
+            Panel pnlLupaPasswordMain = new Panel();
+            pnlLupaPasswordMain.Size = new System.Drawing.Size(400, 560);
+
+            // PERBAIKAN: Posisi langsung dikunci ke tengah layar
+            pnlLupaPasswordMain.Location = new System.Drawing.Point((this.Width - pnlLupaPasswordMain.Width) / 2, (this.Height - pnlLupaPasswordMain.Height) / 2);
+            pnlLupaPasswordMain.BackColor = System.Drawing.Color.White;
+            pnlLupaPasswordMain.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+
+            // PERBAIKAN: Agar tetap di tengah saat layar dibesarkan/dikecilkan
+            System.EventHandler resizeHandler = null;
+            resizeHandler = (s, ev) =>
             {
-                Text = "🔑 Lupa Password — CollabBuy",
-                Size = new Size(420, 520),
-                StartPosition = FormStartPosition.CenterParent,
-                BackColor = Color.White,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
-                MinimizeBox = false,
-                Font = new Font("Segoe UI", 10F)
+                if (pnlLupaPasswordMain != null)
+                {
+                    pnlLupaPasswordMain.Left = (this.Width - pnlLupaPasswordMain.Width) / 2;
+                    pnlLupaPasswordMain.Top = (this.Height - pnlLupaPasswordMain.Height) / 2;
+                }
+                else
+                {
+                    bool abaikanEvent = true;
+                }
             };
+            this.Resize += resizeHandler;
 
-            // ── Panel verifikasi ──
-            Panel pnlVerif = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, Padding = new Padding(30, 20, 30, 20) };
+            this.Controls.Add(pnlLupaPasswordMain);
+            pnlLupaPasswordMain.BringToFront();
+
+            // =========================================================
+            // PANEL VERIFIKASI IDENTITAS
+            // =========================================================
+            Panel pnlVerif = new Panel();
+            pnlVerif.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlVerif.BackColor = System.Drawing.Color.White;
 
             pnlVerif.Controls.Add(new Label
             {
                 Text = "Verifikasi Identitas Kamu 🔍",
-                Font = new Font("Segoe UI Black", 13F, FontStyle.Bold),
+                Font = new System.Drawing.Font("Segoe UI Black", 13F, System.Drawing.FontStyle.Bold),
                 ForeColor = purple,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Location = new System.Drawing.Point(30, 30)
             });
+
             pnlVerif.Controls.Add(new Label
             {
                 Text = "Masukkan 3 data yang kamu daftarkan.\nSemuanya harus cocok ya!",
-                Font = new Font("Segoe UI", 9.5F),
-                ForeColor = Color.DimGray,
+                Font = new System.Drawing.Font("Segoe UI", 9.5F),
+                ForeColor = System.Drawing.Color.DimGray,
                 AutoSize = true,
-                Location = new Point(0, 38)
+                Location = new System.Drawing.Point(30, 65)
             });
 
-            // Username
-            pnlVerif.Controls.Add(new Label { Text = "Username", Font = new Font("Segoe UI", 10F, FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new Point(0, 88) });
-            TextBox txtUser = new TextBox { Location = new Point(0, 110), Size = new Size(340, 29), Font = new Font("Segoe UI", 11F), BackColor = Color.FromArgb(250, 250, 250) };
+            pnlVerif.Controls.Add(new Label { Text = "Username", Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new System.Drawing.Point(30, 120) });
+            TextBox txtUser = new TextBox { Location = new System.Drawing.Point(30, 145), Size = new System.Drawing.Size(340, 29), Font = new System.Drawing.Font("Segoe UI", 11F), BackColor = System.Drawing.Color.FromArgb(250, 250, 250) };
             pnlVerif.Controls.Add(txtUser);
 
-            // Email
-            pnlVerif.Controls.Add(new Label { Text = "Email", Font = new Font("Segoe UI", 10F, FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new Point(0, 152) });
-            TextBox txtEmail = new TextBox { Location = new Point(0, 174), Size = new Size(340, 29), Font = new Font("Segoe UI", 11F), BackColor = Color.FromArgb(250, 250, 250) };
+            pnlVerif.Controls.Add(new Label { Text = "Email", Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new System.Drawing.Point(30, 190) });
+            TextBox txtEmail = new TextBox { Location = new System.Drawing.Point(30, 215), Size = new System.Drawing.Size(340, 29), Font = new System.Drawing.Font("Segoe UI", 11F), BackColor = System.Drawing.Color.FromArgb(250, 250, 250) };
             pnlVerif.Controls.Add(txtEmail);
 
-            // Nomor Telepon
-            pnlVerif.Controls.Add(new Label { Text = "Nomor WhatsApp / Telepon", Font = new Font("Segoe UI", 10F, FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new Point(0, 216) });
-            TextBox txtTelp = new TextBox { Location = new Point(0, 238), Size = new Size(340, 29), Font = new Font("Segoe UI", 11F), BackColor = Color.FromArgb(250, 250, 250) };
+            pnlVerif.Controls.Add(new Label { Text = "Nomor WhatsApp / Telepon", Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new System.Drawing.Point(30, 260) });
+            TextBox txtTelp = new TextBox { Location = new System.Drawing.Point(30, 285), Size = new System.Drawing.Size(340, 29), Font = new System.Drawing.Font("Segoe UI", 11F), BackColor = System.Drawing.Color.FromArgb(250, 250, 250) };
+
+            // PERBAIKAN: Membatasi input agar HANYA BISA mengetik ANGKA 
+            txtTelp.KeyPress += (s, ev) =>
+            {
+                if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
+                {
+                    ev.Handled = true; // Tolak karakter selain angka
+                }
+                else
+                {
+                    bool karakterValid = true;
+                }
+            };
             pnlVerif.Controls.Add(txtTelp);
 
-            // Label error
             Label lblErr = new Label
             {
                 Text = "",
-                ForeColor = Color.FromArgb(180, 0, 0),
-                BackColor = Color.FromArgb(255, 220, 220),
+                ForeColor = System.Drawing.Color.FromArgb(180, 0, 0),
+                BackColor = System.Drawing.Color.FromArgb(255, 220, 220),
                 AutoSize = false,
-                Size = new Size(340, 30),
-                Location = new Point(0, 280),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(6, 0, 0, 0),
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Size = new System.Drawing.Size(340, 30),
+                Location = new System.Drawing.Point(30, 330),
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                Padding = new System.Windows.Forms.Padding(6, 0, 0, 0),
+                Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold),
                 Visible = false
             };
             pnlVerif.Controls.Add(lblErr);
 
-            // Tombol Verifikasi
             Button btnVerif = new Button
             {
                 Text = "🔍 Verifikasi Identitas",
-                Location = new Point(0, 322),
-                Size = new Size(340, 44),
+                Location = new System.Drawing.Point(30, 370),
+                Size = new System.Drawing.Size(340, 44),
                 BackColor = btnPurple,
                 ForeColor = purple,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI Black", 11F, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold),
+                Cursor = System.Windows.Forms.Cursors.Hand
             };
             btnVerif.FlatAppearance.BorderColor = purple;
             btnVerif.FlatAppearance.BorderSize = 2;
             pnlVerif.Controls.Add(btnVerif);
 
-            pnlVerif.Controls.Add(new Label
+            // FITUR BARU: TOMBOL KEMBALI AGAR USER TIDAK TERJEBAK
+            Button btnKembaliVerif = new Button
             {
-                Text = "💡 Pastikan data persis sama seperti saat daftar.",
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Italic),
-                ForeColor = Color.DimGray,
-                AutoSize = true,
-                Location = new Point(0, 376)
-            });
+                Text = "⬅ Kembali ke Login",
+                Location = new System.Drawing.Point(30, 425),
+                Size = new System.Drawing.Size(340, 35),
+                BackColor = System.Drawing.Color.White,
+                ForeColor = purple,
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold),
+                Cursor = System.Windows.Forms.Cursors.Hand
+            };
+            btnKembaliVerif.FlatAppearance.BorderSize = 0;
+            pnlVerif.Controls.Add(btnKembaliVerif);
 
-            frm.Controls.Add(pnlVerif);
+            btnKembaliVerif.Click += (s, ev) =>
+            {
+                this.Controls.Remove(pnlLupaPasswordMain);
+                pnlLupaPasswordMain.Dispose();
+                this.pnlCard.Visible = true; // Munculkan Login kembali
+                this.Resize -= resizeHandler; // Lepas event biar gak bocor memori
+            };
 
-            // ── Panel reset password (tersembunyi awalnya) ──
-            Panel pnlReset = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, Padding = new Padding(30, 20, 30, 20), Visible = false };
+            pnlLupaPasswordMain.Controls.Add(pnlVerif);
+
+            // =========================================================
+            // PANEL RESET PASSWORD
+            // =========================================================
+            Panel pnlReset = new Panel();
+            pnlReset.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlReset.BackColor = System.Drawing.Color.White;
+            pnlReset.Visible = false; // Sembunyikan dulu
 
             pnlReset.Controls.Add(new Label
             {
                 Text = "Buat Password Baru 🔐",
-                Font = new Font("Segoe UI Black", 13F, FontStyle.Bold),
+                Font = new System.Drawing.Font("Segoe UI Black", 13F, System.Drawing.FontStyle.Bold),
                 ForeColor = purple,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Location = new System.Drawing.Point(30, 30)
             });
+
             pnlReset.Controls.Add(new Label
             {
                 Text = "Identitas terverifikasi ✅\nSekarang buat password baru kamu.",
-                Font = new Font("Segoe UI", 9.5F),
-                ForeColor = Color.DimGray,
+                Font = new System.Drawing.Font("Segoe UI", 9.5F),
+                ForeColor = System.Drawing.Color.DimGray,
                 AutoSize = true,
-                Location = new Point(0, 38)
+                Location = new System.Drawing.Point(30, 65)
             });
 
-            pnlReset.Controls.Add(new Label { Text = "Password Baru (min. 6 karakter)", Font = new Font("Segoe UI", 10F, FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new Point(0, 95) });
-            TextBox txtBaru = new TextBox { Location = new Point(0, 117), Size = new Size(340, 29), Font = new Font("Segoe UI", 11F), PasswordChar = '●', BackColor = Color.FromArgb(250, 250, 250) };
+            pnlReset.Controls.Add(new Label { Text = "Password Baru (min. 6 karakter)", Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new System.Drawing.Point(30, 130) });
+            TextBox txtBaru = new TextBox { Location = new System.Drawing.Point(30, 155), Size = new System.Drawing.Size(340, 29), Font = new System.Drawing.Font("Segoe UI", 11F), PasswordChar = '●', BackColor = System.Drawing.Color.FromArgb(250, 250, 250) };
             pnlReset.Controls.Add(txtBaru);
 
-            pnlReset.Controls.Add(new Label { Text = "Konfirmasi Password Baru", Font = new Font("Segoe UI", 10F, FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new Point(0, 160) });
-            TextBox txtKonfirm = new TextBox { Location = new Point(0, 182), Size = new Size(340, 29), Font = new Font("Segoe UI", 11F), PasswordChar = '●', BackColor = Color.FromArgb(250, 250, 250) };
+            pnlReset.Controls.Add(new Label { Text = "Konfirmasi Password Baru", Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold), ForeColor = purple, AutoSize = true, Location = new System.Drawing.Point(30, 200) });
+            TextBox txtKonfirm = new TextBox { Location = new System.Drawing.Point(30, 225), Size = new System.Drawing.Size(340, 29), Font = new System.Drawing.Font("Segoe UI", 11F), PasswordChar = '●', BackColor = System.Drawing.Color.FromArgb(250, 250, 250) };
             pnlReset.Controls.Add(txtKonfirm);
 
             CheckBox chkShow = new CheckBox
             {
                 Text = "Tampilkan password",
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(150, 100, 200),
+                Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.FromArgb(150, 100, 200),
                 AutoSize = true,
-                Location = new Point(0, 224),
-                Cursor = Cursors.Hand
+                Location = new System.Drawing.Point(30, 270),
+                Cursor = System.Windows.Forms.Cursors.Hand
             };
+
+            // Strict OOP CheckBox
             chkShow.CheckedChanged += (s, ev) =>
             {
-                txtBaru.PasswordChar = chkShow.Checked ? '\0' : '●';
-                txtKonfirm.PasswordChar = chkShow.Checked ? '\0' : '●';
+                if (chkShow.Checked)
+                {
+                    txtBaru.PasswordChar = '\0';
+                    txtKonfirm.PasswordChar = '\0';
+                }
+                else
+                {
+                    txtBaru.PasswordChar = '●';
+                    txtKonfirm.PasswordChar = '●';
+                }
             };
             pnlReset.Controls.Add(chkShow);
 
             Label lblErrReset = new Label
             {
                 Text = "",
-                ForeColor = Color.FromArgb(180, 0, 0),
-                BackColor = Color.FromArgb(255, 220, 220),
+                ForeColor = System.Drawing.Color.FromArgb(180, 0, 0),
+                BackColor = System.Drawing.Color.FromArgb(255, 220, 220),
                 AutoSize = false,
-                Size = new Size(340, 30),
-                Location = new Point(0, 252),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(6, 0, 0, 0),
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Size = new System.Drawing.Size(340, 30),
+                Location = new System.Drawing.Point(30, 310),
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                Padding = new System.Windows.Forms.Padding(6, 0, 0, 0),
+                Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold),
                 Visible = false
             };
             pnlReset.Controls.Add(lblErrReset);
@@ -260,20 +321,44 @@ namespace CollabBuy.CollabBuyApp.View.Main
             Button btnSimpan = new Button
             {
                 Text = "💾 Simpan Password Baru",
-                Location = new Point(0, 294),
-                Size = new Size(340, 44),
-                BackColor = Color.FromArgb(36, 0, 70),
+                Location = new System.Drawing.Point(30, 355),
+                Size = new System.Drawing.Size(340, 44),
+                BackColor = System.Drawing.Color.FromArgb(36, 0, 70),
                 ForeColor = yellow,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI Black", 11F, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold),
+                Cursor = System.Windows.Forms.Cursors.Hand
             };
             btnSimpan.FlatAppearance.BorderSize = 0;
             pnlReset.Controls.Add(btnSimpan);
 
-            frm.Controls.Add(pnlReset);
+            Button btnBatalReset = new Button
+            {
+                Text = "❌ Batal",
+                Location = new System.Drawing.Point(30, 410),
+                Size = new System.Drawing.Size(340, 35),
+                BackColor = System.Drawing.Color.White,
+                ForeColor = System.Drawing.Color.FromArgb(180, 0, 0),
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold),
+                Cursor = System.Windows.Forms.Cursors.Hand
+            };
+            btnBatalReset.FlatAppearance.BorderSize = 0;
+            pnlReset.Controls.Add(btnBatalReset);
 
-            // ── Logika: simpan idUser yang terverifikasi ──
+            btnBatalReset.Click += (s, ev) =>
+            {
+                this.Controls.Remove(pnlLupaPasswordMain);
+                pnlLupaPasswordMain.Dispose();
+                this.pnlCard.Visible = true;
+                this.Resize -= resizeHandler;
+            };
+
+            pnlLupaPasswordMain.Controls.Add(pnlReset);
+
+            // =========================================================
+            // LOGIKA PROSES & STRICT OOP ENCAPSULATION
+            // =========================================================
             int terverifikasiIdUser = 0;
 
             btnVerif.Click += (s, ev) =>
@@ -286,22 +371,23 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 {
                     lblErr.Text = "Semua field wajib diisi!";
                     lblErr.Visible = true;
-                    return;
-                }
-
-                int? idUser = this._userController.VerifikasiIdentitasUser(uname, email, telp);
-
-                if (idUser.HasValue)
-                {
-                    terverifikasiIdUser = idUser.Value;
-                    lblErr.Visible = false;
-                    pnlVerif.Visible = false;
-                    pnlReset.Visible = true;
                 }
                 else
                 {
-                    lblErr.Text = "Data tidak cocok. Cek lagi ya!";
-                    lblErr.Visible = true;
+                    int? idUser = this._userController.VerifikasiIdentitasUser(uname, email, telp);
+
+                    if (idUser.HasValue)
+                    {
+                        terverifikasiIdUser = idUser.Value;
+                        lblErr.Visible = false;
+                        pnlVerif.Visible = false;
+                        pnlReset.Visible = true;
+                    }
+                    else
+                    {
+                        lblErr.Text = "Data tidak cocok. Cek lagi ya!";
+                        lblErr.Visible = true;
+                    }
                 }
             };
 
@@ -310,35 +396,46 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 string pw1 = txtBaru.Text;
                 string pw2 = txtKonfirm.Text;
 
-                if (pw1.Length < 6)
+                // ENKAPSULASI: Memanfaatkan Model User/Pembeli untuk memeriksa format Password
+                try
                 {
-                    lblErrReset.Text = "Password minimal 6 karakter!";
-                    lblErrReset.Visible = true;
-                    return;
-                }
-                if (pw1 != pw2)
-                {
-                    lblErrReset.Text = "Password tidak cocok!";
-                    lblErrReset.Visible = true;
-                    return;
-                }
+                    Models.Pembeli dummyUser = new Models.Pembeli("Dummy", "dummy_uname", pw1);
+                    dummyUser.Validate(); // Method Validate() di Model akan memproteksi jika password invalid
 
-                bool ok = this._userController.ResetPasswordUser(terverifikasiIdUser, pw1);
-                if (ok)
-                {
-                    MessageBox.Show(
-                        "Password berhasil diganti! Silakan login dengan password baru. 🎉",
-                        "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    frm.Close();
+                    if (pw1 != pw2)
+                    {
+                        lblErrReset.Text = "Password atas bawah tidak cocok!";
+                        lblErrReset.Visible = true;
+                    }
+                    else
+                    {
+                        bool ok = this._userController.ResetPasswordUser(terverifikasiIdUser, pw1);
+
+                        if (ok)
+                        {
+                            MessageBox.Show(
+                                "Password berhasil diganti! Silakan login dengan password baru. 🎉",
+                                "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            this.Controls.Remove(pnlLupaPasswordMain);
+                            pnlLupaPasswordMain.Dispose();
+                            this.pnlCard.Visible = true;
+                            this.Resize -= resizeHandler;
+                        }
+                        else
+                        {
+                            lblErrReset.Text = "Gagal menyimpan. Coba lagi.";
+                            lblErrReset.Visible = true;
+                        }
+                    }
                 }
-                else
+                catch (Exceptions.InvalidOrderException ex)
                 {
-                    lblErrReset.Text = "Gagal menyimpan. Coba lagi.";
+                    // Menangkap penolakan dari Model (enkapsulasi bekerja dengan baik!)
+                    lblErrReset.Text = ex.GetPesanLengkap();
                     lblErrReset.Visible = true;
                 }
             };
-
-            frm.ShowDialog();
         }
     }
 }

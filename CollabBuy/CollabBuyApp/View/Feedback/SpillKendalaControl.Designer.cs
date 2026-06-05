@@ -13,21 +13,25 @@
             base.Dispose(disposing);
         }
 
+        #region Component Designer generated code
+
         private void InitializeComponent()
         {
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.pnlForm = new System.Windows.Forms.Panel();
-            this.lblSubjek = new System.Windows.Forms.Label();
-            this.txtSubjek = new System.Windows.Forms.TextBox();
-            this.lblDeskripsi = new System.Windows.Forms.Label();
-            this.txtDeskripsi = new System.Windows.Forms.TextBox();
             this.btnAduan = new System.Windows.Forms.Button();
+            this.txtDeskripsi = new System.Windows.Forms.TextBox();
+            this.lblDeskripsi = new System.Windows.Forms.Label();
+            this.txtSubjek = new System.Windows.Forms.TextBox();
+            this.lblSubjek = new System.Windows.Forms.Label();
             this.lblRiwayat = new System.Windows.Forms.Label();
             this.dgvRiwayat = new System.Windows.Forms.DataGridView();
+
             this.pnlForm.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).BeginInit();
             this.SuspendLayout();
+
             // 
             // lblTitle
             // 
@@ -39,6 +43,7 @@
             this.lblTitle.Size = new System.Drawing.Size(263, 32);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "🗣️ Spill Kendala Kamu";
+
             // 
             // lblSubtitle
             // 
@@ -50,10 +55,11 @@
             this.lblSubtitle.Size = new System.Drawing.Size(367, 19);
             this.lblSubtitle.TabIndex = 1;
             this.lblSubtitle.Text = "Ada masalah sama pesanan atau sistem? Curhatin aja sini!";
+
             // 
             // pnlForm
             // 
-            this.pnlForm.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(170)))), ((int)(((byte)(255))))); // Soft Purple
+            this.pnlForm.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(170)))), ((int)(((byte)(255)))));
             this.pnlForm.Controls.Add(this.btnAduan);
             this.pnlForm.Controls.Add(this.txtDeskripsi);
             this.pnlForm.Controls.Add(this.lblDeskripsi);
@@ -63,6 +69,7 @@
             this.pnlForm.Name = "pnlForm";
             this.pnlForm.Size = new System.Drawing.Size(400, 480);
             this.pnlForm.TabIndex = 2;
+
             // 
             // lblSubjek
             // 
@@ -74,6 +81,7 @@
             this.lblSubjek.Size = new System.Drawing.Size(120, 19);
             this.lblSubjek.TabIndex = 0;
             this.lblSubjek.Text = "Inti Masalahnya";
+
             // 
             // txtSubjek
             // 
@@ -82,6 +90,7 @@
             this.txtSubjek.Name = "txtSubjek";
             this.txtSubjek.Size = new System.Drawing.Size(350, 27);
             this.txtSubjek.TabIndex = 1;
+
             // 
             // lblDeskripsi
             // 
@@ -93,6 +102,7 @@
             this.lblDeskripsi.Size = new System.Drawing.Size(125, 19);
             this.lblDeskripsi.TabIndex = 2;
             this.lblDeskripsi.Text = "Kronologi Detail";
+
             // 
             // txtDeskripsi
             // 
@@ -100,17 +110,19 @@
             this.txtDeskripsi.Location = new System.Drawing.Point(24, 115);
             this.txtDeskripsi.Multiline = true;
             this.txtDeskripsi.Name = "txtDeskripsi";
+            this.txtDeskripsi.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtDeskripsi.Size = new System.Drawing.Size(350, 260);
             this.txtDeskripsi.TabIndex = 3;
+
             // 
             // btnAduan
             // 
-            this.btnAduan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70))))); // Deep Purple
+            this.btnAduan.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
             this.btnAduan.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnAduan.FlatAppearance.BorderSize = 0;
             this.btnAduan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAduan.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
-            this.btnAduan.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182))))); // Soft Yellow
+            this.btnAduan.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(255)))), ((int)(((byte)(182)))));
             this.btnAduan.Location = new System.Drawing.Point(24, 400);
             this.btnAduan.Name = "btnAduan";
             this.btnAduan.Size = new System.Drawing.Size(350, 45);
@@ -118,6 +130,7 @@
             this.btnAduan.Text = "🚀 Kirim Tombol Aduan";
             this.btnAduan.UseVisualStyleBackColor = false;
             this.btnAduan.Click += new System.EventHandler(this.btnAduan_Click);
+
             // 
             // lblRiwayat
             // 
@@ -129,24 +142,29 @@
             this.lblRiwayat.Size = new System.Drawing.Size(149, 21);
             this.lblRiwayat.TabIndex = 3;
             this.lblRiwayat.Text = "Riwayat Curhatan";
+
             // 
             // dgvRiwayat
             // 
             this.dgvRiwayat.AllowUserToAddRows = false;
+            this.dgvRiwayat.AllowUserToDeleteRows = false;
+            this.dgvRiwayat.AllowUserToResizeRows = false;
             this.dgvRiwayat.BackgroundColor = System.Drawing.Color.White;
             this.dgvRiwayat.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgvRiwayat.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvRiwayat.Location = new System.Drawing.Point(464, 145);
             this.dgvRiwayat.Name = "dgvRiwayat";
             this.dgvRiwayat.ReadOnly = true;
+            this.dgvRiwayat.RowHeadersVisible = false; // Bikin tampilan makin estetik
             this.dgvRiwayat.Size = new System.Drawing.Size(480, 445);
             this.dgvRiwayat.TabIndex = 4;
+
             // 
             // SpillKendalaControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250))))); // Senada dengan MainForm
             this.Controls.Add(this.dgvRiwayat);
             this.Controls.Add(this.lblRiwayat);
             this.Controls.Add(this.pnlForm);
@@ -155,12 +173,15 @@
             this.Name = "SpillKendalaControl";
             this.Size = new System.Drawing.Size(1000, 650);
             this.Load += new System.EventHandler(this.SpillKendalaControl_Load);
+
             this.pnlForm.ResumeLayout(false);
             this.pnlForm.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRiwayat)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }
+
+        #endregion
 
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblSubtitle;
