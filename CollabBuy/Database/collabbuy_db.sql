@@ -1,5 +1,5 @@
 -- INISIALISASI DATABASE COLLABBUY
--- Dibuat pada: 23 Mei 2026
+-- Dibuat pada: 23 Mei 2026 (Diperbarui dengan perbaikan Snapshot PO)
 -- PASSWORD LOGIN: password123
 
 DROP SCHEMA public CASCADE;
@@ -71,6 +71,7 @@ CREATE TABLE transaction_details (
     id_detail SERIAL PRIMARY KEY,
     id_transaksi INTEGER REFERENCES transactions (id_transaksi) ON DELETE CASCADE,
     id_produk INTEGER REFERENCES products (id_produk) ON DELETE RESTRICT,
+    id_po_saat_beli INTEGER REFERENCES preorders(id_po), 
     nama_produk_snapshot VARCHAR(150) NOT NULL,
     nama_penitip VARCHAR(100) NOT NULL,
     jumlah_pesanan INTEGER NOT NULL,
@@ -196,9 +197,9 @@ LEFT JOIN preorders   po  ON p.id_po       = po.id_po
 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
 WHERE
     p.is_deleted = FALSE
-   AND (p.id_po IS NULL OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP AND po.is_deleted = FALSE))
- 
- 
+   AND (p.id_po IS NULL OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP AND po.is_deleted = FALSE));
+
+
 -- 2. VIEW: Transaksi Lengkap
 CREATE OR REPLACE VIEW vw_transaksi_lengkap AS
 SELECT
@@ -248,7 +249,8 @@ SELECT
     al.waktu_akses
 FROM activity_logs al
 JOIN users u ON al.id_user = u.id_user;
- 
+
+
 -- BAGIAN 4: PURE FUNCTION & PURE PROCEDURE
 -- 1. PURE FUNCTION: Harga saat ini
 CREATE OR REPLACE FUNCTION cek_harga_saat_ini(p_id_produk INT)
@@ -409,7 +411,6 @@ $$;
 --   }
 */
  
- 
 -- 1. TRIGGER: Cegah produk nyasar ke PO milik orang lain
 CREATE OR REPLACE FUNCTION cek_kepemilikan_po() RETURNS TRIGGER AS $$
 DECLARE
@@ -428,22 +429,24 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_cek_kepemilikan_po
 BEFORE INSERT OR UPDATE ON products
 FOR EACH ROW EXECUTE FUNCTION cek_kepemilikan_po();
- 
- 
--- 2. TRIGGER: Otomatis isi snapshot nama produk, harga saat beli, harga diskon saat beli
+
+
+-- 2. TRIGGER: Otomatis isi snapshot nama produk, harga saat beli, harga diskon saat beli, dan ID PO
 CREATE OR REPLACE FUNCTION trg_set_harga_otomatis() RETURNS TRIGGER AS $$
 DECLARE
     v_nama_produk  VARCHAR;
     v_harga_diskon INT;
+    v_id_po        INT;
 BEGIN
-    SELECT nama_produk, harga_diskon
-    INTO v_nama_produk, v_harga_diskon
+    SELECT nama_produk, harga_diskon, id_po
+    INTO v_nama_produk, v_harga_diskon, v_id_po
     FROM products
     WHERE id_produk = NEW.id_produk;
- 
+
     NEW.nama_produk_snapshot   := v_nama_produk;
     NEW.harga_satuan_saat_beli := cek_harga_saat_ini(NEW.id_produk);
     NEW.harga_diskon_saat_beli := v_harga_diskon;
+    NEW.id_po_saat_beli        := v_id_po;   
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -451,8 +454,8 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER t_before_insert_detail
 BEFORE INSERT ON transaction_details
 FOR EACH ROW EXECUTE FUNCTION trg_set_harga_otomatis();
- 
- 
+
+
 -- 3. TRIGGER: Tolak pesanan jika batas waktu PO habis
 CREATE OR REPLACE FUNCTION cek_validitas_po_saat_beli() RETURNS TRIGGER AS $$
 DECLARE
@@ -490,43 +493,44 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_cek_waktu_po
 BEFORE INSERT ON transaction_details
 FOR EACH ROW EXECUTE FUNCTION cek_validitas_po_saat_beli();
- 
- 
--- 4. TRIGGER: Otomatis hitung refund Gotong Royong
+
+
+-- 4. TRIGGER: Otomatis hitung refund Gotong Royong (Disesuaikan menggunakan id_po_saat_beli)
 CREATE OR REPLACE FUNCTION trg_hitung_refund_gotong_royong() RETURNS TRIGGER AS $$
 DECLARE
     v_id_po          INT;
     v_target         INT;
-    v_harga_normal   INT;
     v_harga_diskon   INT;
     v_total_sekarang INT;
     v_jenis          VARCHAR;
 BEGIN
     SELECT id_po INTO v_id_po
-    FROM products
-    WHERE id_produk = NEW.id_produk;
- 
+    FROM products WHERE id_produk = NEW.id_produk;
+
     IF v_id_po IS NULL THEN RETURN NEW; END IF;
- 
-    SELECT p.target_kuota, p.harga_dasar, p.harga_diskon, po.jenis_po
-    INTO v_target, v_harga_normal, v_harga_diskon, v_jenis
+
+    SELECT p.target_kuota, p.harga_diskon, po.jenis_po
+    INTO v_target, v_harga_diskon, v_jenis
     FROM products p
     JOIN preorders po ON p.id_po = po.id_po
     WHERE p.id_produk = NEW.id_produk;
- 
+
     IF v_jenis = 'Gotong Royong' AND v_harga_diskon IS NOT NULL THEN
         SELECT SUM(jumlah_pesanan) INTO v_total_sekarang
         FROM transaction_details
-        WHERE id_produk = NEW.id_produk;
- 
+        WHERE id_produk = NEW.id_produk
+          AND id_po_saat_beli = v_id_po;
+
         IF v_total_sekarang >= v_target THEN
             UPDATE transaction_details
             SET selisih_refund = (harga_satuan_saat_beli - v_harga_diskon) * jumlah_pesanan
             WHERE id_produk = NEW.id_produk
-              AND harga_satuan_saat_beli > v_harga_diskon;
+              AND id_po_saat_beli = v_id_po        
+              AND harga_satuan_saat_beli > v_harga_diskon
+              AND selisih_refund = 0;
         END IF;
     END IF;
- 
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -543,13 +547,13 @@ INSERT INTO transactions (id_koordinator, tanggal_transaksi, status_pesanan, buk
  
 ALTER TABLE transaction_details DISABLE TRIGGER trg_cek_waktu_po;
 ALTER TABLE transaction_details DISABLE TRIGGER t_before_insert_detail;
- 
+
 INSERT INTO transaction_details
-    (id_transaksi, id_produk, nama_produk_snapshot, nama_penitip, jumlah_pesanan, catatan, harga_satuan_saat_beli, harga_diskon_saat_beli)
+    (id_transaksi, id_produk, id_po_saat_beli, nama_produk_snapshot, nama_penitip, jumlah_pesanan, catatan, harga_satuan_saat_beli, harga_diskon_saat_beli)
 VALUES
-    (1, 1, 'PDH BEM Pengurus', 'Tiara',  1, 'Ukuran M', 120000, NULL),
-    (1, 1, 'PDH BEM Pengurus', 'Siska',  2, 'Ukuran L', 120000, NULL),
-    (1, 2, 'Kaos Panitia',     'Kevin',  1, 'Warna Hitam', 65000, NULL);
+    (1, 1, 1, 'PDH BEM Pengurus', 'Tiara',  1, 'Ukuran M', 120000, NULL),
+    (1, 1, 1, 'PDH BEM Pengurus', 'Siska',  2, 'Ukuran L', 120000, NULL),
+    (1, 2, 1, 'Kaos Panitia',     'Kevin',  1, 'Warna Hitam', 65000, NULL);
  
 ALTER TABLE transaction_details ENABLE TRIGGER t_before_insert_detail;
 ALTER TABLE transaction_details ENABLE TRIGGER trg_cek_waktu_po;
@@ -581,12 +585,12 @@ INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_p
  
 ALTER TABLE transaction_details DISABLE TRIGGER trg_cek_waktu_po;
 ALTER TABLE transaction_details DISABLE TRIGGER t_before_insert_detail;
- 
+
 INSERT INTO transaction_details
-    (id_transaksi, id_produk, nama_produk_snapshot, nama_penitip, jumlah_pesanan, catatan, harga_satuan_saat_beli, harga_diskon_saat_beli)
+    (id_transaksi, id_produk, id_po_saat_beli, nama_produk_snapshot, nama_penitip, jumlah_pesanan, catatan, harga_satuan_saat_beli, harga_diskon_saat_beli)
 VALUES
-    (7, 15, 'Binder Aesthetic', 'Reza',          1, 'Binder B5', 35000, NULL),
-    (7, 16, 'Notebook Spiral',  'Adiknya Reza',  2, 'Notebook',  15000, NULL);
+    (7, 15, 6, 'Binder Aesthetic', 'Reza',          1, 'Binder B5', 35000, NULL),
+    (7, 16, 6, 'Notebook Spiral',  'Adiknya Reza',  2, 'Notebook',  15000, NULL);
  
 ALTER TABLE transaction_details ENABLE TRIGGER t_before_insert_detail;
 ALTER TABLE transaction_details ENABLE TRIGGER trg_cek_waktu_po;
