@@ -191,6 +191,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                     // Pakai IsiHargaDariDatabase — tidak throw meski harga 0
                                     detail.IsiHargaDariDatabase(hargaSatuan, hargaDiskon, namaSnap);
 
+                                    // TAMBAH INI: restore selisih_refund dari DB agar HitungDiskon() akurat
+                                    long selisihRefund = reader2.IsDBNull(reader2.GetOrdinal("selisih_refund"))
+                                        ? 0
+                                        : Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("selisih_refund")));
+                                    if (selisihRefund > 0)
+                                        detail.SetSelisihRefundDariDatabase(selisihRefund);
+
                                     if (!reader2.IsDBNull(reader2.GetOrdinal("catatan")))
                                         detail.Catatan = reader2.GetString(reader2.GetOrdinal("catatan"));
 
@@ -764,11 +771,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 if (selisihPerItem <= 0) return (false, "Selisih cashback tidak valid.");
 
                 string query = @"
-            UPDATE transaction_details
-            SET selisih_refund = jumlah_pesanan * @selisih
-            WHERE id_produk = @idProduk
-              AND id_po_saat_beli = @idPo
-              AND selisih_refund = 0;";
+                UPDATE transaction_details td
+                SET selisih_refund = td.jumlah_pesanan * @selisih
+                FROM transactions t
+                WHERE td.id_transaksi = t.id_transaksi
+                  AND td.id_produk = @idProduk
+                  AND td.id_po_saat_beli = @idPo
+                  AND td.selisih_refund = 0
+                  AND t.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal');";
 
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {

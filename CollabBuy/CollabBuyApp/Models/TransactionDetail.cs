@@ -152,6 +152,16 @@ namespace CollabBuy.CollabBuyApp.Models
                 this.NamaProdukSnapshot = namaSnapshot;
         }
 
+        /// <summary>
+        /// Restore nilai selisih_refund langsung dari database saat hydration objek.
+        /// Dipanggil setelah IsiHargaDariDatabase() — tidak kalkulasi ulang,
+        /// cukup set nilai yang sudah tersimpan di DB agar HitungDiskon() akurat.
+        /// </summary>
+        public void SetSelisihRefundDariDatabase(long selisihRefund)
+        {
+            this.SelisihRefund = selisihRefund >= 0 ? selisihRefund : 0;
+        }
+
         public void HitungRefundGotongRoyong()
         {
             // Reset refund ke 0 terlebih dahulu

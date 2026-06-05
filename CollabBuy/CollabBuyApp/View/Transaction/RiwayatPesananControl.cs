@@ -57,13 +57,36 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.dgvRiwayat.Columns.Clear();
 
             this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "NoInvoice", HeaderText = "No. Invoice", DataPropertyName = "no_invoice", Width = 120 });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan", Width = 175 });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "JumlahItem", HeaderText = "Jml Item", DataPropertyName = "jumlah_item", Width = 75, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Tagihan", DataPropertyName = "total_harga", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Cashback", HeaderText = "Cashback GR", DataPropertyName = "cashback", Width = 115, DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(0, 130, 60), Alignment = DataGridViewContentAlignment.MiddleRight } });
             this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "StatusBayar", HeaderText = "Status Pembayaran", DataPropertyName = "status_bayar", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan", Width = 180 });
-            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Harga", DataPropertyName = "total_harga", Width = 180 });
-            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Pesanan", DataPropertyName = "status_pesanan", Width = 150 });
+            this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Pesanan", DataPropertyName = "status_pesanan", Width = 120 });
+
+            var btnDetailCol = new DataGridViewButtonColumn
+            {
+                Name = "BtnDetail",
+                HeaderText = "",
+                Text = "🔍 Detail",
+                UseColumnTextForButtonValue = true,
+                Width = 85,
+                FlatStyle = FlatStyle.Flat,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    BackColor = Color.FromArgb(36, 0, 70),
+                    ForeColor = Color.FromArgb(253, 255, 182),
+                    Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
+            };
+            this.dgvRiwayat.Columns.Add(btnDetailCol);
+
             this.dgvRiwayat.CellClick += (s, e) =>
             {
                 if (e.RowIndex < 0) return;
+                if (e.ColumnIndex != this.dgvRiwayat.Columns["BtnDetail"].Index) return;
                 var row = ((DataTable)this.dgvRiwayat.DataSource).Rows[e.RowIndex];
                 int idTrx = Convert.ToInt32(row["id_transaksi"]);
                 DataTable dtDetail = this._transactionController.GetDetailPesananPembeli(idTrx);
@@ -75,39 +98,37 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                // OOP BEST PRACTICE: Ambil List Objek, BUKAN DataTable mentah!
                 List<Models.Transaction> listTrx = this._transactionController.GetTransaksiByPembeli(this._currentUser.GetIdUser());
 
-                // Bikin tabel baru khusus buat binding ke UI
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_transaksi", typeof(int));
-                dtUI.Columns.Add("status_bayar", typeof(string));
+                dtUI.Columns.Add("no_invoice", typeof(string));
                 dtUI.Columns.Add("tanggal_pesanan", typeof(string));
+                dtUI.Columns.Add("jumlah_item", typeof(string));
                 dtUI.Columns.Add("total_harga", typeof(string));
+                dtUI.Columns.Add("cashback", typeof(string));
+                dtUI.Columns.Add("status_bayar", typeof(string));
                 dtUI.Columns.Add("status_pesanan", typeof(string));
 
-                if (listTrx != null)
+                if (listTrx != null && listTrx.Count > 0)
                 {
                     foreach (Models.Transaction trx in listTrx)
                     {
-                        // Memanfaatkan Behavior / Method UI dari kelas Transaction
-                        string waktuFormat = trx.TanggalTransaksi.ToString("dd MMM yyyy, HH:mm");
-                        string hargaFormat = trx.DapatkanFormatTagihanUI();
-                        string statusBayar = trx.DapatkanStatusPembayaranUI();
-                        string statusTrx = trx.GetStatus();
+                        long totalTagihan = trx.HitungTotal();
+                        long totalCashback = trx.HitungDiskon();
+                        long tagihBersih = totalTagihan - totalCashback;
 
                         dtUI.Rows.Add(
                             trx.IdTransaksi,
-                            statusBayar,
-                            waktuFormat,
-                            hargaFormat,
-                            statusTrx
+                            $"INV-{trx.IdTransaksi:D6}",
+                            trx.TanggalTransaksi.ToString("dd MMM yyyy, HH:mm"),
+                            trx.DapatkanTotalItem() > 0 ? $"{trx.DapatkanTotalItem()} pcs" : "-",
+                            tagihBersih > 0 ? $"Rp {tagihBersih:N0}" : $"Rp {totalTagihan:N0}",
+                            totalCashback > 0 ? $"Rp {totalCashback:N0} ✅" : "-",
+                            trx.DapatkanStatusPembayaranUI(),
+                            trx.GetStatus()
                         );
                     }
-                }
-                else
-                {
-                    bool listKosong = true; // Assignment nyata menghindari else kosong
                 }
 
                 this.dgvRiwayat.DataSource = dtUI;
@@ -115,7 +136,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal narik data riwayat: " + ex.Message, "Waduh Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal memuat data riwayat: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void TampilkanDetailDanSplitBill(int idTrx, DataTable dtDetail)
@@ -258,10 +279,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             frmDetail.Controls.Add(dgvSplit);
 
             // ── Summary ──
+            // ── Summary ──
+            long tagihBersihTotal = grandTotal - totalCashback;
             Label lblTotal = new Label
             {
                 Text = $"Grand Total: Rp {grandTotal:N0}" +
-                       (totalCashback > 0 ? $"   |   Total Cashback GR: Rp {totalCashback:N0}" : ""),
+                       (totalCashback > 0
+                           ? $"   |   Cashback GR: Rp {totalCashback:N0}   |   ✅ Bayar Bersih: Rp {tagihBersihTotal:N0}"
+                           : ""),
                 Font = new Font("Segoe UI Black", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(90, 24, 154),
                 AutoSize = true,
@@ -285,18 +310,22 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             btnSalin.Click += (s, e) =>
             {
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.AppendLine($"Split Bill — INV-{idTrx:D6}");
-                sb.AppendLine(new string('-', 40));
+                sb.AppendLine($"💰 Split Bill — INV-{idTrx:D6}");
+                sb.AppendLine(new string('─', 40));
                 foreach (var kv in splitDict)
                 {
                     long cb = cashbackDict[kv.Key];
                     long bayar = kv.Value - cb;
-                    sb.AppendLine($"{kv.Key}: Rp {bayar:N0}" + (cb > 0 ? $" (cashback Rp {cb:N0})" : ""));
+                    sb.Append($"• {kv.Key}: Rp {bayar:N0}");
+                    if (cb > 0) sb.Append($" (hemat cashback Rp {cb:N0} 🎉)");
+                    sb.AppendLine();
                 }
-                sb.AppendLine(new string('-', 40));
+                sb.AppendLine(new string('─', 40));
                 sb.AppendLine($"Total: Rp {grandTotal:N0}");
+                if (totalCashback > 0)
+                    sb.AppendLine($"Total Cashback GR: Rp {totalCashback:N0}");
                 Clipboard.SetText(sb.ToString());
-                MessageBox.Show("Split bill berhasil disalin ke clipboard! Tinggal paste ke WA/chat.", "Disalin", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Split bill berhasil disalin! Tinggal paste ke WA / chat grup.", "Berhasil ✅", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
             frmDetail.Controls.Add(btnSalin);
 
