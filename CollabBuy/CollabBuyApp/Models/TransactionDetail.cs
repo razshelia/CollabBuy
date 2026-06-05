@@ -135,10 +135,21 @@ namespace CollabBuy.CollabBuyApp.Models
             this.HargaSatuanSaatBeli = hargaSatuan;
             this.HargaDiskonSaatBeli = hargaDiskon;
 
-            // Ternary operator untuk menangani null check produk
             this.NamaProdukSnapshot = this._produkYangDipesan != null
-                ? this._produkYangDipesan.NamaProduk // Asumsi method GetNamaProduk() sudah di-refactor jadi property
+                ? this._produkYangDipesan.NamaProduk
                 : "Produk Tidak Ditemukan";
+        }
+
+        /// <summary>
+        /// Khusus untuk membaca data dari database — tidak throw meski harga 0 
+        /// (data lama yang di-seed tanpa trigger).
+        /// </summary>
+        public void IsiHargaDariDatabase(long hargaSatuan, long? hargaDiskon, string namaSnapshot)
+        {
+            this.HargaSatuanSaatBeli = hargaSatuan >= 0 ? hargaSatuan : 0;
+            this.HargaDiskonSaatBeli = hargaDiskon;
+            if (!string.IsNullOrWhiteSpace(namaSnapshot))
+                this.NamaProdukSnapshot = namaSnapshot;
         }
 
         public void HitungRefundGotongRoyong()

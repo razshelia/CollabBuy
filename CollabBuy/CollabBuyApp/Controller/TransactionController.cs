@@ -137,6 +137,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     Transaction transaksiBaru = this._cartManager.BuildTransaction();
                     int idTransaksi = this._transactionRepo.Checkout(transaksiBaru);
 
+                    // Trigger cashback SEBELUM KosongkanKeranjang — cart masih berisi data produk GR
+                    this.TriggerCashbackInternal();
+
                     this._cartManager.KosongkanKeranjang();
 
                     ActivityLog log = new ActivityLog(transaksiBaru.IdPembeli, "Berhasil melakukan checkout Transaksi #" + idTransaksi);
@@ -155,6 +158,51 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
 
             return hasil;
+        }
+
+        // Internal: dipanggil di dalam ProsesCheckout sebelum cart dikosongkan
+        private void TriggerCashbackInternal()
+        {
+            try
+            {
+                var dict = this._cartManager.GetKeranjangDictionary();
+                foreach (var entry in dict)
+                {
+                    Product produk = null;
+                    foreach (var detail in entry.Value)
+                    {
+                        if (detail.ProdukYangDipesan != null)
+                        {
+                            produk = detail.ProdukYangDipesan;
+                            break;
+                        }
+                    }
+
+                    if (produk == null) continue;
+                    if (produk.JenisPo != "Gotong Royong") continue;
+                    if (!produk.HargaDiskon.HasValue) continue;
+                    if (!produk.IdPo.HasValue) continue;  // produk harus punya PO
+
+                    int totalTerpesanDB = this._transactionRepo.GetTotalTerpesanProduk(
+                        produk.IdProduk, produk.IdPo.Value);  // filter per PO
+
+                    bool kuotaTerpenuhi = produk.TargetKuota.HasValue
+                        && totalTerpesanDB >= produk.TargetKuota.Value;
+
+                    if (!kuotaTerpenuhi) continue;
+
+                    this._transactionRepo.RecalculateCashbackGotongRoyong(
+                        produk.IdProduk,
+                        produk.IdPo.Value,   // teruskan idPo
+                        produk.HargaDasar,
+                        produk.HargaDiskon.Value
+                    );
+                }
+            }
+            catch
+            {
+                // Silent fail
+            }
         }
         /// <summary>
         /// Validasi keranjang sebelum pindah ke halaman pembayaran.
@@ -227,7 +275,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             return detail;
         }
-
+        public DataTable GetDetailPesananPembeli(int idTransaksi)
+        {
+            try { return this._transactionRepo.GetDetailPesananPembeli(idTransaksi); }
+            catch { return new DataTable(); }
+        }
         public List<Transaction> GetAllTransaksi()
         {
             List<Transaction> list;
@@ -511,38 +563,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public void TriggerCashbackJikaKuotaTerpenuhi()
         {
-            try
-            {
-                var dict = this._cartManager.GetKeranjangDictionary();
-                foreach (var entry in dict)
-                {
-                    Product produk = null;
-                    foreach (var detail in entry.Value)
-                    {
-                        if (detail.ProdukYangDipesan != null)
-                        {
-                            produk = detail.ProdukYangDipesan;
-                            break;
-                        }
-                    }
-
-                    if (produk == null) continue;
-                    if (produk.JenisPo != "Gotong Royong") continue;
-                    if (!produk.HargaDiskon.HasValue) continue;
-                    if (!produk.IsKuotaTerpenuhi()) continue;
-
-                    // Kuota baru terpenuhi — update cashback semua pembeli sebelumnya
-                    this._transactionRepo.RecalculateCashbackGotongRoyong(
-                        produk.IdProduk,
-                        produk.HargaDasar,
-                        produk.HargaDiskon.Value
-                    );
-                }
-            }
-            catch
-            {
-                // Silent fail — cashback recalculation tidak boleh membatalkan checkout
-            }
+            
         }
     }
 }

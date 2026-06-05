@@ -169,18 +169,37 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         {
                             while (reader2.Read())
                             {
-                                var detail = new TransactionDetail(reader2.GetInt32(reader2.GetOrdinal("id_produk")),
-                                                                   reader2.GetString(reader2.GetOrdinal("nama_penitip")),
-                                                                   reader2.GetInt32(reader2.GetOrdinal("jumlah_pesanan")));
-                                long? hargaDiskon = null;
-                                if (!reader2.IsDBNull(reader2.GetOrdinal("harga_diskon_saat_beli")))
-                                    hargaDiskon = Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_diskon_saat_beli")));
-                                detail.FinalisasiHargaSaatCheckout(Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_satuan_saat_beli"))), hargaDiskon);
-                                if (!reader2.IsDBNull(reader2.GetOrdinal("catatan")))
-                                    detail.Catatan = reader2.GetString(reader2.GetOrdinal("catatan"));
-                                if (!reader2.IsDBNull(reader2.GetOrdinal("nama_produk_snapshot")))
-                                    detail.NamaProdukSnapshot = reader2.GetString(reader2.GetOrdinal("nama_produk_snapshot"));
-                                trx.TambahDetail(detail);
+                                try
+                                {
+                                    var detail = new TransactionDetail(
+                                        reader2.GetInt32(reader2.GetOrdinal("id_produk")),
+                                        reader2.GetString(reader2.GetOrdinal("nama_penitip")),
+                                        reader2.GetInt32(reader2.GetOrdinal("jumlah_pesanan")));
+
+                                    long hargaSatuan = reader2.IsDBNull(reader2.GetOrdinal("harga_satuan_saat_beli"))
+                                        ? 0
+                                        : Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_satuan_saat_beli")));
+
+                                    long? hargaDiskon = null;
+                                    if (!reader2.IsDBNull(reader2.GetOrdinal("harga_diskon_saat_beli")))
+                                        hargaDiskon = Convert.ToInt64(reader2.GetInt32(reader2.GetOrdinal("harga_diskon_saat_beli")));
+
+                                    string namaSnap = reader2.IsDBNull(reader2.GetOrdinal("nama_produk_snapshot"))
+                                        ? "-"
+                                        : reader2.GetString(reader2.GetOrdinal("nama_produk_snapshot"));
+
+                                    // Pakai IsiHargaDariDatabase — tidak throw meski harga 0
+                                    detail.IsiHargaDariDatabase(hargaSatuan, hargaDiskon, namaSnap);
+
+                                    if (!reader2.IsDBNull(reader2.GetOrdinal("catatan")))
+                                        detail.Catatan = reader2.GetString(reader2.GetOrdinal("catatan"));
+
+                                    trx.TambahDetail(detail);
+                                }
+                                catch
+                                {
+                                    // Skip baris corrupt, jangan batalkan seluruh list transaksi
+                                }
                             }
                         }
                     }
@@ -501,7 +520,89 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+        /// <summary>
+        /// Detail rincian pesanan untuk tampilan pembeli (koordinator) — semua produk dalam transaksi.
+        /// </summary>
+        public DataTable GetDetailPesananPembeli(int idTransaksi)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("tanggal_transaksi", typeof(string));
+            dt.Columns.Add("status_pesanan", typeof(string));
+            dt.Columns.Add("nama_produk", typeof(string));
+            dt.Columns.Add("nama_penitip", typeof(string));
+            dt.Columns.Add("jumlah", typeof(int));
+            dt.Columns.Add("harga_satuan", typeof(long));
+            dt.Columns.Add("subtotal", typeof(long));
+            dt.Columns.Add("catatan", typeof(string));
+            dt.Columns.Add("selisih_refund", typeof(long));
 
+            string queryHeader = @"
+                SELECT t.tanggal_transaksi, t.status_pesanan
+                FROM transactions t
+                WHERE t.id_transaksi = @idTrx;";
+
+            string tanggalStr = "";
+            string statusPesanan = "";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(queryHeader, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idTrx", idTransaksi);
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+                        if (rdr.Read())
+                        {
+                            tanggalStr = rdr.GetDateTime(rdr.GetOrdinal("tanggal_transaksi"))
+                                              .ToString("dd MMM yyyy, HH:mm");
+                            statusPesanan = rdr.GetString(rdr.GetOrdinal("status_pesanan"));
+                        }
+                    }
+                }
+            }
+
+            string queryDetail = @"
+                SELECT td.nama_produk_snapshot, td.nama_penitip,
+                       td.jumlah_pesanan, td.harga_satuan_saat_beli,
+                       td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
+                FROM transaction_details td
+                WHERE td.id_transaksi = @idTrx
+                ORDER BY td.nama_penitip, td.nama_produk_snapshot;";
+
+            using (var conn2 = new NpgsqlConnection(_connectionString))
+            {
+                conn2.Open();
+                using (var cmd2 = new NpgsqlCommand(queryDetail, conn2))
+                {
+                    cmd2.Parameters.AddWithValue("@idTrx", idTransaksi);
+                    using (var rdr2 = cmd2.ExecuteReader())
+                    {
+                        while (rdr2.Read())
+                        {
+                            int jumlah = rdr2.GetInt32(rdr2.GetOrdinal("jumlah_pesanan"));
+                            long harga = Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("harga_satuan_saat_beli")));
+                            long subtotal = jumlah * harga;
+                            long selisih = rdr2.IsDBNull(rdr2.GetOrdinal("selisih_refund"))
+                                ? 0 : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
+
+                            dt.Rows.Add(
+                                tanggalStr, statusPesanan,
+                                rdr2.IsDBNull(rdr2.GetOrdinal("nama_produk_snapshot")) ? "-"
+                                    : rdr2.GetString(rdr2.GetOrdinal("nama_produk_snapshot")),
+                                rdr2.GetString(rdr2.GetOrdinal("nama_penitip")),
+                                jumlah, harga, subtotal,
+                                rdr2.IsDBNull(rdr2.GetOrdinal("catatan")) ? "-"
+                                    : rdr2.GetString(rdr2.GetOrdinal("catatan")),
+                                selisih
+                            );
+                        }
+                    }
+                }
+            }
+
+            return dt;
+        }
         // =======================================================
         // METHOD BARU: GET DETAIL PESANAN UNTUK HALAMAN PENJUAL
         // Mengambil header transaksi (termasuk bukti_bayar) dan
@@ -622,11 +723,40 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
         /// <summary>
+        /// Ambil total jumlah_pesanan dari DB untuk satu produk (semua transaksi non-batal).
+        /// Digunakan untuk cek kuota GR secara akurat tanpa bergantung pada data RAM.
+        /// </summary>
+        public int GetTotalTerpesanProduk(int idProduk, int idPo)
+        {
+            try
+            {
+                string query = @"
+            SELECT COALESCE(SUM(td.jumlah_pesanan), 0)
+            FROM transaction_details td
+            JOIN transactions t ON td.id_transaksi = t.id_transaksi
+            WHERE td.id_produk = @idProduk
+              AND td.id_po_saat_beli = @idPo
+              AND t.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal');";
+
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@idProduk", idProduk);
+                        cmd.Parameters.AddWithValue("@idPo", idPo);
+                        return Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch { return 0; }
+        }
+        /// <summary>
         /// Dipanggil saat kuota produk Gotong Royong terpenuhi.
         /// Update selisih_refund untuk SEMUA detail transaksi yang terkait produk ini,
         /// termasuk yang checkout SEBELUM kuota terpenuhi.
         /// </summary>
-        public (bool sukses, string pesan) RecalculateCashbackGotongRoyong(int idProduk, long hargaDasar, long hargaDiskon)
+        public (bool sukses, string pesan) RecalculateCashbackGotongRoyong(int idProduk, int idPo, long hargaDasar, long hargaDiskon)
         {
             try
             {
@@ -637,6 +767,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             UPDATE transaction_details
             SET selisih_refund = jumlah_pesanan * @selisih
             WHERE id_produk = @idProduk
+              AND id_po_saat_beli = @idPo
               AND selisih_refund = 0;";
 
                 using (var conn = new NpgsqlConnection(_connectionString))
@@ -646,6 +777,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         cmd.Parameters.AddWithValue("@selisih", selisihPerItem);
                         cmd.Parameters.AddWithValue("@idProduk", idProduk);
+                        cmd.Parameters.AddWithValue("@idPo", idPo);
                         int affected = cmd.ExecuteNonQuery();
                         return (true, $"Cashback diupdate untuk {affected} baris titipan.");
                     }
@@ -656,5 +788,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 return (false, "Gagal update cashback: " + ex.Message);
             }
         }
+
     }
 }
