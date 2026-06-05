@@ -85,33 +85,20 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             int margin = 36;
             int w = this.Width - (margin * 2);
-
-            if (w < 400)
-            {
-                w = 400;
-            }
-            else
-            {
-                bool lebarAman = true; 
-            }
+            if (w < 400) w = 400;
 
             this.pnlForm.Width = w;
 
-            int innerW = this.pnlForm.Width - 68;
-            this.txtNamaSesi.Width = (int)(innerW * 0.58);
+            int innerW = w - 68;
+            this.txtNamaSesi.Width = (int)(innerW * 0.57);
 
-            this.cbJenisPO.Left = this.txtNamaSesi.Left + this.txtNamaSesi.Width + 20;
+            this.lblJenis.Left = this.txtNamaSesi.Left + this.txtNamaSesi.Width + 20;
+            this.cbJenisPO.Left = this.lblJenis.Left;
             this.cbJenisPO.Width = innerW - this.txtNamaSesi.Width - 20;
-            this.lblJenis.Left = this.cbJenisPO.Left;
 
-            this.cbProduk.Width = innerW;
+            this.dtpBatasWaktu.Width = Math.Min(320, innerW);
             this.txtRekening.Width = innerW;
             this.btnSimpanSesi.Width = innerW;
-
-            this.numQuota.Width = (int)(innerW * 0.45);
-            this.dtpBatasWaktu.Left = this.numQuota.Left + this.numQuota.Width + 20;
-            this.dtpBatasWaktu.Width = innerW - this.numQuota.Width - 20;
-            this.lblBatasWaktu.Left = this.dtpBatasWaktu.Left;
         }
     }
 }

@@ -504,5 +504,45 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             return dt;
         }
+        /// <summary>
+        /// Cek apakah produk Gotong Royong sudah mencapai kuota setelah checkout terbaru,
+        /// lalu trigger recalculate cashback untuk semua pembeli sebelumnya.
+        /// Dipanggil setelah ProsesCheckout() berhasil.
+        /// </summary>
+        public void TriggerCashbackJikaKuotaTerpenuhi()
+        {
+            try
+            {
+                var dict = this._cartManager.GetKeranjangDictionary();
+                foreach (var entry in dict)
+                {
+                    Product produk = null;
+                    foreach (var detail in entry.Value)
+                    {
+                        if (detail.ProdukYangDipesan != null)
+                        {
+                            produk = detail.ProdukYangDipesan;
+                            break;
+                        }
+                    }
+
+                    if (produk == null) continue;
+                    if (produk.JenisPo != "Gotong Royong") continue;
+                    if (!produk.HargaDiskon.HasValue) continue;
+                    if (!produk.IsKuotaTerpenuhi()) continue;
+
+                    // Kuota baru terpenuhi — update cashback semua pembeli sebelumnya
+                    this._transactionRepo.RecalculateCashbackGotongRoyong(
+                        produk.IdProduk,
+                        produk.HargaDasar,
+                        produk.HargaDiskon.Value
+                    );
+                }
+            }
+            catch
+            {
+                // Silent fail — cashback recalculation tidak boleh membatalkan checkout
+            }
+        }
     }
 }

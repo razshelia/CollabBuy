@@ -15,10 +15,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private readonly ProductController _productController;
         private readonly CategoryRepository _categoryRepo;
         private byte[] _fotoProdukBytes = null;
-
-        // State untuk mode edit
         private int _editIdProduk = -1;
         private bool _modeEdit = false;
+        private readonly PreOrderController _poController;
 
         public ManajemenProdukControl(Models.User currentUser)
         {
@@ -27,6 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this._productController = new ProductController();
             this._categoryRepo = new CategoryRepository();
             this.Resize += (s, e) => this.AdjustLayout();
+            this._poController = new PreOrderController();
         }
 
         private void ManajemenProdukControl_Load(object sender, EventArgs e)
@@ -35,7 +35,49 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this.SetupDataGridView();
             this.LoadDataProduk();
             this.LoadKategori();
+            this.LoadSesiPO(hanyaAktif: true);
             this.pnlTambahProduk.Visible = false;
+        }
+        private void LoadSesiPO(bool hanyaAktif = true)
+        {
+            try
+            {
+                DataTable dt = hanyaAktif
+                    ? this._poController.GetPOAktifByPenjual(this._currentUser.GetIdUser())
+                    : this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
+
+                DataTable dtCombo = new DataTable();
+                dtCombo.Columns.Add("id_po", typeof(object));
+                dtCombo.Columns.Add("judul_po", typeof(string));
+
+                DataRow rowKosong = dtCombo.NewRow();
+                rowKosong["id_po"] = DBNull.Value;
+                rowKosong["judul_po"] = "— Tidak terikat PO (Reguler) —";
+                dtCombo.Rows.Add(rowKosong);
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    DataRow r = dtCombo.NewRow();
+                    r["id_po"] = row["id_po"];
+                    string label = row["judul_po"].ToString();
+                    if (!hanyaAktif)
+                    {
+                        bool aktif = row["is_aktif"] != DBNull.Value && Convert.ToBoolean(row["is_aktif"]);
+                        if (!aktif) label += " (Tutup)";
+                    }
+                    r["judul_po"] = label;
+                    dtCombo.Rows.Add(r);
+                }
+
+                this.cbSesiPO.DataSource = dtCombo;
+                this.cbSesiPO.DisplayMember = "judul_po";
+                this.cbSesiPO.ValueMember = "id_po";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal load sesi PO: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -52,6 +94,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             btnSimpanProduk.Text = "✅ Simpan Produk";
             this.ResetFormTambah();
             this.pnlTambahProduk.Visible = true;
+            this.LoadSesiPO(hanyaAktif: true);
         }
 
         private void btnBatalTambah_Click(object sender, EventArgs e)
@@ -149,7 +192,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     idKategori: idKategori,
                     namaProduk: txtNamaProduk.Text.Trim(),
                     hargaDasar: harga,
-                    idPo: null,
+                    idPo: this.cbSesiPO.SelectedValue == DBNull.Value || this.cbSesiPO.SelectedValue == null
+                    ? (int?)null
+                    : (int?)Convert.ToInt32(this.cbSesiPO.SelectedValue),
                     targetKuota: null,
                     minOrder: minOrder,
                     fotoProduk: _fotoProdukBytes
@@ -189,7 +234,25 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 int idKat = Convert.ToInt32(rowData["id_kategori"]);
                 cbKategoriProduk.SelectedValue = idKat;
             }
-
+            if (rowData["id_po"] != DBNull.Value)
+            {
+                int idPo = Convert.ToInt32(rowData["id_po"]);
+                // Cari index yang id_po-nya cocok
+                for (int i = 0; i < this.cbSesiPO.Items.Count; i++)
+                {
+                    DataRowView drv = this.cbSesiPO.Items[i] as DataRowView;
+                    if (drv != null && drv["id_po"] != DBNull.Value &&
+                        Convert.ToInt32(drv["id_po"]) == idPo)
+                    {
+                        this.cbSesiPO.SelectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                this.cbSesiPO.SelectedIndex = 0;
+            }
             // Foto tetap (tidak reset), user bisa ganti kalau mau
             _fotoProdukBytes = null;
             picFotoPreview.Image = null;
@@ -209,6 +272,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             this.pnlTambahProduk.Visible = true;
             this.pnlTambahProduk.BringToFront();
+            this.LoadSesiPO(hanyaAktif: false);
         }
 
         // === TOMBOL HAPUS (dari kolom action di grid) ===
@@ -261,6 +325,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             picFotoPreview.Image = null;
             _fotoProdukBytes = null;
             if (cbKategoriProduk.Items.Count > 0) cbKategoriProduk.SelectedIndex = 0;
+            if (this.cbSesiPO.Items.Count > 0) this.cbSesiPO.SelectedIndex = 0;
         }
 
         private void AdjustLayout()
@@ -274,6 +339,15 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this.btnTambahProduk.Left = this.btnRefresh.Left - this.btnTambahProduk.Width - 12;
 
             this.pnlTambahProduk.Width = w;
+            this.lblSesiPO.Location = new System.Drawing.Point(
+                this.cbKategoriProduk.Left,
+                this.cbKategoriProduk.Top + this.cbKategoriProduk.Height + 18
+            );
+            this.cbSesiPO.Location = new System.Drawing.Point(
+                this.cbKategoriProduk.Left,
+                this.lblSesiPO.Top + this.lblSesiPO.Height + 4
+            );
+            this.cbSesiPO.Width = this.cbKategoriProduk.Width;
         }
 
         private void SetupDataGridView()

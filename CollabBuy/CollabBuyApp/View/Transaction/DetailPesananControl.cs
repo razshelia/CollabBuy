@@ -114,6 +114,19 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 DataPropertyName = "catatan",
                 Width = 120
             });
+            this.dgvRincian.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Cashback",
+                HeaderText = "💸 Cashback",
+                DataPropertyName = "cashback_str",
+                Width = 130,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    ForeColor = Color.FromArgb(0, 130, 60),
+                    Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
+            });
         }
 
         private void LoadRincianItem()
@@ -128,6 +141,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             dtGrid.Columns.Add("harga_satuan", typeof(long));
             dtGrid.Columns.Add("subtotal", typeof(long));
             dtGrid.Columns.Add("catatan", typeof(string));
+            dtGrid.Columns.Add("cashback_str", typeof(string));
 
             long grandTotal = 0;
 
@@ -136,19 +150,45 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 long subtotal = Convert.ToInt64(row["subtotal"]);
                 grandTotal += subtotal;
 
+                long cashback = this._dtDetail.Columns.Contains("selisih_refund")
+                    ? Convert.ToInt64(row["selisih_refund"])
+                    : 0;
+
+                string cashbackStr = cashback > 0
+                    ? $"Rp {cashback:N0} ✅"
+                    : "-";
+
                 dtGrid.Rows.Add(
                     row["nama_produk"].ToString(),
                     row["nama_penitip"].ToString(),
                     Convert.ToInt32(row["jumlah"]),
                     Convert.ToInt64(row["harga_satuan"]),
                     subtotal,
-                    row["catatan"].ToString()
+                    row["catatan"].ToString(),
+                    cashbackStr
                 );
             }
 
             this.dgvRincian.DataSource = dtGrid;
             this.dgvRincian.ClearSelection();
             this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
+            long totalCashback = 0;
+            foreach (DataRow row in this._dtDetail.Rows)
+            {
+                if (this._dtDetail.Columns.Contains("selisih_refund"))
+                    totalCashback += Convert.ToInt64(row["selisih_refund"]);
+            }
+
+            if (totalCashback > 0)
+            {
+                this.lblCashbackInfo.Text =
+                    $"💸 Total cashback Gotong Royong yang harus kamu kembalikan ke pembeli: Rp {totalCashback:N0}";
+                this.lblCashbackInfo.Visible = true;
+            }
+            else
+            {
+                this.lblCashbackInfo.Visible = false;
+            }
         }
 
         // =======================================================

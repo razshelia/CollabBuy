@@ -245,5 +245,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 throw new Exception("Gagal memuat sesi PO dari database: " + ex.Message, ex);
             }
         }
+        public DataTable GetPOAktifByPenjual(int idPenjual)
+        {
+            try { return this._poRepo.GetPOAktifByPenjual(idPenjual); }
+            catch (Exception ex) { throw new Exception("Gagal load PO aktif: " + ex.Message); }
+        }
     }
 }

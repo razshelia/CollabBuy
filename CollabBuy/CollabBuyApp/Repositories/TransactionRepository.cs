@@ -520,6 +520,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             dt.Columns.Add("harga_satuan", typeof(long));
             dt.Columns.Add("subtotal", typeof(long));
             dt.Columns.Add("catatan", typeof(string));
+            dt.Columns.Add("selisih_refund", typeof(long));
 
             string queryHeader = @"
                 SELECT t.id_transaksi, u.nama AS nama_pembeli,
@@ -562,12 +563,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
 
             string queryDetail = @"
-                SELECT td.nama_produk_snapshot, td.nama_penitip,
-                       td.jumlah_pesanan, td.harga_satuan_saat_beli,
-                       td.catatan
-                FROM transaction_details td
-                JOIN products p ON td.id_produk = p.id_produk
-                WHERE td.id_transaksi = @idTrx AND p.id_penjual = @idPenjual;";
+            SELECT td.nama_produk_snapshot, td.nama_penitip,
+                td.jumlah_pesanan, td.harga_satuan_saat_beli,
+                td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
+            FROM transaction_details td
+            JOIN products p ON td.id_produk = p.id_produk
+            WHERE td.id_transaksi = @idTrx AND p.id_penjual = @idPenjual;";
 
             using (var conn2 = new NpgsqlConnection(_connectionString))
             {
@@ -596,6 +597,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                                    ? (object)buktiBayar
                                                    : DBNull.Value;
 
+                            long selisihRefund = rdr2.IsDBNull(rdr2.GetOrdinal("selisih_refund"))
+                                ? 0
+                                : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
+
                             dt.Rows.Add(
                                 namaPembeli,
                                 tanggalStr,
@@ -606,7 +611,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                 jumlah,
                                 harga,
                                 subtotal,
-                                catatan
+                                catatan,
+                                selisihRefund
                             );
                         }
                     }
@@ -614,6 +620,41 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
 
             return dt;
+        }
+        /// <summary>
+        /// Dipanggil saat kuota produk Gotong Royong terpenuhi.
+        /// Update selisih_refund untuk SEMUA detail transaksi yang terkait produk ini,
+        /// termasuk yang checkout SEBELUM kuota terpenuhi.
+        /// </summary>
+        public (bool sukses, string pesan) RecalculateCashbackGotongRoyong(int idProduk, long hargaDasar, long hargaDiskon)
+        {
+            try
+            {
+                long selisihPerItem = hargaDasar - hargaDiskon;
+                if (selisihPerItem <= 0) return (false, "Selisih cashback tidak valid.");
+
+                string query = @"
+            UPDATE transaction_details
+            SET selisih_refund = jumlah_pesanan * @selisih
+            WHERE id_produk = @idProduk
+              AND selisih_refund = 0;";
+
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@selisih", selisihPerItem);
+                        cmd.Parameters.AddWithValue("@idProduk", idProduk);
+                        int affected = cmd.ExecuteNonQuery();
+                        return (true, $"Cashback diupdate untuk {affected} baris titipan.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, "Gagal update cashback: " + ex.Message);
+            }
         }
     }
 }

@@ -208,5 +208,31 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+        /// <summary>
+        /// Khusus untuk dropdown form tambah produk — hanya PO yang masih aktif dan belum lewat batas waktu.
+        /// </summary>
+        public DataTable GetPOAktifByPenjual(int idPenjual)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT id_po, judul_po, jenis_po, batas_waktu
+        FROM preorders
+        WHERE id_penjual = @id
+          AND is_deleted = FALSE
+          AND is_aktif = TRUE
+          AND batas_waktu > NOW()
+        ORDER BY batas_waktu ASC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
     }
 }

@@ -181,8 +181,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         return;
                     }
 
-                    // 5. Jika sukses, tandai checkout selesai
-                    this._checkoutSudahDilakukan = true;
+                    this._trxCtrl.TriggerCashbackJikaKuotaTerpenuhi();
 
                     // 6. Parsing ID Transaksi dari string pesan (Mencegah error NullReference atau Controller gagal get ID)
                     try

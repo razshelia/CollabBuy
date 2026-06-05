@@ -29,6 +29,8 @@
             this.lblHargaProduk = new System.Windows.Forms.Label();
             this.txtHargaProduk = new System.Windows.Forms.TextBox();
             this.lblMinOrder = new System.Windows.Forms.Label();
+            this.lblSesiPO = new System.Windows.Forms.Label();
+            this.cbSesiPO = new System.Windows.Forms.ComboBox();
             this.txtMinOrder = new System.Windows.Forms.TextBox();
             this.lblDeskripsiProduk = new System.Windows.Forms.Label();
             this.txtDeskripsiProduk = new System.Windows.Forms.TextBox();
@@ -144,6 +146,8 @@
             this.pnlTambahProduk.Controls.Add(this.txtHargaProduk);
             this.pnlTambahProduk.Controls.Add(this.lblMinOrder);
             this.pnlTambahProduk.Controls.Add(this.txtMinOrder);
+            this.pnlTambahProduk.Controls.Add(this.lblSesiPO);
+            this.pnlTambahProduk.Controls.Add(this.cbSesiPO);
             this.pnlTambahProduk.Controls.Add(this.lblDeskripsiProduk);
             this.pnlTambahProduk.Controls.Add(this.txtDeskripsiProduk);
             this.pnlTambahProduk.Controls.Add(this.picFotoPreview);
@@ -210,6 +214,20 @@
             this.lblMinOrder.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.lblMinOrder.Location = new System.Drawing.Point(215, 112);
             this.lblMinOrder.Text = "Min. Order";
+
+            // lblSesiPO
+            this.lblSesiPO.AutoSize = true;
+            this.lblSesiPO.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblSesiPO.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblSesiPO.Location = new System.Drawing.Point(330, 112);
+            this.lblSesiPO.Text = "Sesi PO";
+
+            // cbSesiPO
+            this.cbSesiPO.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbSesiPO.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cbSesiPO.Location = new System.Drawing.Point(330, 130);
+            this.cbSesiPO.Name = "cbSesiPO";
+            this.cbSesiPO.Size = new System.Drawing.Size(270, 27);
 
             // txtMinOrder
             this.txtMinOrder.Font = new System.Drawing.Font("Segoe UI", 10F);
@@ -325,5 +343,7 @@
         private System.Windows.Forms.Button btnPilihFoto;
         private System.Windows.Forms.Button btnSimpanProduk;
         private System.Windows.Forms.Button btnBatalTambah;
+        private System.Windows.Forms.Label lblSesiPO;
+        private System.Windows.Forms.ComboBox cbSesiPO;
     }
 }
