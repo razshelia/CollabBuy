@@ -20,6 +20,7 @@
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.lblPassword = new System.Windows.Forms.Label();
             this.txtUsername = new System.Windows.Forms.TextBox();
+            this.btnLupaPassword = new System.Windows.Forms.Button();
             this.lblUsername = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -34,6 +35,7 @@
             this.pnlCard.BackColor = System.Drawing.Color.White;
             this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlCard.Controls.Add(this.chkShowPassword);
+            this.pnlCard.Controls.Add(this.btnLupaPassword);
             this.pnlCard.Controls.Add(this.btnDaftar);
             this.pnlCard.Controls.Add(this.btnLogin);
             this.pnlCard.Controls.Add(this.txtPassword);
@@ -44,7 +46,7 @@
             this.pnlCard.Controls.Add(this.lblTitle);
             this.pnlCard.Location = new System.Drawing.Point(320, 120);
             this.pnlCard.Name = "pnlCard";
-            this.pnlCard.Size = new System.Drawing.Size(380, 480);
+            this.pnlCard.Size = new System.Drawing.Size(400, 560);
             this.pnlCard.TabIndex = 0;
             // 
             // chkShowPassword
@@ -53,7 +55,7 @@
             this.chkShowPassword.Cursor = System.Windows.Forms.Cursors.Hand;
             this.chkShowPassword.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkShowPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(100)))), ((int)(((byte)(200)))));
-            this.chkShowPassword.Location = new System.Drawing.Point(40, 325);
+            this.chkShowPassword.Location = new System.Drawing.Point(40, 330);
             this.chkShowPassword.Name = "chkShowPassword";
             this.chkShowPassword.Size = new System.Drawing.Size(147, 19);
             this.chkShowPassword.TabIndex = 8;
@@ -68,9 +70,9 @@
             this.btnDaftar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDaftar.Font = new System.Drawing.Font("Segoe UI", 9.5F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDaftar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(120)))), ((int)(((byte)(80)))), ((int)(((byte)(180)))));
-            this.btnDaftar.Location = new System.Drawing.Point(40, 420);
+            this.btnDaftar.Location = new System.Drawing.Point(40, 500);
+            this.btnDaftar.Size = new System.Drawing.Size(318, 30);
             this.btnDaftar.Name = "btnDaftar";
-            this.btnDaftar.Size = new System.Drawing.Size(300, 30);
             this.btnDaftar.TabIndex = 7;
             this.btnDaftar.Text = "Belum punya akun? Daftar dimari ygy~";
             this.btnDaftar.UseVisualStyleBackColor = true;
@@ -85,9 +87,9 @@
             this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLogin.Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnLogin.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(0)))), ((int)(((byte)(70)))));
-            this.btnLogin.Location = new System.Drawing.Point(40, 358);
+            this.btnLogin.Location = new System.Drawing.Point(40, 365);
+            this.btnLogin.Size = new System.Drawing.Size(318, 46);
             this.btnLogin.Name = "btnLogin";
-            this.btnLogin.Size = new System.Drawing.Size(300, 45);
             this.btnLogin.TabIndex = 6;
             this.btnLogin.Text = "Gas Masuk! 🚀";
             this.btnLogin.UseVisualStyleBackColor = false;
@@ -100,7 +102,7 @@
             this.txtPassword.Location = new System.Drawing.Point(40, 285);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '●';
-            this.txtPassword.Size = new System.Drawing.Size(300, 29);
+            this.txtPassword.Size = new System.Drawing.Size(318, 29);
             this.txtPassword.TabIndex = 5;
             // 
             // lblPassword
@@ -120,7 +122,7 @@
             this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtUsername.Location = new System.Drawing.Point(40, 215);
             this.txtUsername.Name = "txtUsername";
-            this.txtUsername.Size = new System.Drawing.Size(300, 29);
+            this.txtUsername.Size = new System.Drawing.Size(318, 29);
             this.txtUsername.TabIndex = 3;
             // 
             // 1. Atur PictureBox (Logo) agar berada di tengah atas
@@ -165,6 +167,19 @@
             this.pnlCard.PerformLayout();
             this.ResumeLayout(false);
 
+            // btnLupaPassword
+            this.btnLupaPassword.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnLupaPassword.FlatAppearance.BorderSize = 0;
+            this.btnLupaPassword.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLupaPassword.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Underline);
+            this.btnLupaPassword.ForeColor = System.Drawing.Color.FromArgb(150, 100, 200);
+            this.btnLupaPassword.Location = new System.Drawing.Point(40, 422);
+            this.btnLupaPassword.Size = new System.Drawing.Size(318, 28);
+            this.btnLupaPassword.Name = "btnLupaPassword";
+            this.btnLupaPassword.Text = "Lupa password? Klik sini~";
+            this.btnLupaPassword.UseVisualStyleBackColor = true;
+            this.btnLupaPassword.Click += new System.EventHandler(this.btnLupaPassword_Click);
+
         }
         #endregion
 
@@ -177,6 +192,7 @@
         private System.Windows.Forms.TextBox txtPassword;
         private System.Windows.Forms.Button btnLogin;
         private System.Windows.Forms.Button btnDaftar;
+        private System.Windows.Forms.Button btnLupaPassword;
         private System.Windows.Forms.CheckBox chkShowPassword;
         private System.Windows.Forms.PictureBox picLogo;
     }

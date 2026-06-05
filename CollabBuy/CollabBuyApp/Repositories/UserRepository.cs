@@ -482,5 +482,40 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return userObj;
         }
+        public int? VerifikasiIdentitasUser(string username, string email, string nomorTelepon)
+        {
+            string query = @"SELECT id_user FROM users
+                             WHERE username       = @user
+                               AND email          = @email
+                               AND nomor_telepon  = @telepon
+                               AND is_diblokir    = FALSE;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@user", username);
+                    cmd.Parameters.AddWithValue("@email", email);
+                    cmd.Parameters.AddWithValue("@telepon", nomorTelepon);
+                    object result = cmd.ExecuteScalar();
+                    return result != null ? (int?)Convert.ToInt32(result) : null;
+                }
+            }
+        }
+
+        public bool ResetPasswordUser(int idUser, string passwordHashBaru)
+        {
+            string query = "UPDATE users SET password = @hash WHERE id_user = @id;";
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@hash", passwordHashBaru);
+                    cmd.Parameters.AddWithValue("@id", idUser);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
     }
 }

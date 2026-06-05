@@ -342,5 +342,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             return hasilHash;
         }
+        public int? VerifikasiIdentitasUser(string username, string email, string nomorTelepon)
+        {
+            try { return this._userRepo.VerifikasiIdentitasUser(username, email, nomorTelepon); }
+            catch { return null; }
+        }
+
+        public bool ResetPasswordUser(int idUser, string passwordBaru)
+        {
+            if (string.IsNullOrWhiteSpace(passwordBaru) || passwordBaru.Length < 6) return false;
+            try
+            {
+                string hash = this.HashSha256(passwordBaru);
+                return this._userRepo.ResetPasswordUser(idUser, hash);
+            }
+            catch { return false; }
+        }
     }
 }

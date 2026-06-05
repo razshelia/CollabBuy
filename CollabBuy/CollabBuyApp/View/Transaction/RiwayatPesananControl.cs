@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using CollabBuy.CollabBuyApp.Controllers;
 using CollabBuy.CollabBuyApp.Models;
@@ -15,15 +17,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         public RiwayatPesananControl(User currentUser)
         {
-            InitializeComponent();
+            this.InitializeComponent();
             this._currentUser = currentUser;
-
-            // Inisialisasi controller khusus sesi pembeli yang sedang login
             this._transactionController = new TransactionController(this._currentUser.GetIdUser());
-
             this.Resize += (s, e) => this.AdjustLayout();
         }
 
+        // ── Load ────────────────────────────────────────────────
         private void RiwayatPesananControl_Load(object sender, EventArgs e)
         {
             this.AdjustLayout();
@@ -34,23 +34,33 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             this.LoadDataRiwayat();
+            // Tutup panel detail saat refresh
+            this.splitMain.Panel2Collapsed = true;
+            this.pnlDetail.Controls.Clear();
         }
 
+        // ── Layout ──────────────────────────────────────────────
         private void AdjustLayout()
         {
-            int margin = 36;
-            int w = this.Width - (margin * 2);
+            int margin = 30;
+            int availW = this.Width - margin * 2;
+            int availH = this.Height - 95 - margin;
 
-            this.pnlCard.Width = w;
-            this.pnlCard.Height = this.Height - this.pnlCard.Top - margin;
+            this.splitMain.Location = new Point(margin, 95);
+            this.splitMain.Size = new Size(availW, Math.Max(availH, 200));
 
-            this.dgvRiwayat.Width = this.pnlCard.Width - 68;
-            this.dgvRiwayat.Height = this.pnlCard.Height - this.btnRefresh.Height - 70;
+            // Tombol refresh di kanan bawah Panel1
+            this.btnRefresh.Location = new Point(
+                this.splitMain.Panel1.Width - this.btnRefresh.Width - 10,
+                this.splitMain.Panel1.Height - this.btnRefresh.Height - 10);
 
-            this.btnRefresh.Left = this.pnlCard.Width - this.btnRefresh.Width - 34;
-            this.btnRefresh.Top = this.pnlCard.Height - this.btnRefresh.Height - 20;
+            this.dgvRiwayat.Location = new Point(10, 10);
+            this.dgvRiwayat.Size = new Size(
+                this.splitMain.Panel1.Width - 20,
+                this.splitMain.Panel1.Height - this.btnRefresh.Height - 30);
         }
 
+        // ── DataGridView ────────────────────────────────────────
         private void SetupDataGridView()
         {
             this.dgvRiwayat.AutoGenerateColumns = false;
@@ -71,7 +81,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 HeaderText = "",
                 Text = "🔍 Detail",
                 UseColumnTextForButtonValue = true,
-                Width = 85,
+                Width = 90,
                 FlatStyle = FlatStyle.Flat,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -90,10 +100,11 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 var row = ((DataTable)this.dgvRiwayat.DataSource).Rows[e.RowIndex];
                 int idTrx = Convert.ToInt32(row["id_transaksi"]);
                 DataTable dtDetail = this._transactionController.GetDetailPesananPembeli(idTrx);
-                this.TampilkanDetailDanSplitBill(idTrx, dtDetail);
+                this.TampilkanDetailInline(idTrx, dtDetail);
             };
         }
 
+        // ── Load Data ───────────────────────────────────────────
         private void LoadDataRiwayat()
         {
             try
@@ -110,14 +121,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 dtUI.Columns.Add("status_bayar", typeof(string));
                 dtUI.Columns.Add("status_pesanan", typeof(string));
 
-                if (listTrx != null && listTrx.Count > 0)
+                if (listTrx != null)
                 {
                     foreach (Models.Transaction trx in listTrx)
                     {
                         long totalTagihan = trx.HitungTotal();
                         long totalCashback = trx.HitungDiskon();
                         long tagihBersih = totalTagihan - totalCashback;
-
                         dtUI.Rows.Add(
                             trx.IdTransaksi,
                             $"INV-{trx.IdTransaksi:D6}",
@@ -136,19 +146,20 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal memuat data riwayat: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal memuat riwayat: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void TampilkanDetailDanSplitBill(int idTrx, DataTable dtDetail)
+
+        // ── Tampilkan Detail Inline ──────────────────────────────
+        private void TampilkanDetailInline(int idTrx, DataTable dtDetail)
         {
-            // ── Hitung data split bill lebih dulu ──
-            var splitDict = new System.Collections.Generic.Dictionary<string, long>();
-            var cashbackDict = new System.Collections.Generic.Dictionary<string, long>();
+            // Hitung split bill
+            var splitDict = new Dictionary<string, long>();
+            var cashbackDict = new Dictionary<string, long>();
             long grandTotal = 0;
             long totalCashback = 0;
-
-            // Ambil bukti bayar dari baris pertama (sama untuk semua baris transaksi ini)
             byte[] buktiBayar = null;
+
             if (dtDetail.Columns.Contains("bukti_bayar") && dtDetail.Rows.Count > 0
                 && dtDetail.Rows[0]["bukti_bayar"] != DBNull.Value)
                 buktiBayar = (byte[])dtDetail.Rows[0]["bukti_bayar"];
@@ -166,68 +177,87 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 cashbackDict[penitip] += cashback;
             }
 
-            // ── Form utama ──
-            Form frmDetail = new Form
-            {
-                Text = $"Detail & Split Bill — INV-{idTrx:D6}",
-                MinimumSize = new Size(820, 600),
-                Size = new Size(960, 740),
-                StartPosition = FormStartPosition.CenterParent,
-                BackColor = Color.White,
-                Font = new Font("Segoe UI", 9F)
-            };
+            // Bersihkan panel detail lama
+            this.pnlDetail.Controls.Clear();
 
-            Panel pnlMain = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(16, 12, 16, 12),
-                BackColor = Color.White
-            };
-            frmDetail.Controls.Add(pnlMain);
+            // Buka panel kanan
+            this.splitMain.Panel2Collapsed = false;
+            // Atur lebar panel kanan (60% dari total atau minimal 520px)
+            int panel2W = Math.Max(520, (int)(this.splitMain.Width * 0.55));
+            this.splitMain.SplitterDistance = this.splitMain.Width - panel2W - this.splitMain.SplitterWidth;
 
-            // ── TableLayoutPanel: 6 baris ──
+            // ── TableLayoutPanel utama di pnlDetail ──
             TableLayoutPanel tbl = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 6,
-                BackColor = Color.White
+                RowCount = 7,
+                BackColor = Color.White,
+                Padding = new Padding(12, 8, 12, 8)
             };
             tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 62F));  // 0 — Header
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));   // 1 — dgv Rincian
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));  // 2 — Label Split Bill
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 35F));   // 3 — dgv Split
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));   // 4 — Panel Bukti Bayar
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));  // 5 — Footer
-            pnlMain.Controls.Add(tbl);
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));   // 0 Header
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 26F));   // 1 Label rincian
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 38F));    // 2 DGV rincian
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 26F));   // 3 Label split
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 22F));    // 4 DGV split
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 28F));    // 5 Bukti bayar
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));   // 6 Footer
 
-            // ── Baris 0: Header ──
-            Panel pnlHeader = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-            Label lblJudul = new Label
+            // Baris 0 — Header
+            Panel pnlHdr = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+            pnlHdr.Controls.Add(new Label
             {
-                Text = $"📋 Rincian Pesanan INV-{idTrx:D6}",
+                Text = $"📋 INV-{idTrx:D6}",
                 Font = new Font("Segoe UI Black", 13F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(36, 0, 70),
                 AutoSize = true,
-                Location = new Point(2, 2)
-            };
+                Location = new Point(0, 2)
+            });
             string statusTeks = dtDetail.Rows.Count > 0
                 ? $"Status: {dtDetail.Rows[0]["status_pesanan"]}  |  {dtDetail.Rows[0]["tanggal_transaksi"]}"
                 : "Tidak ada data";
-            Label lblStatus = new Label
+            pnlHdr.Controls.Add(new Label
             {
                 Text = statusTeks,
                 Font = new Font("Segoe UI", 9F),
                 ForeColor = Color.FromArgb(90, 24, 154),
                 AutoSize = true,
-                Location = new Point(4, 36)
+                Location = new Point(2, 32)
+            });
+            // Tombol tutup di kanan atas
+            Button btnTutupInline = new Button
+            {
+                Text = "✖",
+                Size = new Size(32, 32),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(210, 210, 210),
+                ForeColor = Color.FromArgb(60, 60, 60),
+                Cursor = Cursors.Hand,
+                Location = new Point(panel2W - 55, 2),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
             };
-            pnlHeader.Controls.Add(lblJudul);
-            pnlHeader.Controls.Add(lblStatus);
-            tbl.Controls.Add(pnlHeader, 0, 0);
+            btnTutupInline.FlatAppearance.BorderSize = 0;
+            btnTutupInline.Click += (s, e) =>
+            {
+                this.splitMain.Panel2Collapsed = true;
+                this.pnlDetail.Controls.Clear();
+            };
+            pnlHdr.Controls.Add(btnTutupInline);
+            tbl.Controls.Add(pnlHdr, 0, 0);
 
-            // ── Baris 1: DataGridView Rincian ──
+            // Baris 1 — Label rincian
+            tbl.Controls.Add(new Label
+            {
+                Text = "🧾 Rincian Item",
+                Font = new Font("Segoe UI Black", 10F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(36, 0, 70),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.BottomLeft
+            }, 0, 1);
+
+            // Baris 2 — DGV rincian
             DataGridView dgv = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -236,22 +266,22 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 AutoGenerateColumns = false,
                 BackgroundColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
                 ScrollBars = ScrollBars.Both,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(235, 204, 255);
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 0, 70);
-            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             dgv.EnableHeadersVisualStyles = false;
 
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Produk", DataPropertyName = "nama_produk", Width = 200 });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Penitip", DataPropertyName = "nama_penitip", Width = 140 });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Qty", DataPropertyName = "jumlah", Width = 50, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Harga Satuan", DataPropertyName = "harga_satuan", Width = 115, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Subtotal (Rp)", DataPropertyName = "subtotal", Width = 125, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cashback", DataPropertyName = "cashback_str", Width = 120, DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(0, 130, 60), Font = new Font("Segoe UI", 9F, FontStyle.Bold), Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Catatan", DataPropertyName = "catatan", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 80 });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Produk", DataPropertyName = "nama_produk", Width = 160 });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Penitip", DataPropertyName = "nama_penitip", Width = 110 });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Qty", DataPropertyName = "jumlah", Width = 42, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Harga", DataPropertyName = "harga_satuan", Width = 95, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Subtotal", DataPropertyName = "subtotal", Width = 105, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cashback", DataPropertyName = "cashback_str", Width = 105, DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(0, 130, 60), Font = new Font("Segoe UI", 8.5F, FontStyle.Bold), Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Catatan", DataPropertyName = "catatan", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 60 });
 
             DataTable dtGrid = new DataTable();
             dtGrid.Columns.Add("nama_produk", typeof(string));
@@ -277,21 +307,19 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 );
             }
             dgv.DataSource = dtGrid;
-            tbl.Controls.Add(dgv, 0, 1);
+            tbl.Controls.Add(dgv, 0, 2);
 
-            // ── Baris 2: Label Split Bill ──
-            Label lblSplitJudul = new Label
+            // Baris 3 — Label split bill
+            tbl.Controls.Add(new Label
             {
                 Text = "💰 Split Bill per Penitip",
-                Font = new Font("Segoe UI Black", 11F, FontStyle.Bold),
+                Font = new Font("Segoe UI Black", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(36, 0, 70),
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.BottomLeft,
-                Padding = new Padding(0, 0, 0, 2)
-            };
-            tbl.Controls.Add(lblSplitJudul, 0, 2);
+                TextAlign = ContentAlignment.BottomLeft
+            }, 0, 3);
 
-            // ── Baris 3: DataGridView Split Bill ──
+            // Baris 4 — DGV split
             DataGridView dgvSplit = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -300,29 +328,27 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 AutoGenerateColumns = false,
                 BackgroundColor = Color.FromArgb(245, 232, 255),
                 BorderStyle = BorderStyle.FixedSingle,
-                ScrollBars = ScrollBars.Both,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
             };
             dgvSplit.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(200, 160, 240);
             dgvSplit.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(36, 0, 70);
-            dgvSplit.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dgvSplit.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             dgvSplit.EnableHeadersVisualStyles = false;
             dgvSplit.DefaultCellStyle.BackColor = Color.FromArgb(245, 232, 255);
 
-            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nama Penitip", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 140 });
-            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Total Belanja (Rp)", Width = 160, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cashback (Rp)", Width = 140, DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(0, 130, 60), Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Yang Harus Bayar (Rp)", Width = 170, DefaultCellStyle = new DataGridViewCellStyle { Font = new Font("Segoe UI", 9F, FontStyle.Bold), Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Penitip", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 110 });
+            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Total Belanja (Rp)", Width = 135, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cashback (Rp)", Width = 115, DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(0, 130, 60), Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgvSplit.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Harus Bayar (Rp)", Width = 135, DefaultCellStyle = new DataGridViewCellStyle { Font = new Font("Segoe UI", 9F, FontStyle.Bold), Alignment = DataGridViewContentAlignment.MiddleRight } });
 
             foreach (var kv in splitDict)
             {
-                long totalBelanja = kv.Value;
-                long cashback = cashbackDict[kv.Key];
-                dgvSplit.Rows.Add(kv.Key, totalBelanja, cashback > 0 ? cashback : 0, totalBelanja - cashback);
+                long cb = cashbackDict[kv.Key];
+                dgvSplit.Rows.Add(kv.Key, kv.Value, cb > 0 ? cb : 0, kv.Value - cb);
             }
-            tbl.Controls.Add(dgvSplit, 0, 3);
+            tbl.Controls.Add(dgvSplit, 0, 4);
 
-            // ── Baris 4: Panel Bukti Bayar ──
+            // Baris 5 — Bukti Bayar (label kiri, gambar proporsional di kanan)
             TableLayoutPanel pnlBukti = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -331,183 +357,136 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 BackColor = Color.White,
                 Margin = new Padding(0, 6, 0, 0)
             };
-            pnlBukti.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F)); // kolom label
-            pnlBukti.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));  // kolom gambar
+            pnlBukti.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 105F));
+            pnlBukti.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            Label lblBuktiJudul = new Label
+            pnlBukti.Controls.Add(new Label
             {
-                Text = "🧾 Bukti Bayar",
-                Font = new Font("Segoe UI Black", 10F, FontStyle.Bold),
+                Text = "🧾 Bukti\nBayar",
+                Font = new Font("Segoe UI Black", 9.5F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(36, 0, 70),
                 Dock = DockStyle.Top,
-                AutoSize = true,
-                Margin = new Padding(0, 0, 0, 4)
-            };
-            pnlBukti.Controls.Add(lblBuktiJudul, 0, 0);
+                AutoSize = false,
+                Height = 44,
+                TextAlign = ContentAlignment.MiddleLeft
+            }, 0, 0);
 
             if (buktiBayar != null && buktiBayar.Length > 10)
             {
                 try
                 {
-                    using (var ms = new System.IO.MemoryStream(buktiBayar))
+                    Image img;
+                    using (var ms = new MemoryStream(buktiBayar))
+                        img = Image.FromStream(ms);
+
+                    PictureBox pb = new PictureBox
                     {
-                        Image img = Image.FromStream(ms);
-
-                        PictureBox pbBukti = new PictureBox
+                        Dock = DockStyle.Fill,
+                        SizeMode = PictureBoxSizeMode.Zoom,
+                        Image = img,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        Cursor = Cursors.Hand
+                    };
+                    pb.Click += (s, e) =>
+                    {
+                        Form frmZoom = new Form
                         {
-                            Dock = DockStyle.Fill,
-                            SizeMode = PictureBoxSizeMode.Zoom,
-                            Image = img,
-                            BorderStyle = BorderStyle.FixedSingle,
-                            Cursor = Cursors.Hand
+                            Text = $"Bukti Bayar — INV-{idTrx:D6}",
+                            Size = new Size(800, 700),
+                            StartPosition = FormStartPosition.CenterParent,
+                            BackColor = Color.Black
                         };
-
-                        // Klik foto → buka di form besar (zoom)
-                        pbBukti.Click += (s, e) =>
-                        {
-                            Form frmZoom = new Form
-                            {
-                                Text = $"Bukti Bayar — INV-{idTrx:D6}",
-                                Size = new Size(800, 700),
-                                StartPosition = FormStartPosition.CenterParent,
-                                BackColor = Color.Black
-                            };
-                            PictureBox pbZoom = new PictureBox
-                            {
-                                Dock = DockStyle.Fill,
-                                SizeMode = PictureBoxSizeMode.Zoom,
-                                Image = img
-                            };
-                            frmZoom.Controls.Add(pbZoom);
-                            frmZoom.ShowDialog();
-                        };
-
-                        pnlBukti.Controls.Add(pbBukti, 1, 0);
-                    }
+                        frmZoom.Controls.Add(new PictureBox { Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, Image = img });
+                        frmZoom.ShowDialog();
+                    };
+                    pnlBukti.Controls.Add(pb, 1, 0);
                 }
                 catch
                 {
-                    // Data bukan gambar valid — tampilkan placeholder
-                    Label lblNoBukti = new Label
+                    pnlBukti.Controls.Add(new Label
                     {
-                        Text = "⚠️ File bukti tidak dapat ditampilkan.",
+                        Text = "⚠️ File tidak dapat ditampilkan.",
                         ForeColor = Color.FromArgb(150, 0, 0),
                         Dock = DockStyle.Fill,
                         TextAlign = ContentAlignment.MiddleLeft,
                         Font = new Font("Segoe UI", 9F, FontStyle.Italic)
-                    };
-                    pnlBukti.Controls.Add(lblNoBukti, 1, 0);
+                    }, 1, 0);
                 }
             }
             else
             {
-                Panel pnlNoBukti = new Panel
+                Panel pnlNo = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(245, 245, 245), BorderStyle = BorderStyle.FixedSingle };
+                pnlNo.Controls.Add(new Label
                 {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.FromArgb(245, 245, 245),
-                    BorderStyle = BorderStyle.FixedSingle
-                };
-                Label lblNoBukti = new Label
-                {
-                    Text = "Belum ada bukti pembayaran yang diupload.",
-                    ForeColor = Color.FromArgb(130, 130, 130),
+                    Text = "Belum ada bukti pembayaran.",
+                    ForeColor = Color.Gray,
                     Dock = DockStyle.Fill,
                     TextAlign = ContentAlignment.MiddleCenter,
                     Font = new Font("Segoe UI", 9F, FontStyle.Italic)
-                };
-                pnlNoBukti.Controls.Add(lblNoBukti);
-                pnlBukti.Controls.Add(pnlNoBukti, 1, 0);
+                });
+                pnlBukti.Controls.Add(pnlNo, 1, 0);
             }
+            tbl.Controls.Add(pnlBukti, 0, 5);
 
-            tbl.Controls.Add(pnlBukti, 0, 4);
-
-            // ── Baris 5: Footer ──
+            // Baris 6 — Footer
             TableLayoutPanel pnlFooter = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 1,
                 BackColor = Color.White,
-                Margin = new Padding(0, 6, 0, 0)
+                Margin = new Padding(0, 4, 0, 0)
             };
             pnlFooter.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            pnlFooter.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 290F));
+            pnlFooter.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 175F));
 
             long tagihBersihTotal = grandTotal - totalCashback;
-            Label lblTotal = new Label
+            pnlFooter.Controls.Add(new Label
             {
-                Text = $"Grand Total: Rp {grandTotal:N0}" +
-                       (totalCashback > 0
-                           ? $"   |   Cashback GR: Rp {totalCashback:N0}   |   ✅ Bayar Bersih: Rp {tagihBersihTotal:N0}"
-                           : ""),
-                Font = new Font("Segoe UI Black", 10F, FontStyle.Bold),
+                Text = $"Total: Rp {grandTotal:N0}" +
+                            (totalCashback > 0 ? $"   |   Cashback: Rp {totalCashback:N0}   |   ✅ Bayar: Rp {tagihBersihTotal:N0}" : ""),
+                Font = new Font("Segoe UI Black", 9F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(90, 24, 154),
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleLeft
-            };
-            pnlFooter.Controls.Add(lblTotal, 0, 0);
-
-            FlowLayoutPanel pnlBtn = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.RightToLeft,
-                WrapContents = false,
-                BackColor = Color.White
-            };
-
-            Button btnTutup = new Button
-            {
-                Text = "✖ Tutup",
-                Size = new Size(110, 36),
-                BackColor = Color.FromArgb(210, 210, 210),
-                ForeColor = Color.FromArgb(60, 60, 60),
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9F),
-                Cursor = Cursors.Hand,
-                Margin = new Padding(6, 4, 0, 0)
-            };
-            btnTutup.FlatAppearance.BorderSize = 0;
-            btnTutup.Click += (s, e) => frmDetail.Close();
+            }, 0, 0);
 
             Button btnSalin = new Button
             {
                 Text = "📋 Salin Split Bill",
-                Size = new Size(160, 36),
+                Size = new Size(165, 38),
                 BackColor = Color.FromArgb(36, 0, 70),
                 ForeColor = Color.FromArgb(253, 255, 182),
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 Cursor = Cursors.Hand,
-                Margin = new Padding(6, 4, 0, 0)
+                Dock = DockStyle.Right
             };
             btnSalin.FlatAppearance.BorderSize = 0;
             btnSalin.Click += (s, e) =>
             {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"💰 Split Bill — INV-{idTrx:D6}");
-                sb.AppendLine(new string('─', 40));
+                sb.AppendLine(new string('─', 38));
                 foreach (var kv in splitDict)
                 {
                     long cb = cashbackDict[kv.Key];
                     long bayar = kv.Value - cb;
                     sb.Append($"• {kv.Key}: Rp {bayar:N0}");
-                    if (cb > 0) sb.Append($" (hemat cashback Rp {cb:N0} 🎉)");
+                    if (cb > 0) sb.Append($" (hemat Rp {cb:N0} 🎉)");
                     sb.AppendLine();
                 }
-                sb.AppendLine(new string('─', 40));
+                sb.AppendLine(new string('─', 38));
                 sb.AppendLine($"Total: Rp {grandTotal:N0}");
-                if (totalCashback > 0)
-                    sb.AppendLine($"Total Cashback GR: Rp {totalCashback:N0}");
+                if (totalCashback > 0) sb.AppendLine($"Cashback GR: Rp {totalCashback:N0}");
                 Clipboard.SetText(sb.ToString());
-                MessageBox.Show("Split bill berhasil disalin! Tinggal paste ke WA / chat grup.", "Berhasil ✅", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Split bill disalin! Tinggal paste ke WA 😊", "✅ Berhasil", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
+            pnlFooter.Controls.Add(btnSalin, 1, 0);
+            tbl.Controls.Add(pnlFooter, 0, 6);
 
-            pnlBtn.Controls.Add(btnTutup);
-            pnlBtn.Controls.Add(btnSalin);
-            pnlFooter.Controls.Add(pnlBtn, 1, 0);
-            tbl.Controls.Add(pnlFooter, 0, 5);
-
-            frmDetail.ShowDialog();
+            this.pnlDetail.Controls.Add(tbl);
+            this.splitMain.Panel2.Refresh();
         }
     }
 }
