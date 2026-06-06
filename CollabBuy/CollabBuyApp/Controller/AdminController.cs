@@ -84,7 +84,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public DataTable GetKategori()
         {
             try { return _categoryRepo.GetAll(); }
-            catch { return new DataTable(); }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[AdminController.GetKategori] Error: {ex.Message}");
+                return new DataTable();
+            }
         }
 
         public (bool sukses, string pesan) TambahKategori(string nama)

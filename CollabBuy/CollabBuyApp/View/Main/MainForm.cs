@@ -472,6 +472,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             if (dr == DialogResult.Yes)
             {
+                int idPembeli = this._currentUser.IdUser;
+                Services.CartManager.BersihkanSesiPembeli(idPembeli);
                 this._currentUser = null;
                 this.ShowLoginControl();
             }

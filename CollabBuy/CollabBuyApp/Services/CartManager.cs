@@ -1,5 +1,5 @@
 ﻿using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.Exceptions; // <-- INI YANG BIKIN ERROR SEBELUMNYA!
+using CollabBuy.CollabBuyApp.Exceptions;
 using System;
 using System.Collections.Generic;
 
@@ -7,213 +7,163 @@ namespace CollabBuy.CollabBuyApp.Services
 {
     public class CartManager
     {
-        private int _idPembeli;
+        private readonly int _idPembeli;
 
-        // PERBAIKAN UTAMA: Tambah kata 'static' agar keranjang tidak hilang saat pindah menu UI
-        private static Dictionary<int, List<TransactionDetail>> _keranjangDict = new Dictionary<int, List<TransactionDetail>>();
+        // Static: bertahan saat pindah menu, tapi diisolasi per idPembeli
+        private static readonly Dictionary<int, Dictionary<int, List<TransactionDetail>>>
+            _semuaKeranjang = new Dictionary<int, Dictionary<int, List<TransactionDetail>>>();
+
+        // Shortcut ke keranjang pembeli aktif
+        private Dictionary<int, List<TransactionDetail>> Keranjang
+        {
+            get
+            {
+                if (!_semuaKeranjang.ContainsKey(this._idPembeli))
+                    _semuaKeranjang[this._idPembeli] = new Dictionary<int, List<TransactionDetail>>();
+                return _semuaKeranjang[this._idPembeli];
+            }
+        }
 
         public CartManager(int idPembeli)
         {
+            if (idPembeli <= 0)
+                throw new ArgumentException("idPembeli tidak valid.", nameof(idPembeli));
             this._idPembeli = idPembeli;
         }
 
         public void TambahItem(Product produk, string namaPenitip, int jumlah, string catatan)
         {
             if (produk == null)
-            {
-                throw new ArgumentNullException("produk", "Produk tidak boleh kosong!");
-            }
+                throw new ArgumentNullException(nameof(produk), "Produk tidak boleh kosong!");
+
+            if (!produk.IdPo.HasValue)
+                throw new InvalidOrderException("Produk ini tidak terikat dalam sesi PO!", "id_po", "CART_NO_PO");
+
+            TransactionDetail detailBaru = new TransactionDetail(produk.IdProduk, namaPenitip, jumlah);
+            detailBaru.Catatan = catatan;
+            detailBaru.ProdukYangDipesan = produk;
+            detailBaru.Validate();
+
+            if (this.Keranjang.ContainsKey(produk.IdProduk))
+                this.Keranjang[produk.IdProduk].Add(detailBaru);
             else
-            {
-                if (produk.IdPo.HasValue == false)
-                {
-                    throw new InvalidOrderException("Produk ini tidak terikat dalam sesi PO!", "id_po", "CART_NO_PO");
-                }
-                else
-                {
-                    TransactionDetail detailBaru = new TransactionDetail(produk.IdProduk, namaPenitip, jumlah);
-                    detailBaru.Catatan = catatan;
-                    detailBaru.ProdukYangDipesan = produk;
-                    detailBaru.Validate();
+                this.Keranjang[produk.IdProduk] = new List<TransactionDetail> { detailBaru };
 
-                    int keyProduk = produk.IdProduk;
-
-                    // OOP BEST PRACTICE: Pemanggilan static member memakai nama Class
-                    if (CartManager._keranjangDict.ContainsKey(keyProduk))
-                    {
-                        CartManager._keranjangDict[keyProduk].Add(detailBaru);
-                    }
-                    else
-                    {
-                        CartManager._keranjangDict.Add(keyProduk, new List<TransactionDetail> { detailBaru });
-                    }
-
-                    produk.TambahPesanan(jumlah);
-                }
-            }
+            produk.TambahPesanan(jumlah);
         }
 
         public long HitungTotalKeranjang()
         {
             long total = 0;
-
-            foreach (KeyValuePair<int, List<TransactionDetail>> entry in CartManager._keranjangDict)
+            foreach (var entry in this.Keranjang)
             {
                 foreach (TransactionDetail detail in entry.Value)
                 {
                     Product produk = detail.ProdukYangDipesan;
-
                     if (produk != null)
                     {
                         long hargaSaatIni = produk.HitungTotal();
-                        long? hargaDiskon;
-
-                        if (produk.HargaDiskon.HasValue)
-                        {
-                            hargaDiskon = Convert.ToInt64(produk.HargaDiskon.Value);
-                        }
-                        else
-                        {
-                            hargaDiskon = (long?)null;
-                        }
-
+                        long? hargaDiskon = produk.HargaDiskon.HasValue
+                            ? (long?)Convert.ToInt64(produk.HargaDiskon.Value)
+                            : null;
                         detail.FinalisasiHargaSaatCheckout(hargaSaatIni, hargaDiskon);
                     }
-                    else
-                    {
-                        bool produkKosong = true; // Assignment untuk menghindari else kosong
-                    }
-
                     total += detail.HitungTotal();
                 }
             }
-
             return total;
         }
 
         public Transaction BuildTransaction()
         {
-            Transaction transaksi;
-
-            if (CartManager._keranjangDict.Count == 0)
-            {
+            if (this.Keranjang.Count == 0)
                 throw new InvalidOrderException("Keranjang kosong, tidak bisa checkout!", "", "CART_EMPTY");
-            }
-            else
+
+            this.HitungTotalKeranjang();
+
+            foreach (var entry in this.Keranjang)
             {
-                this.HitungTotalKeranjang();
-                foreach (var entry in CartManager._keranjangDict)
+                int totalQty = 0;
+                Product produkRef = null;
+                foreach (var detail in entry.Value)
                 {
-                    int totalQtyProdukIni = 0;
-                    Product produkRef = null;
-
-                    foreach (var detail in entry.Value)
-                    {
-                        totalQtyProdukIni += detail.JumlahPesanan;
-                        if (produkRef == null) produkRef = detail.ProdukYangDipesan;
-                    }
-
-                    if (produkRef != null)
-                    {
-                        produkRef.ValidasiTotalPesanan(totalQtyProdukIni);
-                    }
+                    totalQty += detail.JumlahPesanan;
+                    if (produkRef == null) produkRef = detail.ProdukYangDipesan;
                 }
-
-                transaksi = new Transaction(this._idPembeli);
-
-                foreach (KeyValuePair<int, List<TransactionDetail>> entry in CartManager._keranjangDict)
-                {
-                    foreach (TransactionDetail detail in entry.Value)
-                    {
-                        detail.HitungRefundGotongRoyong();
-                        transaksi.TambahDetail(detail);
-                    }
-                }
-
-                transaksi.Validate();
+                produkRef?.ValidasiTotalPesanan(totalQty);
             }
 
+            Transaction transaksi = new Transaction(this._idPembeli);
+            foreach (var entry in this.Keranjang)
+            {
+                foreach (TransactionDetail detail in entry.Value)
+                {
+                    detail.HitungRefundGotongRoyong();
+                    transaksi.TambahDetail(detail);
+                }
+            }
+
+            transaksi.Validate();
             return transaksi;
         }
 
         public void KosongkanKeranjang()
         {
-            CartManager._keranjangDict.Clear();
+            this.Keranjang.Clear();
         }
 
         public void HapusItem(int idProduk)
         {
-            if (CartManager._keranjangDict.ContainsKey(idProduk))
-            {
-                CartManager._keranjangDict.Remove(idProduk);
-            }
-            else
-            {
-                bool itemTidakAda = true;
-            }
+            if (this.Keranjang.ContainsKey(idProduk))
+                this.Keranjang.Remove(idProduk);
+            // Tidak ditemukan → tidak ada yang dilakukan, bukan error
         }
 
-        // =======================================================
-        // METHOD BARU UNTUK UI KELOLA TITIPAN
-        // =======================================================
         public void HapusDetailTitipan(int idProduk, string namaPenitip)
         {
-            if (CartManager._keranjangDict.ContainsKey(idProduk))
-            {
-                var list = CartManager._keranjangDict[idProduk];
-                list.RemoveAll(d => d.NamaPenitip == namaPenitip);
+            if (!this.Keranjang.ContainsKey(idProduk)) return;
 
-                if (list.Count == 0)
-                {
-                    CartManager._keranjangDict.Remove(idProduk);
-                }
-                else
-                {
-                    bool sisaItemLain = true;
-                }
-            }
-            else
-            {
-                bool itemTidakAda = true;
-            }
+            var list = this.Keranjang[idProduk];
+            list.RemoveAll(d => d.NamaPenitip == namaPenitip);
+
+            if (list.Count == 0)
+                this.Keranjang.Remove(idProduk);
         }
 
         public void UpdateDetailTitipan(int idProduk, string oldPenitip, string newPenitip, int jumlah, string catatan)
         {
-            if (CartManager._keranjangDict.ContainsKey(idProduk))
-            {
-                var detail = CartManager._keranjangDict[idProduk].Find(d => d.NamaPenitip == oldPenitip);
+            if (!this.Keranjang.ContainsKey(idProduk)) return;
 
-                if (detail != null)
-                {
-                    Product p = detail.ProdukYangDipesan;
-                    int selisih = jumlah - detail.JumlahPesanan;
+            var detail = this.Keranjang[idProduk].Find(d => d.NamaPenitip == oldPenitip);
+            if (detail == null) return;
 
-                    CartManager._keranjangDict[idProduk].Remove(detail);
+            Product p = detail.ProdukYangDipesan;
+            int selisih = jumlah - detail.JumlahPesanan;
 
-                    TransactionDetail newDetail = new TransactionDetail(idProduk, newPenitip, jumlah);
-                    newDetail.Catatan = catatan;
-                    newDetail.ProdukYangDipesan = p;
-                    CartManager._keranjangDict[idProduk].Add(newDetail);
-                    if (selisih > 0)
-                        p.TambahPesanan(selisih);
-                    else if (selisih < 0)
-                        p.KurangiPesanan(-selisih);
-                }
-                else
-                {
-                    bool detailTidakAda = true;
-                }
-            }
-            else
-            {
-                bool itemTidakAda = true;
-            }
+            this.Keranjang[idProduk].Remove(detail);
+
+            TransactionDetail newDetail = new TransactionDetail(idProduk, newPenitip, jumlah);
+            newDetail.Catatan = catatan;
+            newDetail.ProdukYangDipesan = p;
+            this.Keranjang[idProduk].Add(newDetail);
+
+            if (selisih > 0) p?.TambahPesanan(selisih);
+            else if (selisih < 0) p?.KurangiPesanan(-selisih);
         }
 
         public Dictionary<int, List<TransactionDetail>> GetKeranjangDictionary()
         {
-            return CartManager._keranjangDict;
+            return this.Keranjang;
+        }
+
+        /// <summary>
+        /// Hapus keranjang pembeli ini saat logout agar tidak bocor ke sesi berikutnya.
+        /// Panggil dari MainForm saat tombol Logout ditekan.
+        /// </summary>
+        public static void BersihkanSesiPembeli(int idPembeli)
+        {
+            if (_semuaKeranjang.ContainsKey(idPembeli))
+                _semuaKeranjang.Remove(idPembeli);
         }
     }
 }

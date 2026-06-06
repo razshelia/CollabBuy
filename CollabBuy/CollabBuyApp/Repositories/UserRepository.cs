@@ -373,7 +373,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             else
             {
                 userObj = new Pembeli(nama, username, password);
-                userObj.Peran = "User";
             }
 
             userObj.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));

@@ -301,10 +301,38 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetLpjDanusPerPo(int idPenjual)
         {
+            // Query diperkaya: tambah harga_satuan, periode batas_waktu, status PO
             string query = @"
-                SELECT v.* FROM vw_lpj_danus_per_po v
-                JOIN preorders po ON v.id_po = po.id_po
-                WHERE po.id_penjual = @idPenjual;";
+        SELECT
+            po.id_po,
+            po.judul_po,
+            po.jenis_po,
+            po.batas_waktu,
+            p.nama_produk,
+            p.harga_dasar,
+            p.harga_diskon,
+            COALESCE(SUM(td.jumlah_pesanan), 0)                                                   AS total_barang_terjual,
+            COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)                       AS omzet_kotor,
+            COALESCE(SUM(td.selisih_refund), 0)                                                   AS total_refund_dicairkan,
+            COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                        - COALESCE(td.selisih_refund, 0)), 0)                                     AS omzet_bersih_lpj,
+            CASE WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW()
+                 THEN 'Sedang Berjalan'
+                 WHEN po.is_aktif = TRUE AND po.batas_waktu < NOW()
+                 THEN 'Batas Waktu Habis'
+                 ELSE 'Ditutup'
+            END AS status_po
+        FROM preorders po
+        JOIN products p ON po.id_po = p.id_po
+        LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
+        LEFT JOIN transactions t ON td.id_transaksi = t.id_transaksi
+            AND t.status_pesanan = 'Selesai'
+        WHERE po.id_penjual = @idPenjual
+          AND po.is_deleted = FALSE
+        GROUP BY po.id_po, po.judul_po, po.jenis_po, po.batas_waktu, po.is_aktif,
+                 p.nama_produk, p.harga_dasar, p.harga_diskon
+        ORDER BY po.batas_waktu DESC, p.nama_produk ASC;";
+
             return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@idPenjual", idPenjual));
         }
     }

@@ -171,15 +171,10 @@ namespace CollabBuy.CollabBuyApp.Models
         }
         public void BukaSesiBaru(DateTime waktuTenggatBaru)
         {
-            // VALIDASINYA PINDAH KE SINI!
             if (waktuTenggatBaru <= DateTime.Now)
-            {
                 throw new InvalidOrderException("Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!", "batas_waktu", "PO_WAKTU_INVALID");
-            }
-            else
-            {
-                this._batasWaktu = waktuTenggatBaru;
-            }
+
+            this._batasWaktu = waktuTenggatBaru;
         }
         /// <summary>
         /// Method maintenance. Dipanggil saat meload data agar PO basi otomatis nonaktif di memori.
