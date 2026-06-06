@@ -62,7 +62,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetRiwayatByUser(int idUser)
         {
             DataTable dt = new DataTable();
-            string query = "SELECT subjek, deskripsi, tanggal, is_selesai, balasan FROM complaints WHERE id_user = @id ORDER BY tanggal DESC;";
+            string query = "SELECT * FROM fn_riwayat_aduan_user(@id);";
+
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
@@ -111,12 +112,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetPendingAduan()
         {
             DataTable dt = new DataTable();
-            string query = @"
-                SELECT c.id_aduan, c.id_user, u.nama AS nama_pelapor, c.subjek, c.deskripsi, c.tanggal 
-                FROM complaints c 
-                JOIN users u ON c.id_user = u.id_user 
-                WHERE c.is_selesai = FALSE 
-                ORDER BY c.tanggal ASC;";
+            string query = "SELECT * FROM vw_aduan_pending;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

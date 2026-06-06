@@ -43,14 +43,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public (long totalPendapatan, int totalPesanan) GetRingkasanPenjualan(int idPenjual)
         {
-            string query = @"
-                SELECT
-                    COUNT(DISTINCT t.id_transaksi) AS total_pesanan,
-                    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_pendapatan
-                FROM transactions t
-                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
-                JOIN products p ON td.id_produk = p.id_produk
-                WHERE p.id_penjual = @id AND t.status_pesanan = 'Selesai';";
+            string query = "SELECT total_pendapatan, total_pesanan FROM fn_ringkasan_penjualan(@id);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -62,12 +55,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            long pendapatan = reader.IsDBNull(reader.GetOrdinal("total_pendapatan"))
-                                             ? 0L
-                                             : Convert.ToInt64(reader["total_pendapatan"]);
-                            int pesanan = reader.IsDBNull(reader.GetOrdinal("total_pesanan"))
-                                         ? 0
-                                         : Convert.ToInt32(reader["total_pesanan"]);
+                            long pendapatan = reader.IsDBNull(0) ? 0L : Convert.ToInt64(reader[0]);
+                            int pesanan = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader[1]);
                             return (pendapatan, pesanan);
                         }
                     }
@@ -78,19 +67,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
-            string query = @"
-                SELECT
-                    u.nama AS nama_pembeli,
-                    t.tanggal_transaksi AS tanggal_pesanan,
-                    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_harga
-                FROM transactions t
-                JOIN users u ON t.id_koordinator = u.id_user
-                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
-                JOIN products p ON td.id_produk = p.id_produk
-                WHERE p.id_penjual = @id AND t.status_pesanan = 'Selesai'
-                GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi
-                ORDER BY t.tanggal_transaksi DESC;";
-            return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@id", idPenjual));
+            // Sebelumnya: query inline dengan GROUP BY dan JOIN
+            // Sekarang: pakai fn_riwayat_cuan_penjual
+            return FillDataTable(
+                "SELECT nama_pembeli, tanggal_pesanan, total_harga FROM fn_riwayat_cuan_penjual(@id);",
+                cmd => cmd.Parameters.AddWithValue("@id", idPenjual));
         }
 
 

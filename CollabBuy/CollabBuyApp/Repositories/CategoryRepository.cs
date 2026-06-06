@@ -18,7 +18,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetAll()
         {
             DataTable dt = new DataTable();
-            string query = "SELECT id_kategori, nama_kategori FROM categories ORDER BY id_kategori ASC;";
+            string query = "SELECT id_kategori, nama_kategori FROM categories WHERE is_deleted = FALSE ORDER BY id_kategori ASC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -61,7 +61,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public void Delete(int id)
         {
-            string query = "DELETE FROM categories WHERE id_kategori = @id;";
+            string query = "UPDATE categories SET is_deleted = TRUE WHERE id_kategori = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();

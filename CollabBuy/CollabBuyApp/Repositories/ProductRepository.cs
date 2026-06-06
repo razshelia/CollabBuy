@@ -196,24 +196,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dtKatalog = new DataTable();
             string query = @"
-                SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
-                       p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
-                       u.nama AS nama_penjual, po.jenis_po,
-                       p.target_kuota,
-                       COALESCE((SELECT SUM(td.jumlah_pesanan)
-                                 FROM transaction_details td
-                                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
-                                 WHERE td.id_produk = p.id_produk
-                                   AND t.status_pesanan NOT IN ('Batal', 'Gagal')), 0) AS terpesan
-                FROM products p
-                LEFT JOIN preorders   po  ON p.id_po       = po.id_po
-                LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
-                LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-                WHERE p.is_deleted = FALSE
-                  AND (p.id_po IS NULL
-                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP))
-                ORDER BY po.batas_waktu ASC NULLS LAST
-                LIMIT @limit;";
+        SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar,
+               harga_diskon, batas_waktu, foto_produk, nama_toko, jenis_po,
+               target_kuota, in_sesi_po, terpesan
+        FROM vw_katalog_produk
+        WHERE in_sesi_po = TRUE
+          AND batas_waktu >= CURRENT_TIMESTAMP
+        ORDER BY batas_waktu ASC NULLS LAST
+        LIMIT @limit;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -373,26 +363,28 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
-                       p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
-                       COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
-                       p.target_kuota,
-                       COALESCE((SELECT SUM(td.jumlah_pesanan)
-                                 FROM transaction_details td
-                                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
-                                 WHERE td.id_produk = p.id_produk
-                                   AND t.status_pesanan NOT IN ('Batal', 'Gagal')), 0) AS terpesan,
-                       TRUE AS in_sesi_po
-                FROM products p
-                LEFT JOIN preorders   po  ON p.id_po       = po.id_po
-                LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
-                LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-                LEFT JOIN verifications v ON p.id_penjual  = v.id_user
-                WHERE p.id_po = @idPo
-                  AND p.is_deleted = FALSE
-                  AND po.is_aktif = TRUE
-                  AND po.is_deleted = FALSE
-                ORDER BY p.nama_produk ASC;";
+            SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
+                   p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
+                   COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
+                   p.target_kuota,
+                   COALESCE((
+                       SELECT SUM(td.jumlah_pesanan)
+                       FROM transaction_details td
+                       JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                       WHERE td.id_produk = p.id_produk
+                         AND t.status_pesanan NOT IN ('Batal', 'Gagal')
+                   ), 0) AS terpesan,
+                   TRUE AS in_sesi_po
+            FROM products p
+            JOIN preorders po ON p.id_po = po.id_po
+            LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
+            LEFT JOIN users       u   ON p.id_penjual  = u.id_user
+            LEFT JOIN verifications v ON p.id_penjual  = v.id_user
+            WHERE p.id_po = @idPo
+              AND p.is_deleted = FALSE
+              AND po.is_aktif  = TRUE
+              AND po.is_deleted = FALSE
+            ORDER BY p.nama_produk ASC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -405,6 +397,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+
         public DataTable GetPOHampirPenuh()
         {
             DataTable dt = new DataTable();

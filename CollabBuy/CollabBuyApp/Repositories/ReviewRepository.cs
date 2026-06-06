@@ -48,12 +48,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT r.id_ulasan, p.nama_produk, u.nama AS nama_pembeli, r.rating, r.komentar, r.tanggal_ulasan, r.balasan_penjual
-                FROM reviews r
-                JOIN products p ON r.id_produk = p.id_produk
-                JOIN users u ON r.id_user = u.id_user
-                WHERE p.id_penjual = @id
-                ORDER BY r.tanggal_ulasan DESC;";
+            SELECT id_ulasan, nama_produk, nama_pembeli,
+                   rating, komentar, tanggal_ulasan, balasan_penjual
+            FROM vw_ulasan_penjual
+            WHERE id_penjual = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -70,15 +68,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetProdukBisaDiulas(int idUser)
         {
             DataTable dt = new DataTable();
-            // User hanya bisa review barang yang pernah dia beli dan status transaksinya selesai
-            // GANTI DENGAN INI:
-            string query = @"
-            SELECT DISTINCT p.id_produk, p.nama_produk
-            FROM transaction_details td
-            JOIN transactions t ON td.id_transaksi = t.id_transaksi
-            JOIN products p ON td.id_produk = p.id_produk
-            WHERE t.id_koordinator = @id
-              AND t.status_pesanan IN ('Diproses', 'Selesai');";
+            string query = "SELECT id_produk, nama_produk FROM fn_produk_bisa_diulas(@id);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

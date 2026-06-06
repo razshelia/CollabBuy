@@ -35,33 +35,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetSesiPOAktif(string keyword)
         {
             DataTable dt = new DataTable();
-            string query = @"
-        SELECT 
-            po.id_po,
-            po.judul_po     AS nama_sesi,
-            po.jenis_po,
-            v.nama_toko,
-            COUNT(p.id_produk)                      AS jumlah_produk,
-            COALESCE(MIN(p.harga_dasar), 0)         AS harga_min,
-            COALESCE(MAX(p.harga_dasar), 0)         AS harga_max,
-            po.batas_waktu  AS deadline,
-            po.is_aktif
-        FROM preorders po
-        JOIN verifications v ON po.id_penjual = v.id_user
-        LEFT JOIN products p ON po.id_po = p.id_po AND p.is_deleted = FALSE
-        WHERE po.is_aktif = TRUE
-        AND po.is_deleted = FALSE
-        AND po.batas_waktu >= CURRENT_TIMESTAMP
-        AND (po.judul_po ILIKE @keyword OR v.nama_toko ILIKE @keyword)
-        GROUP BY po.id_po, po.judul_po, po.jenis_po, v.nama_toko, po.batas_waktu, po.is_aktif
-        ORDER BY po.batas_waktu ASC;";
+            string query = "SELECT * FROM fn_sesi_po_aktif(@keyword);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@keyword", $"%{keyword}%");
+                    cmd.Parameters.AddWithValue("@keyword", keyword ?? "");
                     using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
                 }
             }
@@ -192,11 +173,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetPOByPenjual(int idPenjual)
         {
             DataTable dt = new DataTable();
-            string query = @"
-        SELECT id_po, judul_po, jenis_po, info_rekening, batas_waktu, is_aktif
-        FROM preorders
-        WHERE id_penjual = @id AND is_deleted = FALSE
-        ORDER BY batas_waktu DESC;";
+            string query = "SELECT * FROM fn_po_by_penjual(@id, FALSE);";
+
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
@@ -208,20 +186,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+
         /// <summary>
         /// Khusus untuk dropdown form tambah produk — hanya PO yang masih aktif dan belum lewat batas waktu.
         /// </summary>
         public DataTable GetPOAktifByPenjual(int idPenjual)
         {
             DataTable dt = new DataTable();
-            string query = @"
-        SELECT id_po, judul_po, jenis_po, batas_waktu
-        FROM preorders
-        WHERE id_penjual = @id
-          AND is_deleted = FALSE
-          AND is_aktif = TRUE
-          AND batas_waktu > NOW()
-        ORDER BY batas_waktu ASC;";
+            string query = "SELECT * FROM fn_po_by_penjual(@id, TRUE);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

@@ -776,3 +776,374 @@ FROM vw_log_aktivitas
 ORDER BY waktu_akses DESC
 LIMIT 5;
 */
+
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 1: Detail pesanan koordinator (pembeli) per transaksi
+-- Menggabungkan header + detail dalam satu query
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_detail_pesanan_pembeli AS
+SELECT
+    t.id_transaksi,
+    TO_CHAR(t.tanggal_transaksi, 'DD Mon YYYY, HH24:MI') AS tanggal_transaksi,
+    t.status_pesanan,
+    t.bukti_bayar,
+    COALESCE(td.nama_produk_snapshot, '-')               AS nama_produk,
+    td.nama_penitip,
+    td.jumlah_pesanan                                    AS jumlah,
+    td.harga_satuan_saat_beli                            AS harga_satuan,
+    (td.jumlah_pesanan * td.harga_satuan_saat_beli)      AS subtotal,
+    COALESCE(td.catatan, '-')                            AS catatan,
+    COALESCE(td.selisih_refund, 0)                       AS selisih_refund
+FROM transactions t
+JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+ORDER BY t.id_transaksi, td.nama_penitip, td.nama_produk_snapshot;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 2: Detail pesanan per penjual (terfilter id_penjual)
+-- Menggabungkan header + detail + join products untuk filter penjual
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_detail_pesanan_penjual AS
+SELECT
+    t.id_transaksi,
+    u.nama                                               AS nama_pembeli,
+    TO_CHAR(t.tanggal_transaksi, 'DD Mon YYYY, HH24:MI') AS tanggal_transaksi,
+    t.status_pesanan,
+    t.bukti_bayar,
+    p.id_penjual,
+    COALESCE(td.nama_produk_snapshot, '-')               AS nama_produk,
+    td.nama_penitip,
+    td.jumlah_pesanan                                    AS jumlah,
+    td.harga_satuan_saat_beli                            AS harga_satuan,
+    (td.jumlah_pesanan * td.harga_satuan_saat_beli)      AS subtotal,
+    COALESCE(td.catatan, '-')                            AS catatan,
+    COALESCE(td.selisih_refund, 0)                       AS selisih_refund
+FROM transactions t
+JOIN users u ON t.id_koordinator = u.id_user
+JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+JOIN products p ON td.id_produk = p.id_produk;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 3: Pesanan masuk per penjual (menggantikan correlated subquery)
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_pesanan_masuk_penjual AS
+SELECT
+    t.id_transaksi,
+    u.nama                                                          AS nama_pembeli,
+    t.tanggal_transaksi,
+    t.status_pesanan,
+    p.id_penjual,
+    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_harga_lapak
+FROM transactions t
+JOIN users u ON t.id_koordinator = u.id_user
+JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+JOIN products p ON td.id_produk = p.id_produk
+GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi, t.status_pesanan, p.id_penjual;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 4: Semua user dengan status akun (menggantikan query inline di GetSemuaUser)
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_semua_user AS
+SELECT
+    u.id_user,
+    u.nama,
+    u.username,
+    COALESCE(u.email, '-')          AS email,
+    COALESCE(u.nomor_telepon, '-')  AS nomor_telepon,
+    u.peran,
+    CASE WHEN u.is_diblokir = TRUE THEN 'Diblokir' ELSE 'Aktif' END AS status_akun
+FROM users u
+ORDER BY u.peran, u.nama;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 5: Katalog produk utama (menggantikan query panjang + correlated subquery)
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_katalog_produk AS
+SELECT
+    p.id_produk,
+    p.nama_produk,
+    kat.nama_kategori,
+    po.judul_po,
+    p.harga_dasar,
+    p.harga_diskon,
+    po.batas_waktu,
+    p.foto_produk,
+    COALESCE(v.nama_toko, u.nama)                           AS nama_toko,
+    po.jenis_po,
+    p.target_kuota,
+    CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END       AS in_sesi_po,
+    COALESCE((
+        SELECT SUM(td.jumlah_pesanan)
+        FROM transaction_details td
+        JOIN transactions t ON td.id_transaksi = t.id_transaksi
+        WHERE td.id_produk = p.id_produk
+          AND t.status_pesanan NOT IN ('Batal', 'Gagal')
+    ), 0)                                                    AS terpesan
+FROM products p
+LEFT JOIN preorders   po  ON p.id_po       = po.id_po
+LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
+LEFT JOIN users       u   ON p.id_penjual  = u.id_user
+LEFT JOIN verifications v ON p.id_penjual  = v.id_user
+WHERE p.is_deleted = FALSE;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 1: Ringkasan penjualan per penjual
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_ringkasan_penjualan(p_id_penjual INT)
+RETURNS TABLE (total_pendapatan BIGINT, total_pesanan BIGINT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_pendapatan,
+        COUNT(DISTINCT t.id_transaksi)                                   AS total_pesanan
+    FROM transactions t
+    JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    JOIN products p ON td.id_produk = p.id_produk
+    WHERE p.id_penjual = p_id_penjual
+      AND t.status_pesanan = 'Selesai';
+END;
+$$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 2: Riwayat cuan (transaksi selesai) per penjual
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_riwayat_cuan_penjual(p_id_penjual INT)
+RETURNS TABLE (
+    nama_pembeli    TEXT,
+    tanggal_pesanan TIMESTAMP,
+    total_harga     BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        u.nama::TEXT                                                         AS nama_pembeli,
+        t.tanggal_transaksi                                                  AS tanggal_pesanan,
+        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)     AS total_harga
+    FROM transactions t
+    JOIN users u ON t.id_koordinator = u.id_user
+    JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    JOIN products p ON td.id_produk = p.id_produk
+    WHERE p.id_penjual = p_id_penjual
+      AND t.status_pesanan = 'Selesai'
+    GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi
+    ORDER BY t.tanggal_transaksi DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 3: User detail (dipakai GetById dan GetByUsername)
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_get_user_lengkap_by_id(p_id_user INT)
+RETURNS TABLE (
+    id_user INT, nama TEXT, nomor_telepon TEXT, email TEXT,
+    username TEXT, password TEXT, peran TEXT, is_diblokir BOOLEAN,
+    nim TEXT, nama_toko TEXT, tahun_masuk INT, is_verifikasi BOOLEAN, bukti_ktm BYTEA
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.id_user, u.nama::TEXT, u.nomor_telepon::TEXT, u.email::TEXT,
+           u.username::TEXT, u.password::TEXT, u.peran::TEXT, u.is_diblokir,
+           v.nim::TEXT, v.nama_toko::TEXT, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
+    FROM users u
+    LEFT JOIN verifications v ON u.id_user = v.id_user
+    WHERE u.id_user = p_id_user;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_get_user_lengkap_by_username(p_username TEXT)
+RETURNS TABLE (
+    id_user INT, nama TEXT, nomor_telepon TEXT, email TEXT,
+    username TEXT, password TEXT, peran TEXT, is_diblokir BOOLEAN,
+    nim TEXT, nama_toko TEXT, tahun_masuk INT, is_verifikasi BOOLEAN, bukti_ktm BYTEA
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.id_user, u.nama::TEXT, u.nomor_telepon::TEXT, u.email::TEXT,
+           u.username::TEXT, u.password::TEXT, u.peran::TEXT, u.is_diblokir,
+           v.nim::TEXT, v.nama_toko::TEXT, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
+    FROM users u
+    LEFT JOIN verifications v ON u.id_user = v.id_user
+    WHERE u.username = p_username;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 1: Ulasan per penjual lengkap dengan nama produk & pembeli
+-- Menggantikan query JOIN 3 tabel di GetReviewsByPenjual
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_ulasan_penjual AS
+SELECT
+    r.id_ulasan,
+    p.id_penjual,
+    p.nama_produk,
+    u.nama                                          AS nama_pembeli,
+    r.rating,
+    r.komentar,
+    r.tanggal_ulasan,
+    r.balasan_penjual
+FROM reviews r
+JOIN products p ON r.id_produk = p.id_produk
+JOIN users   u ON r.id_user   = u.id_user
+ORDER BY r.tanggal_ulasan DESC;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 2: Aduan yang belum selesai lengkap dengan nama pelapor
+-- Menggantikan query JOIN di GetPendingAduan
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_aduan_pending AS
+SELECT
+    c.id_aduan,
+    c.id_user,
+    u.nama  AS nama_pelapor,
+    c.subjek,
+    c.deskripsi,
+    c.tanggal
+FROM complaints c
+JOIN users u ON c.id_user = u.id_user
+WHERE c.is_selesai = FALSE
+ORDER BY c.tanggal ASC;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 3: Activity log lengkap dengan nama & peran pelaku
+-- Menggantikan query JOIN di GetAllAsDataTable
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_activity_log AS
+SELECT
+    al.id_log,
+    u.nama      AS pelaku,
+    u.peran,
+    al.aktivitas,
+    al.waktu_akses
+FROM activity_logs al
+JOIN users u ON al.id_user = u.id_user
+ORDER BY al.waktu_akses DESC;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 1: Sesi PO aktif dengan pencarian keyword
+-- Menggantikan query GROUP BY kompleks di GetSesiPOAktif
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_sesi_po_aktif(p_keyword TEXT)
+RETURNS TABLE (
+    id_po         INT,
+    nama_sesi     TEXT,
+    jenis_po      TEXT,
+    nama_toko     TEXT,
+    jumlah_produk BIGINT,
+    harga_min     BIGINT,
+    harga_max     BIGINT,
+    deadline      TIMESTAMP,
+    is_aktif      BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        po.id_po,
+        po.judul_po::TEXT           AS nama_sesi,
+        po.jenis_po::TEXT,
+        v.nama_toko::TEXT,
+        COUNT(p.id_produk)          AS jumlah_produk,
+        COALESCE(MIN(p.harga_dasar), 0)::BIGINT AS harga_min,
+        COALESCE(MAX(p.harga_dasar), 0)::BIGINT AS harga_max,
+        po.batas_waktu              AS deadline,
+        po.is_aktif
+    FROM preorders po
+    JOIN verifications v ON po.id_penjual = v.id_user
+    LEFT JOIN products p ON po.id_po = p.id_po AND p.is_deleted = FALSE
+    WHERE po.is_aktif    = TRUE
+      AND po.is_deleted  = FALSE
+      AND po.batas_waktu >= CURRENT_TIMESTAMP
+      AND (po.judul_po ILIKE '%' || p_keyword || '%'
+           OR v.nama_toko ILIKE '%' || p_keyword || '%')
+    GROUP BY po.id_po, po.judul_po, po.jenis_po,
+             v.nama_toko, po.batas_waktu, po.is_aktif
+    ORDER BY po.batas_waktu ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 2: PO milik penjual — dengan flag aktifSaja
+-- Menggabungkan GetPOByPenjual dan GetPOAktifByPenjual jadi satu function
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_po_by_penjual(p_id_penjual INT, p_aktif_saja BOOLEAN DEFAULT FALSE)
+RETURNS TABLE (
+    id_po         INT,
+    judul_po      TEXT,
+    jenis_po      TEXT,
+    info_rekening TEXT,
+    batas_waktu   TIMESTAMP,
+    is_aktif      BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        po.id_po,
+        po.judul_po::TEXT,
+        po.jenis_po::TEXT,
+        po.info_rekening::TEXT,
+        po.batas_waktu,
+        po.is_aktif
+    FROM preorders po
+    WHERE po.id_penjual  = p_id_penjual
+      AND po.is_deleted  = FALSE
+      AND (NOT p_aktif_saja
+           OR (po.is_aktif = TRUE AND po.batas_waktu > NOW()))
+    ORDER BY
+        CASE WHEN p_aktif_saja THEN po.batas_waktu END ASC,
+        CASE WHEN NOT p_aktif_saja THEN po.batas_waktu END DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 3: Produk yang bisa diulas oleh user tertentu
+-- Menggantikan query di GetProdukBisaDiulas
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_produk_bisa_diulas(p_id_user INT)
+RETURNS TABLE (id_produk INT, nama_produk TEXT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT p.id_produk, p.nama_produk::TEXT
+    FROM transaction_details td
+    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    JOIN products     p ON td.id_produk    = p.id_produk
+    WHERE t.id_koordinator = p_id_user
+      AND t.status_pesanan IN ('Diproses', 'Selesai');
+END;
+$$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 4: Riwayat aduan milik user tertentu
+-- Menggantikan query di GetRiwayatByUser
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_riwayat_aduan_user(p_id_user INT)
+RETURNS TABLE (
+    subjek     TEXT,
+    deskripsi  TEXT,
+    tanggal    TIMESTAMP,
+    is_selesai BOOLEAN,
+    balasan    TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.subjek::TEXT,
+        c.deskripsi::TEXT,
+        c.tanggal,
+        c.is_selesai,
+        c.balasan::TEXT
+    FROM complaints c
+    WHERE c.id_user = p_id_user
+    ORDER BY c.tanggal DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'categories';
+--Kalau kolom is_deleted belum ada, jalankan migrasi ini dulu:
+ALTER TABLE categories
+    ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;

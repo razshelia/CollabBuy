@@ -32,12 +32,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public User GetById(int idUser)
         {
             User userObj = null;
-            string query = @"
-                SELECT u.id_user, u.nama, u.nomor_telepon, u.email, u.username, u.password, u.peran, u.is_diblokir,
-                       v.nim, v.nama_toko, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
-                FROM users u
-                LEFT JOIN verifications v ON u.id_user = v.id_user
-                WHERE u.id_user = @id;";
+            string query = "SELECT * FROM fn_get_user_lengkap_by_id(@id);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -262,15 +257,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetSemuaUser()
         {
             DataTable dt = new DataTable();
-            string query = @"
-                SELECT 
-                    u.id_user, u.nama, u.username,
-                    COALESCE(u.email, '-') AS email,
-                    COALESCE(u.nomor_telepon, '-') AS nomor_telepon,
-                    u.peran,
-                    CASE WHEN u.is_diblokir = TRUE THEN 'Diblokir' ELSE 'Aktif' END AS status_akun
-                FROM users u
-                ORDER BY u.peran, u.nama;";
+            string query = "SELECT * FROM vw_semua_user;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -460,12 +447,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public User GetByUsername(string username)
         {
             User userObj = null;
-            string query = @"
-        SELECT u.id_user, u.nama, u.nomor_telepon, u.email, u.username, u.password, u.peran, u.is_diblokir,
-               v.nim, v.nama_toko, v.tahun_masuk, v.is_verifikasi, v.bukti_ktm
-        FROM users u
-        LEFT JOIN verifications v ON u.id_user = v.id_user
-        WHERE u.username = @username;";
+            string query = "SELECT * FROM fn_get_user_lengkap_by_username(@username);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -481,6 +463,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return userObj;
         }
+
         public int? VerifikasiIdentitasUser(string username, string email, string nomorTelepon)
         {
             string query = @"SELECT id_user FROM users

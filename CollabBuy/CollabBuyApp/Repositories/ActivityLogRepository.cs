@@ -76,16 +76,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetAllAsDataTable()
         {
             DataTable dt = new DataTable();
-            string query = @"
-                SELECT 
-                    al.id_log,
-                    u.nama     AS pelaku,
-                    u.peran,
-                    al.aktivitas,
-                    al.waktu_akses
-                FROM activity_logs al
-                JOIN users u ON al.id_user = u.id_user
-                ORDER BY al.waktu_akses DESC;";
+            string query = "SELECT * FROM vw_activity_log;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

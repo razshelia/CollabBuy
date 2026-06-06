@@ -421,17 +421,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT DISTINCT t.id_transaksi, u.nama AS nama_pembeli, t.tanggal_transaksi, t.status_pesanan,
-                       (SELECT COALESCE(SUM(td2.jumlah_pesanan * td2.harga_satuan_saat_beli), 0)
-                        FROM transaction_details td2
-                        JOIN products p2 ON td2.id_produk = p2.id_produk
-                        WHERE td2.id_transaksi = t.id_transaksi AND p2.id_penjual = @idPenjual) AS total_harga_lapak
-                FROM transactions t
-                JOIN users u ON t.id_koordinator = u.id_user
-                JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
-                JOIN products p ON td.id_produk = p.id_produk
-                WHERE p.id_penjual = @idPenjual
-                ORDER BY t.tanggal_transaksi DESC;";
+            SELECT id_transaksi, nama_pembeli, tanggal_transaksi,
+                   status_pesanan, total_harga_lapak
+            FROM vw_pesanan_masuk_penjual
+            WHERE id_penjual = @idPenjual
+            ORDER BY tanggal_transaksi DESC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -495,28 +489,31 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-        SELECT
-            u.nama AS nama_penjual,
-            COALESCE(SUM(
-                (td.jumlah_pesanan * td.harga_satuan_saat_beli)
-                - COALESCE(td.selisih_refund, 0)
-            ), 0) AS total_omzet_bersih,
-            CASE
-                WHEN COALESCE(SUM(
-                    (td.jumlah_pesanan * td.harga_satuan_saat_beli)
-                    - COALESCE(td.selisih_refund, 0)
-                ), 0) >= 500000 THEN '👑 Seller Sultan'
-                WHEN COALESCE(SUM(
-                    (td.jumlah_pesanan * td.harga_satuan_saat_beli)
-                    - COALESCE(td.selisih_refund, 0)
-                ), 0) >= 100000 THEN '⭐ Seller Menengah'
-                ELSE '🌱 Seller Newbie'
-            END AS tier_penjual
-        FROM transaction_details td
-        JOIN products p ON td.id_produk = p.id_produk
-        JOIN users    u ON p.id_penjual = u.id_user
-        GROUP BY u.nama
-        ORDER BY total_omzet_bersih DESC;";
+            SELECT nama_penjual, total_omzet_bersih, tier_penjual
+            FROM (
+                SELECT
+                    u.nama AS nama_penjual,
+                    COALESCE(SUM(
+                        (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                        - COALESCE(td.selisih_refund, 0)
+                    ), 0) AS total_omzet_bersih,
+                    CASE
+                        WHEN COALESCE(SUM(
+                            (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                            - COALESCE(td.selisih_refund, 0)
+                        ), 0) >= 500000 THEN '👑 Seller Sultan'
+                        WHEN COALESCE(SUM(
+                            (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                            - COALESCE(td.selisih_refund, 0)
+                        ), 0) >= 100000 THEN '⭐ Seller Menengah'
+                        ELSE '🌱 Seller Newbie'
+                    END AS tier_penjual
+                FROM transaction_details td
+                JOIN products p ON td.id_produk = p.id_produk
+                JOIN users    u ON p.id_penjual = u.id_user
+                GROUP BY u.nama
+            ) sub
+            ORDER BY total_omzet_bersih DESC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -527,6 +524,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return dt;
         }
+
+
         /// <summary>
         /// Detail rincian pesanan untuk tampilan pembeli (koordinator) — semua produk dalam transaksi.
         /// </summary>
@@ -535,7 +534,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             DataTable dt = new DataTable();
             dt.Columns.Add("tanggal_transaksi", typeof(string));
             dt.Columns.Add("status_pesanan", typeof(string));
-            dt.Columns.Add("bukti_bayar", typeof(byte[]));  // ← BARU
+            dt.Columns.Add("bukti_bayar", typeof(byte[]));
             dt.Columns.Add("nama_produk", typeof(string));
             dt.Columns.Add("nama_penitip", typeof(string));
             dt.Columns.Add("jumlah", typeof(int));
@@ -544,78 +543,44 @@ namespace CollabBuy.CollabBuyApp.Repositories
             dt.Columns.Add("catatan", typeof(string));
             dt.Columns.Add("selisih_refund", typeof(long));
 
-
-            string queryHeader = @"
-        SELECT t.tanggal_transaksi, t.status_pesanan, t.bukti_bayar
-        FROM transactions t
-        WHERE t.id_transaksi = @idTrx;";
-
-            string tanggalStr = "";
-            string statusPesanan = "";
-            byte[] buktiBayar = null;
+            string query = @"
+            SELECT tanggal_transaksi, status_pesanan, bukti_bayar,
+                   nama_produk, nama_penitip, jumlah, harga_satuan,
+                   subtotal, catatan, selisih_refund
+            FROM vw_detail_pesanan_pembeli
+            WHERE id_transaksi = @idTrx
+            ORDER BY nama_penitip, nama_produk;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (var cmd = new NpgsqlCommand(queryHeader, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idTrx", idTransaksi);
                     using (var rdr = cmd.ExecuteReader())
                     {
-                        if (rdr.Read())
+                        while (rdr.Read())
                         {
-                            tanggalStr = rdr.GetDateTime(rdr.GetOrdinal("tanggal_transaksi"))
-                                               .ToString("dd MMM yyyy, HH:mm");
-                            statusPesanan = rdr.GetString(rdr.GetOrdinal("status_pesanan"));
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")))
-                                buktiBayar = (byte[])rdr["bukti_bayar"];
-                        }
-                    }
-                }
-            }
-
-            string queryDetail = @"
-        SELECT td.nama_produk_snapshot, td.nama_penitip,
-               td.jumlah_pesanan, td.harga_satuan_saat_beli,
-               td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
-        FROM transaction_details td
-        WHERE td.id_transaksi = @idTrx
-        ORDER BY td.nama_penitip, td.nama_produk_snapshot;";
-
-            using (var conn2 = new NpgsqlConnection(_connectionString))
-            {
-                conn2.Open();
-                using (var cmd2 = new NpgsqlCommand(queryDetail, conn2))
-                {
-                    cmd2.Parameters.AddWithValue("@idTrx", idTransaksi);
-                    using (var rdr2 = cmd2.ExecuteReader())
-                    {
-                        while (rdr2.Read())
-                        {
-                            int jumlah = rdr2.GetInt32(rdr2.GetOrdinal("jumlah_pesanan"));
-                            long harga = Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("harga_satuan_saat_beli")));
-                            long subtotal = jumlah * harga;
-                            long selisih = rdr2.IsDBNull(rdr2.GetOrdinal("selisih_refund"))
-                                            ? 0 : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
-
                             dt.Rows.Add(
-                                tanggalStr, statusPesanan,
-                                (object)buktiBayar ?? DBNull.Value, 
-                                rdr2.IsDBNull(rdr2.GetOrdinal("nama_produk_snapshot")) ? "-"
-                                    : rdr2.GetString(rdr2.GetOrdinal("nama_produk_snapshot")),
-                                rdr2.GetString(rdr2.GetOrdinal("nama_penitip")),
-                                jumlah, harga, subtotal,
-                                rdr2.IsDBNull(rdr2.GetOrdinal("catatan")) ? "-"
-                                    : rdr2.GetString(rdr2.GetOrdinal("catatan")),
-                                selisih
+                                rdr.IsDBNull(rdr.GetOrdinal("tanggal_transaksi")) ? "-" : rdr.GetString(rdr.GetOrdinal("tanggal_transaksi")),
+                                rdr.IsDBNull(rdr.GetOrdinal("status_pesanan")) ? "-" : rdr.GetString(rdr.GetOrdinal("status_pesanan")),
+                                rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")) ? (object)DBNull.Value : (byte[])rdr["bukti_bayar"],
+                                rdr.GetString(rdr.GetOrdinal("nama_produk")),
+                                rdr.GetString(rdr.GetOrdinal("nama_penitip")),
+                                rdr.GetInt32(rdr.GetOrdinal("jumlah")),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("harga_satuan"))),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("subtotal"))),
+                                rdr.GetString(rdr.GetOrdinal("catatan")),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("selisih_refund")))
                             );
                         }
                     }
                 }
             }
-
             return dt;
         }
+
+
         // =======================================================
         // METHOD BARU: GET DETAIL PESANAN UNTUK HALAMAN PENJUAL
         // Mengambil header transaksi (termasuk bukti_bayar) dan
@@ -636,105 +601,47 @@ namespace CollabBuy.CollabBuyApp.Repositories
             dt.Columns.Add("catatan", typeof(string));
             dt.Columns.Add("selisih_refund", typeof(long));
 
-            string queryHeader = @"
-                SELECT t.id_transaksi, u.nama AS nama_pembeli,
-                       t.tanggal_transaksi, t.status_pesanan, t.bukti_bayar
-                FROM transactions t
-                JOIN users u ON t.id_koordinator = u.id_user
-                WHERE t.id_transaksi = @idTrx;";
-
-            string namaPembeli = "";
-            string tanggalStr = "";
-            string statusPesanan = "";
-            byte[] buktiBayar = null;
+            // Sebelumnya: dua query terpisah, dua koneksi, banyak variabel penampung
+            // Sekarang: satu query ke vw_detail_pesanan_penjual
+            string query = @"
+        SELECT nama_pembeli, tanggal_transaksi, status_pesanan, bukti_bayar,
+               nama_produk, nama_penitip, jumlah, harga_satuan,
+               subtotal, catatan, selisih_refund
+        FROM vw_detail_pesanan_penjual
+        WHERE id_transaksi = @idTrx
+          AND id_penjual   = @idPenjual;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (var cmd = new NpgsqlCommand(queryHeader, conn))
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@idTrx", idTransaksi);
+                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
                     using (var rdr = cmd.ExecuteReader())
                     {
-                        if (rdr.Read())
+                        while (rdr.Read())
                         {
-                            namaPembeli = rdr.GetString(rdr.GetOrdinal("nama_pembeli"));
-                            tanggalStr = rdr.GetDateTime(rdr.GetOrdinal("tanggal_transaksi"))
-                                              .ToString("dd MMM yyyy, HH:mm");
-                            statusPesanan = rdr.GetString(rdr.GetOrdinal("status_pesanan"));
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")))
-                            {
-                                buktiBayar = (byte[])rdr["bukti_bayar"];
-                            }
-                            else
-                            {
-                                buktiBayar = null;
-                            }
-                        }
-                    }
-                }
-            }
-
-            string queryDetail = @"
-            SELECT td.nama_produk_snapshot, td.nama_penitip,
-                td.jumlah_pesanan, td.harga_satuan_saat_beli,
-                td.catatan, COALESCE(td.selisih_refund, 0) AS selisih_refund
-            FROM transaction_details td
-            JOIN products p ON td.id_produk = p.id_produk
-            WHERE td.id_transaksi = @idTrx AND p.id_penjual = @idPenjual;";
-
-            using (var conn2 = new NpgsqlConnection(_connectionString))
-            {
-                conn2.Open();
-                using (var cmd2 = new NpgsqlCommand(queryDetail, conn2))
-                {
-                    cmd2.Parameters.AddWithValue("@idTrx", idTransaksi);
-                    cmd2.Parameters.AddWithValue("@idPenjual", idPenjual);
-                    using (var rdr2 = cmd2.ExecuteReader())
-                    {
-                        while (rdr2.Read())
-                        {
-                            int jumlah = rdr2.GetInt32(rdr2.GetOrdinal("jumlah_pesanan"));
-                            long harga = Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("harga_satuan_saat_beli")));
-                            long subtotal = jumlah * harga;
-
-                            string namaSnap = rdr2.IsDBNull(rdr2.GetOrdinal("nama_produk_snapshot"))
-                                              ? "-"
-                                              : rdr2.GetString(rdr2.GetOrdinal("nama_produk_snapshot"));
-
-                            string catatan = rdr2.IsDBNull(rdr2.GetOrdinal("catatan"))
-                                             ? "-"
-                                             : rdr2.GetString(rdr2.GetOrdinal("catatan"));
-
-                            object buktiBayarVal = (buktiBayar != null && buktiBayar.Length > 0)
-                                                   ? (object)buktiBayar
-                                                   : DBNull.Value;
-
-                            long selisihRefund = rdr2.IsDBNull(rdr2.GetOrdinal("selisih_refund"))
-                                ? 0
-                                : Convert.ToInt64(rdr2.GetInt32(rdr2.GetOrdinal("selisih_refund")));
-
                             dt.Rows.Add(
-                                namaPembeli,
-                                tanggalStr,
-                                statusPesanan,
-                                buktiBayarVal,
-                                namaSnap,
-                                rdr2.GetString(rdr2.GetOrdinal("nama_penitip")),
-                                jumlah,
-                                harga,
-                                subtotal,
-                                catatan,
-                                selisihRefund
+                                rdr.GetString(rdr.GetOrdinal("nama_pembeli")),
+                                rdr.GetString(rdr.GetOrdinal("tanggal_transaksi")),
+                                rdr.GetString(rdr.GetOrdinal("status_pesanan")),
+                                rdr.IsDBNull(rdr.GetOrdinal("bukti_bayar")) ? (object)DBNull.Value : (byte[])rdr["bukti_bayar"],
+                                rdr.GetString(rdr.GetOrdinal("nama_produk")),
+                                rdr.GetString(rdr.GetOrdinal("nama_penitip")),
+                                rdr.GetInt32(rdr.GetOrdinal("jumlah")),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("harga_satuan"))),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("subtotal"))),
+                                rdr.GetString(rdr.GetOrdinal("catatan")),
+                                Convert.ToInt64(rdr.GetInt32(rdr.GetOrdinal("selisih_refund")))
                             );
                         }
                     }
                 }
             }
-
             return dt;
         }
+
         /// <summary>
         /// Ambil total jumlah_pesanan dari DB untuk satu produk (semua transaksi non-batal).
         /// Digunakan untuk cek kuota GR secara akurat tanpa bergantung pada data RAM.
