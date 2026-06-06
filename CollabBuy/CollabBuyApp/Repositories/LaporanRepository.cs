@@ -43,9 +43,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public (long totalPendapatan, int totalPesanan) GetRingkasanPenjualan(int idPenjual)
         {
-            // PERBAIKAN: kolom 'total_harga' tidak ada di tabel transactions.
-            // Pendapatan penjual = SUM(jumlah_pesanan * harga_satuan_saat_beli) dari
-            // transaction_details, difilter products.id_penjual, status 'Selesai'.
             string query = @"
                 SELECT
                     COUNT(DISTINCT t.id_transaksi) AS total_pesanan,
@@ -81,9 +78,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
-            // PERBAIKAN: Kolom t.tanggal_pesanan, t.total_harga, t.id_pembeli tidak ada.
-            // Kolom yang benar: t.tanggal_transaksi, t.id_koordinator (=pembeli).
-            // Total per transaksi dihitung dari transaction_details JOIN products filter id_penjual.
             string query = @"
                 SELECT
                     u.nama AS nama_pembeli,
@@ -301,37 +295,46 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public DataTable GetLpjDanusPerPo(int idPenjual)
         {
-            // Query diperkaya: tambah harga_satuan, periode batas_waktu, status PO
+            // FIX: Gunakan subquery yang sudah difilter status 'Selesai' terlebih dahulu,
+            // lalu LEFT JOIN ke subquery itu. Dengan cara ini tidak ada konflik dua WHERE,
+            // dan hanya transaksi Selesai yang masuk perhitungan — konsisten dengan UI.
             string query = @"
-        SELECT
-            po.id_po,
-            po.judul_po,
-            po.jenis_po,
-            po.batas_waktu,
-            p.nama_produk,
-            p.harga_dasar,
-            p.harga_diskon,
-            COALESCE(SUM(td.jumlah_pesanan), 0)                                                   AS total_barang_terjual,
-            COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)                       AS omzet_kotor,
-            COALESCE(SUM(td.selisih_refund), 0)                                                   AS total_refund_dicairkan,
-            COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli)
-                        - COALESCE(td.selisih_refund, 0)), 0)                                     AS omzet_bersih_lpj,
-            CASE WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW()
-                 THEN 'Sedang Berjalan'
-                 WHEN po.is_aktif = TRUE AND po.batas_waktu < NOW()
-                 THEN 'Batas Waktu Habis'
-                 ELSE 'Ditutup'
-            END AS status_po
-        FROM preorders po
-        JOIN products p ON po.id_po = p.id_po
-        LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
-        LEFT JOIN transactions t ON td.id_transaksi = t.id_transaksi
-            AND t.status_pesanan = 'Selesai'
-        WHERE po.id_penjual = @idPenjual
-          AND po.is_deleted = FALSE
-        GROUP BY po.id_po, po.judul_po, po.jenis_po, po.batas_waktu, po.is_aktif,
-                 p.nama_produk, p.harga_dasar, p.harga_diskon
-        ORDER BY po.batas_waktu DESC, p.nama_produk ASC;";
+                SELECT
+                    po.id_po,
+                    po.judul_po,
+                    po.jenis_po,
+                    po.batas_waktu,
+                    p.nama_produk,
+                    p.harga_dasar,
+                    p.harga_diskon,
+                    COALESCE(agg.total_barang_terjual, 0)   AS total_barang_terjual,
+                    COALESCE(agg.omzet_kotor, 0)            AS omzet_kotor,
+                    COALESCE(agg.total_refund_dicairkan, 0) AS total_refund_dicairkan,
+                    COALESCE(agg.omzet_bersih_lpj, 0)       AS omzet_bersih_lpj,
+                    CASE
+                        WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW() THEN 'Sedang Berjalan'
+                        WHEN po.is_aktif = TRUE AND po.batas_waktu  < NOW() THEN 'Batas Waktu Habis'
+                        ELSE 'Ditutup'
+                    END AS status_po
+                FROM preorders po
+                JOIN products p ON po.id_po = p.id_po
+                LEFT JOIN (
+                    -- Subquery: hanya transaction_details dari transaksi yang sudah Selesai
+                    SELECT
+                        td.id_produk,
+                        SUM(td.jumlah_pesanan)                                                          AS total_barang_terjual,
+                        SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                              AS omzet_kotor,
+                        SUM(COALESCE(td.selisih_refund, 0))                                             AS total_refund_dicairkan,
+                        SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli)
+                            - COALESCE(td.selisih_refund, 0))                                           AS omzet_bersih_lpj
+                    FROM transaction_details td
+                    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                    WHERE t.status_pesanan = 'Selesai'   -- filter di sini, bukan di JOIN luar
+                    GROUP BY td.id_produk
+                ) agg ON p.id_produk = agg.id_produk
+                WHERE po.id_penjual = @idPenjual
+                  AND po.is_deleted = FALSE
+                ORDER BY po.batas_waktu DESC, p.nama_produk ASC;";
 
             return FillDataTable(query, cmd => cmd.Parameters.AddWithValue("@idPenjual", idPenjual));
         }

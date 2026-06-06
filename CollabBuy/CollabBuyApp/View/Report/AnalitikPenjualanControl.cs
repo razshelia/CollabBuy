@@ -418,7 +418,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 Brush brushMerah = new SolidBrush(Color.FromArgb(180, 0, 0));
                 Pen penTebal = new Pen(Color.FromArgb(60, 0, 120), 2);
                 Pen penTipis = new Pen(Color.LightGray, 1);
-                int lebar = 700;
+                int lebar = 650;
 
                 // ═══════════════════════════════════════════
                 // I. KOP
@@ -767,19 +767,29 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 else
                 {
                     // Header tabel
-                    int[] colX = { marginKiri, marginKiri + 140, marginKiri + 290, marginKiri + 365, marginKiri + 445, marginKiri + 545, marginKiri + 645 };
+                    int[] colX = {
+                        marginKiri,           // 50  → Sesi PO / Jenis
+                        marginKiri + 160,     // 210 → Nama Produk
+                        marginKiri + 310,     // 360 → Harga Dasar
+                        marginKiri + 395,     // 445 → Unit Terjual
+                        marginKiri + 460,     // 510 → Omzet Kotor
+                        marginKiri + 555,     // 605 → Refund GR
+                        marginKiri + 605      // 655 → Bersih (sisa 45px, cukup untuk nilai pendek; atau geser jika perlu)
+                    };
+
                     int[] colWArr = { 135, 145, 70, 75, 95, 95, 60 };
                     string[] hdr = { "Sesi PO / Jenis", "Nama Produk", "Harga Dasar", "Unit Terjual", "Omzet Kotor", "Refund GR", "Bersih" };
 
                     g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)),
-                        marginKiri, yPos, lebar, 22);
+    marginKiri, yPos, lebar, 22);
                     for (int i = 0; i < hdr.Length; i++)
                         g.DrawString(hdr[i], fontSeksi, brushHitam, colX[i] + 3, yPos + 3);
                     yPos += 22;
 
-                    // Kelompokkan per PO
+                    // Variabel subtotal
                     string poSebelumnya = "";
-                    long subOmzet = 0; long subRefund = 0; long subBersih = 0; int subUnit = 0;
+                    long subOmzet = 0, subRefund = 0, subBersih = 0;
+                    int subUnit = 0;
 
                     foreach (DataRow row in dtLpj.Rows)
                     {
@@ -793,97 +803,108 @@ namespace CollabBuy.CollabBuyApp.View.Report
                         long refund = row["total_refund_dicairkan"] != DBNull.Value ? Convert.ToInt64(row["total_refund_dicairkan"]) : 0;
                         long bersih = row["omzet_bersih_lpj"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih_lpj"]) : 0;
 
-                        // Baris header PO baru
+                        // ── Header PO baru ──────────────────────────────────────────────
                         if (judulPo != poSebelumnya)
                         {
+                            // Cetak subtotal PO sebelumnya terlebih dahulu
                             if (poSebelumnya != "")
                             {
-                                // Subtotal PO sebelumnya
                                 g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
                                 g.DrawString($"Sub-total: {poSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
                                 g.DrawString(subUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
                                 g.DrawString("Rp " + subOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                                g.DrawString("Rp " + subRefund.ToString("N0"), fontItalic, brushMerah, colX[5] + 3, yPos + 2);
+                                g.DrawString(subRefund > 0
+                                    ? "Rp " + subRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
                                 g.DrawString("Rp " + subBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
                                 yPos += 18;
                                 subOmzet = 0; subRefund = 0; subBersih = 0; subUnit = 0;
                             }
 
-                            if (judulPo.Length > 18) judulPo = judulPo.Substring(0, 18) + "..";
+                            // Potong judul PO agar tidak overflow ke kolom berikutnya (maks ~22 karakter)
+                            string judulTampil = judulPo.Length > 22 ? judulPo.Substring(0, 22) + ".." : judulPo;
+
                             g.FillRectangle(new SolidBrush(Color.FromArgb(240, 235, 255)), marginKiri, yPos, lebar, 18);
-                            g.DrawString($"📦 {judulPo}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, colX[0] + 3, yPos + 2);
+                            g.DrawString($"📦 {judulTampil}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, colX[0] + 3, yPos + 2);
                             yPos += 18;
                             poSebelumnya = judulPo;
                         }
 
-                        // Baris produk
-                        if (produk.Length > 22) produk = produk.Substring(0, 22) + "..";
+                        // ── Baris produk ────────────────────────────────────────────────
+                        // Nama produk: maks ~20 karakter agar tidak nabrak kolom "Harga Dasar" (colX[2])
+                        if (produk.Length > 20) produk = produk.Substring(0, 20) + "..";
+
                         g.DrawString(produk, fontIsi, brushHitam, colX[1] + 3, yPos + 2);
                         g.DrawString("Rp " + hargaDsr.ToString("N0"), fontIsi, brushHitam, colX[2] + 3, yPos + 2);
                         g.DrawString(unit + " pcs", fontIsi, brushHitam, colX[3] + 3, yPos + 2);
                         g.DrawString("Rp " + kotor.ToString("N0"), fontIsi, brushHitam, colX[4] + 3, yPos + 2);
-                        g.DrawString(refund > 0 ? "Rp " + refund.ToString("N0") : "-", fontIsi, brushMerah, colX[5] + 3, yPos + 2);
+                        g.DrawString(refund > 0
+                            ? "Rp " + refund.ToString("N0") : "-", fontIsi, brushMerah, colX[5] + 3, yPos + 2);
                         g.DrawString("Rp " + bersih.ToString("N0"), fontIsi, brushHijau, colX[6] + 3, yPos + 2);
                         g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
                         yPos += 18;
 
-                        subUnit += unit; subOmzet += kotor;
-                        subRefund += refund; subBersih += bersih;
+                        subUnit += unit;
+                        subOmzet += kotor;
+                        subRefund += refund;
+                        subBersih += bersih;
                     }
 
-                    // Subtotal PO terakhir
+                    // ── Subtotal PO terakhir ────────────────────────────────────────────
                     if (poSebelumnya != "")
                     {
                         g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
                         g.DrawString($"Sub-total: {poSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
                         g.DrawString(subUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
                         g.DrawString("Rp " + subOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                        g.DrawString("Rp " + subRefund.ToString("N0"), fontItalic, brushMerah, colX[5] + 3, yPos + 2);
+                        g.DrawString(subRefund > 0
+                            ? "Rp " + subRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
                         g.DrawString("Rp " + subBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
                         yPos += 18;
                     }
 
-                    // Grand total
+                    // ── Grand total ─────────────────────────────────────────────────────
                     yPos += 4;
                     g.FillRectangle(new SolidBrush(Color.FromArgb(60, 0, 120)), marginKiri, yPos, lebar, 26);
                     g.DrawString("TOTAL KESELURUHAN", fontSeksi, Brushes.White, colX[0] + 3, yPos + 4);
                     g.DrawString(grandUnitTerjual + " pcs", fontSeksi, Brushes.White, colX[3] + 3, yPos + 4);
                     g.DrawString("Rp " + grandOmzetKotor.ToString("N0"), fontSeksi, Brushes.White, colX[4] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandRefund.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(255, 180, 180)), colX[5] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandOmzetBersih.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(160, 255, 200)), colX[6] + 3, yPos + 4);
+                    g.DrawString("Rp " + grandRefund.ToString("N0"),
+                        fontSeksi, new SolidBrush(Color.FromArgb(255, 180, 180)), colX[5] + 3, yPos + 4);
+                    g.DrawString("Rp " + grandOmzetBersih.ToString("N0"),
+                        fontSeksi, new SolidBrush(Color.FromArgb(160, 255, 200)), colX[6] + 3, yPos + 4);
                     yPos += 28;
+
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
+
+                    // ═══════════════════════════════════════════════
+                    // V. TANDA TANGAN
+                    // ═══════════════════════════════════════════════
+                    g.DrawString("D. PERNYATAAN PERTANGGUNGJAWABAN", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 18;
+                    g.DrawString(
+                        "Dengan ini saya menyatakan bahwa laporan ini adalah benar dan dapat dipertanggungjawabkan.",
+                        fontIsi, brushHitam, marginKiri + 10, yPos);
+                    yPos += 30;
+
+                    // Tanda tangan kiri: penanggung jawab
+                    g.DrawString("Dibuat oleh,", fontIsi, brushHitam, marginKiri + 40, yPos);
+                    g.DrawString("Diketahui oleh,", fontIsi, brushHitam, marginKiri + 370, yPos);
+                    yPos += 60;
+                    g.DrawLine(new Pen(Color.Black, 1), marginKiri + 20, yPos, marginKiri + 220, yPos);
+                    g.DrawLine(new Pen(Color.Black, 1), marginKiri + 350, yPos, marginKiri + 560, yPos);
+                    yPos += 6;
+                    g.DrawString(this._currentUser.Nama, fontSeksi, brushHitam, marginKiri + 40, yPos);
+                    g.DrawString("____________________", fontIsi, Brushes.Gray, marginKiri + 360, yPos);
+                    yPos += 16;
+                    g.DrawString("Penanggungjawab Danus", fontItalic, Brushes.Gray, marginKiri + 40, yPos);
+                    g.DrawString("Bendahara / Supervisor", fontItalic, Brushes.Gray, marginKiri + 360, yPos);
                 }
 
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
-
-                // ═══════════════════════════════════════════════
-                // V. TANDA TANGAN
-                // ═══════════════════════════════════════════════
-                g.DrawString("D. PERNYATAAN PERTANGGUNGJAWABAN", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 18;
-                g.DrawString(
-                    "Dengan ini saya menyatakan bahwa laporan ini adalah benar dan dapat dipertanggungjawabkan.",
-                    fontIsi, brushHitam, marginKiri + 10, yPos);
+                // Footer
                 yPos += 30;
-
-                // Tanda tangan kiri: penanggung jawab
-                g.DrawString("Dibuat oleh,", fontIsi, brushHitam, marginKiri + 40, yPos);
-                g.DrawString("Diketahui oleh,", fontIsi, brushHitam, marginKiri + 370, yPos);
-                yPos += 60;
-                g.DrawLine(new Pen(Color.Black, 1), marginKiri + 20, yPos, marginKiri + 220, yPos);
-                g.DrawLine(new Pen(Color.Black, 1), marginKiri + 350, yPos, marginKiri + 560, yPos);
-                yPos += 6;
-                g.DrawString(this._currentUser.Nama, fontSeksi, brushHitam, marginKiri + 40, yPos);
-                g.DrawString("____________________", fontIsi, Brushes.Gray, marginKiri + 360, yPos);
-                yPos += 16;
-                g.DrawString("Penanggungjawab Danus", fontItalic, Brushes.Gray, marginKiri + 40, yPos);
-                g.DrawString("Bendahara / Supervisor", fontItalic, Brushes.Gray, marginKiri + 360, yPos);
+                g.DrawString("Laporan ini di-generate otomatis oleh Sistem CollabBuy.", fontSub, Brushes.Gray, marginKiri, yPos);
             }
-
-            // Footer
-            yPos += 30;
-            g.DrawString("Laporan ini di-generate otomatis oleh Sistem CollabBuy.", fontSub, Brushes.Gray, marginKiri, yPos);
         }
     }
 }
