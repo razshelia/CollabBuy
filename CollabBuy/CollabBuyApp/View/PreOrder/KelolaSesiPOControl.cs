@@ -46,7 +46,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             try
             {
-                DataTable dtRaw = this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
+                DataTable dtRaw = this._poController.GetPOByPenjual(this._currentUser.IdUser);
 
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_po", typeof(int));

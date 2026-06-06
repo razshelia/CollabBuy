@@ -29,7 +29,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this._user = user;
             this._idProduk = idProduk;
             this._prodCtrl = new ProductController();
-            this._trxCtrl = new TransactionController(this._user.GetIdUser());
+            this._trxCtrl = new TransactionController(this._user.IdUser);
 
             this._timerStatus = new System.Windows.Forms.Timer();
             this._timerStatus.Interval = 3000;
@@ -236,7 +236,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             {
                 int jumlah = (int)this.nudQty.Value;
                 string catatan = "";
-                string namaPenitip = this._user.GetNama();
+                string namaPenitip = this._user.Nama;
 
                 var (sukses, pesan) = this._trxCtrl.TambahItemKeKeranjang(this._idProduk, namaPenitip, jumlah, catatan);
 

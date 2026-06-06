@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             this._user = user;
             this._prodCtrl = new ProductController();
-            this._trxCtrl = new TransactionController(this._user.GetIdUser());
+            this._trxCtrl = new TransactionController(this._user.IdUser);
 
             this._timerInfo = new System.Windows.Forms.Timer();
             this._timerInfo.Interval = 3000;
@@ -407,7 +407,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     {
                         int minOrder = pUtuh.MinOrder > 0 ? pUtuh.MinOrder : 1;
                         var (sukses, pesan) = this._trxCtrl.TambahItemKeKeranjang(
-                            idProduk, this._user.GetNama(), minOrder, "");
+                            idProduk, this._user.Nama, minOrder, "");
 
                         if (sukses)
                             this.TampilkanInfo($"✅ '{nama}' berhasil masuk keranjang!", true);

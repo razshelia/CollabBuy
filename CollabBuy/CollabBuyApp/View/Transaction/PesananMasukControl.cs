@@ -81,7 +81,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                DataTable dt = this._transactionController.GetPesananMasuk(this._currentUser.GetIdUser());
+                DataTable dt = this._transactionController.GetPesananMasuk(this._currentUser.IdUser);
                 this.dgvPesanan.DataSource = dt;
                 this.dgvPesanan.ClearSelection();
             }
@@ -174,7 +174,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             try
             {
                 DataTable dtDetail = this._transactionController.GetDetailPesananPenjual(
-                    idTrx, this._currentUser.GetIdUser());
+                    idTrx, this._currentUser.IdUser);
 
                 if (dtDetail == null || dtDetail.Rows.Count == 0)
                 {

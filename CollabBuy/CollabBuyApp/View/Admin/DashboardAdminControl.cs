@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             }
             else
             {
-                this.lblSapaan.Text = $"Hola Mimin {this._admin.GetUsername()}! 🚀";
+                this.lblSapaan.Text = $"Hola Mimin {this._admin.Username}! 🚀";
             }
 
             this.LoadStatistik();

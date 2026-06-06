@@ -26,7 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
         private void LoadUlasan()
         {
             this.flpUlasan.Controls.Clear();
-            DataTable dt = this._controller.GetReviewLapak(this._seller.GetIdUser());
+            DataTable dt = this._controller.GetReviewLapak(this._seller.IdUser);
 
             if (dt == null || dt.Rows.Count == 0)
             {
@@ -165,7 +165,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
             if (!string.IsNullOrWhiteSpace(input))
             {
-                var (sukses, pesan) = this._controller.BalasUlasanLapak(idUlasan, input, this._seller.GetIdUser());
+                var (sukses, pesan) = this._controller.BalasUlasanLapak(idUlasan, input, this._seller.IdUser);
 
                 if (sukses)
                 {

@@ -20,62 +20,30 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public Models.PreOrder GetPreOrder(int idPo)
         {
-            Models.PreOrder poObj;
             try
             {
                 DataTable dt = this._poRepo.GetById(idPo);
 
-                if (dt != null)
-                {
-                    if (dt.Rows.Count > 0)
-                    {
-                        DataRow row = dt.Rows[0];
+                if (dt == null || dt.Rows.Count == 0) return null;
 
-                        int idPenjual;
-                        if (row["id_penjual"] != DBNull.Value)
-                        {
-                            idPenjual = Convert.ToInt32(row["id_penjual"]);
-                        }
-                        else
-                        {
-                            idPenjual = 0;
-                        }
+                DataRow row = dt.Rows[0];
 
-                        string judulPo = row["judul_po"].ToString();
-                        string jenisPo = row["jenis_po"].ToString();
-                        string rekening = row["rekening"].ToString();
+                int idPenjual = row["id_penjual"] != DBNull.Value ? Convert.ToInt32(row["id_penjual"]) : 0;
+                string judulPo = row["judul_po"].ToString();
+                string jenisPo = row["jenis_po"].ToString();
+                string rekening = row["rekening"].ToString();
+                DateTime batasWaktu = row["batas_waktu"] != DBNull.Value
+                    ? Convert.ToDateTime(row["batas_waktu"])
+                    : DateTime.Now.AddDays(1); // fallback aman — bukan masa lalu
 
-                        DateTime batasWaktu;
-                        if (row["batas_waktu"] != DBNull.Value)
-                        {
-                            batasWaktu = Convert.ToDateTime(row["batas_waktu"]);
-                        }
-                        else
-                        {
-                            batasWaktu = DateTime.Now;
-                        }
-
-                        // =======================================================
-                        // OOP BEST PRACTICE: Instansiasi Model dengan Constructor
-                        // =======================================================
-                        poObj = new Models.PreOrder(idPenjual, judulPo, jenisPo, rekening, batasWaktu);
-                    }
-                    else
-                    {
-                        poObj = null;
-                    }
-                }
-                else
-                {
-                    poObj = null;
-                }
+                var po = new Models.PreOrder(idPenjual, judulPo, jenisPo, rekening, batasWaktu);
+                po.TutupOtomatisJikaBasi(); // tandai expired tanpa throw
+                return po;
             }
             catch (Exception)
             {
-                poObj = null;
+                return null;
             }
-
-            return poObj;
         }
 
         public int GetJumlahPoAktif()
@@ -172,49 +140,29 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
         {
-            (bool sukses, string pesan) hasil;
-
+            // Guard clauses — validasi dulu, keluar cepat jika gagal
             if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
+                return (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
+
+            if (batasWaktu <= DateTime.Now)
+                return (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
+
+            if (idProduk <= 0)
+                return (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
+
+            try
             {
-                hasil = (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
+                bool result = this._poRepo.InsertPOAndUpdateProduct(
+                    idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+
+                return result
+                    ? (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!")
+                    : (false, "Hmm, gagal nyimpen ke database nih.");
             }
-            else
+            catch (Exception ex)
             {
-                if (idProduk <= 0)
-                {
-                    hasil = (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
-                }
-                else
-                {
-                    try
-                    {
-                        // OOP BEST PRACTICE: Validasi didelegasikan ke Model
-                        Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
-                        poBaru.BukaSesiBaru(batasWaktu);
-
-                        bool result = this._poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
-
-                        if (result)
-                        {
-                            hasil = (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!");
-                        }
-                        else
-                        {
-                            hasil = (false, "Hmm, gagal nyimpen ke database nih.");
-                        }
-                    }
-                    catch (InvalidOrderException ex)
-                    {
-                        hasil = (false, ex.GetPesanLengkap());
-                    }
-                    catch (Exception ex)
-                    {
-                        hasil = (false, "Waduh error server: " + ex.Message);
-                    }
-                }
+                return (false, "Waduh error server: " + ex.Message);
             }
-
-            return hasil;
         }
 
         public (bool sukses, string pesan) EditSesiPO(int idPo, string judulBaru, string jenisBaru, string rekeningBaru, DateTime batasWaktuBaru)

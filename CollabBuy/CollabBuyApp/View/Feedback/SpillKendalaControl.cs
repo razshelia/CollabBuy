@@ -33,7 +33,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
         private void btnAduan_Click(object sender, EventArgs e)
         {
-            var (sukses, pesan) = this._controller.GasSpillKendala(this._currentUser.GetIdUser(), this.txtSubjek.Text, this.txtDeskripsi.Text);
+            var (sukses, pesan) = this._controller.GasSpillKendala(this._currentUser.IdUser, this.txtSubjek.Text, this.txtDeskripsi.Text);
 
             if (sukses)
             {
@@ -51,7 +51,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
         private void LoadRiwayat()
         {
-            DataTable dtRaw = this._controller.GetRiwayatSpill(this._currentUser.GetIdUser());
+            DataTable dtRaw = this._controller.GetRiwayatSpill(this._currentUser.IdUser);
 
             DataTable dtUI = new DataTable();
             dtUI.Columns.Add("subjek", typeof(string));

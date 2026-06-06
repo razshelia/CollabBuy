@@ -122,7 +122,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         private void CekStatusVerifikasi()
         {
             bool isVerifiedSeller;
-            if (this._currentUser.GetPeran() == "Penjual")
+            if (this._currentUser.Peran == "Penjual")
             {
                 isVerifiedSeller = true;
             }
@@ -131,7 +131,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 isVerifiedSeller = false;
             }
 
-            bool isPendingVerification = this._userController.CekPendingVerifikasi(this._currentUser.GetIdUser());
+            bool isPendingVerification = this._userController.CekPendingVerifikasi(this._currentUser.IdUser);
 
             if (isVerifiedSeller)
             {
@@ -182,7 +182,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                             tahun = DateTime.Now.Year;
                         }
 
-                        var (sukses, pesan) = this._userController.AjukanVerifikasiToko(this._currentUser.GetIdUser(), this.txtNIM.Text.Trim(), this.txtNamaToko.Text.Trim(), tahun, this._buktiKtmBytes);
+                        var (sukses, pesan) = this._userController.AjukanVerifikasiToko(this._currentUser.IdUser, this.txtNIM.Text.Trim(), this.txtNamaToko.Text.Trim(), tahun, this._buktiKtmBytes);
 
                         if (sukses)
                         {

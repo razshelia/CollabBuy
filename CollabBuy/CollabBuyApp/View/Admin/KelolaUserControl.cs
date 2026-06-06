@@ -10,13 +10,15 @@ namespace CollabBuy.CollabBuyApp.View.Admin
     public partial class KelolaUserControl : UserControl
     {
         private readonly AdminController _adminController;
+        private readonly Models.User _currentUser;
         private int _selectedIdUser;
         private string _selectedRawStatus;
 
-        public KelolaUserControl()
+        public KelolaUserControl(Models.User currentUser)
         {
             InitializeComponent();
             this._adminController = new AdminController();
+            this._currentUser = currentUser;
             this._selectedIdUser = 0;
             this._selectedRawStatus = "";
         }
@@ -167,7 +169,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             // Jika sedang aktif    → kita BLOKIR   → blokir = true
             bool blokirBaru = !sedangDiblokir;
 
-            var (sukses, pesan) = this._adminController.ToggleBlokirUser(this._selectedIdUser, blokirBaru);
+            var (sukses, pesan) = this._adminController.ToggleBlokirUser(
+                this._selectedIdUser, blokirBaru, this._currentUser.IdUser);
             if (sukses)
             {
                 MessageBox.Show(pesan, "Berhasil!", MessageBoxButtons.OK, MessageBoxIcon.Information);

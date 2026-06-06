@@ -171,7 +171,7 @@ namespace CollabBuy.CollabBuyApp.Models
         public bool ApakahBisaBukaLapak()
         {
             // Langsung evaluasi kondisi boolean
-            return this._isVerifikasi && !this.IsDiblokir();
+            return this._isVerifikasi && !this.IsDiblokir;
         }
 
         /// <summary>

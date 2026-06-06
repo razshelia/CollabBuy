@@ -4,291 +4,145 @@ using CollabBuy.CollabBuyApp.Repositories;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
-    /// <summary>
-    /// Controller yang bertindak sebagai Mandor alur pengambilan data Laporan & Analitik.
-    /// 
-    /// Tugas Utama:
-    /// 1. Menjaga prinsip Layered Architecture (View tidak boleh panggil Repository langsung).
-    /// 2. Menangani eksepsi database sehingga UI tidak mengalami force close/crash 
-    ///    jika query analitik (CUBE, ROLLUP) memakan waktu lama atau koneksi terputus.
-    /// </summary>
     public class LaporanController
     {
-        // === PRIVATE FIELDS (DEPENDENCIES) ===
         private readonly LaporanRepository _laporanRepo;
 
-        // === KONSTRUKTOR ===
         public LaporanController()
         {
             _laporanRepo = new LaporanRepository();
         }
 
+        // Helper agar tidak copy-paste log di setiap catch
+        private void LogError(string namaMethod, Exception ex)
+        {
+            Console.WriteLine($"[LaporanController.{namaMethod}] Error: {ex.Message}");
+        }
+
 
         // =======================================================
-        // 0. FITUR ANALITIK PENJUALAN (SELLER UI)
+        // 0. ANALITIK PENJUALAN (SELLER)
         // =======================================================
 
-        /// <summary>
-        /// Mengambil ringkasan pendapatan dan total pesanan selesai untuk Dashboard Analitik Penjual.
-        /// </summary>
         public (long totalPendapatan, int totalPesanan) GetRingkasanLapak(int idPenjual)
         {
-            try
-            {
-                return _laporanRepo.GetRingkasanPenjualan(idPenjual);
-            }
-            catch (Exception)
-            {
-                return (0, 0); // Kembalikan 0 jika database error agar UI tetap aman
-            }
+            try { return _laporanRepo.GetRingkasanPenjualan(idPenjual); }
+            catch (Exception ex) { LogError(nameof(GetRingkasanLapak), ex); return (0, 0); }
         }
 
-        /// <summary>
-        /// Mengambil rincian riwayat transaksi yang sudah selesai untuk ditampilkan di tabel Analitik.
-        /// </summary>
         public DataTable GetDetailRiwayatCuan(int idPenjual)
         {
-            try
-            {
-                return _laporanRepo.GetRiwayatCuanDataTable(idPenjual);
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetRiwayatCuanDataTable(idPenjual); }
+            catch (Exception ex) { LogError(nameof(GetDetailRiwayatCuan), ex); return new DataTable(); }
         }
 
 
         // =======================================================
-        // 1. FITUR VIEW DATABASE (ADMIN UI)
+        // 1. VIEW DATABASE (ADMIN)
         // =======================================================
 
-        /// <summary>
-        /// Mengambil data dari View vw_transaksi_lengkap.
-        /// </summary>
         public DataTable GetTransaksiLengkap()
         {
-            try
-            {
-                return _laporanRepo.GetTransaksiLengkap();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetTransaksiLengkap(); }
+            catch (Exception ex) { LogError(nameof(GetTransaksiLengkap), ex); return new DataTable(); }
         }
 
 
         // =======================================================
-        // 2. FITUR PURE FUNCTION DATABASE
+        // 2. PURE FUNCTION DATABASE
         // =======================================================
 
-        /// <summary>
-        /// Mengambil statistik dashboard untuk penjual tertentu menggunakan Function DB.
-        /// </summary>
         public DataTable GetStatistikDashboardPenjual(int idPenjual)
         {
-            try
-            {
-                return _laporanRepo.GetStatistikDashboardPenjual(idPenjual);
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetStatistikDashboardPenjual(idPenjual); }
+            catch (Exception ex) { LogError(nameof(GetStatistikDashboardPenjual), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// Mengecek harga produk saat ini langsung dari Function DB.
-        /// </summary>
         public int CekHargaSaatIniViaDatabase(int idProduk)
         {
-            try
-            {
-                return _laporanRepo.CekHargaSaatIniViaDatabase(idProduk);
-            }
-            catch (Exception)
-            {
-                return 0; // Kembalikan 0 jika error
-            }
+            try { return _laporanRepo.CekHargaSaatIniViaDatabase(idProduk); }
+            catch (Exception ex) { LogError(nameof(CekHargaSaatIniViaDatabase), ex); return 0; }
         }
 
 
         // =======================================================
-        // 3. FITUR TEORI HIMPUAN (SET OPERATIONS)
+        // 3. SET OPERATIONS
         // =======================================================
 
-        /// <summary>
-        /// UNION: Transaksi Diproses dan Selesai.
-        /// </summary>
         public DataTable GetTransaksiAktifUnion()
         {
-            try
-            {
-                return _laporanRepo.GetTransaksiAktifUnion();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetTransaksiAktifUnion(); }
+            catch (Exception ex) { LogError(nameof(GetTransaksiAktifUnion), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// INTERSECT: Penjual yang juga pembeli (Sultan Member).
-        /// </summary>
         public DataTable GetSultanMemberIntersect()
         {
-            try
-            {
-                return _laporanRepo.GetSultanMemberIntersect();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetSultanMemberIntersect(); }
+            catch (Exception ex) { LogError(nameof(GetSultanMemberIntersect), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// EXCEPT: User yang belum pernah transaksi (Pengguna Pasif).
-        /// </summary>
         public DataTable GetPenggunaPasifExcept()
         {
-            try
-            {
-                return _laporanRepo.GetPenggunaPasifExcept();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetPenggunaPasifExcept(); }
+            catch (Exception ex) { LogError(nameof(GetPenggunaPasifExcept), ex); return new DataTable(); }
         }
 
 
         // =======================================================
-        // 4. FITUR GROUP BY & CASE (KLASIFIKASI)
+        // 4. GROUP BY & CASE
         // =======================================================
 
-        /// <summary>
-        /// Statement 1: Status Ketersediaan Kuota (GROUP BY + CASE).
-        /// </summary>
         public DataTable GetStatusKetersediaanKuota()
         {
-            try
-            {
-                return _laporanRepo.GetStatusKetersediaanKuota();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetStatusKetersediaanKuota(); }
+            catch (Exception ex) { LogError(nameof(GetStatusKetersediaanKuota), ex); return new DataTable(); }
         }
-
-        /// <summary>
-        /// Statement 2: Klasifikasi Performa Penjual (Leaderboard).
-        /// </summary>
 
         public DataTable GetKlasifikasiPerformaPenjual()
         {
-            try
-            {
-                return _laporanRepo.GetKlasifikasiPerformaPenjual();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetKlasifikasiPerformaPenjual(); }
+            catch (Exception ex) { LogError(nameof(GetKlasifikasiPerformaPenjual), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// Statement 3: Total barang terjual tiap produk.
-        /// </summary>
         public DataTable GetTotalBarangTerjual()
         {
-            try
-            {
-                return _laporanRepo.GetTotalBarangTerjual();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetTotalBarangTerjual(); }
+            catch (Exception ex) { LogError(nameof(GetTotalBarangTerjual), ex); return new DataTable(); }
         }
 
 
         // =======================================================
-        // 5. FITUR CUBE, ROLLUP, GROUPING SETS, SUBQUERY
+        // 5. CUBE, ROLLUP, GROUPING SETS, SUBQUERY
         // =======================================================
 
-        /// <summary>
-        /// CUBE: Kombinasi silang Kategori X Jenis PO.
-        /// </summary>
         public DataTable GetAnalisisPasarCube()
         {
-            try
-            {
-                return _laporanRepo.GetAnalisisPasarCube();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetAnalisisPasarCube(); }
+            catch (Exception ex) { LogError(nameof(GetAnalisisPasarCube), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// ROLLUP: Hierarki Waktu → Total Tahun → Total Bulan.
-        /// </summary>
         public DataTable GetLaporanKeuanganRollup()
         {
-            try
-            {
-                return _laporanRepo.GetLaporanKeuanganRollup();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetLaporanKeuanganRollup(); }
+            catch (Exception ex) { LogError(nameof(GetLaporanKeuanganRollup), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// GROUPING SETS: Rekap per Penjual & per Kategori sekaligus.
-        /// </summary>
         public DataTable GetRingkasanGlobalGroupingSets()
         {
-            try
-            {
-                return _laporanRepo.GetRingkasanGlobalGroupingSets();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetRingkasanGlobalGroupingSets(); }
+            catch (Exception ex) { LogError(nameof(GetRingkasanGlobalGroupingSets), ex); return new DataTable(); }
         }
 
-        /// <summary>
-        /// SUBQUERY: Deteksi produk dengan sisa kuota <= 5.
-        /// </summary>
         public DataTable GetProdukSisaKuotaKritis()
         {
-            try
-            {
-                return _laporanRepo.GetProdukSisaKuotaKritis();
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetProdukSisaKuotaKritis(); }
+            catch (Exception ex) { LogError(nameof(GetProdukSisaKuotaKritis), ex); return new DataTable(); }
         }
+
         public DataTable GetLpjDanusPerPo(int idPenjual)
         {
-            try
-            {
-                // Memanggil dari LaporanRepository yang sudah kita perbarui sebelumnya
-                return _laporanRepo.GetLpjDanusPerPo(idPenjual);
-            }
-            catch (Exception)
-            {
-                return new DataTable();
-            }
+            try { return _laporanRepo.GetLpjDanusPerPo(idPenjual); }
+            catch (Exception ex) { LogError(nameof(GetLpjDanusPerPo), ex); return new DataTable(); }
         }
     }
 }

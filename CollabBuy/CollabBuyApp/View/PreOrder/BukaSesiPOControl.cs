@@ -47,7 +47,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             if (confirm != DialogResult.Yes) return;
 
             var (sukses, pesan, _) = this._poController.BukaSesiPOBaru(
-                this._currentSeller.GetIdUser(),
+                this._currentSeller.IdUser,
                 this.txtNamaSesi.Text,
                 this.cbJenisPO.Text,
                 this.txtRekening.Text,

@@ -51,7 +51,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex) { return (false, "Error sistem: " + ex.Message); }
         }
 
-        public (bool sukses, string pesan) UpdateProduk(int idProduk, int idPenjual, int idKategori, string namaProduk, int hargaDasar, int minOrder, string deskripsi, byte[] fotoProduk)
+        public (bool sukses, string pesan) UpdateProduk(int idProduk, int idPenjual, int idKategori, string namaProduk, int hargaDasar, int minOrder, string deskripsi, byte[] fotoProduk, int? idPo = null)
         {
             try
             {
@@ -60,6 +60,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 produk.MinOrder = minOrder;
                 if (!string.IsNullOrEmpty(deskripsi)) produk.Deskripsi = deskripsi;
                 if (fotoProduk != null) produk.FotoProduk = fotoProduk;
+                if (idPo.HasValue) produk.IdPo = idPo.Value;
                 produk.Validate();
                 _productRepo.Update(produk);
 
@@ -110,6 +111,25 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try { return _productRepo.GetProdukLapak(idPenjual); }
             catch { return new DataTable(); }
+        }
+        /// <summary>
+        /// Mengisi _katalogLapak di objek Penjual dari database.
+        /// Panggil ini setelah login atau saat membuka halaman profil/dashboard penjual.
+        /// </summary>
+        public void SyncKatalogKePenjual(Models.Penjual penjual)
+        {
+            if (penjual == null) return;
+
+            try
+            {
+                List<Models.Product> produkDariDb = _productRepo.GetByPenjualAsList(penjual.IdUser);
+                foreach (var produk in produkDariDb)
+                    penjual.TambahProdukKeLapak(produk);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[SyncKatalog] Gagal: " + ex.Message);
+            }
         }
 
         public Product GetProdukById(int idProduk)

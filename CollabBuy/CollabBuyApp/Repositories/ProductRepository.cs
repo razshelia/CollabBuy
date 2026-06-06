@@ -72,6 +72,39 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return p;
         }
+        /// <summary>
+        /// Mengembalikan List<Product> milik penjual tertentu dari DB.
+        /// Dipakai untuk mengisi _katalogLapak di model Penjual.
+        /// </summary>
+        public List<Product> GetByPenjualAsList(int idPenjual)
+        {
+            var list = new List<Product>();
+            string query = @"
+        SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori,
+               p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon,
+               p.target_kuota, p.min_order, p.foto_produk,
+               COALESCE(po.jenis_po, 'Biasa') AS jenis_po
+        FROM products p
+        LEFT JOIN preorders po ON p.id_po = po.id_po
+        WHERE p.id_penjual = @id AND p.is_deleted = FALSE
+        ORDER BY p.id_produk DESC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            list.Add(MappingReaderToProduct(reader));
+                    }
+                }
+            }
+
+            return list;
+        }
 
         // =======================================================
         // METHOD UNTUK UI (DATA TABLE)

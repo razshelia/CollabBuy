@@ -43,8 +43,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
             try
             {
                 DataTable dt = hanyaAktif
-                    ? this._poController.GetPOAktifByPenjual(this._currentUser.GetIdUser())
-                    : this._poController.GetPOByPenjual(this._currentUser.GetIdUser());
+                    ? this._poController.GetPOAktifByPenjual(this._currentUser.IdUser)
+                    : this._poController.GetPOByPenjual(this._currentUser.IdUser);
 
                 DataTable dtCombo = new DataTable();
                 dtCombo.Columns.Add("id_po", typeof(object));
@@ -161,13 +161,16 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 // === MODE EDIT / UPDATE ===
                 var result = this._productController.UpdateProduk(
                     idProduk: _editIdProduk,
-                    idPenjual: this._currentUser.GetIdUser(),
+                    idPenjual: this._currentUser.IdUser,
                     idKategori: idKategori,
                     namaProduk: txtNamaProduk.Text.Trim(),
                     hargaDasar: harga,
                     minOrder: minOrder,
                     deskripsi: txtDeskripsiProduk.Text.Trim(),
-                    fotoProduk: _fotoProdukBytes
+                    fotoProduk: _fotoProdukBytes,
+                    idPo: this.cbSesiPO.SelectedValue == DBNull.Value || this.cbSesiPO.SelectedValue == null
+                          ? (int?)null
+                          : (int?)Convert.ToInt32(this.cbSesiPO.SelectedValue)
                 );
 
                 if (result.sukses)
@@ -188,7 +191,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             {
                 // === MODE TAMBAH BARU ===
                 var result = this._productController.TambahProdukBaru(
-                    idPenjual: this._currentUser.GetIdUser(),
+                    idPenjual: this._currentUser.IdUser,
                     idKategori: idKategori,
                     namaProduk: txtNamaProduk.Text.Trim(),
                     hargaDasar: harga,
@@ -287,7 +290,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             if (konfirmasi == DialogResult.Yes)
             {
-                var result = this._productController.HapusProduk(idProduk, this._currentUser.GetIdUser(), namaProduk);
+                var result = this._productController.HapusProduk(idProduk, this._currentUser.IdUser, namaProduk);
 
                 if (result.sukses)
                 {
@@ -432,7 +435,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         {
             try
             {
-                _dtRaw = this._productController.GetProdukLapak(this._currentUser.GetIdUser());
+                _dtRaw = this._productController.GetProdukLapak(this._currentUser.IdUser);
                 DataTable dtUI = new DataTable();
 
                 dtUI.Columns.Add("foto_image", typeof(Image));

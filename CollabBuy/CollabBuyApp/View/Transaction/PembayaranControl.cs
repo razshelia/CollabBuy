@@ -241,7 +241,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             }
             else
             {
-                var (sukses, pesanUpload) = this._trxCtrl.UploadBuktiBayar(this._idTransaksiBaru, this._buktiBayar, this._user.GetIdUser());
+                var (sukses, pesanUpload) = this._trxCtrl.UploadBuktiBayar(this._idTransaksiBaru, this._buktiBayar, this._user.IdUser);
 
                 if (sukses)
                 {

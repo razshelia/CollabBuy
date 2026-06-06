@@ -29,7 +29,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
         private void LoadProduk()
         {
-            DataTable dt = this._controller.GetListProdukBuatDiulas(this._currentUser.GetIdUser());
+            DataTable dt = this._controller.GetListProdukBuatDiulas(this._currentUser.IdUser);
             this.cbProduk.DataSource = dt;
             this.cbProduk.DisplayMember = "nama_produk";
             this.cbProduk.ValueMember = "id_produk";
@@ -58,7 +58,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             else
             {
                 int idProduk = Convert.ToInt32(this.cbProduk.SelectedValue);
-                var (sukses, pesan) = this._controller.GasNgasihRating(idProduk, this._currentUser.GetIdUser(), (int)this.numRating.Value, this.txtKomentar.Text);
+                var (sukses, pesan) = this._controller.GasNgasihRating(idProduk, this._currentUser.IdUser, (int)this.numRating.Value, this.txtKomentar.Text);
 
                 if (sukses)
                 {

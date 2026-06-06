@@ -20,7 +20,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.InitializeComponent();
 
             this._currentUser = currentUser;
-            this._transactionController = new TransactionController(this._currentUser.GetIdUser());
+            this._transactionController = new TransactionController(this._currentUser.IdUser);
 
             this.Resize += (s, e) => this.AdjustLayout();
         }
@@ -164,7 +164,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             try
             {
-                List<Models.Transaction> listTrx = this._transactionController.GetTransaksiByPembeli(this._currentUser.GetIdUser());
+                List<Models.Transaction> listTrx = this._transactionController.GetTransaksiByPembeli(this._currentUser.IdUser);
 
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("id_transaksi", typeof(int));

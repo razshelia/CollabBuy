@@ -23,7 +23,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
             this._currentUser = currentUser;
             this._productController = new ProductController();
-            this._transController = new TransactionController(this._currentUser.GetIdUser());
+            this._transController = new TransactionController(this._currentUser.IdUser);
             this._poController = new PreOrderController();
 
             this.Dock = DockStyle.Fill;
@@ -31,7 +31,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
         private void DashboardUserControl_Load(object sender, EventArgs e)
         {
-            this.lblSapaan.Text = $"Halo, {this._currentUser.GetNama()}! 👋";
+            this.lblSapaan.Text = $"Halo, {this._currentUser.Nama}! 👋";
             this.LoadStatistikAtas();
             this.LoadPOMauHabis();
         }
@@ -47,7 +47,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             try
             {
                 // 1. Pesanan Aktif (Dari TransactionController)
-                this.lblValPesanan.Text = this._transController.GetTotalPesananAktif(this._currentUser.GetIdUser()).ToString();
+                this.lblValPesanan.Text = this._transController.GetTotalPesananAktif(this._currentUser.IdUser).ToString();
 
                 // 2. Item di Keranjang (Berdasarkan jumlah list di CartManager)
                 this.lblValKeranjang.Text = this._transController.GetIsiKeranjang().Count.ToString();

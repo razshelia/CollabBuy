@@ -37,7 +37,25 @@ namespace CollabBuy.CollabBuyApp.Controllers
             this._logRepo = new ActivityLogRepository();
             this._cartManager = new CartManager(idPembeli);
         }
+        /// <summary>
+        /// Mengisi _riwayatTransaksi di objek Pembeli dari database.
+        /// Panggil ini setelah login atau saat membuka halaman profil/riwayat pembeli.
+        /// </summary>
+        public void SyncRiwayatKePembeli(Models.Pembeli pembeli)
+        {
+            if (pembeli == null) return;
 
+            try
+            {
+                List<Models.Transaction> listDariDb = _transactionRepo.GetByIdPembeli(pembeli.IdUser);
+                foreach (var trx in listDariDb)
+                    pembeli.TambahRiwayatTransaksi(trx);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[SyncRiwayat] Gagal: " + ex.Message);
+            }
+        }
         // =======================================================
         // FITUR KERANJANG (MEMAKAI CartManager & IN-MEMORY RAM)
         // =======================================================

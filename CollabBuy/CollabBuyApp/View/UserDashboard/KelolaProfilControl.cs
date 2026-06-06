@@ -40,10 +40,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             if (this._currentUser != null)
             {
-                this.txtNama.Text = this._currentUser.GetNama();
-                this.txtUsername.Text = this._currentUser.GetUsername();
-                this.txtEmail.Text = this._currentUser.GetEmail() ?? "";
-                this.txtNoTelepon.Text = this._currentUser.GetNomorTelepon() ?? "";
+                this.txtNama.Text = this._currentUser.Nama;
+                this.txtUsername.Text = this._currentUser.Username;
+                this.txtEmail.Text = this._currentUser.Email ?? "";
+                this.txtNoTelepon.Text = this._currentUser.NomorTelepon ?? "";
                 this.txtPasswordLama.Clear();
                 this.txtPasswordBaru.Clear();
                 this.txtKonfirmasiPassword.Clear();
@@ -92,10 +92,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 }
 
                 // Cek keunikan username jika berubah
-                if (usernameBaru != this._currentUser.GetUsername())
+                if (usernameBaru != this._currentUser.Username)
                 {
                     bool tersedia = this._userController.IsUsernameAvailable(
-                        this._currentUser.GetIdUser(), usernameBaru);
+                        this._currentUser.IdUser, usernameBaru);
                     if (!tersedia)
                     {
                         MessageBox.Show(
@@ -108,10 +108,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 }
 
                 // Set data ke model (validasi dilakukan di setter)
-                this._currentUser.SetNama(this.txtNama.Text.Trim());
-                this._currentUser.SetUsername(usernameBaru);
-                this._currentUser.SetEmail(this.txtEmail.Text.Trim());
-                this._currentUser.SetNomorTelepon(this.txtNoTelepon.Text.Trim());
+                this._currentUser.Nama = this.txtNama.Text.Trim();
+                this._currentUser.Username = usernameBaru;
+                this._currentUser.Email = this.txtEmail.Text.Trim();
+                this._currentUser.NomorTelepon = this.txtNoTelepon.Text.Trim();
 
                 string passwordBaru = "";
 

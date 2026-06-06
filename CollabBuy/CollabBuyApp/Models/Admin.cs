@@ -16,10 +16,10 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public string DapatkanNamaResmiMimin()
         {
-            if (string.IsNullOrWhiteSpace(this.GetNama()))
+            if (string.IsNullOrWhiteSpace(this.Nama))
                 return "CS CollabBuy";
 
-            return "[ADMIN] " + this.GetNama();
+            return "[ADMIN] " + this.Nama;
         }
     }
 }

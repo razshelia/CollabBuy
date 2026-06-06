@@ -30,7 +30,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
         {
             this.AdjustLayout();
 
-            bool isAdmin = this._currentUser.GetPeran() == "Admin";
+            bool isAdmin = this._currentUser.Peran == "Admin";
 
             if (isAdmin)
                 this.LoadModeAdmin();
@@ -40,7 +40,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            bool isAdmin = this._currentUser.GetPeran() == "Admin";
+            bool isAdmin = this._currentUser.Peran == "Admin";
             if (isAdmin)
                 this.LoadModeAdmin();
             else
@@ -201,7 +201,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
             {
                 // Kartu ringkasan
                 var (totalPendapatan, totalPesanan) =
-                    this._laporanController.GetRingkasanLapak(this._currentUser.GetIdUser());
+                    this._laporanController.GetRingkasanLapak(this._currentUser.IdUser);
 
                 this.lblTotalCuan.Text = "Rp " + totalPendapatan.ToString("N0");
                 this.lblCuanTitle.Text = "TOTAL CUAN MASUK 🤑";
@@ -209,7 +209,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 this.lblOrderTitle.Text = "ORDERAN KELAR ✅";
 
                 // Tabel riwayat cuan
-                this._dtRaw = this._laporanController.GetDetailRiwayatCuan(this._currentUser.GetIdUser());
+                this._dtRaw = this._laporanController.GetDetailRiwayatCuan(this._currentUser.IdUser);
 
                 DataTable dtUI = new DataTable();
                 dtUI.Columns.Add("nama_pembeli", typeof(string));
@@ -377,14 +377,14 @@ namespace CollabBuy.CollabBuyApp.View.Report
             int yPos = 50;
             int marginKiri = 50;
 
-            bool isAdmin = this._currentUser.GetPeran() == "Admin";
+            bool isAdmin = this._currentUser.Peran == "Admin";
 
             if (isAdmin)
             {
                 // ── Header Admin ──
                 g.DrawString("LAPORAN SISTEM BISNIS COLLABBUY", fontJudul, brushHitam, marginKiri, yPos);
                 yPos += 40;
-                g.DrawString($"Dicetak oleh : {this._currentUser.GetNama()} (Admin)", fontSub, brushHitam, marginKiri, yPos);
+                g.DrawString($"Dicetak oleh : {this._currentUser.Nama} (Admin)", fontSub, brushHitam, marginKiri, yPos);
                 yPos += 25;
                 g.DrawString($"Waktu cetak  : {DateTime.Now:dd MMMM yyyy, HH:mm}", fontSub, brushHitam, marginKiri, yPos);
                 yPos += 30;
@@ -442,7 +442,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 // ── Header Penjual (kode asli) ──
                 g.DrawString("LAPORAN PERTANGGUNGJAWABAN (LPJ) DANUS", fontJudul, brushHitam, marginKiri, yPos);
                 yPos += 40;
-                g.DrawString($"Nama Lapak/Penjual : {this._currentUser.GetNama()}", fontSub, brushHitam, marginKiri, yPos);
+                g.DrawString($"Nama Lapak/Penjual : {this._currentUser.Nama}", fontSub, brushHitam, marginKiri, yPos);
                 yPos += 25;
                 g.DrawString($"Waktu Cetak Dokumen: {DateTime.Now:dd MMMM yyyy, HH:mm}", fontSub, brushHitam, marginKiri, yPos);
                 yPos += 30;
@@ -476,7 +476,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 g.DrawString("Omzet Bersih", fontTabelHeader, brushHitam, marginKiri + 580, yPos + 4);
                 yPos += 25;
 
-                DataTable dtLpj = this._laporanController.GetLpjDanusPerPo(this._currentUser.GetIdUser());
+                DataTable dtLpj = this._laporanController.GetLpjDanusPerPo(this._currentUser.IdUser);
                 if (dtLpj != null && dtLpj.Rows.Count > 0)
                 {
                     foreach (DataRow row in dtLpj.Rows)

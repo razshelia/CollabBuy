@@ -77,8 +77,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                                   : peran == "Admin" ? (User)new Admin(nama, username, password)
                                   : new Pembeli(nama, username, password);
 
-                        user.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
-                        user.SetPeran(peran);
+                        user.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+                        user.Peran = peran;
                         if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
                             user.Blokir("Diblokir oleh Admin");
                         listUser.Add(user);
@@ -111,7 +111,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     MappingUserToParameters(cmd, entity);
-                    cmd.Parameters.AddWithValue("@peran", entity.GetPeran());
+                    cmd.Parameters.AddWithValue("@peran", entity.Peran);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal menyimpan user baru.", "", "DB_INSERT_USER_FAILED");
                 }
@@ -137,13 +137,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                         using (var cmd = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
-                            cmd.Parameters.AddWithValue("@id", entity.GetIdUser());
-                            cmd.Parameters.AddWithValue("@nama", entity.GetNama());
-                            cmd.Parameters.AddWithValue("@uname", entity.GetUsername());
-                            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
-                            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
-                            cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
-                            cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir());
+                            cmd.Parameters.AddWithValue("@id", entity.IdUser);
+                            cmd.Parameters.AddWithValue("@nama", entity.Nama);
+                            cmd.Parameters.AddWithValue("@uname", entity.Username);
+                            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.Email) ? (object)DBNull.Value : entity.Email);
+                            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.NomorTelepon) ? (object)DBNull.Value : entity.NomorTelepon);
+                            cmd.Parameters.AddWithValue("@pass", entity.Password);
+                            cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir);
                             cmd.ExecuteNonQuery();
                         }
 
@@ -153,7 +153,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             string queryVerif = "UPDATE verifications SET is_verifikasi = @isVerif WHERE id_user = @idUser;";
                             using (var cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
                             {
-                                cmdVerif.Parameters.AddWithValue("@idUser", penjual.GetIdUser());
+                                cmdVerif.Parameters.AddWithValue("@idUser", penjual.IdUser);
                                 cmdVerif.Parameters.AddWithValue("@isVerif", penjual.GetStatusPersetujuan());
                                 cmdVerif.ExecuteNonQuery();
                             }
@@ -339,7 +339,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             if (peranDb.ToLower() == "admin")
             {
                 userObj = new Admin(nama, username, password);
-                userObj.SetPeran("Admin");
+                userObj.Peran = "Admin";
             }
             else if (sudahVerifikasiPenjual)
             {
@@ -367,20 +367,20 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
 
-                try { penjual.SetPeran("Penjual"); } catch { }
+                try { penjual.Peran = "Penjual"; } catch { }
                 userObj = penjual;
             }
             else
             {
                 userObj = new Pembeli(nama, username, password);
-                userObj.SetPeran("User");
+                userObj.Peran = "User";
             }
 
-            userObj.SetIdUser(reader.GetInt32(reader.GetOrdinal("id_user")));
+            userObj.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
             if (HasColumn(reader, "nomor_telepon") && !reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
-                userObj.SetNomorTelepon(reader.GetString(reader.GetOrdinal("nomor_telepon")));
+                userObj.NomorTelepon = reader.GetString(reader.GetOrdinal("nomor_telepon"));
             if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
-                userObj.SetEmail(reader.GetString(reader.GetOrdinal("email")));
+                userObj.Email = reader.GetString(reader.GetOrdinal("email"));
             if (HasColumn(reader, "is_diblokir") && !reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
                 userObj.Blokir("Diblokir oleh Admin");
 
@@ -389,11 +389,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         private void MappingUserToParameters(NpgsqlCommand cmd, User entity)
         {
-            cmd.Parameters.AddWithValue("@nama", entity.GetNama());
-            cmd.Parameters.AddWithValue("@uname", entity.GetUsername());
-            cmd.Parameters.AddWithValue("@pass", entity.GetPassword());
-            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.GetNomorTelepon()) ? (object)DBNull.Value : entity.GetNomorTelepon());
-            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.GetEmail()) ? (object)DBNull.Value : entity.GetEmail());
+            cmd.Parameters.AddWithValue("@nama", entity.Nama);
+            cmd.Parameters.AddWithValue("@uname", entity.Username);
+            cmd.Parameters.AddWithValue("@pass", entity.Password);
+            cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.NomorTelepon) ? (object)DBNull.Value : entity.NomorTelepon);
+            cmd.Parameters.AddWithValue("@email", string.IsNullOrWhiteSpace(entity.Email) ? (object)DBNull.Value : entity.Email);
         }
 
         private bool HasColumn(NpgsqlDataReader reader, string columnName)

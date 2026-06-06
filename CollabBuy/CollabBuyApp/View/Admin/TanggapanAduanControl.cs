@@ -153,7 +153,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             }
             else
             {
-                var (sukses, pesan) = this._complaintController.TanggapiAduan(this._selectedIdAduan, this.txtBalasan.Text, this._admin.GetIdUser());
+                var (sukses, pesan) = this._complaintController.TanggapiAduan(this._selectedIdAduan, this.txtBalasan.Text, this._admin.IdUser);
 
                 if (sukses)
                 {

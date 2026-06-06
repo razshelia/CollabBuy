@@ -102,7 +102,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
             this.pnlContent.Controls.Clear();
             this.BuildSidebarMenu();
 
-            string peran = this._currentUser.GetPeran();
+            string peran = this._currentUser.Peran;
 
             if (peran == "Admin")
             {
@@ -156,7 +156,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void ShowKeranjangBelanja()
         {
-            var trxCtrl = new TransactionController(this._currentUser.GetIdUser());
+            var trxCtrl = new TransactionController(this._currentUser.IdUser);
             var ctrl = new ViewTransaction.KeranjangBelanjaControl(this._currentUser, trxCtrl);
             ctrl.OnNavigatePembayaran += (totalTagihan) => this.ShowPembayaran(trxCtrl, totalTagihan);
             this.ShowUserControl(ctrl);
@@ -272,8 +272,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 pnlHeader.Controls.Add(lblLogoText);
             }
 
-            string namaSapaan = this._currentUser?.GetNama() ?? "User";
-            string peranUser = this._currentUser?.GetPeran() ?? "User";
+            string namaSapaan = this._currentUser?.Nama ?? "User";
+            string peranUser = this._currentUser?.Peran ?? "User";
             string peranLabel;
             if (peranUser == "Admin") peranLabel = "👮 Admin";
             else if (peranUser == "Penjual") peranLabel = "🏪 Penjual Terverifikasi";
@@ -352,7 +352,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
             if (peranUser == "Admin")
             {
                 AddCat("MANAGEMENT");
-                AddBtn("👥 Kelola User", () => this.ShowUserControl(new ViewAdmin.KelolaUserControl()));
+                AddBtn("👥 Kelola User", () => this.ShowUserControl(new ViewAdmin.KelolaUserControl(this._currentUser)));
                 AddBtn("🏢 Verifikasi Toko", () => this.ShowUserControl(new ViewAdmin.VerifikasiTokoControl()));
                 AddBtn("📁 Kelola Kategori", () => this.ShowUserControl(new ViewAdmin.KelolaKategoriControl()));
                 AddBtn("📣 Tanggapan Aduan", () => this.ShowUserControl(
@@ -430,9 +430,34 @@ namespace CollabBuy.CollabBuyApp.View.Main
             }
             else
             {
-                string emoji = user.GetPeran() == "Admin" ? "👮" :
-                               user.GetPeran() == "Penjual" ? "🏪" : "👤";
-                this.lblUserInfo.Text = emoji + " " + user.GetNama() + " (" + user.GetPeran() + ")";
+                string emoji = user.Peran == "Admin" ? "👮" :
+                user.Peran == "Penjual" ? "🏪" : "👤";
+
+                string badgeInfo = "";
+
+                if (user.Peran == "Penjual")
+                {
+                    Models.Penjual penjual = user as Models.Penjual;
+                    if (penjual != null)
+                    {
+                        var produkCtrl = new Controllers.ProductController();
+                        produkCtrl.SyncKatalogKePenjual(penjual);
+                        int totalProduk = penjual.DapatkanTotalProdukAktif();
+                        badgeInfo = $"\n📦 {totalProduk} produk aktif";
+                    }
+                }
+                else if (user.Peran == "User")
+                {
+                    Models.Pembeli pembeli = user as Models.Pembeli;
+                    if (pembeli != null)
+                    {
+                        var trxCtrl = new Controllers.TransactionController(user.IdUser);
+                        trxCtrl.SyncRiwayatKePembeli(pembeli);
+                        badgeInfo = "\n" + pembeli.DapatkanLevelPembeli();
+                    }
+                }
+
+                this.lblUserInfo.Text = emoji + " " + user.Nama + " (" + user.Peran + ")" + badgeInfo;
             }
         }
 

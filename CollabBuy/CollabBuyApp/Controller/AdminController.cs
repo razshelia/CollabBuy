@@ -68,7 +68,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     }
                 }
             }
-            catch { /* return nilai default agar UI tidak crash */ }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[AdminController.GetStatsDashboard] Error: " + ex.Message);
+            }
 
             return stats;
         }
@@ -156,12 +159,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
-        public (bool sukses, string pesan) ToggleBlokirUser(int idUser, bool blokir)
+        public (bool sukses, string pesan) ToggleBlokirUser(int idUser, bool blokir, int idAdmin)
         {
             try
             {
                 _userRepo.ToggleBlokirUser(idUser, blokir);
+
                 string aksi = blokir ? "diblokir" : "diaktifkan kembali";
+
+                // Catat aksi kritis ke activity log untuk keperluan audit
+                string pesanLog = blokir
+                    ? $"Admin memblokir akun user ID {idUser}"
+                    : $"Admin mengaktifkan kembali akun user ID {idUser}";
+                ActivityLog log = new ActivityLog(idAdmin, pesanLog);
+                _logRepo.Insert(log);
+
                 return (true, $"Akun berhasil {aksi}.");
             }
             catch (Exception ex)
