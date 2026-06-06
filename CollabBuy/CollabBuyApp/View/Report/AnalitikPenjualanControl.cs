@@ -497,7 +497,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 g.DrawString("Tahun", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
                 g.DrawString("Bulan", fontSeksi, brushHitam, marginKiri + 80, yPos + 2);
                 g.DrawString("Omzet Kotor (Rp)", fontSeksi, brushHitam, marginKiri + 160, yPos + 2);
-                g.DrawString("Refund GR (Rp)", fontSeksi, brushHitam, marginKiri + 360, yPos + 2);
+                g.DrawString("Refund GR (Rp)", fontSeksi, brushHitam, marginKiri + 360, yPos + 2); // Cek apakah jarak 160 ke 360 terlalu jauh
                 g.DrawString("Omzet Bersih (Rp)", fontSeksi, brushHitam, marginKiri + 520, yPos + 2);
                 yPos += 20;
 
@@ -768,20 +768,20 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 {
                     // Header tabel
                     int[] colX = {
-                        marginKiri,           // 50  → Sesi PO / Jenis
-                        marginKiri + 160,     // 210 → Nama Produk
-                        marginKiri + 310,     // 360 → Harga Dasar
-                        marginKiri + 395,     // 445 → Unit Terjual
-                        marginKiri + 460,     // 510 → Omzet Kotor
-                        marginKiri + 555,     // 605 → Refund GR
-                        marginKiri + 605      // 655 → Bersih (sisa 45px, cukup untuk nilai pendek; atau geser jika perlu)
+                        marginKiri,           // 0   → Sesi PO / Jenis 
+                        marginKiri + 150,     // 150 → Nama Produk 
+                        marginKiri + 280,     // 280 → Harga Dasar (Dapat 80px)
+                        marginKiri + 360,     // 360 → Unit Terjual (Dapat 80px)
+                        marginKiri + 440,     // 440 → Omzet Kotor (Dapat 90px)
+                        marginKiri + 530,     // 530 → Refund GR (Dapat 80px)
+                        marginKiri + 610      // 610 → Bersih (Sisa ruang 90px ke tepi tabel, super aman!)
                     };
 
                     int[] colWArr = { 135, 145, 70, 75, 95, 95, 60 };
                     string[] hdr = { "Sesi PO / Jenis", "Nama Produk", "Harga Dasar", "Unit Terjual", "Omzet Kotor", "Refund GR", "Bersih" };
 
                     g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)),
-    marginKiri, yPos, lebar, 22);
+                        marginKiri, yPos, lebar, 22);
                     for (int i = 0; i < hdr.Length; i++)
                         g.DrawString(hdr[i], fontSeksi, brushHitam, colX[i] + 3, yPos + 3);
                     yPos += 22;
