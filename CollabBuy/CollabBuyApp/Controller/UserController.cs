@@ -301,16 +301,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     hasil = (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
                 }
             }
+            catch (InvalidOrderException ex)
+            {
+                hasil = (false, ex.GetPesanLengkap());  // tampil pesan ramah, tidak crash
+            }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("nim"))
-                {
                     hasil = (false, "NIM ini udah dipakai untuk lapak lain!");
-                }
                 else
-                {
                     hasil = (false, "Gagal mengajukan toko: " + ex.Message);
-                }
             }
 
             return hasil;

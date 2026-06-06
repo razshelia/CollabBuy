@@ -28,7 +28,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             Product p = null;
             string query = @"
                 SELECT id_produk, id_penjual, id_po, id_kategori, nama_produk, 
-                       deskripsi, harga_dasar, harga_diskon, target_kuota, min_order 
+                       deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk 
                 FROM products 
                 WHERE id_produk = @id AND is_deleted = FALSE;";
 
@@ -65,6 +65,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
                             {
                                 p.MinOrder = reader.GetInt32(reader.GetOrdinal("min_order"));
+                            }
+                            if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
+                            {
+                                p.FotoProduk = (byte[])reader["foto_produk"];
                             }
                         }
                     }
@@ -148,12 +152,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT p.id_produk, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk, p.deskripsi, p.min_order, p.id_kategori
-                FROM products p
-                JOIN categories k ON p.id_kategori = k.id_kategori
-                LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.id_penjual = @id AND p.is_deleted = FALSE
-                ORDER BY p.id_produk DESC;";
+            SELECT p.id_produk, p.id_po, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk, p.deskripsi, p.min_order, p.id_kategori
+            FROM products p
+            JOIN categories k ON p.id_kategori = k.id_kategori
+            LEFT JOIN preorders po ON p.id_po = po.id_po
+            WHERE p.id_penjual = @id AND p.is_deleted = FALSE
+            ORDER BY p.id_produk DESC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

@@ -158,7 +158,22 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             if (string.IsNullOrWhiteSpace(this.txtNamaToko.Text) || string.IsNullOrWhiteSpace(this.txtNIM.Text) || string.IsNullOrWhiteSpace(this.txtTahunMasuk.Text))
             {
-                MessageBox.Show("Formnya diisi yang lengkap ya bestie!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Semua field wajib diisi!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (this.txtNIM.Text.Trim().Length < 8)
+            {
+                MessageBox.Show("NIM minimal 8 karakter!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.txtNIM.Focus();
+                return;
+            }
+
+            if (this.txtNIM.Text.Trim().Length > 20)
+            {
+                MessageBox.Show("NIM maksimal 20 karakter!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.txtNIM.Focus();
+                return;
             }
             else
             {
@@ -172,15 +187,26 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
                     if (dialog == DialogResult.Yes)
                     {
-                        int tahun;
-                        if (int.TryParse(this.txtTahunMasuk.Text, out int t))
+                        if (!int.TryParse(this.txtTahunMasuk.Text.Trim(), out int tahun))
                         {
-                            tahun = t;
+                            MessageBox.Show("Tahun masuk harus berupa angka!", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            this.txtTahunMasuk.Focus();
+                            return;
                         }
-                        else
+
+                        // Otomatis konversi 2 digit ke 4 digit
+                        if (tahun >= 0 && tahun <= 99)
+                            tahun = 2000 + tahun;
+
+                        if (tahun < 2000 || tahun > DateTime.Now.Year)
                         {
-                            tahun = DateTime.Now.Year;
+                            MessageBox.Show(
+                                $"Tahun masuk harus antara 2000 sampai {DateTime.Now.Year}.\nContoh: 2023",
+                                "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            this.txtTahunMasuk.Focus();
+                            return;
                         }
+
 
                         var (sukses, pesan) = this._userController.AjukanVerifikasiToko(this._currentUser.IdUser, this.txtNIM.Text.Trim(), this.txtNamaToko.Text.Trim(), tahun, this._buktiKtmBytes);
 

@@ -134,6 +134,7 @@
             this.txtTahunMasuk.Name = "txtTahunMasuk";
             this.txtTahunMasuk.Size = new System.Drawing.Size(380, 27);
             this.txtTahunMasuk.TabIndex = 7;
+            this.txtTahunMasuk.MaxLength = 4;
             this.txtTahunMasuk.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.HanyaAngka_KeyPress);
             // 
             // lblTahunMasuk
@@ -154,6 +155,7 @@
             this.txtNIM.Location = new System.Drawing.Point(0, 95);
             this.txtNIM.Name = "txtNIM";
             this.txtNIM.Size = new System.Drawing.Size(380, 27);
+            this.txtNIM.MaxLength = 20;
             this.txtNIM.TabIndex = 5;
             this.txtNIM.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.HanyaAngka_KeyPress);
             // 

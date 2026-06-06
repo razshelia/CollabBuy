@@ -62,8 +62,13 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._tahunMasuk; }
             set
             {
+                if (value >= 0 && value <= 99)
+                    value = 2000 + value;
+
                 if (value < 2000 || value > DateTime.Now.Year)
-                    throw new InvalidOrderException("Tahun masuk tidak valid!", "tahun_masuk", "TAHUN_INVALID");
+                    throw new InvalidOrderException(
+                        $"Tahun masuk tidak valid! Isi dengan tahun 4 digit (2000–{DateTime.Now.Year}).",
+                        "tahun_masuk", "TAHUN_INVALID");
 
                 this._tahunMasuk = value;
             }

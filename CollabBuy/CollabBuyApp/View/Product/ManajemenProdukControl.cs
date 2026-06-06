@@ -225,22 +225,26 @@ namespace CollabBuy.CollabBuyApp.View.Product
             lblFormTitle.Text = "✏️ Edit Produk";
             btnSimpanProduk.Text = "💾 Update Produk";
 
+            // Load PO DULU (semua, termasuk yang tutup) sebelum form diisi
+            this.LoadSesiPO(hanyaAktif: false);
+
             // Isi form dengan data yang dipilih
             txtNamaProduk.Text = rowData["nama_produk"].ToString();
             txtHargaProduk.Text = rowData["harga_dasar"].ToString();
             txtMinOrder.Text = rowData["min_order"] != DBNull.Value ? rowData["min_order"].ToString() : "1";
             txtDeskripsiProduk.Text = rowData["deskripsi"] != DBNull.Value ? rowData["deskripsi"].ToString() : "";
 
-            // Set kategori di combobox
+            // Set kategori
             if (rowData["id_kategori"] != DBNull.Value)
             {
                 int idKat = Convert.ToInt32(rowData["id_kategori"]);
                 cbKategoriProduk.SelectedValue = idKat;
             }
+
+            // Set PO — sekarang aman karena cbSesiPO sudah terisi lengkap
             if (rowData["id_po"] != DBNull.Value)
             {
                 int idPo = Convert.ToInt32(rowData["id_po"]);
-                // Cari index yang id_po-nya cocok
                 for (int i = 0; i < this.cbSesiPO.Items.Count; i++)
                 {
                     DataRowView drv = this.cbSesiPO.Items[i] as DataRowView;
@@ -256,7 +260,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
             {
                 this.cbSesiPO.SelectedIndex = 0;
             }
-            // Foto tetap (tidak reset), user bisa ganti kalau mau
+
+            // Foto
             _fotoProdukBytes = null;
             picFotoPreview.Image = null;
             if (rowData["foto_produk"] != DBNull.Value)
@@ -267,7 +272,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     if (imgBytes.Length > 1)
                     {
                         using (MemoryStream ms = new MemoryStream(imgBytes))
-                            picFotoPreview.Image = Image.FromStream(ms);
+                            picFotoPreview.Image = new Bitmap(Image.FromStream(ms));
                     }
                 }
                 catch { picFotoPreview.Image = null; }
@@ -275,7 +280,6 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             this.pnlTambahProduk.Visible = true;
             this.pnlTambahProduk.BringToFront();
-            this.LoadSesiPO(hanyaAktif: false);
         }
 
         // === TOMBOL HAPUS (dari kolom action di grid) ===
@@ -437,9 +441,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
             {
                 _dtRaw = this._productController.GetProdukLapak(this._currentUser.IdUser);
                 DataTable dtUI = new DataTable();
-
                 dtUI.Columns.Add("foto_image", typeof(Image));
                 dtUI.Columns.Add("id_produk", typeof(int));
+                dtUI.Columns.Add("id_po", typeof(object)); // ← tambah ini
                 dtUI.Columns.Add("nama_produk", typeof(string));
                 dtUI.Columns.Add("nama_kategori", typeof(string));
                 dtUI.Columns.Add("judul_po", typeof(string));
@@ -473,7 +477,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         }
 
                         int idProduk = Convert.ToInt32(row["id_produk"]);
-                        dtUI.Rows.Add(foto, idProduk, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);
+                        object idPoVal = row["id_po"] != DBNull.Value ? row["id_po"] : DBNull.Value;
+                        dtUI.Rows.Add(foto, idProduk, idPoVal, row["nama_produk"], kategoriRapi, judulPo, harga, kuota);
                     }
                 }
 
