@@ -30,6 +30,7 @@ CREATE TABLE verifications (
 CREATE TABLE categories (
     id_kategori SERIAL PRIMARY KEY,
     nama_kategori VARCHAR(100) NOT NULL
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE preorders (
@@ -1137,13 +1138,3 @@ BEGIN
     ORDER BY c.tanggal DESC;
 END;
 $$ LANGUAGE plpgsql;
-
-
-
-
-
-SELECT column_name FROM information_schema.columns
-WHERE table_name = 'categories';
---Kalau kolom is_deleted belum ada, jalankan migrasi ini dulu:
-ALTER TABLE categories
-    ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;

@@ -13,6 +13,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private readonly ComplaintController _complaintController;
         private readonly UserController _userController;
         private int _selectedIdAduan;
+        private string _fullDeskripsiTerpilih = "";
 
         public TanggapanAduanControl(Models.User admin)
         {
@@ -42,6 +43,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             dtUI.Columns.Add("nama_pelapor", typeof(string));
             dtUI.Columns.Add("subjek", typeof(string));
             dtUI.Columns.Add("deskripsi", typeof(string));
+            dtUI.Columns.Add("full_deskripsi", typeof(string));
             dtUI.Columns.Add("tanggal", typeof(string));
             dtUI.Columns.Add("status", typeof(string));
 
@@ -79,6 +81,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                         row["nama_pelapor"].ToString(),
                         subjek,
                         previewTeks,
+                        deskripsiRaw,
                         tanggalFormat,
                         statusKece
                     );
@@ -95,6 +98,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             {
                 this.dgvAduan.Columns["id_aduan"].Visible = false;
                 this.dgvAduan.Columns["id_user"].Visible = false;
+                this.dgvAduan.Columns["full_deskripsi"].Visible = false;
                 this.dgvAduan.Columns["nama_pelapor"].HeaderText = "Pelapor";
                 this.dgvAduan.Columns["subjek"].HeaderText = "Subjek Masalah";
                 this.dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
@@ -121,24 +125,74 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.btnBlokir.BackColor = Color.FromArgb(210, 210, 210);
             this.btnBlokir.ForeColor = Color.FromArgb(140, 140, 140);
         }
+        private RichTextBox _rtbDeskripsiDetail;
+        private Label _lblDeskripsiJudul;
 
+        private void PastikanDetailDeskripsiAda()
+        {
+            if (_rtbDeskripsiDetail != null) return;
+
+            _lblDeskripsiJudul = new Label
+            {
+                Text = "📋 Detail Aduan:",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(36, 0, 70),
+                Location = new Point(24, 20),
+                Size = new Size(300, 20),
+                AutoSize = false
+            };
+
+            _rtbDeskripsiDetail = new RichTextBox
+            {
+                Location = new Point(24, 44),
+                Size = new Size(300, 110),
+                ReadOnly = true,
+                BackColor = Color.White,
+                Font = new Font("Segoe UI", 9F),
+                BorderStyle = BorderStyle.FixedSingle,
+                ScrollBars = RichTextBoxScrollBars.Vertical,
+                Text = "← Klik baris aduan untuk baca detail"
+            };
+
+            // Geser kontrol yang sudah ada ke bawah untuk beri ruang
+            this.lblBalasan.Top += 160;
+            this.txtBalasan.Top += 160;
+            this.btnBalas.Top += 160;
+            this.btnBlokir.Top += 160;
+
+            // Perbesar pnlForm agar muat semua
+            this.pnlForm.Height += 160;
+
+            this.pnlForm.Controls.Add(_lblDeskripsiJudul);
+            this.pnlForm.Controls.Add(_rtbDeskripsiDetail);
+        }
         private void dgvAduan_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
-            {
-                bool abaikanHeaderKlik = true;
-            }
-            else
-            {
-                this._selectedIdAduan = Convert.ToInt32(this.dgvAduan.Rows[e.RowIndex].Cells["id_aduan"].Value);
-                this.btnBalas.Enabled = true;
-                this.btnBalas.BackColor = Color.FromArgb(36, 0, 70);
-                this.btnBalas.ForeColor = Color.FromArgb(253, 255, 182);
+            if (e.RowIndex < 0) return;
 
-                this.btnBlokir.Enabled = true;
-                this.btnBlokir.BackColor = Color.DarkRed;
-                this.btnBlokir.ForeColor = Color.White;
-            }
+            DataTable dt = this.dgvAduan.DataSource as DataTable;
+            if (dt == null || e.RowIndex >= dt.Rows.Count) return;
+            DataRow row = dt.Rows[e.RowIndex];
+
+            this._selectedIdAduan = Convert.ToInt32(row["id_aduan"]);
+            this._fullDeskripsiTerpilih = row["full_deskripsi"].ToString();
+
+            this.btnBalas.Enabled = true;
+            this.btnBalas.BackColor = Color.FromArgb(36, 0, 70);
+            this.btnBalas.ForeColor = Color.FromArgb(253, 255, 182);
+
+            this.btnBlokir.Enabled = true;
+            this.btnBlokir.BackColor = Color.DarkRed;
+            this.btnBlokir.ForeColor = Color.White;
+
+            // Tampilkan deskripsi penuh di panel kanan
+            this.PastikanDetailDeskripsiAda();
+            string subjek = row["subjek"].ToString();
+            string nama = row["nama_pelapor"].ToString();
+            _lblDeskripsiJudul.Text = $"📋 Aduan dari {nama}:";
+            _rtbDeskripsiDetail.Text = string.IsNullOrWhiteSpace(_fullDeskripsiTerpilih)
+                                         ? "(Deskripsi kosong)"
+                                         : _fullDeskripsiTerpilih;
         }
 
         private void btnBalas_Click(object sender, EventArgs e)

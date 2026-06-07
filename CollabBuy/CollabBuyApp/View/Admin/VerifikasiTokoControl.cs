@@ -12,6 +12,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
     {
         private readonly UserController _userController;
         private int _selectedIdUser;
+        private RichTextBox _rtbInfoPendaftar;
 
         public VerifikasiTokoControl()
         {
@@ -118,7 +119,41 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.btnApprove.ForeColor = Color.FromArgb(140, 140, 140);
             this._selectedIdUser = 0;
         }
+        private void PastikanInfoPendaftarAda()
+        {
+            if (_rtbInfoPendaftar != null) return;
 
+            // Kecilkan pbKTM untuk beri ruang teks
+            this.pbKTM.Size = new Size(300, 200);
+
+            var lblInfo = new Label
+            {
+                Text = "📋 Info Pendaftar:",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(36, 0, 70),
+                Location = new Point(24, 260),
+                Size = new Size(300, 20),
+                AutoSize = false
+            };
+
+            _rtbInfoPendaftar = new RichTextBox
+            {
+                Location = new Point(24, 284),
+                Size = new Size(300, 120),
+                ReadOnly = true,
+                BackColor = Color.White,
+                Font = new Font("Segoe UI", 9F),
+                BorderStyle = BorderStyle.FixedSingle,
+                ScrollBars = RichTextBoxScrollBars.Vertical,
+                Text = "← Klik baris pendaftar untuk lihat info"
+            };
+
+            // Geser btnApprove ke bawah rtb
+            this.btnApprove.Top = 418;
+
+            this.pnlKTM.Controls.Add(lblInfo);
+            this.pnlKTM.Controls.Add(_rtbInfoPendaftar);
+        }
         private void dgvVerifikasi_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0)
@@ -132,6 +167,10 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 this.btnApprove.Enabled = true;
                 this.btnApprove.BackColor = Color.FromArgb(36, 0, 70);
                 this.btnApprove.ForeColor = Color.FromArgb(253, 255, 182);
+                this.PastikanInfoPendaftarAda();
+                string infoPendaftar = row.Cells["info_pendaftar"].Value?.ToString() ?? "-";
+                string namaOwner = row.Cells["nama_owner"].Value?.ToString() ?? "";
+                _rtbInfoPendaftar.Text = string.IsNullOrWhiteSpace(infoPendaftar) ? "-" : infoPendaftar;
 
                 if (row.Cells["bukti_ktm"].Value != DBNull.Value)
                 {

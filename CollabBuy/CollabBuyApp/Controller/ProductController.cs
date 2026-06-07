@@ -137,6 +137,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try { return _productRepo.GetById(idProduk); }
             catch (Exception ex) { Console.WriteLine("Error narik data produk: " + ex.Message); return null; }
         }
+        public string GetNamaTokoByIdProduk(int idProduk)
+        {
+            try { return _productRepo.GetNamaTokoByIdProduk(idProduk); }
+            catch { return "Penjual"; }
+        }
         public DataTable GetProdukDalamPO(int idPo)
         {
             try { return _productRepo.GetProdukDalamPO(idPo); }

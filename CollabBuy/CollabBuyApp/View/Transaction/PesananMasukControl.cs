@@ -11,6 +11,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
     {
         private readonly User _currentUser;
         private readonly TransactionController _transactionController;
+        private ToolTip _gridTooltip = new ToolTip();
 
         /// <summary>
         /// Event yang dipanggil ketika penjual mau lihat detail pesanan.
@@ -75,6 +76,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 DataPropertyName = "status_pesanan",
                 Width = 150
             });
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvPesanan.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (this.dgvPesanan.Columns[e.ColumnIndex].Name != "Pembeli") return;
+                string teks = this.dgvPesanan.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 25)
+                    _gridTooltip.Show(teks, this.dgvPesanan,
+                        this.dgvPesanan.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvPesanan.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvPesanan);
         }
 
         private void LoadDataPesanan()

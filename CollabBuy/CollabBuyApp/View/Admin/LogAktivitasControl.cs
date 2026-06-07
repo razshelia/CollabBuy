@@ -15,7 +15,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
     public partial class LogAktivitasControl : UserControl
     {
         private readonly AdminController _adminController;
-        private Button _btnExport; // Tombol export rahasia buatan kode
+        private Button _btnExport;
+        private ToolTip _gridTooltip = new ToolTip();
 
         public LogAktivitasControl()
         {
@@ -43,6 +44,18 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Kategori", HeaderText = "Kategori", DataPropertyName = "kategori", Width = 130 });
             dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Aktivitas", HeaderText = "Aktivitas", DataPropertyName = "aktivitas", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvLog.Columns.Add(new DataGridViewTextBoxColumn { Name = "Waktu", HeaderText = "Waktu Akses", DataPropertyName = "waktu_format", Width = 150 });
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvLog.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                string colName = this.dgvLog.Columns[e.ColumnIndex].Name;
+                if (colName != "Aktivitas" && colName != "Pelaku") return;
+                string teks = this.dgvLog.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 40)
+                    _gridTooltip.Show(teks, this.dgvLog,
+                        this.dgvLog.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvLog.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvLog);
         }
 
         private void LoadLog(string filter)

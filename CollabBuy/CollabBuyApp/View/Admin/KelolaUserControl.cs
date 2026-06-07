@@ -13,6 +13,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private readonly Models.User _currentUser;
         private int _selectedIdUser;
         private string _selectedRawStatus;
+        private ToolTip _gridTooltip = new ToolTip();
 
         public KelolaUserControl(Models.User currentUser)
         {
@@ -50,6 +51,17 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "InfoKontak", HeaderText = "Info Kontak", DataPropertyName = "info_kontak", Width = 230 });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Peran", HeaderText = "Peran", DataPropertyName = "peran", Width = 140 });
             this.dgvUser.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status Akun", DataPropertyName = "status_akun", Width = 140 });
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvUser.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (this.dgvUser.Columns[e.ColumnIndex].Name != "InfoKontak") return;
+                string teks = this.dgvUser.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 30)
+                    _gridTooltip.Show(teks, this.dgvUser,
+                        this.dgvUser.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvUser.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvUser);
         }
 
         private void LoadDataUser()

@@ -15,6 +15,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private string _selectedOldPenitip;
 
         private System.Windows.Forms.Timer _timerInfo;
+        private ToolTip _gridTooltip = new ToolTip();
 
         // Event navigasi ke halaman pembayaran
         public event Action<long> OnNavigatePembayaran;
@@ -70,6 +71,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             btnHapus.DefaultCellStyle.ForeColor = Color.White;
 
             this.dgvKeranjang.Columns.Add(btnHapus);
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvKeranjang.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (this.dgvKeranjang.Columns[e.ColumnIndex].Name != "Catatan") return;
+                string teks = this.dgvKeranjang.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 30)
+                    _gridTooltip.Show(teks, this.dgvKeranjang,
+                        this.dgvKeranjang.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvKeranjang.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvKeranjang);
         }
 
         public void MuatKeranjang()

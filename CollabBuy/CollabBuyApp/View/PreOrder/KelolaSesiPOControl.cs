@@ -12,6 +12,7 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         private readonly Models.User _currentUser;
         private readonly PreOrderController _poController;
         private int _selectedIdPo = 0;
+        private ToolTip _gridTooltip = new ToolTip();
 
         public KelolaSesiPOControl(Models.User currentUser)
         {
@@ -40,6 +41,17 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Jenis", HeaderText = "Tipe", DataPropertyName = "jenis_po", Width = 130 });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Batas", HeaderText = "Tutup Pada", DataPropertyName = "batas_waktu_format", Width = 175 });
             this.dgvPO.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", DataPropertyName = "status_label", Width = 100 });
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvPO.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (this.dgvPO.Columns[e.ColumnIndex].Name != "Judul") return;
+                string teks = this.dgvPO.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 30)
+                    _gridTooltip.Show(teks, this.dgvPO,
+                        this.dgvPO.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvPO.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvPO);
         }
 
         private void LoadDataPO()

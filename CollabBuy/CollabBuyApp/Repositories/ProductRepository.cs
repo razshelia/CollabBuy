@@ -77,6 +77,33 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return p;
         }
         /// <summary>
+        /// Mengambil nama toko penjual berdasarkan id_produk.
+        /// Dipakai di DetailProdukControl tanpa mengubah model Product.
+        /// </summary>
+        public string GetNamaTokoByIdProduk(int idProduk)
+        {
+            string query = @"
+        SELECT COALESCE(v.nama_toko, u.nama) AS nama_toko
+        FROM   products     p
+        JOIN   users        u ON p.id_penjual = u.id_user
+        LEFT JOIN verifications v ON p.id_penjual = v.id_user
+        WHERE  p.id_produk  = @id AND p.is_deleted = FALSE
+        LIMIT  1;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idProduk);
+                    object result = cmd.ExecuteScalar();
+                    return result != null && result != DBNull.Value
+                        ? result.ToString()
+                        : "Penjual";
+                }
+            }
+        }
+        /// <summary>
         /// Mengembalikan List<Product> milik penjual tertentu dari DB.
         /// Dipakai untuk mengisi _katalogLapak di model Penjual.
         /// </summary>

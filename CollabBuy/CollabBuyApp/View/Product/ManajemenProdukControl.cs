@@ -18,6 +18,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private int _editIdProduk = -1;
         private bool _modeEdit = false;
         private readonly PreOrderController _poController;
+        private ToolTip _gridTooltip = new ToolTip();
 
         public ManajemenProdukControl(Models.User currentUser)
         {
@@ -406,6 +407,18 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
             // Handle klik tombol di grid
             this.dgvLapak.CellClick += DgvLapak_CellClick;
+            _gridTooltip = new ToolTip { AutoPopDelay = 8000, InitialDelay = 400, ShowAlways = true };
+            this.dgvLapak.CellMouseEnter += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                string colName = this.dgvLapak.Columns[e.ColumnIndex].Name;
+                if (colName != "PO" && colName != "Nama") return;
+                string teks = this.dgvLapak.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                if (teks.Length > 25)
+                    _gridTooltip.Show(teks, this.dgvLapak,
+                        this.dgvLapak.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false).Location, 5000);
+            };
+            this.dgvLapak.CellMouseLeave += (s, e) => _gridTooltip.Hide(this.dgvLapak);
         }
 
         private void DgvLapak_CellClick(object sender, DataGridViewCellEventArgs e)

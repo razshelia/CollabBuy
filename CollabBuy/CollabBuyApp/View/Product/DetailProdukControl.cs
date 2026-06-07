@@ -17,6 +17,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private readonly int _idProduk;
 
         private Models.Product _produk;
+        private Label _lblNamaToko;
         private System.Windows.Forms.Timer _timerStatus;
 
         public event Action OnNavigateKembali;
@@ -65,6 +66,21 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     // 1. Info Teks Dasar
                     this.lblNamaProduk.Text = this._produk.NamaProduk;
                     this.lblHeaderTitle.Text = "✨ Detail: " + this._produk.NamaProduk;
+                    string namaToko = this._prodCtrl.GetNamaTokoByIdProduk(this._idProduk);
+                    if (_lblNamaToko == null)
+                    {
+                        _lblNamaToko = new Label
+                        {
+                            Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                            ForeColor = Color.FromArgb(120, 80, 160),
+                            Location = new Point(360, 136),
+                            Size = new Size(590, 22),
+                            AutoSize = false
+                        };
+                        this.Controls.Add(_lblNamaToko);
+                        _lblNamaToko.BringToFront();
+                    }
+                    _lblNamaToko.Text = "🏪 " + namaToko;
 
                     // =======================================================
                     // OOP BEST PRACTICE: Panggil Method Behavior dari Model!
