@@ -74,13 +74,29 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
         private void TampilTombolTabAdmin()
         {
-            // Panel tombol navigasi analitik
+            // Hapus panel tab lama jika ada, supaya tidak menumpuk setiap refresh
+            for (int i = this.Controls.Count - 1; i >= 0; i--)
+            {
+                if (this.Controls[i] is Panel p && p.Name == "pnlTabAdmin")
+                {
+                    this.Controls.RemoveAt(i);
+                    break;
+                }
+            }
+
+            // Letakkan panel tab tepat di bawah subtitle (lblSubtitle.Bottom + jarak 8px)
+            // dan di atas kartu statistik (pnlCuan.Top)
+            int tabY = this.lblSubtitle.Bottom + 8;
+
             Panel pnlTab = new Panel
             {
+                Name = "pnlTabAdmin",
                 Height = 44,
-                Dock = DockStyle.Top,
+                Left = 30,
+                Top = tabY,
+                Width = this.Width - 60,
                 BackColor = Color.FromArgb(240, 235, 255),
-                Padding = new Padding(8, 6, 8, 0)
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
             string[] labels = {
@@ -90,10 +106,10 @@ namespace CollabBuy.CollabBuyApp.View.Report
         "🧊 Analisis Pasar"
     };
 
-            int x = 8;
+            int x = 6;
             for (int i = 0; i < labels.Length; i++)
             {
-                int idx = i; // closure
+                int idx = i;
                 Button btn = new Button
                 {
                     Text = labels[i],
@@ -111,10 +127,10 @@ namespace CollabBuy.CollabBuyApp.View.Report
                     Tag = idx
                 };
                 btn.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
+                btn.FlatAppearance.BorderSize = 1;
                 btn.Click += (s, e) =>
                 {
                     _adminTabAktif = idx;
-                    this.Controls.Remove(pnlTab);
                     this.LoadModeAdmin();
                 };
                 pnlTab.Controls.Add(btn);
@@ -122,7 +138,16 @@ namespace CollabBuy.CollabBuyApp.View.Report
             }
 
             this.Controls.Add(pnlTab);
-            pnlTab.BringToFront();
+
+            // Geser kartu statistik ke bawah panel tab supaya tidak tertimpa
+            int kartuY = pnlTab.Bottom + 10;
+            this.pnlCuan.Top = kartuY;
+            this.pnlOrder.Top = kartuY;
+            this.btnUnduhPdf.Top = kartuY;
+
+            // Geser pnlGrid mengikuti posisi kartu
+            this.pnlGrid.Top = kartuY + this.pnlCuan.Height + 10;
+            this.pnlGrid.Height = this.Height - this.pnlGrid.Top - 36;
         }
 
         private void LoadAdminTabTransaksi()
