@@ -82,13 +82,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
         /// </summary>
         public string GetNamaTokoByIdProduk(int idProduk)
         {
-            string query = @"
-        SELECT COALESCE(v.nama_toko, u.nama) AS nama_toko
-        FROM   products     p
-        JOIN   users        u ON p.id_penjual = u.id_user
-        LEFT JOIN verifications v ON p.id_penjual = v.id_user
-        WHERE  p.id_produk  = @id AND p.is_deleted = FALSE
-        LIMIT  1;";
+            // Sebelumnya: query JOIN 3 tabel inline
+            // Sekarang: fn_nama_toko_by_produk — satu baris
+            string query = "SELECT fn_nama_toko_by_produk(@id);";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -110,15 +106,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public List<Product> GetByPenjualAsList(int idPenjual)
         {
             var list = new List<Product>();
+            // Sebelumnya: query JOIN inline
+            // Sekarang: vw_produk_per_penjual — semua kolom yang dibutuhkan MappingReaderToProduct sudah ada
             string query = @"
-        SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori,
-               p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon,
-               p.target_kuota, p.min_order, p.foto_produk,
-               COALESCE(po.jenis_po, 'Biasa') AS jenis_po
-        FROM products p
-        LEFT JOIN preorders po ON p.id_po = po.id_po
-        WHERE p.id_penjual = @id AND p.is_deleted = FALSE
-        ORDER BY p.id_produk DESC;";
+                SELECT id_produk, id_penjual, id_po, id_kategori, nama_produk,
+                       deskripsi, harga_dasar, harga_diskon, target_kuota, min_order,
+                       foto_produk, jenis_po
+                FROM vw_produk_per_penjual
+                WHERE id_penjual = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -133,7 +128,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-
             return list;
         }
 
@@ -144,26 +138,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetKatalogUtama()
         {
             DataTable dt = new DataTable();
+            // Sebelumnya: query 20+ baris dengan correlated subquery
+            // Sekarang: pakai vw_katalog_produk yang sudah dibuat di batch sebelumnya
             string query = @"
-                SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
-                       p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
-                       COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
-                       p.target_kuota,
-                       CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po,
-                       COALESCE((SELECT SUM(td.jumlah_pesanan)
-                                 FROM transaction_details td
-                                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
-                                 WHERE td.id_produk = p.id_produk
-                                   AND t.status_pesanan NOT IN ('Batal', 'Gagal')), 0) AS terpesan
-                FROM products p
-                LEFT JOIN preorders   po  ON p.id_po       = po.id_po
-                LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
-                LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-                LEFT JOIN verifications v ON p.id_penjual  = v.id_user
-                WHERE p.is_deleted = FALSE
-                  AND (p.id_po IS NULL
-                   OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP))
-                ORDER BY po.batas_waktu ASC NULLS LAST;";
+                SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar,
+                       harga_diskon, batas_waktu, foto_produk, nama_toko, jenis_po,
+                       target_kuota, in_sesi_po, terpesan
+                FROM vw_katalog_produk
+                WHERE id_po IS NULL
+                   OR (in_sesi_po = TRUE AND batas_waktu >= CURRENT_TIMESTAMP)
+                ORDER BY batas_waktu ASC NULLS LAST;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -178,13 +162,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetProdukLapak(int idPenjual)
         {
             DataTable dt = new DataTable();
+            // Sebelumnya: query JOIN 3 tabel inline
+            // Sekarang: vw_produk_per_penjual — kolom lengkap, filter id_penjual
             string query = @"
-            SELECT p.id_produk, p.id_po, p.nama_produk, k.nama_kategori, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk, p.deskripsi, p.min_order, p.id_kategori
-            FROM products p
-            JOIN categories k ON p.id_kategori = k.id_kategori
-            LEFT JOIN preorders po ON p.id_po = po.id_po
-            WHERE p.id_penjual = @id AND p.is_deleted = FALSE
-            ORDER BY p.id_produk DESC;";
+                SELECT id_produk, id_po, nama_produk, nama_kategori, judul_po,
+                       harga_dasar, target_kuota, foto_produk, deskripsi, min_order, id_kategori
+                FROM vw_produk_per_penjual
+                WHERE id_penjual = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -201,14 +185,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public List<Product> GetAll()
         {
             var listProduk = new List<Product>();
-            string query = @"
-                SELECT p.id_produk, p.id_penjual, p.id_po, p.id_kategori, 
-                       p.nama_produk, p.deskripsi, p.harga_dasar, p.harga_diskon, 
-                       p.target_kuota, p.min_order, p.foto_produk, po.jenis_po
-                FROM products p
-                LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.is_deleted = FALSE
-                ORDER BY p.nama_produk;";
+            string query = "SELECT * FROM vw_semua_produk;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -227,14 +204,14 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dtKatalog = new DataTable();
             string query = @"
-        SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar,
-               harga_diskon, batas_waktu, foto_produk, nama_toko, jenis_po,
-               target_kuota, in_sesi_po, terpesan
-        FROM vw_katalog_produk
-        WHERE in_sesi_po = TRUE
-          AND batas_waktu >= CURRENT_TIMESTAMP
-        ORDER BY batas_waktu ASC NULLS LAST
-        LIMIT @limit;";
+                SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar,
+                       harga_diskon, batas_waktu, foto_produk, nama_toko, jenis_po,
+                       target_kuota, in_sesi_po, terpesan
+                FROM vw_katalog_produk
+                WHERE in_sesi_po = TRUE
+                  AND batas_waktu >= CURRENT_TIMESTAMP
+                ORDER BY batas_waktu ASC NULLS LAST
+                LIMIT @limit;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -252,12 +229,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-                SELECT p.id_produk, p.nama_produk, c.nama_kategori, p.harga_dasar, p.target_kuota, po.judul_po, p.foto_produk
-                FROM products p
-                LEFT JOIN categories c ON p.id_kategori = c.id_kategori
-                LEFT JOIN preorders po ON p.id_po = po.id_po
-                WHERE p.id_penjual = @idPenjual AND p.is_deleted = FALSE
-                ORDER BY p.nama_produk;";
+                SELECT id_produk, nama_produk, nama_kategori, harga_dasar, target_kuota, judul_po, foto_produk
+                FROM vw_produk_per_penjual
+                WHERE id_penjual = @idPenjual;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -393,29 +367,18 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetProdukDalamPO(int idPo)
         {
             DataTable dt = new DataTable();
+            // Sebelumnya: query panjang dengan correlated subquery terpesan
+            // Sekarang: vw_katalog_produk (sudah include terpesan + in_sesi_po),
+            // difilter id_po dan dipastikan PO aktif
             string query = @"
-            SELECT p.id_produk, p.nama_produk, kat.nama_kategori, po.judul_po,
-                   p.harga_dasar, p.harga_diskon, po.batas_waktu, p.foto_produk,
-                   COALESCE(v.nama_toko, u.nama) AS nama_toko, po.jenis_po,
-                   p.target_kuota,
-                   COALESCE((
-                       SELECT SUM(td.jumlah_pesanan)
-                       FROM transaction_details td
-                       JOIN transactions t ON td.id_transaksi = t.id_transaksi
-                       WHERE td.id_produk = p.id_produk
-                         AND t.status_pesanan NOT IN ('Batal', 'Gagal')
-                   ), 0) AS terpesan,
-                   TRUE AS in_sesi_po
-            FROM products p
-            JOIN preorders po ON p.id_po = po.id_po
-            LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
-            LEFT JOIN users       u   ON p.id_penjual  = u.id_user
-            LEFT JOIN verifications v ON p.id_penjual  = v.id_user
-            WHERE p.id_po = @idPo
-              AND p.is_deleted = FALSE
-              AND po.is_aktif  = TRUE
-              AND po.is_deleted = FALSE
-            ORDER BY p.nama_produk ASC;";
+                SELECT id_produk, nama_produk, nama_kategori, judul_po,
+                       harga_dasar, harga_diskon, batas_waktu, foto_produk,
+                       nama_toko, jenis_po, target_kuota, terpesan, in_sesi_po
+                FROM vw_katalog_produk
+                WHERE id_po      = @idPo
+                  AND in_sesi_po = TRUE
+                  AND batas_waktu >= CURRENT_TIMESTAMP
+                ORDER BY nama_produk ASC;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -432,21 +395,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetPOHampirPenuh()
         {
             DataTable dt = new DataTable();
-            string query = @"
-        SELECT p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, 
-               COALESCE(SUM(td.jumlah_pesanan), 0) AS terisi, p.foto_produk
-        FROM products p
-        JOIN preorders po ON p.id_po = po.id_po
-        LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
-        WHERE po.is_aktif = TRUE
-          AND po.is_deleted = FALSE
-          AND po.batas_waktu >= CURRENT_TIMESTAMP
-          AND p.target_kuota IS NOT NULL
-          AND p.is_deleted = FALSE
-        GROUP BY p.id_produk, p.nama_produk, po.judul_po, p.harga_dasar, p.target_kuota, p.foto_produk
-        HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
-           AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) > 0
-        ORDER BY (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) ASC;";
+            string query = "SELECT id_produk, nama_produk, judul_po, harga_dasar, target_kuota, terisi, foto_produk FROM vw_produk_hampir_penuh;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

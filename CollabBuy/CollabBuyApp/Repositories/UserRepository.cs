@@ -237,12 +237,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetPendingVerifikasi()
         {
             DataTable dt = new DataTable();
-            string query = @"
-                SELECT v.id_user, u.nama AS nama_owner, v.nim, v.nama_toko, v.tahun_masuk, v.bukti_ktm 
-                FROM verifications v 
-                JOIN users u ON v.id_user = u.id_user 
-                WHERE v.is_verifikasi = FALSE 
-                ORDER BY v.id_verifikasi ASC;";
+            string query = "SELECT * FROM vw_verifikasi_pending;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

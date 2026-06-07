@@ -1138,3 +1138,343 @@ BEGIN
     ORDER BY c.tanggal DESC;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 1: Verifikasi penjual yang pending (belum disetujui)
+-- Menggantikan query JOIN inline di GetVerifikasiPending
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_verifikasi_pending AS
+SELECT
+    v.id_user,
+    u.nama          AS nama_owner,
+    v.nim,
+    v.nama_toko,
+    v.tahun_masuk,
+    v.bukti_ktm
+FROM verifications v
+JOIN users u ON v.id_user = u.id_user
+WHERE v.is_verifikasi = FALSE
+ORDER BY v.id_verifikasi ASC;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 2: Produk lengkap per penjual (DataTable UI)
+-- Menggabungkan GetProdukLapak dan GetProdukByPenjualDataTable
+-- yang selama ini query-nya hampir identik
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_produk_per_penjual AS
+SELECT
+    p.id_produk,
+    p.id_penjual,
+    p.id_po,
+    p.id_kategori,
+    p.nama_produk,
+    p.deskripsi,
+    p.harga_dasar,
+    p.harga_diskon,
+    p.target_kuota,
+    p.min_order,
+    p.foto_produk,
+    k.nama_kategori,
+    COALESCE(po.judul_po, '-')    AS judul_po,
+    COALESCE(po.jenis_po, 'Biasa') AS jenis_po,
+    CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po
+FROM products p
+JOIN categories k ON p.id_kategori = k.id_kategori
+LEFT JOIN preorders po ON p.id_po = po.id_po
+WHERE p.is_deleted = FALSE
+ORDER BY p.id_produk DESC;
+
+-- ════════════════════════════════════════════════════════
+-- VIEW 3: Leaderboard / klasifikasi performa penjual
+-- Menggantikan query CASE WHEN duplikat di GetLeaderboardPenjual
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_leaderboard_penjual AS
+SELECT
+    u.nama AS nama_penjual,
+    COALESCE(SUM(
+        (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+        - COALESCE(td.selisih_refund, 0)
+    ), 0) AS total_omzet_bersih,
+    CASE
+        WHEN COALESCE(SUM(
+            (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+            - COALESCE(td.selisih_refund, 0)
+        ), 0) >= 500000 THEN '👑 Seller Sultan'
+        WHEN COALESCE(SUM(
+            (td.jumlah_pesanan * td.harga_satuan_saat_beli)
+            - COALESCE(td.selisih_refund, 0)
+        ), 0) >= 100000 THEN '⭐ Seller Menengah'
+        ELSE '🌱 Seller Newbie'
+    END AS tier_penjual
+FROM transaction_details td
+JOIN products p ON td.id_produk = p.id_produk
+JOIN users    u ON p.id_penjual = u.id_user
+GROUP BY u.nama
+ORDER BY total_omzet_bersih DESC;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 1: Nama toko berdasarkan id produk
+-- Menggantikan query JOIN 3 tabel di GetNamaTokoByIdProduk
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_nama_toko_by_produk(p_id_produk INT)
+RETURNS TEXT AS $$
+    SELECT COALESCE(v.nama_toko, u.nama)
+    FROM products p
+    JOIN users u ON p.id_penjual = u.id_user
+    LEFT JOIN verifications v ON p.id_penjual = v.id_user
+    WHERE p.id_produk = p_id_produk AND p.is_deleted = FALSE
+    LIMIT 1;
+$$ LANGUAGE sql;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION 2: Detail transaksi semua milik satu pembeli
+-- Menggantikan N+1 query loop di GetByIdPembeli
+-- Mengembalikan header + detail sekaligus dalam satu result set
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_transaksi_lengkap_pembeli(p_id_pembeli INT)
+RETURNS TABLE (
+    id_transaksi          INT,
+    id_koordinator        INT,
+    tanggal_transaksi     TIMESTAMP,
+    status_pesanan        TEXT,
+    is_valid              BOOLEAN,
+    bukti_bayar           BYTEA,
+    -- kolom detail (NULL kalau tidak ada item)
+    id_produk             INT,
+    nama_penitip          TEXT,
+    jumlah_pesanan        INT,
+    catatan               TEXT,
+    nama_produk_snapshot  TEXT,
+    harga_satuan_saat_beli INT,
+    harga_diskon_saat_beli INT,
+    selisih_refund        INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.id_transaksi,
+        t.id_koordinator,
+        t.tanggal_transaksi,
+        t.status_pesanan::TEXT,
+        t.is_valid,
+        t.bukti_bayar,
+        td.id_produk,
+        td.nama_penitip::TEXT,
+        td.jumlah_pesanan,
+        td.catatan::TEXT,
+        td.nama_produk_snapshot::TEXT,
+        td.harga_satuan_saat_beli,
+        td.harga_diskon_saat_beli,
+        COALESCE(td.selisih_refund, 0)
+    FROM transactions t
+    LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    WHERE t.id_koordinator = p_id_pembeli
+    ORDER BY t.tanggal_transaksi DESC, td.nama_penitip, td.nama_produk_snapshot;
+END;
+$$ LANGUAGE plpgsql;
+
+-- VIEW 1: Semua produk aktif (tanpa filter penjual)
+-- Menggantikan GetAll yang JOIN preorders hanya untuk jenis_po
+CREATE OR REPLACE VIEW vw_semua_produk AS
+SELECT
+    p.id_produk,
+    p.id_penjual,
+    p.id_po,
+    p.id_kategori,
+    p.nama_produk,
+    p.deskripsi,
+    p.harga_dasar,
+    p.harga_diskon,
+    p.target_kuota,
+    p.min_order,
+    p.foto_produk,
+    COALESCE(po.jenis_po, 'Biasa') AS jenis_po
+FROM products p
+LEFT JOIN preorders po ON p.id_po = po.id_po
+WHERE p.is_deleted = FALSE
+ORDER BY p.nama_produk;
+
+-- VIEW 2: Produk hampir penuh kuota (sisa ≤ 10)
+-- Menggantikan GetPOHampirPenuh yang duplikat ekspresi HAVING 3x
+CREATE OR REPLACE VIEW vw_produk_hampir_penuh AS
+SELECT
+    p.id_produk,
+    p.nama_produk,
+    po.judul_po,
+    p.harga_dasar,
+    p.target_kuota,
+    COALESCE(SUM(td.jumlah_pesanan), 0)                          AS terisi,
+    p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)         AS sisa_kuota,
+    p.foto_produk
+FROM products p
+JOIN preorders po ON p.id_po = po.id_po
+LEFT JOIN transaction_details td ON p.id_produk = td.id_produk
+WHERE po.is_aktif    = TRUE
+  AND po.is_deleted  = FALSE
+  AND po.batas_waktu >= CURRENT_TIMESTAMP
+  AND p.target_kuota IS NOT NULL
+  AND p.is_deleted   = FALSE
+GROUP BY p.id_produk, p.nama_produk, po.judul_po,
+         p.harga_dasar, p.target_kuota, p.foto_produk
+HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
+   AND (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) >  0
+ORDER BY sisa_kuota ASC;
+
+-- Tambah kolom id_po ke vw_katalog_produk agar bisa difilter di GetProdukDalamPO
+-- (view sebelumnya tidak expose id_po)
+CREATE OR REPLACE VIEW vw_katalog_produk AS
+SELECT
+    p.id_produk,
+    p.id_penjual,
+    p.id_po,                                                      -- ← tambahan
+    p.nama_produk,
+    kat.nama_kategori,
+    po.judul_po,
+    p.harga_dasar,
+    p.harga_diskon,
+    po.batas_waktu,
+    p.foto_produk,
+    COALESCE(v.nama_toko, u.nama)                                 AS nama_toko,
+    po.jenis_po,
+    p.target_kuota,
+    CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END            AS in_sesi_po,
+    COALESCE((
+        SELECT SUM(td.jumlah_pesanan)
+        FROM transaction_details td
+        JOIN transactions t ON td.id_transaksi = t.id_transaksi
+        WHERE td.id_produk = p.id_produk
+          AND t.status_pesanan NOT IN ('Batal', 'Gagal')
+    ), 0)                                                          AS terpesan
+FROM products p
+LEFT JOIN preorders   po  ON p.id_po       = po.id_po
+LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
+LEFT JOIN users       u   ON p.id_penjual  = u.id_user
+LEFT JOIN verifications v ON p.id_penjual  = v.id_user
+WHERE p.is_deleted = FALSE;
+-- ════════════════════════════════════════════════════════
+-- Tambah bukti_bayar ke vw_transaksi_lengkap
+-- agar GetRiwayatPesananDataTable tidak perlu JOIN lagi
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE VIEW vw_transaksi_lengkap AS
+SELECT
+    t.id_transaksi,
+    t.id_koordinator,
+    t.tanggal_transaksi,
+    t.status_pesanan,
+    t.is_valid,
+    t.bukti_bayar,
+    COALESCE(SUM(
+        td.jumlah_pesanan * td.harga_satuan_saat_beli
+    ), 0) AS total_tagihan,
+    COALESCE(SUM(
+        COALESCE(td.selisih_refund, 0)
+    ), 0) AS total_cashback
+FROM transactions t
+LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+GROUP BY t.id_transaksi, t.id_koordinator, t.tanggal_transaksi,
+         t.status_pesanan, t.is_valid, t.bukti_bayar;
+
+-- ════════════════════════════════════════════════════════
+-- FUNCTION: Header + detail transaksi tunggal (GetById)
+-- Menggantikan dua koneksi terpisah
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION fn_transaksi_by_id(p_id_transaksi INT)
+RETURNS TABLE (
+    id_transaksi           INT,
+    id_koordinator         INT,
+    tanggal_transaksi      TIMESTAMP,
+    status_pesanan         TEXT,
+    is_valid               BOOLEAN,
+    bukti_bayar            BYTEA,
+    id_produk              INT,
+    nama_penitip           TEXT,
+    jumlah_pesanan         INT,
+    catatan                TEXT,
+    nama_produk_snapshot   TEXT,
+    harga_satuan_saat_beli INT,
+    harga_diskon_saat_beli INT,
+    selisih_refund         INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.id_transaksi,
+        t.id_koordinator,
+        t.tanggal_transaksi,
+        t.status_pesanan::TEXT,
+        t.is_valid,
+        t.bukti_bayar,
+        td.id_produk,
+        td.nama_penitip::TEXT,
+        td.jumlah_pesanan,
+        td.catatan::TEXT,
+        td.nama_produk_snapshot::TEXT,
+        td.harga_satuan_saat_beli,
+        td.harga_diskon_saat_beli,
+        COALESCE(td.selisih_refund, 0)
+    FROM transactions t
+    LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    WHERE t.id_transaksi = p_id_transaksi;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- ════════════════════════════════════════════════════════
+-- STORED PROCEDURE: Cek kuota GR + update cashback sekaligus
+-- Menggabungkan GetTotalTerpesanProduk + RecalculateCashback
+-- ════════════════════════════════════════════════════════
+CREATE OR REPLACE PROCEDURE sp_recalculate_cashback_gr(
+    p_id_produk    INT,
+    p_id_po        INT,
+    p_harga_dasar  BIGINT,
+    p_harga_diskon BIGINT,
+    OUT p_sukses   BOOLEAN,
+    OUT p_pesan    TEXT
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_total_terpesan INT;
+    v_target_kuota   INT;
+    v_selisih        BIGINT;
+    v_affected       INT;
+BEGIN
+    -- Ambil target kuota
+    SELECT target_kuota INTO v_target_kuota FROM products WHERE id_produk = p_id_produk;
+
+    -- Hitung total terpesan di PO ini (non-batal)
+    SELECT COALESCE(SUM(td.jumlah_pesanan), 0) INTO v_total_terpesan
+    FROM transaction_details td
+    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    WHERE td.id_produk      = p_id_produk
+      AND td.id_po_saat_beli = p_id_po
+      AND t.status_pesanan  NOT IN ('Dibatalkan', 'Batal', 'Gagal');
+
+    -- Cek kuota
+    IF v_total_terpesan < v_target_kuota THEN
+        p_sukses := FALSE;
+        p_pesan  := 'Kuota belum terpenuhi (' || v_total_terpesan || '/' || v_target_kuota || ')';
+        RETURN;
+    END IF;
+
+    v_selisih := p_harga_dasar - p_harga_diskon;
+    IF v_selisih <= 0 THEN
+        p_sukses := FALSE;
+        p_pesan  := 'Selisih cashback tidak valid.';
+        RETURN;
+    END IF;
+
+    -- Update cashback semua detail yang belum dapat
+    UPDATE transaction_details td
+    SET selisih_refund = td.jumlah_pesanan * v_selisih
+    FROM transactions t
+    WHERE td.id_transaksi    = t.id_transaksi
+      AND td.id_produk       = p_id_produk
+      AND td.id_po_saat_beli = p_id_po
+      AND td.selisih_refund  = 0
+      AND t.status_pesanan   NOT IN ('Dibatalkan', 'Batal', 'Gagal');
+
+    GET DIAGNOSTICS v_affected = ROW_COUNT;
+    p_sukses := TRUE;
+    p_pesan  := 'Cashback diupdate untuk ' || v_affected || ' baris titipan.';
+END;
+$$;
