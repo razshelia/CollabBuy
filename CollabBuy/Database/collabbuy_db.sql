@@ -476,7 +476,7 @@ WHERE p.is_deleted = FALSE
        OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP AND po.is_deleted = FALSE));
 
 -- ── Dipanggil: SELECT * FROM vw_katalog_aktif;
-SELECT * FROM vw_katalog_aktif;
+-- SELECT * FROM vw_katalog_aktif;
 
 CREATE OR REPLACE VIEW vw_lpj_danus_per_po AS
 SELECT
@@ -514,7 +514,7 @@ LEFT JOIN (
 WHERE po.is_deleted = FALSE;
 
 -- ── Dipanggil: SELECT * FROM vw_lpj_danus_per_po;
-SELECT * FROM vw_lpj_danus_per_po;
+-- SELECT * FROM vw_lpj_danus_per_po;
 
 CREATE OR REPLACE VIEW vw_log_aktivitas AS
 SELECT
@@ -528,7 +528,7 @@ FROM activity_logs al
 JOIN users u ON al.id_user = u.id_user;
 
 -- ── Dipanggil: SELECT * FROM vw_log_aktivitas ORDER BY waktu_akses DESC;
-SELECT * FROM vw_log_aktivitas ORDER BY waktu_akses DESC;
+-- SELECT * FROM vw_log_aktivitas ORDER BY waktu_akses DESC;
 
 CREATE OR REPLACE VIEW vw_detail_pesanan_pembeli AS
 SELECT
@@ -548,7 +548,7 @@ JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
 ORDER BY t.id_transaksi, td.nama_penitip, td.nama_produk_snapshot;
 
 -- ── Dipanggil: SELECT * FROM vw_detail_pesanan_pembeli;
-SELECT * FROM vw_detail_pesanan_pembeli;
+-- SELECT * FROM vw_detail_pesanan_pembeli;
 
 CREATE OR REPLACE VIEW vw_detail_pesanan_penjual AS
 SELECT
@@ -571,7 +571,7 @@ JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
 JOIN products p ON td.id_produk = p.id_produk;
 
 -- ── Dipanggil: SELECT * FROM vw_detail_pesanan_penjual WHERE id_penjual = 2;
-SELECT * FROM vw_detail_pesanan_penjual WHERE id_penjual = 2;
+-- SELECT * FROM vw_detail_pesanan_penjual WHERE id_penjual = 2;
 
 CREATE OR REPLACE VIEW vw_pesanan_masuk_penjual AS
 SELECT
@@ -588,7 +588,7 @@ JOIN products p ON td.id_produk = p.id_produk
 GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi, t.status_pesanan, p.id_penjual;
 
 -- ── Dipanggil: SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
-SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
+-- SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
 
 CREATE OR REPLACE VIEW vw_semua_user AS
 SELECT
@@ -603,7 +603,7 @@ FROM users u
 ORDER BY u.peran, u.nama;
 
 -- ── Dipanggil: SELECT * FROM vw_semua_user;
-SELECT * FROM vw_semua_user;
+-- SELECT * FROM vw_semua_user;
 
 CREATE OR REPLACE VIEW vw_ulasan_penjual AS
 SELECT
@@ -621,7 +621,7 @@ JOIN users   u ON r.id_user   = u.id_user
 ORDER BY r.tanggal_ulasan DESC;
 
 -- ── Dipanggil: SELECT * FROM vw_ulasan_penjual WHERE id_penjual = 2;
-SELECT * FROM vw_ulasan_penjual WHERE id_penjual = 2;
+-- SELECT * FROM vw_ulasan_penjual WHERE id_penjual = 2;
 
 CREATE OR REPLACE VIEW vw_aduan_pending AS
 SELECT
@@ -637,7 +637,7 @@ WHERE c.is_selesai = FALSE
 ORDER BY c.tanggal ASC;
 
 -- ── Dipanggil: SELECT * FROM vw_aduan_pending;
-SELECT * FROM vw_aduan_pending;
+-- SELECT * FROM vw_aduan_pending;
 
 CREATE OR REPLACE VIEW vw_activity_log AS
 SELECT
@@ -651,7 +651,7 @@ JOIN users u ON al.id_user = u.id_user
 ORDER BY al.waktu_akses DESC;
 
 -- ── Dipanggil: SELECT * FROM vw_activity_log LIMIT 10;
-SELECT * FROM vw_activity_log LIMIT 10;
+-- SELECT * FROM vw_activity_log LIMIT 10;
 
 CREATE OR REPLACE VIEW vw_verifikasi_pending AS
 SELECT
@@ -667,7 +667,7 @@ WHERE v.is_verifikasi = FALSE
 ORDER BY v.id_verifikasi ASC;
 
 -- ── Dipanggil: SELECT * FROM vw_verifikasi_pending;
-SELECT * FROM vw_verifikasi_pending;
+-- SELECT * FROM vw_verifikasi_pending;
 
 CREATE OR REPLACE VIEW vw_produk_per_penjual AS
 SELECT
@@ -693,7 +693,7 @@ WHERE p.is_deleted = FALSE
 ORDER BY p.id_produk DESC;
 
 -- ── Dipanggil: SELECT * FROM vw_produk_per_penjual WHERE id_penjual = 4;
-SELECT * FROM vw_produk_per_penjual WHERE id_penjual = 4;
+-- SELECT * FROM vw_produk_per_penjual WHERE id_penjual = 4;
 
 CREATE OR REPLACE VIEW vw_leaderboard_penjual AS
 SELECT
@@ -717,7 +717,7 @@ GROUP BY u.nama
 ORDER BY total_omzet_bersih DESC;
 
 -- ── Dipanggil: SELECT * FROM vw_leaderboard_penjual;
-SELECT * FROM vw_leaderboard_penjual;
+-- SELECT * FROM vw_leaderboard_penjual;
 
 CREATE OR REPLACE VIEW vw_semua_produk AS
 SELECT
@@ -739,7 +739,7 @@ WHERE p.is_deleted = FALSE
 ORDER BY p.nama_produk;
 
 -- ── Dipanggil: SELECT * FROM vw_semua_produk;
-SELECT * FROM vw_semua_produk;
+-- SELECT * FROM vw_semua_produk;
 
 CREATE OR REPLACE VIEW vw_produk_hampir_penuh AS
 SELECT
@@ -765,7 +765,7 @@ HAVING (p.target_kuota - COALESCE(SUM(td.jumlah_pesanan), 0)) <= 10
 ORDER BY sisa_kuota ASC;
 
 -- ── Dipanggil: SELECT * FROM vw_produk_hampir_penuh;
-SELECT * FROM vw_produk_hampir_penuh;
+-- SELECT * FROM vw_produk_hampir_penuh;
 
 CREATE OR REPLACE VIEW vw_katalog_produk AS
 SELECT
@@ -798,7 +798,7 @@ LEFT JOIN verifications v ON p.id_penjual  = v.id_user
 WHERE p.is_deleted = FALSE;
 
 -- ── Dipanggil: SELECT * FROM vw_katalog_produk;
-SELECT * FROM vw_katalog_produk;
+-- SELECT * FROM vw_katalog_produk;
 
 CREATE OR REPLACE VIEW vw_transaksi_lengkap AS
 SELECT
@@ -816,7 +816,7 @@ GROUP BY t.id_transaksi, t.id_koordinator, t.tanggal_transaksi,
          t.status_pesanan, t.is_valid, t.bukti_bayar;
 
 -- ── Dipanggil: SELECT * FROM vw_transaksi_lengkap ORDER BY id_transaksi;
-SELECT * FROM vw_transaksi_lengkap ORDER BY id_transaksi;
+-- SELECT * FROM vw_transaksi_lengkap ORDER BY id_transaksi;
 
 
 -- ============================================================
@@ -843,7 +843,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_statistik_dashboard_penjual(2);
+-- SELECT * FROM fn_statistik_dashboard_penjual(2);
 
 -- Ringkasan penjualan: total pendapatan & total pesanan selesai
 CREATE OR REPLACE FUNCTION fn_ringkasan_penjualan(p_id_penjual INT)
@@ -862,7 +862,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_ringkasan_penjualan(3);
+-- SELECT * FROM fn_ringkasan_penjualan(3);
 
 -- Riwayat transaksi selesai per pembeli
 CREATE OR REPLACE FUNCTION fn_riwayat_cuan_penjual(p_id_penjual INT)
@@ -889,7 +889,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_riwayat_cuan_penjual(2);
+-- SELECT * FROM fn_riwayat_cuan_penjual(2);
 
 -- Data lengkap user berdasarkan ID
 CREATE OR REPLACE FUNCTION fn_get_user_lengkap_by_id(p_id_user INT)
@@ -910,7 +910,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_get_user_lengkap_by_id(2);
+-- SELECT * FROM fn_get_user_lengkap_by_id(2);
 
 -- Data lengkap user berdasarkan username
 CREATE OR REPLACE FUNCTION fn_get_user_lengkap_by_username(p_username TEXT)
@@ -931,7 +931,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_get_user_lengkap_by_username('nabila');
+-- SELECT * FROM fn_get_user_lengkap_by_username('nabila');
 
 -- Sesi PO aktif dengan filter keyword
 CREATE OR REPLACE FUNCTION fn_sesi_po_aktif(p_keyword TEXT)
@@ -973,7 +973,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_sesi_po_aktif('');
+-- SELECT * FROM fn_sesi_po_aktif('');
 
 -- Daftar PO milik penjual (opsional filter hanya aktif)
 CREATE OR REPLACE FUNCTION fn_po_by_penjual(p_id_penjual INT, p_aktif_saja BOOLEAN DEFAULT FALSE)
@@ -1006,8 +1006,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_po_by_penjual(2);
-SELECT * FROM fn_po_by_penjual(3, TRUE);
+-- SELECT * FROM fn_po_by_penjual(2);
+-- SELECT * FROM fn_po_by_penjual(3, TRUE);
 
 -- Produk yang bisa diulas oleh pembeli tertentu
 CREATE OR REPLACE FUNCTION fn_produk_bisa_diulas(p_id_user INT)
@@ -1024,7 +1024,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_produk_bisa_diulas(6);
+-- SELECT * FROM fn_produk_bisa_diulas(6);
 
 -- Riwayat aduan seorang user
 CREATE OR REPLACE FUNCTION fn_riwayat_aduan_user(p_id_user INT)
@@ -1050,7 +1050,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_riwayat_aduan_user(7);
+-- SELECT * FROM fn_riwayat_aduan_user(7);
 
 -- Nama toko berdasarkan ID produk (scalar function)
 CREATE OR REPLACE FUNCTION fn_nama_toko_by_produk(p_id_produk INT)
@@ -1064,7 +1064,7 @@ RETURNS TEXT AS $$
 $$ LANGUAGE sql;
 
 -- ── Dipanggil:
-SELECT fn_nama_toko_by_produk(6);
+-- SELECT fn_nama_toko_by_produk(6);
 
 -- Seluruh detail transaksi seorang pembeli
 CREATE OR REPLACE FUNCTION fn_transaksi_lengkap_pembeli(p_id_pembeli INT)
@@ -1109,7 +1109,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_transaksi_lengkap_pembeli(6);
+-- SELECT * FROM fn_transaksi_lengkap_pembeli(6);
 
 -- Detail transaksi berdasarkan ID transaksi
 CREATE OR REPLACE FUNCTION fn_transaksi_by_id(p_id_transaksi INT)
@@ -1153,7 +1153,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
-SELECT * FROM fn_transaksi_by_id(2);
+-- SELECT * FROM fn_transaksi_by_id(2);
 
 
 -- ============================================================
