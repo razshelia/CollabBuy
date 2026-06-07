@@ -71,10 +71,10 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     {
                         _lblNamaToko = new Label
                         {
-                            Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                            Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                             ForeColor = Color.FromArgb(120, 80, 160),
-                            Location = new Point(360, 136),
-                            Size = new Size(590, 22),
+                            Location = new Point(424, 130),
+                            Size = new Size(590, 15),
                             AutoSize = false
                         };
                         this.Controls.Add(_lblNamaToko);

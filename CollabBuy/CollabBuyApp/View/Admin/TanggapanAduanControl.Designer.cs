@@ -85,6 +85,7 @@
 
             // Control Setup
             this.BackColor = System.Drawing.Color.White;
+            this.AutoScroll = true;
             this.Controls.Add(this.pnlForm);
             this.Controls.Add(this.dgvAduan);
             this.Controls.Add(this.lblSubtitle);
