@@ -155,8 +155,44 @@ namespace CollabBuy.CollabBuyApp.View.Report
             try
             {
                 DataTable dt = this._laporanController.GetTransaksiLengkap();
-                this.dgvLaporan.AutoGenerateColumns = true;
-                this.dgvLaporan.DataSource = dt;
+
+                this.dgvLaporan.AutoGenerateColumns = false;
+                this.dgvLaporan.Columns.Clear();
+
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "IdTrx", HeaderText = "ID Trx", DataPropertyName = "id_transaksi", Width = 60 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "IdKoord", HeaderText = "ID Koordinator", DataPropertyName = "id_koordinator", Width = 90 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Tanggal", HeaderText = "Tanggal", DataPropertyName = "tanggal_transaksi", Width = 140 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Status", HeaderText = "Status", DataPropertyName = "status_pesanan", Width = 100 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "AdaBukti", HeaderText = "Bukti Bayar", DataPropertyName = "ada_bukti", Width = 90 });
+
+                DataTable dtUI = new DataTable();
+                dtUI.Columns.Add("id_transaksi", typeof(int));
+                dtUI.Columns.Add("id_koordinator", typeof(int));
+                dtUI.Columns.Add("tanggal_transaksi", typeof(string));
+                dtUI.Columns.Add("status_pesanan", typeof(string));
+                dtUI.Columns.Add("ada_bukti", typeof(string));
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    bool adaBukti = row["bukti_bayar"] != DBNull.Value
+                                    && row["bukti_bayar"] is byte[] b
+                                    && b.Length > 0;
+
+                    dtUI.Rows.Add(
+                        row["id_transaksi"],
+                        row["id_koordinator"],
+                        Convert.ToDateTime(row["tanggal_transaksi"]).ToString("dd/MM/yyyy HH:mm"),
+                        row["status_pesanan"].ToString(),
+                        adaBukti ? "✅ Ada" : "❌ Belum"
+                    );
+                }
+
+                this.dgvLaporan.DataSource = dtUI;
                 this.dgvLaporan.ClearSelection();
                 this.lblGridTitle.Text = "🧾 Semua Transaksi (vw_transaksi_lengkap)";
             }

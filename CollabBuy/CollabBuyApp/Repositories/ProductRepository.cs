@@ -185,7 +185,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public List<Product> GetAll()
         {
             var listProduk = new List<Product>();
-            string query = "SELECT * FROM vw_semua_produk;";
+            string query = "SELECT * FROM vw_produk_per_penjual;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

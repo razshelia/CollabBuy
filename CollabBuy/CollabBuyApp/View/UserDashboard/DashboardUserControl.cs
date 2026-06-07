@@ -52,6 +52,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
                 if (isPenjual)
                 {
+                    this.lblTitlePesanan.Text = "Total Produk";
+                    this.lblTitleKeranjang.Text = "PO Aktif";
+                    this.lblTitleSaldo.Text = "Total Omzet";
+
                     DataTable dtStat = this._laporanController
                         .GetStatistikDashboardPenjual(this._currentUser.IdUser);
 
@@ -67,7 +71,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 }
                 else
                 {
-                    // Pembeli: tetap seperti semula
+                    this.lblTitlePesanan.Text = "Pesanan Aktif";
+                    this.lblTitleKeranjang.Text = "Item di Keranjang";
+                    this.lblTitleSaldo.Text = "PO Tersedia";
+
                     this.lblValPesanan.Text = this._transController
                         .GetTotalPesananAktif(this._currentUser.IdUser).ToString();
                     this.lblValKeranjang.Text = this._transController

@@ -45,46 +45,23 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             int availW = this.Width - margin * 2;
             int availH = this.Height - 95 - margin;
 
-            if (this.splitMain != null)
+            if (this.splitMain == null) return;
+
+            this.splitMain.Location = new Point(margin, 95);
+            this.splitMain.Size = new Size(availW, Math.Max(availH, 200));
+
+            if (this.btnRefresh != null && this.splitMain.Panel1 != null)
+                this.btnRefresh.Location = new Point(
+                    this.splitMain.Panel1.Width - this.btnRefresh.Width - 10,
+                    this.splitMain.Panel1.Height - this.btnRefresh.Height - 10);
+
+            if (this.dgvRiwayat != null && this.splitMain.Panel1 != null)
             {
-                this.splitMain.Location = new Point(margin, 95);
-                this.splitMain.Size = new Size(availW, Math.Max(availH, 200));
-
-                if (this.btnRefresh != null && this.splitMain.Panel1 != null)
-                {
-                    this.btnRefresh.Location = new Point(
-                        this.splitMain.Panel1.Width - this.btnRefresh.Width - 10,
-                        this.splitMain.Panel1.Height - this.btnRefresh.Height - 10);
-                }
-                else
-                {
-                    bool btnKosong = true;
-                }
-
-                if (this.dgvRiwayat != null && this.splitMain.Panel1 != null)
-                {
-                    this.dgvRiwayat.Location = new Point(10, 10);
-
-                    int h;
-                    if (this.btnRefresh != null)
-                    {
-                        h = this.splitMain.Panel1.Height - this.btnRefresh.Height - 30;
-                    }
-                    else
-                    {
-                        h = this.splitMain.Panel1.Height - 30;
-                    }
-
-                    this.dgvRiwayat.Size = new Size(this.splitMain.Panel1.Width - 20, h);
-                }
-                else
-                {
-                    bool dgvKosong = true;
-                }
-            }
-            else
-            {
-                bool splitKosong = true;
+                this.dgvRiwayat.Location = new Point(10, 10);
+                int h = this.btnRefresh != null
+                    ? this.splitMain.Panel1.Height - this.btnRefresh.Height - 30
+                    : this.splitMain.Panel1.Height - 30;
+                this.dgvRiwayat.Size = new Size(this.splitMain.Panel1.Width - 20, h);
             }
         }
 
@@ -125,32 +102,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 this.dgvRiwayat.CellClick += (s, e) =>
                 {
-                    if (e.RowIndex >= 0)
-                    {
-                        if (e.ColumnIndex == this.dgvRiwayat.Columns["BtnDetail"].Index)
-                        {
-                            var dataSource = this.dgvRiwayat.DataSource as DataTable;
-                            if (dataSource != null)
-                            {
-                                DataRow row = dataSource.Rows[e.RowIndex];
-                                int idTrx = Convert.ToInt32(row["id_transaksi"]);
-                                DataTable dtDetail = this._transactionController.GetDetailPesananPembeli(idTrx);
-                                this.TampilkanDetailLayarPenuh(idTrx, dtDetail);
-                            }
-                            else
-                            {
-                                bool dataKosong = true;
-                            }
-                        }
-                        else
-                        {
-                            bool bukanTombol = true;
-                        }
-                    }
-                    else
-                    {
-                        bool headerDiklik = true;
-                    }
+                    if (e.RowIndex < 0) return;
+                    if (e.ColumnIndex != this.dgvRiwayat.Columns["BtnDetail"].Index) return;
+
+                    var dataSource = this.dgvRiwayat.DataSource as DataTable;
+                    if (dataSource == null) return;
+
+                    DataRow row = dataSource.Rows[e.RowIndex];
+                    int idTrx = Convert.ToInt32(row["id_transaksi"]);
+                    DataTable dtDetail = this._transactionController.GetDetailPesananPembeli(idTrx);
+                    this.TampilkanDetailLayarPenuh(idTrx, dtDetail);
                 };
             }
             else
@@ -184,35 +145,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         long totalCashback = trx.HitungDiskon();
                         long tagihBersih = totalTagihan - totalCashback;
 
-                        string jumlahStr;
-                        if (trx.DapatkanTotalItem() > 0)
-                        {
-                            jumlahStr = $"{trx.DapatkanTotalItem()} pcs";
-                        }
-                        else
-                        {
-                            jumlahStr = "-";
-                        }
+                        string jumlahStr = trx.DapatkanTotalItem() > 0
+                            ? $"{trx.DapatkanTotalItem()} pcs" : "-";
 
-                        string tagihStr;
-                        if (tagihBersih > 0)
-                        {
-                            tagihStr = $"Rp {tagihBersih:N0}";
-                        }
-                        else
-                        {
-                            tagihStr = $"Rp {totalTagihan:N0}";
-                        }
+                        string tagihStr = tagihBersih > 0
+                            ? $"Rp {tagihBersih:N0}" : $"Rp {totalTagihan:N0}";
 
-                        string cbStr;
-                        if (totalCashback > 0)
-                        {
-                            cbStr = $"Rp {totalCashback:N0} ✅";
-                        }
-                        else
-                        {
-                            cbStr = "-";
-                        }
+                        string cbStr = totalCashback > 0
+                            ? $"Rp {totalCashback:N0} ✅" : "-";
 
                         dtUI.Rows.Add(
                             trx.IdTransaksi,
@@ -226,24 +166,17 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         );
                     }
                 }
-                else
-                {
-                    bool listKosong = true;
-                }
 
                 if (this.dgvRiwayat != null)
                 {
                     this.dgvRiwayat.DataSource = dtUI;
                     this.dgvRiwayat.ClearSelection();
                 }
-                else
-                {
-                    bool tabelKosong = true;
-                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal memuat riwayat: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Gagal memuat riwayat: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -263,10 +196,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     if (dtDetail.Rows.Count > 0)
                     {
                         if (dtDetail.Rows[0]["bukti_bayar"] != DBNull.Value)
-                        {
                             buktiBayar = (byte[])dtDetail.Rows[0]["bukti_bayar"];
-                        }
-                        else { bool dbNullFile = true; }
                     }
                     else { bool noRows = true; }
                 }
@@ -285,10 +215,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     {
                         splitDict[penitip] = 0;
                         cashbackDict[penitip] = 0;
-                    }
-                    else
-                    {
-                        bool penitipAda = true;
                     }
 
                     splitDict[penitip] += subtotal;
@@ -521,16 +447,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             {
                 long cb = cashbackDict[kv.Key];
                 long netBayar = kv.Value - cb;
-                long finalCb;
-
-                if (cb > 0)
-                {
-                    finalCb = cb;
-                }
-                else
-                {
-                    finalCb = 0;
-                }
+                long finalCb = cb > 0 ? cb : 0;
 
                 dgvSplit.Rows.Add(kv.Key, kv.Value, finalCb, netBayar);
             }
@@ -681,28 +598,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     long bayar = kv.Value - cb;
                     sb.Append($"• {kv.Key}: Rp {bayar:N0}");
 
-                    if (cb > 0)
-                    {
-                        sb.Append($" (hemat Rp {cb:N0} 🎉)");
-                    }
-                    else
-                    {
-                        bool tanpaCashback = true;
-                    }
+                    if (cb > 0) sb.Append($" (hemat Rp {cb:N0} 🎉)");
 
                     sb.AppendLine();
                 }
                 sb.AppendLine(new string('─', 38));
                 sb.AppendLine($"Total: Rp {grandTotal:N0}");
 
-                if (totalCashback > 0)
-                {
-                    sb.AppendLine($"Cashback GR: Rp {totalCashback:N0}");
-                }
-                else
-                {
-                    bool tanpaTotalCb = true;
-                }
+                if (totalCashback > 0) sb.AppendLine($"Cashback GR: Rp {totalCashback:N0}");
 
                 Clipboard.SetText(sb.ToString());
                 MessageBox.Show("Split bill disalin! Tinggal paste ke WA 😊", "✅ Berhasil", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -298,19 +298,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             try { return this._transactionRepo.GetDetailPesananPembeli(idTransaksi); }
             catch { return new DataTable(); }
         }
-        public List<Transaction> GetAllTransaksi()
-        {
-            List<Transaction> list;
-            try
-            {
-                list = this._transactionRepo.GetAll();
-            }
-            catch (Exception)
-            {
-                list = new List<Transaction>();
-            }
-            return list;
-        }
 
         public List<Transaction> GetTransaksiByPembeli(int idPembeli)
         {

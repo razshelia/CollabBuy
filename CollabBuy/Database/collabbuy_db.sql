@@ -457,27 +457,6 @@ INSERT INTO activity_logs (id_user, aktivitas, waktu_akses) VALUES
 -- SECTION 4 : VIEW
 -- ============================================================
 
-CREATE OR REPLACE VIEW vw_katalog_aktif AS
-SELECT
-    p.id_produk,
-    po.judul_po,
-    kat.nama_kategori,
-    p.nama_produk,
-    p.harga_dasar,
-    p.harga_diskon,
-    po.batas_waktu,
-    po.info_rekening,
-    p.foto_produk
-FROM products p
-LEFT JOIN preorders   po  ON p.id_po       = po.id_po
-LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
-WHERE p.is_deleted = FALSE
-  AND (p.id_po IS NULL
-       OR (po.is_aktif = TRUE AND po.batas_waktu >= CURRENT_TIMESTAMP AND po.is_deleted = FALSE));
-
--- ── Dipanggil: SELECT * FROM vw_katalog_aktif;
--- SELECT * FROM vw_katalog_aktif;
-
 CREATE OR REPLACE VIEW vw_lpj_danus_per_po AS
 SELECT
     po.id_po,
@@ -718,28 +697,6 @@ ORDER BY total_omzet_bersih DESC;
 
 -- ── Dipanggil: SELECT * FROM vw_leaderboard_penjual;
 -- SELECT * FROM vw_leaderboard_penjual;
-
-CREATE OR REPLACE VIEW vw_semua_produk AS
-SELECT
-    p.id_produk,
-    p.id_penjual,
-    p.id_po,
-    p.id_kategori,
-    p.nama_produk,
-    p.deskripsi,
-    p.harga_dasar,
-    p.harga_diskon,
-    p.target_kuota,
-    p.min_order,
-    p.foto_produk,
-    COALESCE(po.jenis_po, 'Biasa') AS jenis_po
-FROM products p
-LEFT JOIN preorders po ON p.id_po = po.id_po
-WHERE p.is_deleted = FALSE
-ORDER BY p.nama_produk;
-
--- ── Dipanggil: SELECT * FROM vw_semua_produk;
--- SELECT * FROM vw_semua_produk;
 
 CREATE OR REPLACE VIEW vw_produk_hampir_penuh AS
 SELECT
