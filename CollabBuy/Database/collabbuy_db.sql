@@ -424,20 +424,38 @@ WHERE
 CREATE OR REPLACE VIEW vw_lpj_danus_per_po AS
 SELECT
     po.id_po,
+    po.id_penjual,
     po.judul_po,
     po.jenis_po,
+    po.batas_waktu,
     p.nama_produk,
-    COALESCE(SUM(td.jumlah_pesanan), 0)                                                    AS total_barang_terjual,
-    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)                        AS omzet_kotor,
-    COALESCE(SUM(td.selisih_refund), 0)                                                    AS total_refund_dicairkan,
-    COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - td.selisih_refund), 0)  AS omzet_bersih_lpj
+    p.harga_dasar,
+    p.harga_diskon,
+    COALESCE(agg.total_barang_terjual, 0)   AS total_barang_terjual,
+    COALESCE(agg.omzet_kotor, 0)            AS omzet_kotor,
+    COALESCE(agg.total_refund_dicairkan, 0) AS total_refund_dicairkan,
+    COALESCE(agg.omzet_bersih_lpj, 0)       AS omzet_bersih_lpj,
+    CASE
+        WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW() THEN 'Sedang Berjalan'
+        WHEN po.is_aktif = TRUE AND po.batas_waktu  < NOW() THEN 'Batas Waktu Habis'
+        ELSE 'Ditutup'
+    END AS status_po
 FROM preorders po
-JOIN     products            p  ON po.id_po        = p.id_po
-LEFT JOIN transaction_details td ON p.id_produk    = td.id_produk
-LEFT JOIN transactions        t  ON td.id_transaksi = t.id_transaksi
-    AND t.status_pesanan = 'Selesai'
-WHERE po.is_deleted = FALSE
-GROUP BY po.id_po, po.judul_po, po.jenis_po, p.nama_produk;
+JOIN products p ON po.id_po = p.id_po
+LEFT JOIN (
+    SELECT
+        td.id_produk,
+        SUM(td.jumlah_pesanan)                                                      AS total_barang_terjual,
+        SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                          AS omzet_kotor,
+        SUM(COALESCE(td.selisih_refund, 0))                                         AS total_refund_dicairkan,
+        SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli)
+            - COALESCE(td.selisih_refund, 0))                                       AS omzet_bersih_lpj
+    FROM transaction_details td
+    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    WHERE t.status_pesanan = 'Selesai'
+    GROUP BY td.id_produk
+) agg ON p.id_produk = agg.id_produk
+WHERE po.is_deleted = FALSE;
 
 CREATE OR REPLACE VIEW vw_log_aktivitas AS
 SELECT
@@ -704,6 +722,41 @@ LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
 GROUP BY t.id_transaksi, t.id_koordinator, t.tanggal_transaksi,
          t.status_pesanan, t.is_valid, t.bukti_bayar;
 
+CREATE OR REPLACE VIEW vw_lpj_danus_per_po AS
+SELECT
+    po.id_po,
+    po.id_penjual,
+    po.judul_po,
+    po.jenis_po,
+    po.batas_waktu,
+    p.nama_produk,
+    p.harga_dasar,
+    p.harga_diskon,
+    COALESCE(agg.total_barang_terjual, 0)   AS total_barang_terjual,
+    COALESCE(agg.omzet_kotor, 0)            AS omzet_kotor,
+    COALESCE(agg.total_refund_dicairkan, 0) AS total_refund_dicairkan,
+    COALESCE(agg.omzet_bersih_lpj, 0)       AS omzet_bersih_lpj,
+    CASE
+        WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW() THEN 'Sedang Berjalan'
+        WHEN po.is_aktif = TRUE AND po.batas_waktu  < NOW() THEN 'Batas Waktu Habis'
+        ELSE 'Ditutup'
+    END AS status_po
+FROM preorders po
+JOIN products p ON po.id_po = p.id_po
+LEFT JOIN (
+    SELECT
+        td.id_produk,
+        SUM(td.jumlah_pesanan)                                                      AS total_barang_terjual,
+        SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                          AS omzet_kotor,
+        SUM(COALESCE(td.selisih_refund, 0))                                         AS total_refund_dicairkan,
+        SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli)
+            - COALESCE(td.selisih_refund, 0))                                       AS omzet_bersih_lpj
+    FROM transaction_details td
+    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    WHERE t.status_pesanan = 'Selesai'
+    GROUP BY td.id_produk
+) agg ON p.id_produk = agg.id_produk
+WHERE po.is_deleted = FALSE;
 
 -- =====================================================================================
 -- 5. FUNCTION (Pure Functions & Table Functions)

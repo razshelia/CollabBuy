@@ -101,8 +101,20 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 }
 
                 dgvLog.DataSource = dtUI;
-                lblJumlah.Text = $"Menampilkan {dtUI.Rows.Count} aktivitas";
                 dgvLog.ClearSelection();
+
+                if (dtRaw.Rows.Count > 0)
+                {
+                    string aktivitasTerakhir = dtRaw.Rows[0]["aktivitas"].ToString();
+                    string waktuTerakhir = Convert.ToDateTime(dtRaw.Rows[0]["waktu_akses"])
+                                               .ToString("dd MMM HH:mm");
+                    lblJumlah.Text = $"Menampilkan {dtUI.Rows.Count} aktivitas  |  " +
+                                     $"Aktivitas terakhir: [{waktuTerakhir}] {aktivitasTerakhir}";
+                }
+                else
+                {
+                    lblJumlah.Text = $"Menampilkan {dtUI.Rows.Count} aktivitas";
+                }
             }
             catch (Exception ex)
             {

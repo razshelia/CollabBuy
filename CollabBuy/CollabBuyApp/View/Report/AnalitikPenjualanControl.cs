@@ -16,6 +16,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
         private readonly LaporanController _laporanController;
         private readonly AdminController _adminController;
         private DataTable _dtRaw;
+        private int _adminTabAktif = 0;
 
         public AnalitikPenjualanControl(Models.User currentUser)
         {
@@ -56,10 +57,202 @@ namespace CollabBuy.CollabBuyApp.View.Report
             this.lblTitle.Text = "📊 Laporan Sistem Bisnis";
             this.lblSubtitle.Text = "Ringkasan data operasional CollabBuy untuk keputusan bisnis";
 
-            this.SetupDataGridViewAdmin();
+            this.TampilTombolTabAdmin();
             this.LoadAdminStats();
-            this.LoadAdminTable();
-            this.LoadAdminChart();
+
+            switch (_adminTabAktif)
+            {
+                case 1: this.LoadAdminTabTransaksi(); break;
+                case 2: this.LoadAdminTabHimpunan(); break;
+                case 3: this.LoadAdminTabAnalisisPasar(); break;
+                default:
+                    this.SetupDataGridViewAdmin();
+                    this.LoadAdminTable();
+                    this.LoadAdminChart(); break;
+            }
+        }
+
+        private void TampilTombolTabAdmin()
+        {
+            // Panel tombol navigasi analitik
+            Panel pnlTab = new Panel
+            {
+                Height = 44,
+                Dock = DockStyle.Top,
+                BackColor = Color.FromArgb(240, 235, 255),
+                Padding = new Padding(8, 6, 8, 0)
+            };
+
+            string[] labels = {
+        "📊 Performa Penjual",
+        "🧾 Semua Transaksi",
+        "🔗 Teori Himpunan",
+        "🧊 Analisis Pasar"
+    };
+
+            int x = 8;
+            for (int i = 0; i < labels.Length; i++)
+            {
+                int idx = i; // closure
+                Button btn = new Button
+                {
+                    Text = labels[i],
+                    Location = new Point(x, 6),
+                    Size = new Size(170, 32),
+                    FlatStyle = FlatStyle.Flat,
+                    Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                    Cursor = Cursors.Hand,
+                    BackColor = idx == _adminTabAktif
+                                ? Color.FromArgb(36, 0, 70)
+                                : Color.White,
+                    ForeColor = idx == _adminTabAktif
+                                ? Color.FromArgb(253, 255, 182)
+                                : Color.FromArgb(36, 0, 70),
+                    Tag = idx
+                };
+                btn.FlatAppearance.BorderColor = Color.FromArgb(36, 0, 70);
+                btn.Click += (s, e) =>
+                {
+                    _adminTabAktif = idx;
+                    this.Controls.Remove(pnlTab);
+                    this.LoadModeAdmin();
+                };
+                pnlTab.Controls.Add(btn);
+                x += 178;
+            }
+
+            this.Controls.Add(pnlTab);
+            pnlTab.BringToFront();
+        }
+
+        private void LoadAdminTabTransaksi()
+        {
+            try
+            {
+                DataTable dt = this._laporanController.GetTransaksiLengkap();
+                this.dgvLaporan.AutoGenerateColumns = true;
+                this.dgvLaporan.DataSource = dt;
+                this.dgvLaporan.ClearSelection();
+                this.lblGridTitle.Text = "🧾 Semua Transaksi (vw_transaksi_lengkap)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal memuat transaksi: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void LoadAdminTabHimpunan()
+        {
+            try
+            {
+                // Tampilkan UNION, INTERSECT, EXCEPT digabung dalam satu tabel dengan label pembeda
+                DataTable dtUnion = this._laporanController.GetTransaksiAktifUnion();
+                DataTable dtIntersect = this._laporanController.GetSultanMemberIntersect();
+                DataTable dtExcept = this._laporanController.GetPenggunaPasifExcept();
+
+                // Buat tabel gabungan dengan kolom keterangan
+                DataTable dtGabung = new DataTable();
+                dtGabung.Columns.Add("jenis_operasi", typeof(string));
+                dtGabung.Columns.Add("data_1", typeof(string));
+                dtGabung.Columns.Add("data_2", typeof(string));
+
+                if (dtUnion != null)
+                    foreach (DataRow r in dtUnion.Rows)
+                        dtGabung.Rows.Add("UNION: Transaksi Aktif",
+                            r["id_transaksi"].ToString(), r["status_pesanan"].ToString());
+
+                if (dtIntersect != null)
+                    foreach (DataRow r in dtIntersect.Rows)
+                        dtGabung.Rows.Add("INTERSECT: Sultan Member",
+                            r["id_user"].ToString(), r["nama"].ToString());
+
+                if (dtExcept != null)
+                    foreach (DataRow r in dtExcept.Rows)
+                        dtGabung.Rows.Add("EXCEPT: Pengguna Pasif",
+                            r["id_user"].ToString(), r["nama"].ToString());
+
+                this.dgvLaporan.AutoGenerateColumns = false;
+                this.dgvLaporan.Columns.Clear();
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Operasi", HeaderText = "Operasi Himpunan", DataPropertyName = "jenis_operasi", Width = 220 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Data1", HeaderText = "ID / Nilai", DataPropertyName = "data_1", Width = 100 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Data2",
+                    HeaderText = "Nama / Status",
+                    DataPropertyName = "data_2",
+                    AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                });
+
+                this.dgvLaporan.DataSource = dtGabung;
+                this.dgvLaporan.ClearSelection();
+                this.lblGridTitle.Text = "🔗 Teori Himpunan (UNION · INTERSECT · EXCEPT)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal memuat data himpunan: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void LoadAdminTabAnalisisPasar()
+        {
+            try
+            {
+                DataTable dtCube = this._laporanController.GetAnalisisPasarCube();
+                DataTable dtGrouping = this._laporanController.GetRingkasanGlobalGroupingSets();
+
+                // Tampilkan CUBE dulu, lalu append GROUPING SETS dengan label pembeda
+                DataTable dtGabung = new DataTable();
+                dtGabung.Columns.Add("jenis_analisis", typeof(string));
+                dtGabung.Columns.Add("dimensi_1", typeof(string));
+                dtGabung.Columns.Add("dimensi_2", typeof(string));
+                dtGabung.Columns.Add("total", typeof(string));
+
+                if (dtCube != null)
+                    foreach (DataRow r in dtCube.Rows)
+                        dtGabung.Rows.Add("CUBE: Kategori × Jenis PO",
+                            r["kategori"].ToString(),
+                            r["jenis_po"].ToString(),
+                            r["total_barang_terjual"].ToString() + " unit");
+
+                if (dtGrouping != null)
+                    foreach (DataRow r in dtGrouping.Rows)
+                    {
+                        string penjual = r["nama_penjual"] == DBNull.Value ? "-" : r["nama_penjual"].ToString();
+                        string kat = r["nama_kategori"] == DBNull.Value ? "-" : r["nama_kategori"].ToString();
+                        dtGabung.Rows.Add("GROUPING SETS: Rekap",
+                            penjual, kat,
+                            r["unit_terjual"].ToString() + " unit");
+                    }
+
+                this.dgvLaporan.AutoGenerateColumns = false;
+                this.dgvLaporan.Columns.Clear();
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Analisis", HeaderText = "Jenis Analisis", DataPropertyName = "jenis_analisis", Width = 220 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Dim1", HeaderText = "Dimensi 1", DataPropertyName = "dimensi_1", Width = 180 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Dim2", HeaderText = "Dimensi 2", DataPropertyName = "dimensi_2", Width = 180 });
+                this.dgvLaporan.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Total",
+                    HeaderText = "Total",
+                    DataPropertyName = "total",
+                    AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                });
+
+                this.dgvLaporan.DataSource = dtGabung;
+                this.dgvLaporan.ClearSelection();
+                this.lblGridTitle.Text = "🧊 Analisis Pasar (CUBE · GROUPING SETS)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal memuat analisis pasar: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void SetupDataGridViewAdmin()

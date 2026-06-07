@@ -88,6 +88,56 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
+        /// <summary>
+        /// Filter log aktivitas berdasarkan id_user tertentu.
+        /// Menggunakan vw_log_aktivitas yang memiliki kolom id_user.
+        /// </summary>
+        public DataTable GetByUser(int idUser)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT id_log, pelaku, peran, aktivitas, waktu_akses
+        FROM   vw_log_aktivitas
+        WHERE  id_user = @idUser
+        ORDER  BY waktu_akses DESC;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@idUser", idUser);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Mengambil N aktivitas terbaru dari seluruh sistem.
+        /// Implementasi SQL Section 8D: Advanced Logging System.
+        /// </summary>
+        public DataTable GetLogTerkini(int limit = 10)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+        SELECT pelaku, aktivitas, waktu_akses
+        FROM   vw_log_aktivitas
+        ORDER  BY waktu_akses DESC
+        LIMIT  @limit;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@limit", limit);
+                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
         public void Insert(ActivityLog entity)
         {
             if (entity == null) throw new ArgumentNullException("Entity log tidak boleh null.");

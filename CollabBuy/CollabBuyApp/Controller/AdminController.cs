@@ -216,6 +216,25 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
+        public DataTable GetLogByUser(int idUser)
+        {
+            try { return _logRepo.GetByUser(idUser); }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[AdminController.GetLogByUser] Error: " + ex.Message);
+                return new DataTable();
+            }
+        }
+
+        public DataTable GetLogTerkini(int limit = 10)
+        {
+            try { return _logRepo.GetLogTerkini(limit); }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[AdminController.GetLogTerkini] Error: " + ex.Message);
+                return new DataTable();
+            }
+        }
 
         // =======================================================
         // LAPORAN / LEADERBOARD

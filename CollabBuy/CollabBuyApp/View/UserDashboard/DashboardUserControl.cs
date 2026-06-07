@@ -13,9 +13,10 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
     public partial class DashboardUserControl : UserControl
     {
         private Models.User _currentUser;
-        private ProductController _productController;
-        private TransactionController _transController;
-        private PreOrderController _poController;
+        private readonly ProductController _productController;
+        private readonly TransactionController _transController;
+        private readonly PreOrderController _poController;
+        private readonly LaporanController _laporanController;
 
         public DashboardUserControl(Models.User currentUser)
         {
@@ -25,6 +26,7 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             this._productController = new ProductController();
             this._transController = new TransactionController(this._currentUser.IdUser);
             this._poController = new PreOrderController();
+            this._laporanController = new Controllers.LaporanController();
 
             this.Dock = DockStyle.Fill;
         }
@@ -46,14 +48,33 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         {
             try
             {
-                // 1. Pesanan Aktif (Dari TransactionController)
-                this.lblValPesanan.Text = this._transController.GetTotalPesananAktif(this._currentUser.IdUser).ToString();
+                bool isPenjual = this._currentUser.Peran == "Penjual";
 
-                // 2. Item di Keranjang (Berdasarkan jumlah list di CartManager)
-                this.lblValKeranjang.Text = this._transController.GetIsiKeranjang().Count.ToString();
+                if (isPenjual)
+                {
+                    DataTable dtStat = this._laporanController
+                        .GetStatistikDashboardPenjual(this._currentUser.IdUser);
 
-                // 3. PO Tersedia (Dari PreOrderController yang aktif)
-                this.lblValSaldo.Text = this._poController.GetActiveSesiPO("").Rows.Count.ToString();
+                    if (dtStat != null && dtStat.Rows.Count > 0)
+                    {
+                        DataRow r = dtStat.Rows[0];
+                        this.lblValPesanan.Text = r["total_produk_master"].ToString();
+                        this.lblValKeranjang.Text = r["total_po_aktif"].ToString();
+                        long omzet = r["total_omzet_kotor"] != DBNull.Value
+                            ? Convert.ToInt64(r["total_omzet_kotor"]) : 0L;
+                        this.lblValSaldo.Text = "Rp " + omzet.ToString("N0");
+                    }
+                }
+                else
+                {
+                    // Pembeli: tetap seperti semula
+                    this.lblValPesanan.Text = this._transController
+                        .GetTotalPesananAktif(this._currentUser.IdUser).ToString();
+                    this.lblValKeranjang.Text = this._transController
+                        .GetIsiKeranjang().Count.ToString();
+                    this.lblValSaldo.Text = this._poController
+                        .GetActiveSesiPO("").Rows.Count.ToString();
+                }
             }
             catch
             {
