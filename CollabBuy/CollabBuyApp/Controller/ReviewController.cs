@@ -34,7 +34,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public DataTable GetListProdukBuatDiulas(int idUser)
         {
             try { return _reviewRepo.GetProdukBisaDiulas(idUser); }
-            catch (Exception) { return new DataTable(); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReviewController.GetListProdukBuatDiulas] Error: {ex.Message}");
+                return new DataTable();
+            }
+
         }
 
         /// <summary>
@@ -78,7 +83,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public DataTable GetReviewLapak(int idPenjual)
         {
             try { return _reviewRepo.GetReviewsByPenjual(idPenjual); }
-            catch (Exception) { return new DataTable(); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReviewController.GetReviewLapak] Error: {ex.Message}");
+                return new DataTable();
+            }
+
         }
 
         /// <summary>
@@ -112,26 +122,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex)
             {
                 return (false, "Error sistem: " + ex.Message);
-            }
-        }
-
-
-        // =======================================================
-        // FITUR ADMIN (KODE ASLI DIPERTAHANKAN)
-        // =======================================================
-
-        /// <summary>
-        /// Mengambil semua ulasan (biasanya difilter by idProduk di UI DataGridView untuk Admin).
-        /// </summary>
-        public List<Review> GetAllUlasan()
-        {
-            try
-            {
-                return _reviewRepo.GetAll();
-            }
-            catch (Exception)
-            {
-                return new List<Review>();
             }
         }
     }

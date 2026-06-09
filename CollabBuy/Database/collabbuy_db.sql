@@ -218,36 +218,28 @@ CREATE TRIGGER t_before_insert_detail
     FOR EACH ROW EXECUTE FUNCTION trg_set_harga_otomatis();
 
 -- ── TRIGGER 3 ─────────────────────────────────────────────
--- Tolak pesanan jika batas waktu PO sudah habis
-CREATE OR REPLACE FUNCTION cek_validitas_po_saat_beli() RETURNS TRIGGER AS $$
-DECLARE
-    v_id_po       INT;
-    v_is_aktif    BOOLEAN;
-    v_batas_waktu TIMESTAMP;
-    v_is_deleted  BOOLEAN;
+-- Jalan setiap ada transaksi baru ATAU preorder baru dibuka
+-- Sehingga setiap aktivitas di app otomatis "menyapu" PO yang sudah expired
+CREATE OR REPLACE FUNCTION fn_nonaktifkan_po_expired()
+RETURNS TRIGGER AS $$
 BEGIN
-    SELECT id_po INTO v_id_po FROM products WHERE id_produk = NEW.id_produk;
-    IF v_id_po IS NULL THEN
-        RAISE EXCEPTION 'TRANSAKSI DITOLAK: Produk ini sedang tidak dijual dalam sesi Pre-Order manapun!';
-    END IF;
-
-    SELECT po.is_aktif, po.batas_waktu, po.is_deleted
-    INTO v_is_aktif, v_batas_waktu, v_is_deleted
-    FROM preorders po WHERE po.id_po = v_id_po;
-
-    IF v_is_deleted = TRUE  THEN RAISE EXCEPTION 'TRANSAKSI DITOLAK: Sesi PO sudah dihapus!'; END IF;
-    IF v_is_aktif  = FALSE  THEN RAISE EXCEPTION 'TRANSAKSI DITOLAK: Sesi PO sudah ditutup!'; END IF;
-    IF v_batas_waktu < CURRENT_TIMESTAMP THEN
-        RAISE EXCEPTION 'TRANSAKSI DITOLAK: Batas waktu PO sudah terlewat!';
-    END IF;
-
+    UPDATE preorders
+    SET is_aktif = FALSE
+    WHERE batas_waktu < NOW()
+      AND is_aktif = TRUE;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_cek_waktu_po
-    BEFORE INSERT ON transaction_details
-    FOR EACH ROW EXECUTE FUNCTION cek_validitas_po_saat_beli();
+CREATE TRIGGER trg_auto_tutup_po_expired
+AFTER INSERT ON transactions
+FOR EACH STATEMENT
+EXECUTE FUNCTION fn_nonaktifkan_po_expired();
+
+CREATE TRIGGER trg_auto_tutup_po_on_new_po
+AFTER INSERT OR UPDATE ON preorders
+FOR EACH STATEMENT
+EXECUTE FUNCTION fn_nonaktifkan_po_expired();
 
 -- ── TRIGGER 4 ─────────────────────────────────────────────
 -- Hitung refund Gotong Royong otomatis saat kuota terpenuhi

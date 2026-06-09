@@ -54,11 +54,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return aduan;
         }
 
-        public List<Complaint> GetAll()
-        {
-            return new List<Complaint>(); // Bisa diimplementasikan jika Admin butuh list object
-        }
-
         public DataTable GetRiwayatByUser(int idUser)
         {
             DataTable dt = new DataTable();

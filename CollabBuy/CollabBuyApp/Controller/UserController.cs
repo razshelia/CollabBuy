@@ -153,26 +153,18 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // =======================================================
         public (bool sukses, string pesan) TindakPenjualNakal(int idAduan, int idPenjual, string balasanAdmin)
         {
-            (bool sukses, string pesan) hasil;
+            if (string.IsNullOrWhiteSpace(balasanAdmin))
+                return (false, "Balasan/alasan penindakan wajib diisi!");
 
             try
             {
-                if (string.IsNullOrWhiteSpace(balasanAdmin))
-                {
-                    hasil = (false, "Balasan/alasan penindakan wajib diisi!");
-                }
-                else
-                {
-                    this._userRepo.TindakPenjualNakal(idAduan, idPenjual, balasanAdmin.Trim());
-                    hasil = (true, "Penjual berhasil diblokir dan aduan telah diselesaikan.");
-                }
+                this._userRepo.TindakPenjualNakal(idAduan, idPenjual, balasanAdmin.Trim());
+                return (true, "Penjual berhasil diblokir dan aduan telah diselesaikan.");
             }
             catch (Exception ex)
             {
-                hasil = (false, "Gagal menindak penjual: " + ex.Message);
+                return (false, "Gagal menindak penjual: " + ex.Message);
             }
-
-            return hasil;
         }
 
         public (bool sukses, string pesan) ValidasiPenjual(int idPenjual)
@@ -321,29 +313,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // =======================================================
         private string HashSha256(string input)
         {
-            string hasilHash;
+            if (string.IsNullOrEmpty(input)) return "";
 
-            if (string.IsNullOrEmpty(input))
+            using (SHA256 sha256Hash = SHA256.Create())
             {
-                hasilHash = "";
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+                return builder.ToString();
             }
-            else
-            {
-                using (SHA256 sha256Hash = SHA256.Create())
-                {
-                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-                    StringBuilder builder = new StringBuilder();
-
-                    for (int i = 0; i < bytes.Length; i++)
-                    {
-                        builder.Append(bytes[i].ToString("x2"));
-                    }
-
-                    hasilHash = builder.ToString();
-                }
-            }
-
-            return hasilHash;
         }
         public int? VerifikasiIdentitasUser(string username, string email, string nomorTelepon)
         {

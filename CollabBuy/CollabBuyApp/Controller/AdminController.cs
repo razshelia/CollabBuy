@@ -133,7 +133,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try
             {
-                _categoryRepo.Delete(id);
+                _categoryRepo.SoftDelete(id);
                 return (true, "Kategori berhasil dihapus.");
             }
             catch (PostgresException ex) when (ex.SqlState == "23503")

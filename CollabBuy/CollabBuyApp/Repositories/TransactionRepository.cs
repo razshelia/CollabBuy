@@ -9,7 +9,7 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class TransactionRepository : IQueryRepository<Transaction>, ICommandRepository<Transaction>
+    public class TransactionRepository : IQueryRepository<Transaction>, IQueryAllRepository<Transaction>, ICommandRepository<Transaction>
     {
         private readonly string _connectionString;
 

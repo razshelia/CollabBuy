@@ -93,48 +93,21 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public List<TransactionDetail> GetIsiKeranjang()
         {
-            List<TransactionDetail> listFlat = new List<TransactionDetail>();
+            if (this._cartManager == null) return new List<TransactionDetail>();
 
-            if (this._cartManager == null)
-            {
-                listFlat = new List<TransactionDetail>();
-            }
-            else
-            {
-                Dictionary<int, List<TransactionDetail>> keranjangDict = this._cartManager.GetKeranjangDictionary();
-                foreach (KeyValuePair<int, List<TransactionDetail>> entry in keranjangDict)
-                {
-                    foreach (TransactionDetail detail in entry.Value)
-                    {
-                        listFlat.Add(detail);
-                    }
-                }
-            }
+            var listFlat = new List<TransactionDetail>();
+            foreach (var entry in this._cartManager.GetKeranjangDictionary())
+                foreach (var detail in entry.Value)
+                    listFlat.Add(detail);
 
             return listFlat;
         }
 
         public long HitungTotalKeranjangSaatIni()
         {
-            long total;
-
-            if (this._cartManager == null)
-            {
-                total = 0;
-            }
-            else
-            {
-                try
-                {
-                    total = this._cartManager.HitungTotalKeranjang();
-                }
-                catch (Exception)
-                {
-                    total = 0;
-                }
-            }
-
-            return total;
+            if (this._cartManager == null) return 0;
+            try { return this._cartManager.HitungTotalKeranjang(); }
+            catch (Exception) { return 0; }
         }
 
         // =======================================================
@@ -217,9 +190,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     );
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Silent fail
+                Console.WriteLine("[TriggerCashbackInternal] Silent fail: " + ex.Message);
             }
         }
         /// <summary>
@@ -330,15 +303,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 {
                     foreach (Transaction trx in listTrx)
                     {
-                        string statusBayar;
-                        if (trx.BuktiBayar != null && trx.BuktiBayar.Length > 0)
-                        {
-                            statusBayar = "Sudah Upload";
-                        }
-                        else
-                        {
-                            statusBayar = "Belum Bayar";
-                        }
+                        string statusBayar = (trx.BuktiBayar != null && trx.BuktiBayar.Length > 0)
+                         ? "Sudah Upload"
+                         : "Belum Bayar";
 
                         dt.Rows.Add(
                             trx.IdTransaksi,
@@ -351,7 +318,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 }
                 else
                 {
-                    // listTrx null berarti repository tidak menemukan data — kembalikan DataTable kosong
                     Console.WriteLine($"[GetRiwayatPesanan] Tidak ada riwayat untuk pembeli ID {idPembeli}");
                 }
             }
@@ -388,39 +354,23 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public DataTable GetPesananMasuk(int idPenjual)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._transactionRepo.GetPesananMasukDataTable(idPenjual);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            try { return this._transactionRepo.GetPesananMasukDataTable(idPenjual); }
+            catch (Exception) { return new DataTable(); }
         }
 
         public (bool sukses, string pesan) UbahStatusPesanan(int idTransaksi, string statusBaru)
         {
-            (bool sukses, string pesan) hasil;
             try
             {
                 bool berhasil = this._transactionRepo.UpdateStatusPesanan(idTransaksi, statusBaru);
-
-                if (berhasil)
-                {
-                    hasil = (true, "Status pesanan berhasil di-update jadi " + statusBaru + "!");
-                }
-                else
-                {
-                    hasil = (false, "Pesanan nggak ketemu di database.");
-                }
+                return berhasil
+                    ? (true, "Status pesanan berhasil di-update jadi " + statusBaru + "!")
+                    : (false, "Pesanan nggak ketemu di database.");
             }
             catch (Exception ex)
             {
-                hasil = (false, "Duh, gagal update status: " + ex.Message);
+                return (false, "Duh, gagal update status: " + ex.Message);
             }
-            return hasil;
         }
 
         public (bool sukses, string pesan) UploadBuktiBayar(int idTransaksi, byte[] buktiBayar, int idUserLog)

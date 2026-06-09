@@ -37,8 +37,9 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 return this._complaintRepo.GetRiwayatByUser(idUser);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[ComplaintController.GetRiwayatSpill] Error: {ex.Message}");
                 return new DataTable();
             }
         }
@@ -80,15 +81,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// <summary>
         /// Mengambil seluruh daftar aduan untuk dashboard Admin.
         /// </summary>
-        public List<Complaint> GetAllAduan()
+        public DataTable GetAllAduan()
         {
             try
             {
-                return this._complaintRepo.GetAll();
+                return this._complaintRepo.GetPendingAduan();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new List<Complaint>();
+                Console.WriteLine("[ComplaintController.GetAllAduan] Error: " + ex.Message);
+                return new DataTable();
             }
         }
 

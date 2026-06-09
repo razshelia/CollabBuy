@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Repositories.Interfaces;
+using Npgsql;
+using System;
 using System.Configuration;
 using System.Data;
-using Npgsql;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class PreOrderRepository
+    public class PreOrderRepository : ISoftDeletable
     {
         private readonly string _connectionString;
 
@@ -135,7 +136,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
-        public bool SoftDeletePO(int idPo)
+        public void SoftDelete(int id)
         {
             string query = "UPDATE preorders SET is_aktif = FALSE, is_deleted = TRUE WHERE id_po = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -143,8 +144,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", idPo);
-                    return cmd.ExecuteNonQuery() > 0;
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
                 }
             }
         }

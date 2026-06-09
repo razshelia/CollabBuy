@@ -1,11 +1,12 @@
-﻿using System;
-using System.Data;
+﻿using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 using Npgsql;
+using System;
 using System.Configuration;
+using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class CategoryRepository
+    public class CategoryRepository : ISoftDeletable
     {
         private readonly string _connectionString;
 
@@ -59,7 +60,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
         }
 
-        public void Delete(int id)
+        public void SoftDelete(int id)
         {
             string query = "UPDATE categories SET is_deleted = TRUE WHERE id_kategori = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))

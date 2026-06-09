@@ -9,7 +9,7 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>
+    public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>, ISoftDeletable
     {
         private readonly string _connectionString;
 
@@ -182,69 +182,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-        public List<Product> GetAll()
-        {
-            var listProduk = new List<Product>();
-            string query = "SELECT * FROM vw_produk_per_penjual;";
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                        listProduk.Add(MappingReaderToProduct(reader));
-                }
-            }
-            return listProduk;
-        }
-
-        public DataTable GetKatalogAktif(int limit = 100)
-        {
-            DataTable dtKatalog = new DataTable();
-            string query = @"
-                SELECT id_produk, nama_produk, nama_kategori, judul_po, harga_dasar,
-                       harga_diskon, batas_waktu, foto_produk, nama_toko, jenis_po,
-                       target_kuota, in_sesi_po, terpesan
-                FROM vw_katalog_produk
-                WHERE in_sesi_po = TRUE
-                  AND batas_waktu >= CURRENT_TIMESTAMP
-                ORDER BY batas_waktu ASC NULLS LAST
-                LIMIT @limit;";
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@limit", limit);
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dtKatalog);
-                }
-            }
-            return dtKatalog;
-        }
-
-        public DataTable GetProdukByPenjualDataTable(int idPenjual)
-        {
-            DataTable dt = new DataTable();
-            string query = @"
-                SELECT id_produk, nama_produk, nama_kategori, harga_dasar, target_kuota, judul_po, foto_produk
-                FROM vw_produk_per_penjual
-                WHERE id_penjual = @idPenjual;";
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idPenjual", idPenjual);
-                    using (var da = new NpgsqlDataAdapter(cmd)) da.Fill(dt);
-                }
-            }
-            return dt;
-        }
-
         // =======================================================
         // IMPLEMENTASI ICommandRepository<Product>
         // =======================================================
@@ -295,7 +232,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         /// <summary>
         /// Soft delete: set is_deleted = TRUE, data tidak hilang dari DB.
         /// </summary>
-        public void SoftDelete(int idProduk)
+        public void SoftDelete(int id)
         {
             string query = "UPDATE products SET is_deleted = TRUE WHERE id_produk = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -303,7 +240,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", idProduk);
+                    cmd.Parameters.AddWithValue("@id", id);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal menghapus produk, ID tidak ditemukan.", "id_produk", "DB_DELETE_PRODUCT_FAILED");
                 }

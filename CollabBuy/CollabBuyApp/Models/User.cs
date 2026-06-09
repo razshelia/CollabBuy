@@ -35,13 +35,8 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (value <= 0)
-                {
                     throw new InvalidOrderException("ID User tidak valid!", "id_user", "USER_ID_INVALID");
-                }
-                else
-                {
-                    this._idUser = value;
-                }
+                this._idUser = value;
             }
         }
 
@@ -51,27 +46,12 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                {
                     throw new InvalidOrderException("Nama pengguna tidak boleh kosong!", "nama", "USER_NAMA_KOSONG");
-                }
-                else
-                {
-                    if (value.Trim().Length < 3)
-                    {
-                        throw new InvalidOrderException("Nama pengguna minimal 3 karakter!", "nama", "USER_NAMA_TERLALU_PENDEK");
-                    }
-                    else
-                    {
-                        if (value.Trim().Length > 100)
-                        {
-                            throw new InvalidOrderException("Nama pengguna maksimal 100 karakter!", "nama", "USER_NAMA_TERLALU_PANJANG");
-                        }
-                        else
-                        {
-                            this._nama = value.Trim();
-                        }
-                    }
-                }
+                if (value.Trim().Length < 3)
+                    throw new InvalidOrderException("Nama pengguna minimal 3 karakter!", "nama", "USER_NAMA_TERLALU_PENDEK");
+                if (value.Trim().Length > 100)
+                    throw new InvalidOrderException("Nama pengguna maksimal 100 karakter!", "nama", "USER_NAMA_TERLALU_PANJANG");
+                this._nama = value.Trim();
             }
         }
 
@@ -81,13 +61,8 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value) || value.Length < 4)
-                {
                     throw new InvalidOrderException("Username minimal 4 karakter!", "username", "USER_UNAME_INVALID");
-                }
-                else
-                {
-                    this._username = value.Trim().ToLower();
-                }
+                this._username = value.Trim().ToLower();
             }
         }
 
@@ -97,20 +72,10 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                {
                     throw new InvalidOrderException("Password tidak boleh kosong!", "password", "USER_PASS_KOSONG");
-                }
-                else
-                {
-                    if (value.Length < 8)
-                    {
-                        throw new InvalidOrderException("Password minimal 8 karakter!", "password", "USER_PASS_TERLALU_PENDEK");
-                    }
-                    else
-                    {
-                        this._password = value;
-                    }
-                }
+                if (value.Length < 8)
+                    throw new InvalidOrderException("Password minimal 8 karakter!", "password", "USER_PASS_TERLALU_PENDEK");
+                this._password = value;
             }
         }
 
@@ -119,21 +84,10 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._nomorTelepon; }
             set
             {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    this._nomorTelepon = "";
-                }
-                else
-                {
-                    if (value.Length < 9 || value.Length > 15)
-                    {
-                        throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
-                    }
-                    else
-                    {
-                        this._nomorTelepon = value.Trim();
-                    }
-                }
+                if (string.IsNullOrWhiteSpace(value)) { this._nomorTelepon = ""; return; }
+                if (value.Length < 9 || value.Length > 15)
+                    throw new InvalidOrderException("Format Nomor WhatsApp tidak valid (harus 9-15 karakter)!", "nomorTelepon", "USER_TELP_INVALID");
+                this._nomorTelepon = value.Trim();
             }
         }
 
@@ -142,42 +96,16 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._email; }
             set
             {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    this._email = "";
-                }
-                else
-                {
-                    if (value.Trim().Length < 6)
-                    {
-                        throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
-                    }
-                    else
-                    {
-                        if (!value.Contains("@") || !value.Contains("."))
-                        {
-                            throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
-                        }
-                        else
-                        {
-                            if (value.IndexOf("@") < 1)
-                            {
-                                throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
-                            }
-                            else
-                            {
-                                if (value.LastIndexOf(".") < value.IndexOf("@") + 2)
-                                {
-                                    throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
-                                }
-                                else
-                                {
-                                    this._email = value.Trim().ToLower();
-                                }
-                            }
-                        }
-                    }
-                }
+                if (string.IsNullOrWhiteSpace(value)) { this._email = ""; return; }
+                if (value.Trim().Length < 6)
+                    throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
+                if (!value.Contains("@") || !value.Contains("."))
+                    throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
+                if (value.IndexOf("@") < 1)
+                    throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
+                if (value.LastIndexOf(".") < value.IndexOf("@") + 2)
+                    throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
+                this._email = value.Trim().ToLower();
             }
         }
 
@@ -187,20 +115,10 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                {
                     throw new InvalidOrderException("Peran pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
-                }
-                else
-                {
-                    if (value != "Admin" && value != "Penjual" && value != "Pembeli" && value != "User")
-                    {
-                        throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, Pembeli, atau User.", "peran", "USER_PERAN_INVALID");
-                    }
-                    else
-                    {
-                        this._peran = value.Trim();
-                    }
-                }
+                if (value != "Admin" && value != "Penjual" && value != "Pembeli" && value != "User")
+                    throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, Pembeli, atau User.", "peran", "USER_PERAN_INVALID");
+                this._peran = value.Trim();
             }
         }
 
@@ -216,17 +134,9 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public string AlasanBlokir
         {
-            get
-            {
-                return this._alasanBlokir;
-            }
+            get{ return this._alasanBlokir; }
             set
             {
-                // =======================================================
-                // SANITY CHECK: Null & Whitespace Handling
-                // Memastikan tidak ada alasan blokir berupa spasi kosong 
-                // atau null yang masuk dari database.
-                // =======================================================
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     this._alasanBlokir = "";
@@ -238,15 +148,11 @@ namespace CollabBuy.CollabBuyApp.Models
             }
         }
 
-        // === KONSTRUKTOR ===
         protected User(string nama, string username, string password, string peran)
         {
             this.Nama = nama;
             this.Username = username;
-
-            // Bypass validasi panjang password untuk placeholder internal (hashed data dari DB)
             this._password = password;
-
             this.Peran = peran;
             this._isDiblokir = false;
             this._alasanBlokir = "";
@@ -264,14 +170,9 @@ namespace CollabBuy.CollabBuyApp.Models
         public void Blokir(string alasan)
         {
             if (string.IsNullOrWhiteSpace(alasan))
-            {
                 throw new InvalidOrderException("Alasan pemblokiran wajib diisi!", "alasan_blokir", "BLOKIR_INVALID");
-            }
-            else
-            {
-                this._isDiblokir = true;
-                this._alasanBlokir = alasan.Trim();
-            }
+            this._isDiblokir = true;
+            this._alasanBlokir = alasan.Trim();
         }
 
         public void BukaBlokir()

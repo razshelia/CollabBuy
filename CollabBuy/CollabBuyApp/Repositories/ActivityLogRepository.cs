@@ -9,7 +9,7 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ActivityLogRepository : IQueryRepository<ActivityLog>, ICommandRepository<ActivityLog>
+    public class ActivityLogRepository : IQueryRepository<ActivityLog>, IQueryAllRepository<ActivityLog>, ICommandRepository<ActivityLog>
     {
         private readonly string _connectionString;
 

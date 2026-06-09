@@ -18,18 +18,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             _logRepo = new ActivityLogRepository();
         }
 
-        public List<Product> GetAllProduk()
-        {
-            try { return _productRepo.GetAll(); }
-            catch { return new List<Product>(); }
-        }
-
-        public DataTable GetKatalogAktifDashboard(int limit = 15)
-        {
-            try { return _productRepo.GetKatalogAktif(limit); }
-            catch { return new DataTable(); }
-        }
-
         public (bool sukses, string pesan) TambahProdukBaru(int idPenjual, int idKategori, string namaProduk, int hargaDasar, int? idPo, int? targetKuota, int minOrder, byte[] fotoProduk)
         {
             try

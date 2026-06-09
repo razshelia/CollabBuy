@@ -40,48 +40,27 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 po.TutupOtomatisJikaBasi(); // tandai expired tanpa throw
                 return po;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[PreOrderController.GetPreOrder] Error ID {idPo}: {ex.Message}");
                 return null;
             }
         }
 
         public int GetJumlahPoAktif()
         {
-            int jumlah;
             try
             {
                 DataTable dt = this._poRepo.GetSesiPOAktif("");
-
-                if (dt != null)
-                {
-                    jumlah = dt.Rows.Count;
-                }
-                else
-                {
-                    jumlah = 0;
-                }
+                return dt?.Rows.Count ?? 0;
             }
-            catch (Exception)
-            {
-                jumlah = 0;
-            }
-
-            return jumlah;
+            catch (Exception) { return 0; }
         }
 
         public DataTable GetActiveSesiPO(string keyword)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._poRepo.GetSesiPOAktif(keyword);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            try { return this._poRepo.GetSesiPOAktif(keyword); }
+            catch (Exception) { return new DataTable(); }
         }
 
         /// <summary>
@@ -90,52 +69,24 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public DataTable GetProdukTersedia(int idPenjual)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._poRepo.GetSemuaProdukAktif(idPenjual);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            try { return this._poRepo.GetSemuaProdukAktif(idPenjual); }
+            catch (Exception) { return new DataTable(); }
         }
 
         public (bool sukses, string pesan, int idPO) BukaSesiPOBaru(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
         {
-            (bool sukses, string pesan, int idPO) hasil;
-
             if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
+                return (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
+
+            try
             {
-                hasil = (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
+                Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
+                poBaru.BukaSesiBaru(batasWaktu);
+                int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
+                return (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
             }
-            else
-            {
-                try
-                {
-                    // OOP BEST PRACTICE: 
-                    // Kita gunakan DateTime.Now sebagai dummy awal agar lolos "Sanity Check" di dalam Model Setter.
-                    Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
-
-                    // Kita panggil Method Behavior untuk melakukan Validasi Bisnis (Masa Depan)
-                    poBaru.BukaSesiBaru(batasWaktu);
-
-                    int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
-                    hasil = (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
-                }
-                catch (InvalidOrderException ex)
-                {
-                    // Menangkap Exception tolakan dari Model jika tanggalnya di masa lalu
-                    hasil = (false, ex.GetPesanLengkap(), 0);
-                }
-                catch (Exception ex)
-                {
-                    hasil = (false, "Error: " + ex.Message, 0);
-                }
-            }
-
-            return hasil;
+            catch (InvalidOrderException ex) { return (false, ex.GetPesanLengkap(), 0); }
+            catch (Exception ex) { return (false, "Error: " + ex.Message, 0); }
         }
 
         public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
@@ -198,55 +149,27 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public (bool sukses, string pesan) TutupSesiPO(int idPo)
         {
-            (bool sukses, string pesan) hasil;
-
             try
             {
-                bool berhasil = this._poRepo.SoftDeletePO(idPo);
-
-                if (berhasil)
-                {
-                    hasil = (true, "Sesi PO berhasil ditutup dan dihapus (soft delete).");
-                }
-                else
-                {
-                    hasil = (false, "PO tidak ditemukan.");
-                }
+                this._poRepo.SoftDelete(idPo);
+                return (true, "Sesi PO berhasil ditutup dan dihapus (soft delete).");
             }
             catch (Exception ex)
             {
-                hasil = (false, "Error: " + ex.Message);
+                return (false, "Error: " + ex.Message);
             }
-
-            return hasil;
         }
 
         public DataTable GetPOByPenjual(int idPenjual)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._poRepo.GetPOByPenjual(idPenjual);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            try { return this._poRepo.GetPOByPenjual(idPenjual); }
+            catch (Exception) { return new DataTable(); }
         }
 
         public DataTable GetPOAktifByPenjual(int idPenjual)
         {
-            DataTable dt;
-            try
-            {
-                dt = this._poRepo.GetPOAktifByPenjual(idPenjual);
-            }
-            catch (Exception)
-            {
-                dt = new DataTable();
-            }
-            return dt;
+            try { return this._poRepo.GetPOAktifByPenjual(idPenjual); }
+            catch (Exception) { return new DataTable(); }
         }
     }
 }

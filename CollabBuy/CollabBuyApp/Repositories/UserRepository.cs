@@ -13,7 +13,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// Repository untuk mengakses data User.
     /// Mengimplementasikan IQueryRepository dan ICommandRepository dengan Strict OOP.
     /// </summary>
-    public class UserRepository : IQueryRepository<User>, ICommandRepository<User>
+    public class UserRepository : IQueryRepository<User>, IQueryAllRepository<User>, ICommandRepository<User>
     {
         private readonly string _connectionString;
 
