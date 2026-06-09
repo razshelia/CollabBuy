@@ -236,8 +236,9 @@ AFTER INSERT ON transactions
 FOR EACH STATEMENT
 EXECUTE FUNCTION fn_nonaktifkan_po_expired();
 
+-- SESUDAH (diperbaiki — hapus UPDATE):
 CREATE TRIGGER trg_auto_tutup_po_on_new_po
-AFTER INSERT OR UPDATE ON preorders
+AFTER INSERT ON preorders
 FOR EACH STATEMENT
 EXECUTE FUNCTION fn_nonaktifkan_po_expired();
 
@@ -351,7 +352,6 @@ INSERT INTO transactions (id_koordinator, tanggal_transaksi, status_pesanan, buk
 (6, '2026-05-02 11:30:00', 'Selesai', '\x', TRUE),
 (6, '2026-05-05 14:00:00', 'Selesai', '\x', TRUE);
 
-ALTER TABLE transaction_details DISABLE TRIGGER trg_cek_waktu_po;
 ALTER TABLE transaction_details DISABLE TRIGGER t_before_insert_detail;
 
 INSERT INTO transaction_details
@@ -363,7 +363,6 @@ VALUES
     (1, 2, 1, 'Kaos Panitia',     'Kevin', 1, 'Warna Hitam',    65000, NULL);
 
 ALTER TABLE transaction_details ENABLE TRIGGER t_before_insert_detail;
-ALTER TABLE transaction_details ENABLE TRIGGER trg_cek_waktu_po;
 
 -- Batch 2: PO Gotong Royong HIMATIF (masih aktif — trigger menyala)
 INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan) VALUES
@@ -394,7 +393,6 @@ INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_p
 (6, 5, 'Reza',              20, 'Risol mayo anget');
 
 -- Batch 4: PO Binder Kopma (sudah tutup — trigger waktu di-disable sementara)
-ALTER TABLE transaction_details DISABLE TRIGGER trg_cek_waktu_po;
 ALTER TABLE transaction_details DISABLE TRIGGER t_before_insert_detail;
 
 INSERT INTO transaction_details
@@ -405,7 +403,6 @@ VALUES
     (7, 16, 6, 'Notebook Spiral',  'Adiknya Reza', 2, 'Notebook',  15000, NULL);
 
 ALTER TABLE transaction_details ENABLE TRIGGER t_before_insert_detail;
-ALTER TABLE transaction_details ENABLE TRIGGER trg_cek_waktu_po;
 
 -- Batch 5: transaksi lanjutan
 INSERT INTO transactions (id_koordinator, tanggal_transaksi, status_pesanan, bukti_bayar, is_valid) VALUES
