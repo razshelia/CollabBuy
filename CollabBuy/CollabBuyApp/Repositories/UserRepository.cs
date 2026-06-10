@@ -494,5 +494,26 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
+        public int? GetIdPenjualByNamaToko(string namaToko)
+        {
+            string query = @"
+        SELECT u.id_user 
+        FROM users u
+        JOIN verifications v ON u.id_user = v.id_user
+        WHERE LOWER(v.nama_toko) = LOWER(@namaToko)
+          AND v.is_verifikasi = TRUE
+        LIMIT 1;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@namaToko", namaToko.Trim());
+                    var result = cmd.ExecuteScalar();
+                    return result != null ? (int?)Convert.ToInt32(result) : null;
+                }
+            }
+        }
     }
 }

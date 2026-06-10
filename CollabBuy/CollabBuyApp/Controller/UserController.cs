@@ -151,14 +151,22 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // =======================================================
         // FITUR ADMIN & MANAJEMEN PROFIL
         // =======================================================
-        public (bool sukses, string pesan) TindakPenjualNakal(int idAduan, int idPenjual, string balasanAdmin)
+        public (bool sukses, string pesan) TindakPenjualNakal(int idAduan, string namaToko, string balasanAdmin)
         {
             if (string.IsNullOrWhiteSpace(balasanAdmin))
                 return (false, "Balasan/alasan penindakan wajib diisi!");
 
+            if (string.IsNullOrWhiteSpace(namaToko))
+                return (false, "Nama toko wajib diisi!");
+
             try
             {
-                this._userRepo.TindakPenjualNakal(idAduan, idPenjual, balasanAdmin.Trim());
+                int? idPenjual = this._userRepo.GetIdPenjualByNamaToko(namaToko);
+
+                if (idPenjual == null)
+                    return (false, $"Toko \"{namaToko}\" tidak ditemukan atau belum terverifikasi.");
+
+                this._userRepo.TindakPenjualNakal(idAduan, idPenjual.Value, balasanAdmin.Trim());
                 return (true, "Penjual berhasil diblokir dan aduan telah diselesaikan.");
             }
             catch (Exception ex)

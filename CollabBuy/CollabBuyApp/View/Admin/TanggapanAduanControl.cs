@@ -225,42 +225,36 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             if (this._selectedIdAduan == 0)
             {
-                MessageBox.Show("Silakan pilih aduan yang berkaitan dengan penjual terlebih dahulu!", "Pilih Aduan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Silakan pilih aduan terlebih dahulu!",
+                    "Pilih Aduan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else if (string.IsNullOrWhiteSpace(this.txtBalasan.Text))
+            if (string.IsNullOrWhiteSpace(this.txtBalasan.Text))
             {
-                MessageBox.Show("Mohon isi balasan atau alasan pemblokiran di kotak teks terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Mohon isi alasan pemblokiran di kotak teks terlebih dahulu!",
+                    "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Ganti InputBox ID → InputBox nama toko
+            string namaToko = Microsoft.VisualBasic.Interaction.InputBox(
+                "Masukkan nama toko penjual yang ingin diblokir:",
+                "Blokir Penjual Nakal", "");
+
+            if (string.IsNullOrWhiteSpace(namaToko)) return; // Admin tekan Cancel
+
+            var (sukses, pesan) = this._userController.TindakPenjualNakal(
+                this._selectedIdAduan, namaToko, this.txtBalasan.Text);
+
+            if (sukses)
+            {
+                MessageBox.Show("Boom! 💥 Penjual nakal berhasil di-banned!",
+                    "Banned", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.LoadAduan();
             }
             else
             {
-                string idPenjualStr = Microsoft.VisualBasic.Interaction.InputBox("Spill ID User Penjual yang mau di-banned:", "Blokir Penjual Nakal", "");
-
-                if (int.TryParse(idPenjualStr, out int idPenjual))
-                {
-                    var (sukses, pesan) = this._userController.TindakPenjualNakal(this._selectedIdAduan, idPenjual, this.txtBalasan.Text);
-
-                    if (sukses)
-                    {
-                        MessageBox.Show("Boom! 💥 Penjual nakal berhasil di-banned!", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.LoadAduan();
-                    }
-                    else
-                    {
-                        MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                else
-                {
-                    if (string.IsNullOrWhiteSpace(idPenjualStr))
-                    {
-                        // Pengguna menekan tombol Cancel atau menutup InputBox
-                        bool batalBlokir = true;
-                    }
-                    else
-                    {
-                        MessageBox.Show("ID Penjual harus berupa angka!", "Format Salah", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
