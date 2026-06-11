@@ -25,6 +25,7 @@
             this.splitMain = new System.Windows.Forms.SplitContainer();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.dgvRiwayat = new System.Windows.Forms.DataGridView();
+            this.txtCariRiwayat = new System.Windows.Forms.TextBox();
 
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).BeginInit();
             this.splitMain.Panel1.SuspendLayout();
@@ -68,6 +69,7 @@
             // splitMain.Panel1
             // 
             this.splitMain.Panel1.BackColor = System.Drawing.Color.White;
+            this.splitMain.Panel1.Controls.Add(this.txtCariRiwayat);
             this.splitMain.Panel1.Controls.Add(this.dgvRiwayat);
             this.splitMain.Panel1.Controls.Add(this.btnRefresh);
             this.splitMain.Panel1MinSize = 300;
@@ -102,14 +104,21 @@
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
 
+            // txtCariRiwayat
+            this.txtCariRiwayat.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtCariRiwayat.Location = new System.Drawing.Point(10, 10);
+            this.txtCariRiwayat.Size = new System.Drawing.Size(280, 28);
+            this.txtCariRiwayat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtCariRiwayat.PlaceholderText = "🔍 Cari status pesanan...";
+            this.txtCariRiwayat.Name = "txtCariRiwayat";
+            this.txtCariRiwayat.TextChanged += new System.EventHandler(this.txtCariRiwayat_TextChanged);
+
             // 
             // dgvRiwayat
             // 
             this.dgvRiwayat.AllowUserToAddRows = false;
             this.dgvRiwayat.AllowUserToDeleteRows = false;
-            this.dgvRiwayat.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvRiwayat.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.dgvRiwayat.BackgroundColor = System.Drawing.Color.White;
             this.dgvRiwayat.BorderStyle = System.Windows.Forms.BorderStyle.None;
 
@@ -124,7 +133,7 @@
             this.dgvRiwayat.ColumnHeadersDefaultCellStyle = hdrStyle;
             this.dgvRiwayat.ColumnHeadersHeight = 45;
             this.dgvRiwayat.EnableHeadersVisualStyles = false;
-            this.dgvRiwayat.Location = new System.Drawing.Point(10, 10);
+            this.dgvRiwayat.Location = new System.Drawing.Point(0, 100);
             this.dgvRiwayat.MultiSelect = false;
             this.dgvRiwayat.Name = "dgvRiwayat";
             this.dgvRiwayat.ReadOnly = true;
@@ -138,7 +147,7 @@
             this.dgvRiwayat.RowsDefaultCellStyle = rowStyle;
             this.dgvRiwayat.RowTemplate.Height = 45;
             this.dgvRiwayat.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvRiwayat.Size = new System.Drawing.Size(920, 455);
+            this.dgvRiwayat.Size = new System.Drawing.Size(930, 420);
             this.dgvRiwayat.TabIndex = 0;
 
             // 
@@ -169,5 +178,6 @@
         private System.Windows.Forms.SplitContainer splitMain;
         private System.Windows.Forms.DataGridView dgvRiwayat;
         private System.Windows.Forms.Button btnRefresh;
+        private System.Windows.Forms.TextBox txtCariRiwayat;
     }
 }

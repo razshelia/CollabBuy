@@ -5,7 +5,8 @@ namespace CollabBuy.CollabBuyApp.Exceptions // Folder dan Namespace baru yang le
     /// <summary>
     /// Custom Exception untuk menangani error validasi aturan bisnis di aplikasi CollabBuy.
     /// </summary>
-    public class InvalidOrderException : Exception
+    public class InvalidOrderException : AppException
+
     {
         // === PRIVATE FIELDS ===
         private string _fieldYangError;
@@ -14,56 +15,44 @@ namespace CollabBuy.CollabBuyApp.Exceptions // Folder dan Namespace baru yang le
         // === KONSTRUKTOR ===
         public InvalidOrderException(string pesan) : base(pesan)
         {
-            this.SetFieldYangError("");
-            this.SetAturanYangDilanggar("");
+            this.FieldYangError = "";
+            this.AturanYangDilanggar = "";
         }
 
         public InvalidOrderException(string pesan, string fieldYangError, string aturanYangDilanggar) : base(pesan)
         {
-            this.SetFieldYangError(fieldYangError);
-            this.SetAturanYangDilanggar(aturanYangDilanggar);
+            this.FieldYangError = fieldYangError;
+            this.AturanYangDilanggar = aturanYangDilanggar;
         }
 
         public InvalidOrderException(string pesan, string fieldYangError, string aturanYangDilanggar, Exception innerException) : base(pesan, innerException)
         {
-            this.SetFieldYangError(fieldYangError);
-            this.SetAturanYangDilanggar(aturanYangDilanggar);
+            this.FieldYangError = fieldYangError;
+            this.AturanYangDilanggar = aturanYangDilanggar;
         }
 
         // === GETTER & SETTER (ENKAPSULASI PENUH DENGAN IF-ELSE AKTIF) ===
-        public string GetFieldYangError()
+        public string FieldYangError
         {
-            return this._fieldYangError;
-        }
-
-        public void SetFieldYangError(string field)
-        {
-            // Logika validasi: Cegah data null/spasi kosong
-            if (string.IsNullOrWhiteSpace(field))
+            get { return this._fieldYangError; }
+            private set
             {
-                this._fieldYangError = "Tidak Spesifik";
-            }
-            else
-            {
-                this._fieldYangError = field.Trim();
+                if (string.IsNullOrWhiteSpace(value))
+                    this._fieldYangError = "Tidak Spesifik";
+                else
+                    this._fieldYangError = value.Trim();
             }
         }
 
-        public string GetAturanYangDilanggar()
+        public string AturanYangDilanggar
         {
-            return this._aturanYangDilanggar;
-        }
-
-        public void SetAturanYangDilanggar(string aturan)
-        {
-            // Logika validasi: Cegah data null/spasi kosong
-            if (string.IsNullOrWhiteSpace(aturan))
+            get { return this._aturanYangDilanggar; }
+            private set
             {
-                this._aturanYangDilanggar = "Aturan Umum";
-            }
-            else
-            {
-                this._aturanYangDilanggar = aturan.Trim();
+                if (string.IsNullOrWhiteSpace(value))
+                    this._aturanYangDilanggar = "Aturan Umum";
+                else
+                    this._aturanYangDilanggar = value.Trim();
             }
         }
 
@@ -75,18 +64,18 @@ namespace CollabBuy.CollabBuyApp.Exceptions // Folder dan Namespace baru yang le
             string tambahanAturan;
 
             // Setiap IF memiliki ELSE yang melakukan operasi assignment nyata (tidak kosong)
-            if (this._fieldYangError != "Tidak Spesifik")
+            if (this.FieldYangError != "Tidak Spesifik")
             {
-                tambahanField = " [Field: " + this._fieldYangError + "]";
+                tambahanField = " [Field: " + this.FieldYangError + "]";
             }
             else
             {
                 tambahanField = ""; // Assignment string kosong secara eksplisit
             }
 
-            if (this._aturanYangDilanggar != "Aturan Umum")
+            if (this.AturanYangDilanggar != "Aturan Umum")
             {
-                tambahanAturan = " [Aturan: " + this._aturanYangDilanggar + "]";
+                tambahanAturan = " [Aturan: " + this.AturanYangDilanggar + "]";
             }
             else
             {
@@ -98,5 +87,10 @@ namespace CollabBuy.CollabBuyApp.Exceptions // Folder dan Namespace baru yang le
 
             return pesanLengkap;
         }
+        public override string GetKategoriError()
+        {
+            return "Pelanggaran Aturan Bisnis";
+        }
+
     }
 }

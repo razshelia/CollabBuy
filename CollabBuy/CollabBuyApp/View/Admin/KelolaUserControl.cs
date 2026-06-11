@@ -14,6 +14,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private int _selectedIdUser;
         private string _selectedRawStatus;
         private ToolTip _gridTooltip = new ToolTip();
+        private DataTable _dtUserCache;
 
         public KelolaUserControl(Models.User currentUser)
         {
@@ -118,6 +119,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     );
                 }
 
+                this._dtUserCache = dtUI;
+                this.dgvUser.DataSource = this._dtUserCache;
                 this.dgvUser.DataSource = dtUI;
                 this.dgvUser.ClearSelection();
                 this.ResetDetail();
@@ -127,6 +130,23 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 MessageBox.Show("Gagal muat data user: " + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        private void TerapkanFilterUser()
+        {
+            if (this._dtUserCache == null) return;
+            string kata = this.txtCariUser.Text.Trim().ToLower();
+            DataView dv = this._dtUserCache.DefaultView;
+            if (string.IsNullOrEmpty(kata))
+                dv.RowFilter = "";
+            else
+                dv.RowFilter = $"nama LIKE '%{kata}%' OR username LIKE '%{kata}%' OR info_kontak LIKE '%{kata}%'";
+            this.dgvUser.DataSource = dv;
+            this.dgvUser.ClearSelection();
+            this.ResetDetail();
+        }
+        private void txtCariUser_TextChanged(object sender, EventArgs e)
+        {
+            this.TerapkanFilterUser();
         }
 
         private void dgvUser_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -223,19 +243,18 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             int w = this.Width - (margin * 2);
             int gridW = (int)(w * 0.60);
 
-            // pnlCard mengikuti tinggi form
             pnlCard.Width = gridW;
             pnlCard.Height = this.Height - pnlCard.Top - margin;
 
-            // dgvUser mengisi panel, sisakan ruang untuk btnRefresh
+            // Posisi txtCariUser sudah fixed di Designer (Y=14, Height=28)
+            // dgvUser dimulai di bawah txtCari
+            dgvUser.Top = 50;                                       
             dgvUser.Width = pnlCard.Width - 48;
-            dgvUser.Height = pnlCard.Height - btnRefresh.Height - 60;
+            dgvUser.Height = pnlCard.Height - btnRefresh.Height - 80; 
 
-            // btnRefresh di pojok kanan bawah pnlCard
             btnRefresh.Top = pnlCard.Height - btnRefresh.Height - 15;
             btnRefresh.Left = pnlCard.Width - btnRefresh.Width - 14;
 
-            // pnlDetail di sebelah kanan pnlCard
             int detailLeft = margin + gridW + 20;
             pnlDetail.Left = detailLeft;
             pnlDetail.Width = this.Width - detailLeft - margin;
@@ -243,7 +262,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             pnlDetail.AutoScroll = true;
             pnlDetail.AutoScrollMinSize = new System.Drawing.Size(0, 625);
 
-            // Sesuaikan lebar tombol blokir dengan panel
             btnBlokir.Width = 160;
             btnBlokir.Left = (pnlDetail.Width - btnBlokir.Width) / 2;
         }

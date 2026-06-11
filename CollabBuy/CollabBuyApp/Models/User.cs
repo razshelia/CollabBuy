@@ -116,8 +116,8 @@ namespace CollabBuy.CollabBuyApp.Models
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new InvalidOrderException("Peran pengguna tidak boleh kosong!", "peran", "USER_PERAN_KOSONG");
-                if (value != "Admin" && value != "Penjual" && value != "Pembeli" && value != "User")
-                    throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, Pembeli, atau User.", "peran", "USER_PERAN_INVALID");
+                if (value != "Admin" && value != "Penjual" && value != "User")
+                    throw new InvalidOrderException("Peran tidak valid! Harus Admin, Penjual, atau User.", "peran", "USER_PERAN_INVALID");
                 this._peran = value.Trim();
             }
         }
@@ -202,8 +202,12 @@ namespace CollabBuy.CollabBuyApp.Models
             return true;
         }
 
-        public string DapatkanInisialProfil()
-            => string.IsNullOrWhiteSpace(this._nama) ? "U" : this._nama.Substring(0, 1).ToUpper();
+        public string DapatkanInisialProfil(int jumlahKarakter)
+        {
+            if (string.IsNullOrWhiteSpace(this._nama)) return "U";
+            int ambil = Math.Min(jumlahKarakter, this._nama.Length);
+            return this._nama.Substring(0, ambil).ToUpper();
+        }
 
         public string DapatkanLinkWhatsApp()
         {

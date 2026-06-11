@@ -264,15 +264,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return dt;
         }
 
-        public void ToggleBlokirUser(int idUser, bool blokir)
+        public void ToggleBlokirUser(int idUser, bool blokir, string alasan = "")
         {
-            string query = "UPDATE users SET is_diblokir = @blokir WHERE id_user = @id;";
+            string query = "UPDATE users SET is_diblokir = @blokir, alasan_blokir = @alasan WHERE id_user = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@blokir", blokir);
+                    cmd.Parameters.AddWithValue("@alasan", blokir ? alasan.Trim() : "");
                     cmd.Parameters.AddWithValue("@id", idUser);
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOperationException("User tidak ditemukan atau gagal diupdate.");
@@ -358,12 +359,13 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
 
             userObj.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
-            if (HasColumn(reader, "nomor_telepon") && !reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
-                userObj.NomorTelepon = reader.GetString(reader.GetOrdinal("nomor_telepon"));
-            if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
-                userObj.Email = reader.GetString(reader.GetOrdinal("email"));
             if (HasColumn(reader, "is_diblokir") && !reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
-                userObj.Blokir("Diblokir oleh Admin");
+            {
+                string alasanDb = HasColumn(reader, "alasan_blokir") && !reader.IsDBNull(reader.GetOrdinal("alasan_blokir"))
+                    ? reader.GetString(reader.GetOrdinal("alasan_blokir"))
+                    : "";
+                userObj.Blokir(string.IsNullOrWhiteSpace(alasanDb) ? "Diblokir oleh Admin" : alasanDb);
+            }
 
             return userObj;
         }

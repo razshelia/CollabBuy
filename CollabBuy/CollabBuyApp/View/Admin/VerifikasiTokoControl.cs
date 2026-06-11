@@ -13,6 +13,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private readonly UserController _userController;
         private int _selectedIdUser;
         private RichTextBox _rtbInfoPendaftar;
+        private DataTable _dtVerifikasiCache;
 
         public VerifikasiTokoControl()
         {
@@ -93,7 +94,8 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 bool rawKosong = true; // Assignment nyata menghindari else kosong
             }
 
-            this.dgvVerifikasi.DataSource = dtUI;
+            this._dtVerifikasiCache = dtUI; 
+            this.dgvVerifikasi.DataSource = this._dtVerifikasiCache;
 
             if (this.dgvVerifikasi.Columns.Count > 0)
             {
@@ -119,6 +121,23 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             this.btnApprove.ForeColor = Color.FromArgb(140, 140, 140);
             this._selectedIdUser = 0;
         }
+
+        private void TerapkanFilterVerifikasi()
+        {
+            if (this._dtVerifikasiCache == null) return;
+            string kata = this.txtCariVerifikasi.Text.Trim();
+            DataView dv = this._dtVerifikasiCache.DefaultView;
+            dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
+                : $"nama_penjual LIKE '%{kata}%'";
+            this.dgvVerifikasi.DataSource = dv;
+            this.dgvVerifikasi.ClearSelection();
+        }
+
+        private void txtCariVerifikasi_TextChanged(object sender, EventArgs e)
+        {
+            this.TerapkanFilterVerifikasi();
+        }
+
         private void PastikanInfoPendaftarAda()
         {
             if (_rtbInfoPendaftar != null) return;

@@ -24,7 +24,8 @@ CREATE TABLE users (
     username        VARCHAR(50)  UNIQUE NOT NULL,
     password        VARCHAR(255) NOT NULL,
     peran           VARCHAR(20)  DEFAULT 'User',
-    is_diblokir     BOOLEAN      DEFAULT FALSE
+    is_diblokir     BOOLEAN      DEFAULT FALSE,
+    alasan_blokir   TEXT         DEFAULT ''
 );
 
 CREATE TABLE verifications (

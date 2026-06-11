@@ -14,6 +14,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
     {
         private readonly Models.User _currentUser;
         private readonly TransactionController _transactionController;
+        private DataTable _dtRiwayatCache;
 
         public RiwayatPesananControl(Models.User currentUser)
         {
@@ -28,9 +29,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         // ── Load ────────────────────────────────────────────────
         private void RiwayatPesananControl_Load(object sender, EventArgs e)
         {
-            this.AdjustLayout();
             this.SetupDataGridView();
             this.LoadDataRiwayat();
+
+            this.splitMain.Panel1.SizeChanged += (s, ev) =>
+            {
+                this.dgvRiwayat.Size = new System.Drawing.Size(930, 420);
+                this.btnRefresh.Left = this.splitMain.Panel1.Width - this.btnRefresh.Width - 10;
+            };
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -57,10 +63,11 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             if (this.dgvRiwayat != null && this.splitMain.Panel1 != null)
             {
-                this.dgvRiwayat.Location = new Point(10, 10);
+                // UBAH: dari Point(10, 10) → Point(0, 46) agar tidak nabrak txtCari
+                this.dgvRiwayat.Location = new Point(0, 46);   // ← UBAH INI
                 int h = this.btnRefresh != null
-                    ? this.splitMain.Panel1.Height - this.btnRefresh.Height - 30
-                    : this.splitMain.Panel1.Height - 30;
+                    ? this.splitMain.Panel1.Height - this.btnRefresh.Height - 60
+                    : this.splitMain.Panel1.Height - 60;
                 this.dgvRiwayat.Size = new Size(this.splitMain.Panel1.Width - 20, h);
             }
         }
@@ -169,7 +176,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 if (this.dgvRiwayat != null)
                 {
-                    this.dgvRiwayat.DataSource = dtUI;
+                    this._dtRiwayatCache = dtUI;
+                    this.dgvRiwayat.DataSource = this._dtRiwayatCache;
                     this.dgvRiwayat.ClearSelection();
                 }
             }
@@ -178,6 +186,22 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 MessageBox.Show("Gagal memuat riwayat: " + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void TerapkanFilterRiwayat()
+        {
+            if (this._dtRiwayatCache == null) return;
+            string kata = this.txtCariRiwayat.Text.Trim();
+            DataView dv = this._dtRiwayatCache.DefaultView;
+            dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
+                : $"status_pesanan LIKE '%{kata}%'";
+            this.dgvRiwayat.DataSource = dv;
+            this.dgvRiwayat.ClearSelection();
+        }
+
+        private void txtCariRiwayat_TextChanged(object sender, EventArgs e)
+        {
+            this.TerapkanFilterRiwayat();
         }
 
         // ── Tampilkan Detail Layar Penuh (TableLayoutPanel Style) ───────────

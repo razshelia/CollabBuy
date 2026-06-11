@@ -21,13 +21,46 @@ namespace CollabBuy.CollabBuyApp.Models
         private int _minOrder;
         private byte[] _fotoProduk;
         private string _jenisPo;
+        private int _idPenjual;
+        private int _idKategori;
+        private int _terpesan;
 
         // === PROPERTIES ===
 
-        // Properti Read-Only (Hanya bisa di-set dari dalam kelas/konstruktor)
-        public int IdPenjual { get; private set; }
-        public int IdKategori { get; private set; }
-        public int Terpesan { get; private set; }
+        public int IdPenjual
+        {
+            get { return this._idPenjual; }
+            private set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Penjual tidak valid!", "id_penjual", "PRODUK_PENJUAL_INVALID");
+                this._idPenjual = value;
+            }
+        }
+
+        public int IdKategori
+        {
+            get { return this._idKategori; }
+            private set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Kategori tidak valid!", "id_kategori", "PRODUK_KATEGORI_INVALID");
+                this._idKategori = value;
+            }
+        }
+
+        public int Terpesan
+        {
+            get { return this._terpesan; }
+            private set
+            {
+                if (value < 0)
+                    this._terpesan = 0;
+                else
+                    this._terpesan = value;
+            }
+        }
+
 
         public int IdProduk
         {

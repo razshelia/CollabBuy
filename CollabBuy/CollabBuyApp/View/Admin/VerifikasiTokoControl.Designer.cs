@@ -10,6 +10,7 @@
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.dgvVerifikasi = new System.Windows.Forms.DataGridView();
+            this.txtCariVerifikasi = new System.Windows.Forms.TextBox();
             this.pnlKTM = new System.Windows.Forms.Panel();
             this.lblKTM = new System.Windows.Forms.Label();
             this.pbKTM = new System.Windows.Forms.PictureBox();
@@ -33,9 +34,18 @@
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Text = "Cek baik-baik foto KTM-nya sebelum kasih ijin jualan ya min!";
 
+            // txtCariVerifikasi
+            this.txtCariVerifikasi.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtCariVerifikasi.Location = new System.Drawing.Point(38, 88);
+            this.txtCariVerifikasi.Size = new System.Drawing.Size(300, 28);
+            this.txtCariVerifikasi.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtCariVerifikasi.PlaceholderText = "🔍 Cari nama penjual...";
+            this.txtCariVerifikasi.Name = "txtCariVerifikasi";
+            this.txtCariVerifikasi.TextChanged += new System.EventHandler(this.txtCariVerifikasi_TextChanged);
+
             // dgvVerifikasi
             this.dgvVerifikasi.BackgroundColor = System.Drawing.Color.White;
-            this.dgvVerifikasi.Location = new System.Drawing.Point(38, 110);
+            this.dgvVerifikasi.Location = new System.Drawing.Point(38, 122);
             this.dgvVerifikasi.Size = new System.Drawing.Size(550, 480);
             this.dgvVerifikasi.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvVerifikasi.ReadOnly = true;
@@ -76,6 +86,7 @@
             // Control Setup
             this.BackColor = System.Drawing.Color.White;
             this.Controls.Add(this.pnlKTM);
+            this.Controls.Add(this.txtCariVerifikasi);
             this.Controls.Add(this.dgvVerifikasi);
             this.Controls.Add(this.lblSubtitle);
             this.Controls.Add(this.lblTitle);
@@ -94,5 +105,6 @@
         private System.Windows.Forms.Panel pnlKTM;
         private System.Windows.Forms.PictureBox pbKTM;
         private System.Windows.Forms.Button btnApprove;
+        private System.Windows.Forms.TextBox txtCariVerifikasi;
     }
 }

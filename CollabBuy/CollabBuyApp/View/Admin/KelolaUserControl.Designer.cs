@@ -30,6 +30,7 @@
             this.lblStatusLabel = new System.Windows.Forms.Label();
             this.lblDetailStatus = new System.Windows.Forms.Label();
             this.btnBlokir = new System.Windows.Forms.Button();
+            this.txtCariUser = new System.Windows.Forms.TextBox();
 
             this.pnlCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUser)).BeginInit();
@@ -48,6 +49,15 @@
             this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(90, 24, 154);
             this.lblSubtitle.Location = new System.Drawing.Point(34, 65);
             this.lblSubtitle.Text = "Pantau dan kelola semua akun pengguna CollabBuy";
+
+            // --- txtCariUser ---
+            this.txtCariUser.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtCariUser.Location = new System.Drawing.Point(14, 14);
+            this.txtCariUser.Size = new System.Drawing.Size(260, 28);
+            this.txtCariUser.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtCariUser.PlaceholderText = "🔍 Cari nama, username, kontak...";
+            this.txtCariUser.Name = "txtCariUser";
+            this.txtCariUser.TextChanged += new System.EventHandler(this.txtCariUser_TextChanged);
 
             // dgvUser
             headerStyle.BackColor = System.Drawing.Color.FromArgb(200, 182, 255);
@@ -91,6 +101,7 @@
             this.pnlCard.BackColor = System.Drawing.Color.White;
             this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlCard.Controls.Add(this.btnRefresh);
+            this.pnlCard.Controls.Add(this.txtCariUser);
             this.pnlCard.Controls.Add(this.dgvUser);
             this.pnlCard.Location = new System.Drawing.Point(36, 110);
             this.pnlCard.Size = new System.Drawing.Size(580, 500);
@@ -211,5 +222,6 @@
         private System.Windows.Forms.Label lblTeleponLabel, lblDetailTelepon;
         private System.Windows.Forms.Label lblPeranLabel, lblDetailPeran;
         private System.Windows.Forms.Label lblStatusLabel, lblDetailStatus;
+        private System.Windows.Forms.TextBox txtCariUser;
     }
 }

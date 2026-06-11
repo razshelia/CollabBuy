@@ -19,6 +19,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private bool _modeEdit = false;
         private readonly PreOrderController _poController;
         private ToolTip _gridTooltip = new ToolTip();
+        private DataTable _dtProdukCache;
 
         public ManajemenProdukControl(Models.User currentUser)
         {
@@ -336,6 +337,22 @@ namespace CollabBuy.CollabBuyApp.View.Product
             if (this.cbSesiPO.Items.Count > 0) this.cbSesiPO.SelectedIndex = 0;
         }
 
+        private void TerapkanFilterProduk()
+        {
+            if (this._dtProdukCache == null) return;
+            string kata = this.txtCariProduk.Text.Trim().ToLower();
+            DataView dv = this._dtProdukCache.DefaultView;
+            dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
+                : $"nama_produk LIKE '%{kata}%' OR nama_penitip LIKE '%{kata}%'";
+            this.dgvLapak.DataSource = dv;
+            this.dgvLapak.ClearSelection();
+        }
+
+        private void txtCariProduk_TextChanged(object sender, EventArgs e)
+        {
+            this.TerapkanFilterProduk();
+        }
+
         private void AdjustLayout()
         {
             int margin = 36;
@@ -495,7 +512,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     }
                 }
 
-                this.dgvLapak.DataSource = dtUI;
+                this._dtProdukCache = dtUI;
+                this.dgvLapak.DataSource = this._dtProdukCache;
                 this.dgvLapak.ClearSelection();
             }
             catch (Exception ex)

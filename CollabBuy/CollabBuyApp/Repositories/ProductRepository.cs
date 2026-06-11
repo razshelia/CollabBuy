@@ -285,6 +285,21 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 ? reader.GetString(reader.GetOrdinal("jenis_po"))
                 : "Biasa";
 
+            int ordTerpesan = -1;
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i).Equals("terpesan", StringComparison.OrdinalIgnoreCase))
+                {
+                    ordTerpesan = i;
+                    break;
+                }
+            }
+            if (ordTerpesan >= 0 && !reader.IsDBNull(ordTerpesan))
+            {
+                int nilaiTerpesan = reader.GetInt32(ordTerpesan);
+                if (nilaiTerpesan > 0)
+                    produk.TambahPesanan(nilaiTerpesan);
+            }
             return produk;
         }
 

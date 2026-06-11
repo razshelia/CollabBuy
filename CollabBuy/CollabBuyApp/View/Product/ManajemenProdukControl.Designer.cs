@@ -20,6 +20,7 @@
             this.btnRefresh = new System.Windows.Forms.Button();
             this.btnTambahProduk = new System.Windows.Forms.Button();
             this.dgvLapak = new System.Windows.Forms.DataGridView();
+            this.txtCariProduk = new System.Windows.Forms.TextBox();
             this.pnlTambahProduk = new System.Windows.Forms.Panel();
             this.lblFormTitle = new System.Windows.Forms.Label();
             this.lblNamaProduk = new System.Windows.Forms.Label();
@@ -66,6 +67,7 @@
             // pnlGrid
             this.pnlGrid.BackColor = System.Drawing.Color.White;
             this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlGrid.Controls.Add(this.txtCariProduk);
             this.pnlGrid.Controls.Add(this.btnTambahProduk);
             this.pnlGrid.Controls.Add(this.btnRefresh);
             this.pnlGrid.Controls.Add(this.dgvLapak);
@@ -104,6 +106,15 @@
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
 
+            // txtCariProduk
+            this.txtCariProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtCariProduk.Location = new System.Drawing.Point(34, 8);
+            this.txtCariProduk.Size = new System.Drawing.Size(300, 28);
+            this.txtCariProduk.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtCariProduk.PlaceholderText = "🔍 Cari nama produk atau penitip...";
+            this.txtCariProduk.Name = "txtCariProduk";
+            this.txtCariProduk.TextChanged += new System.EventHandler(this.txtCariProduk_TextChanged);
+
             // dgvLapak
             this.dgvLapak.AllowUserToAddRows = false;
             this.dgvLapak.AllowUserToDeleteRows = false;
@@ -119,7 +130,7 @@
             this.dgvLapak.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvLapak.ColumnHeadersHeight = 45;
             this.dgvLapak.EnableHeadersVisualStyles = false;
-            this.dgvLapak.Location = new System.Drawing.Point(34, 30);
+            this.dgvLapak.Location = new System.Drawing.Point(34, 44);
             this.dgvLapak.MultiSelect = false;
             this.dgvLapak.Name = "dgvLapak";
             this.dgvLapak.ReadOnly = false;
@@ -345,5 +356,6 @@
         private System.Windows.Forms.Button btnBatalTambah;
         private System.Windows.Forms.Label lblSesiPO;
         private System.Windows.Forms.ComboBox cbSesiPO;
+        private System.Windows.Forms.TextBox txtCariProduk;
     }
 }

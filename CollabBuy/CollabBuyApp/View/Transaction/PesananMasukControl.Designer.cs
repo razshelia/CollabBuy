@@ -23,6 +23,7 @@
             this.btnSelesai = new System.Windows.Forms.Button();
             this.btnProses = new System.Windows.Forms.Button();
             this.dgvPesanan = new System.Windows.Forms.DataGridView();
+            this.txtCariPesanan = new System.Windows.Forms.TextBox();
             this.pnlCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPesanan)).BeginInit();
             this.SuspendLayout();
@@ -53,6 +54,7 @@
             // 
             this.pnlCard.BackColor = System.Drawing.Color.White;
             this.pnlCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard.Controls.Add(this.txtCariPesanan);
             this.pnlCard.Controls.Add(this.btnBatal);
             this.pnlCard.Controls.Add(this.btnLihatDetail);
             this.pnlCard.Controls.Add(this.btnSelesai);
@@ -129,6 +131,15 @@
             this.btnProses.Text = "🚀 Proses Pesanan";
             this.btnProses.UseVisualStyleBackColor = false;
             this.btnProses.Click += new System.EventHandler(this.btnProses_Click);
+
+            // txtCariPesanan
+            this.txtCariPesanan.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtCariPesanan.Location = new System.Drawing.Point(34, 14);
+            this.txtCariPesanan.Size = new System.Drawing.Size(300, 28);
+            this.txtCariPesanan.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtCariPesanan.PlaceholderText = "🔍 Cari nama pembeli atau status...";
+            this.txtCariPesanan.Name = "txtCariPesanan";
+            this.txtCariPesanan.TextChanged += new System.EventHandler(this.txtCariPesanan_TextChanged);
             // 
             // dgvPesanan
             // 
@@ -146,7 +157,7 @@
             this.dgvPesanan.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgvPesanan.ColumnHeadersHeight = 45;
             this.dgvPesanan.EnableHeadersVisualStyles = false;
-            this.dgvPesanan.Location = new System.Drawing.Point(34, 30);
+            this.dgvPesanan.Location = new System.Drawing.Point(34, 52);
             this.dgvPesanan.MultiSelect = false;
             this.dgvPesanan.Name = "dgvPesanan";
             this.dgvPesanan.ReadOnly = true;
@@ -187,5 +198,6 @@
         private System.Windows.Forms.Button btnSelesai;
         private System.Windows.Forms.Button btnBatal;
         private System.Windows.Forms.Button btnLihatDetail;
+        private System.Windows.Forms.TextBox txtCariPesanan;
     }
 }

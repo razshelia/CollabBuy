@@ -12,6 +12,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private readonly User _currentUser;
         private readonly TransactionController _transactionController;
         private ToolTip _gridTooltip = new ToolTip();
+        private DataTable _dtPesananCache;
 
         /// <summary>
         /// Event yang dipanggil ketika penjual mau lihat detail pesanan.
@@ -101,7 +102,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             try
             {
                 DataTable dt = this._transactionController.GetPesananMasuk(this._currentUser.IdUser);
-                this.dgvPesanan.DataSource = dt;
+                this._dtPesananCache = dt;
+                this.dgvPesanan.DataSource = this._dtPesananCache;
                 this.dgvPesanan.ClearSelection();
             }
             catch (Exception ex)
@@ -109,6 +111,22 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 MessageBox.Show("Gagal narik data pesanan: " + ex.Message, "Waduh Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void TerapkanFilterPesanan()
+        {
+            if (this._dtPesananCache == null) return;
+            string kata = this.txtCariPesanan.Text.Trim().ToLower();
+            DataView dv = this._dtPesananCache.DefaultView;
+            dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
+                : $"nama_pembeli LIKE '%{kata}%' OR status_pesanan LIKE '%{kata}%'";
+            this.dgvPesanan.DataSource = dv;
+            this.dgvPesanan.ClearSelection();
+        }
+
+        private void txtCariPesanan_TextChanged(object sender, EventArgs e)
+        {
+            this.TerapkanFilterPesanan();
         }
 
         private void ProsesUbahStatus(string statusBaru, string pertanyaan)

@@ -74,7 +74,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
-                // Validasi panjang password RAW dulu sebelum di-hash
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
                 {
                     return (false, "Password minimal 8 karakter ya!");
@@ -114,7 +113,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
-                // Validasi panjang password RAW dulu sebelum di-hash
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
                 {
                     return (false, "Password minimal 8 karakter ya!");
@@ -291,15 +289,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
-                if (buktiKtm == null || buktiKtm.Length == 0)
-                {
-                    hasil = (false, "Foto KTM wajib di-upload ya bestie buat bukti!");
-                }
-                else
-                {
-                    this._userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
-                    hasil = (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
-                }
+                this._userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
+                hasil = (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
             }
             catch (InvalidOrderException ex)
             {

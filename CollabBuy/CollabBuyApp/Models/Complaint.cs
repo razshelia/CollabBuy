@@ -8,7 +8,7 @@ namespace CollabBuy.CollabBuyApp.Models
     /// Kelas Model untuk mengelola Aduan / Laporan Kendala (Complaint) dari pengguna.
     /// Mengimplementasikan IValidatable.
     /// </summary>
-    public class Complaint : IValidatable
+    public class Complaint : IValidatable, IResolvable
     {
         // === PRIVATE FIELDS (Backing Fields) ===
         private int _idAduan;
@@ -194,6 +194,21 @@ namespace CollabBuy.CollabBuyApp.Models
 
             // Menggunakan Ternary Operator C# agar ringkas pengganti if-else
             this.Status = isSelesai ? "Selesai" : "Diproses";
+        }
+
+        public void BeriTanggapan(string tanggapan)
+        {
+            this.BerikanTanggapan(tanggapan, true);
+        }
+
+        public bool IsSelesai()
+        {
+            return this._status != null && this._status.ToLower() == "selesai";
+        }
+
+        public string GetTanggapan()
+        {
+            return this._tanggapanAdmin;
         }
     }
 }
