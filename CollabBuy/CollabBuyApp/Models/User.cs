@@ -101,7 +101,7 @@ namespace CollabBuy.CollabBuyApp.Models
                     throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
                 if (!value.Contains("@") || !value.Contains("."))
                     throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
-                if (value.IndexOf("@") < 1)
+                if (value.IndexOf("@") < 3)
                     throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
                 if (value.LastIndexOf(".") < value.IndexOf("@") + 2)
                     throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
