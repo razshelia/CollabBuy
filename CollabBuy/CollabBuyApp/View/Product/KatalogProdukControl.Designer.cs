@@ -26,7 +26,8 @@
 
             // Card container — scrollable FlowLayoutPanel
             this.flpKartu = new System.Windows.Forms.FlowLayoutPanel();
-
+            this.btnKembaliSesiPO = new System.Windows.Forms.Button(); 
+            
             this.pnlHeader.SuspendLayout();
             this.pnlFilter.SuspendLayout();
             this.SuspendLayout();
@@ -115,8 +116,22 @@
             this.flpKartu.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
             this.flpKartu.WrapContents = true;
             this.flpKartu.Padding = new System.Windows.Forms.Padding(10);
-            this.flpKartu.Location = new System.Drawing.Point(0, 190);
+            this.flpKartu.Location = new System.Drawing.Point(0, 205);
             this.flpKartu.Size = new System.Drawing.Size(980, 510);
+
+            // --- btnKembaliSesiPO ---
+            this.btnKembaliSesiPO.Text = "◀ Kembali ke Sesi PO";
+            this.btnKembaliSesiPO.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnKembaliSesiPO.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.btnKembaliSesiPO.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
+            this.btnKembaliSesiPO.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKembaliSesiPO.FlatAppearance.BorderSize = 0;
+            this.btnKembaliSesiPO.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnKembaliSesiPO.Location = new System.Drawing.Point(18, 152);
+            this.btnKembaliSesiPO.Size = new System.Drawing.Size(190, 34);
+            this.btnKembaliSesiPO.Visible = false;
+            this.btnKembaliSesiPO.UseVisualStyleBackColor = false;
+            this.btnKembaliSesiPO.Click += new System.EventHandler(this.btnKembaliSesiPO_Click);
 
             // --- KatalogProdukControl ---
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -124,6 +139,7 @@
             this.BackColor = System.Drawing.Color.FromArgb(248, 245, 255);
             this.Controls.Add(this.pnlHeader);
             this.Controls.Add(this.pnlFilter);
+            this.Controls.Add(this.btnKembaliSesiPO);
             this.Controls.Add(this.lblInfo);
             this.Controls.Add(this.flpKartu);
             this.Name = "KatalogProdukControl";
@@ -148,5 +164,6 @@
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Label lblInfo;
         private System.Windows.Forms.FlowLayoutPanel flpKartu;
+        private System.Windows.Forms.Button btnKembaliSesiPO;
     }
 }

@@ -144,6 +144,9 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private void ShowKatalogProdukPO(int idPO)
         {
             var prodCtrl = new ViewProduct.KatalogProdukControl(this._currentUser, idPO);
+
+            prodCtrl.OnNavigateKembali += () => this.ShowSesiPOAktif();
+
             prodCtrl.OnNavigateDetailProduk += (idProduk) =>
             {
                 var detail = new ViewProduct.DetailProdukControl(this._currentUser, idProduk);
@@ -392,8 +395,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
             {
                 AddCat("JAJAN YUK (BUYER)");
                 AddBtn("🏪 Katalog Produk", () => this.ShowKatalogProduk());
-                AddBtn("📋 Sesi PO Aktif", () => this.ShowUserControl(
-                    new ViewPreOrder.SesiPOAktifControl(this._currentUser)));
+                // SESUDAH:
+                AddBtn("📋 Sesi PO Aktif", () => this.ShowSesiPOAktif());
                 AddBtn("🛒 Keranjang Belanja", () => this.ShowKeranjangBelanja());
                 AddBtn("📋 Riwayat Pesanan", () => this.ShowUserControl(
                     new ViewTransaction.RiwayatPesananControl(this._currentUser)));

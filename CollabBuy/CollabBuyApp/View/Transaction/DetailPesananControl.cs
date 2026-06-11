@@ -46,6 +46,25 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             this.lblIdTransaksi.Text = $"INV-{this._idTransaksi:D6}";
             this.lblNamaPembeli.Text = baris["nama_pembeli"].ToString();
+
+            // ── Nomor Telepon buat baru ──
+            Label lblTelp = this.pnlInfo.Controls["lblNomorTelepon"] as Label;
+            if (lblTelp == null)
+            {
+                lblTelp = new Label
+                {
+                    Name = "lblNomorTelepon",
+                    AutoSize = true,
+                    Font = new System.Drawing.Font("Segoe UI", 9F),
+                    ForeColor = System.Drawing.Color.FromArgb(80, 80, 80),
+                    Location = new System.Drawing.Point(12, 54)
+                };
+                this.pnlInfo.Controls.Add(lblTelp);
+            }
+            lblTelp.Text = "📞 " + (this._dtDetail.Columns.Contains("nomor_telepon")
+                ? baris["nomor_telepon"].ToString()
+                : "-");
+
             this.lblTanggal.Text = baris["tanggal_transaksi"].ToString();
 
             string status = baris["status_pesanan"].ToString();

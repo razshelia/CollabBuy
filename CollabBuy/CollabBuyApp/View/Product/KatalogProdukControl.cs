@@ -23,6 +23,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         public event Action<int> OnNavigateDetailProduk;
         public event Action OnNavigateKeranjang;
+        public event Action OnNavigateKembali;
 
         private const int CARD_W = 220;
         private const int CARD_H = 340;
@@ -53,6 +54,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         private void KatalogProdukControl_Load(object sender, EventArgs e)
         {
+            this.btnKembaliSesiPO.Visible = this._filterIdPO.HasValue;
             this.InisialisasiDropdownKategori();
             this.MuatKatalog();
             this.AturLayout();
@@ -516,7 +518,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             if (this.pnlFilter != null) this.pnlFilter.Width = w;
             if (this.lblInfo != null) this.lblInfo.Width = w - 60;
             if (this.flpKartu != null)
-                this.flpKartu.SetBounds(0, 190, w, Math.Max(300, this.Height - 190));
+                this.flpKartu.SetBounds(0, 205, w, Math.Max(300, this.Height - 205)); 
 
             if (this._cmbKategori != null && this.txtCari != null)
             {
@@ -537,6 +539,11 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         : this._cmbKategori.Left + this._cmbKategori.Width + 10;
                 }
             }
+        }
+
+        private void btnKembaliSesiPO_Click(object sender, EventArgs e)
+        {
+            this.OnNavigateKembali?.Invoke();
         }
     }
 }

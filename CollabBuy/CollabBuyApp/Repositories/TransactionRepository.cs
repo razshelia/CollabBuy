@@ -387,7 +387,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
         {
             DataTable dt = new DataTable();
             string query = @"
-            SELECT id_transaksi, nama_pembeli, tanggal_transaksi,
+            SELECT id_transaksi, nama_pembeli, nomor_telepon, tanggal_transaksi,
                    status_pesanan, total_harga_lapak
             FROM vw_pesanan_masuk_penjual
             WHERE id_penjual = @idPenjual
@@ -497,7 +497,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             // Sebelumnya: 11 dt.Columns.Add manual + ExecuteReader loop
             // Sekarang: NpgsqlDataAdapter.Fill — kolom otomatis dari view
             string query = @"
-                SELECT nama_pembeli, tanggal_transaksi, status_pesanan, bukti_bayar,
+                SELECT nama_pembeli, nomor_telepon, tanggal_transaksi, status_pesanan, bukti_bayar,
                        nama_produk, nama_penitip, jumlah, harga_satuan,
                        subtotal, catatan, selisih_refund
                 FROM vw_detail_pesanan_penjual

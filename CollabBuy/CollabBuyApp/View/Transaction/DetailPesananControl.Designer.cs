@@ -128,10 +128,11 @@
             this.pnlInfo.BackColor = System.Drawing.Color.FromArgb(235, 230, 255);
             this.pnlInfo.Location = new System.Drawing.Point(30, 102);
             this.pnlInfo.Name = "pnlInfo";
-            this.pnlInfo.Size = new System.Drawing.Size(760, 68);
+            this.pnlInfo.Size = new System.Drawing.Size(760, 88);   // ← naik dari 68 ke 88
             this.pnlInfo.TabIndex = 1;
             this.pnlInfo.Controls.Add(this.lblNamaPembeliLabel);
             this.pnlInfo.Controls.Add(this.lblNamaPembeli);
+            this.pnlInfo.Controls.Add(this.lblNomorTelepon);        // ← WAJIB ADA DI SINI
             this.pnlInfo.Controls.Add(this.lblTanggalLabel);
             this.pnlInfo.Controls.Add(this.lblTanggal);
             this.pnlInfo.Controls.Add(this.lblStatusLabel);
@@ -153,6 +154,16 @@
             this.lblNamaPembeli.Name = "lblNamaPembeli";
             this.lblNamaPembeli.Text = "-";
             this.lblNamaPembeli.TabIndex = 1;
+
+            // lblNomorTelepon  ← LETAKNYA DI BAWAH lblNamaPembeli
+            this.lblNomorTelepon = new System.Windows.Forms.Label();
+            this.lblNomorTelepon.AutoSize = true;
+            this.lblNomorTelepon.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblNomorTelepon.ForeColor = System.Drawing.Color.FromArgb(80, 80, 80);
+            this.lblNomorTelepon.Location = new System.Drawing.Point(12, 54);  // Y=54, tepat di bawah nama
+            this.lblNomorTelepon.Name = "lblNomorTelepon";
+            this.lblNomorTelepon.Text = "-";
+            this.lblNomorTelepon.TabIndex = 6;
 
             // lblTanggalLabel
             this.lblTanggalLabel.AutoSize = true;
@@ -194,7 +205,7 @@
             this.lblRincianTitle.AutoSize = true;
             this.lblRincianTitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.lblRincianTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblRincianTitle.Location = new System.Drawing.Point(30, 184);
+            this.lblRincianTitle.Location = new System.Drawing.Point(30, 204);
             this.lblRincianTitle.Name = "lblRincianTitle";
             this.lblRincianTitle.Text = "📋 Rincian Produk Milik Kamu";
             this.lblRincianTitle.TabIndex = 2;
@@ -221,7 +232,7 @@
             dgvRowStyle.Padding = new System.Windows.Forms.Padding(3);
             this.dgvRincian.RowsDefaultCellStyle = dgvRowStyle;
             this.dgvRincian.RowTemplate.Height = 40;
-            this.dgvRincian.Location = new System.Drawing.Point(30, 210);
+            this.dgvRincian.Location = new System.Drawing.Point(30, 230);
             this.dgvRincian.MultiSelect = false;
             this.dgvRincian.Name = "dgvRincian";
             this.dgvRincian.ReadOnly = true;
@@ -237,7 +248,7 @@
             this.lblGrandTotal.AutoSize = true;
             this.lblGrandTotal.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
             this.lblGrandTotal.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblGrandTotal.Location = new System.Drawing.Point(30, 406);
+            this.lblGrandTotal.Location = new System.Drawing.Point(30, 426);
             this.lblGrandTotal.Name = "lblGrandTotal";
             this.lblGrandTotal.Text = "Total Produk Kamu: Rp 0";
             this.lblGrandTotal.TabIndex = 4;
@@ -263,7 +274,7 @@
             this.lblBuktiTitle.AutoSize = true;
             this.lblBuktiTitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.lblBuktiTitle.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblBuktiTitle.Location = new System.Drawing.Point(30, 438);
+            this.lblBuktiTitle.Location = new System.Drawing.Point(30, 458);
             this.lblBuktiTitle.Name = "lblBuktiTitle";
             this.lblBuktiTitle.Text = "🧾 Bukti Pembayaran Pembeli";
             this.lblBuktiTitle.TabIndex = 5;
@@ -273,7 +284,7 @@
             // ============================================================
             this.pnlBukti.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
             this.pnlBukti.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlBukti.Location = new System.Drawing.Point(30, 464);
+            this.pnlBukti.Location = new System.Drawing.Point(30, 484);
             this.pnlBukti.Name = "pnlBukti";
             this.pnlBukti.Size = new System.Drawing.Size(760, 280);
             this.pnlBukti.TabIndex = 6;
@@ -302,7 +313,7 @@
             // pnlTombol — panel baris tombol di bawah
             // ============================================================
             this.pnlTombol.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.pnlTombol.Location = new System.Drawing.Point(30, 758);
+            this.pnlTombol.Location = new System.Drawing.Point(30, 778);
             this.pnlTombol.Name = "pnlTombol";
             this.pnlTombol.Size = new System.Drawing.Size(760, 52);
             this.pnlTombol.TabIndex = 7;
@@ -382,6 +393,7 @@
         private System.Windows.Forms.Panel pnlInfo;
         private System.Windows.Forms.Label lblNamaPembeliLabel;
         private System.Windows.Forms.Label lblNamaPembeli;
+        private System.Windows.Forms.Label lblNomorTelepon;
         private System.Windows.Forms.Label lblTanggalLabel;
         private System.Windows.Forms.Label lblTanggal;
         private System.Windows.Forms.Label lblStatusLabel;

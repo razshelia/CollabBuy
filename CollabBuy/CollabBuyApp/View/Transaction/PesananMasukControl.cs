@@ -56,6 +56,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             });
             this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
             {
+                Name = "NomorTelepon",
+                HeaderText = "No. Telepon",
+                DataPropertyName = "nomor_telepon",
+                Width = 140
+            });
+            this.dgvPesanan.Columns.Add(new DataGridViewTextBoxColumn
+            {
                 Name = "Tanggal",
                 HeaderText = "Tanggal Order",
                 DataPropertyName = "tanggal_transaksi",
