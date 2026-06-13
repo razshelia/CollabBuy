@@ -191,8 +191,6 @@ namespace CollabBuy.CollabBuyApp.Models
             return $"📞 {infoTelp} | ✉️ {infoEmail}";
         }
 
-        public bool ApakahAkunAman() => !this._isDiblokir;
-
         public bool UbahPassword(string passLama, string passBaru)
         {
             if (this._password != passLama)
@@ -200,6 +198,12 @@ namespace CollabBuy.CollabBuyApp.Models
 
             this.Password = passBaru;
             return true;
+        }
+
+        // Overload tanpa parameter (default 1 karakter)
+        public string DapatkanInisialProfil()
+        {
+            return DapatkanInisialProfil(1);
         }
 
         public string DapatkanInisialProfil(int jumlahKarakter)
@@ -222,9 +226,6 @@ namespace CollabBuy.CollabBuyApp.Models
         {
             if (string.IsNullOrWhiteSpace(this._nama) || string.IsNullOrWhiteSpace(this._username))
                 throw new InvalidOrderException("Validasi gagal: Nama/Username tidak boleh kosong.", "nama_username", "USER_INVALID");
-
-            if (string.IsNullOrWhiteSpace(this._email) || string.IsNullOrWhiteSpace(this._nomorTelepon))
-                throw new InvalidOrderException("Validasi gagal: Kontak Email/Telepon belum lengkap.", "kontak", "USER_INVALID");
         }
     }
 }

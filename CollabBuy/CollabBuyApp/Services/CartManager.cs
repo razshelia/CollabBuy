@@ -27,14 +27,14 @@ namespace CollabBuy.CollabBuyApp.Services
         public CartManager(int idPembeli)
         {
             if (idPembeli <= 0)
-                throw new ArgumentException("idPembeli tidak valid.", nameof(idPembeli));
+                throw new InvalidOrderException("ID Pembeli tidak valid untuk CartManager!", "id_pembeli", "CART_PEMBELI_INVALID");
             this._idPembeli = idPembeli;
         }
 
         public void TambahItem(Product produk, string namaPenitip, int jumlah, string catatan)
         {
             if (produk == null)
-                throw new ArgumentNullException(nameof(produk), "Produk tidak boleh kosong!");
+                throw new InvalidOrderException("Produk tidak boleh null saat ditambahkan ke keranjang!", "produk", "CART_PRODUK_NULL");
 
             if (!produk.IdPo.HasValue)
                 throw new InvalidOrderException("Produk ini tidak terikat dalam sesi PO!", "id_po", "CART_NO_PO");

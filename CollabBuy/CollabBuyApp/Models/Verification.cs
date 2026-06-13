@@ -144,15 +144,6 @@ namespace CollabBuy.CollabBuyApp.Models
             return $"🏢 {this._namaToko} | 🎓 NIM: {this._nim} (Angkatan {this._tahunMasuk})";
         }
 
-        public string DapatkanStatusVerifikasiUI()
-        {
-            if (this._isVerifikasi) return "✅ Disetujui (Aktif)";
-
-            if (!string.IsNullOrWhiteSpace(this._alasanPenolakan)) return "❌ Ditolak: " + this._alasanPenolakan;
-
-            return "⏳ Menunggu Review Admin";
-        }
-
         /// <summary>
         /// Mengecek apakah pendaftar merupakan mahasiswa angkatan baru (Maba).
         /// </summary>

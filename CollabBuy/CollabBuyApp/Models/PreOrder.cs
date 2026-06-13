@@ -141,11 +141,6 @@ namespace CollabBuy.CollabBuyApp.Models
             this._produkDiPo.Add(produk);
         }
 
-        public List<Product> GetSemuaProduk()
-        {
-            return this._produkDiPo;
-        }
-
         /// <summary>
         /// Mengecek secara real-time apakah PO masih bisa menerima pesanan.
         /// </summary>

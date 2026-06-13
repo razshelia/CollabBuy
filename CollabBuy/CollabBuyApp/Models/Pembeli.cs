@@ -76,14 +76,13 @@ namespace CollabBuy.CollabBuyApp.Models
         // === OVERRIDE VALIDATE ===
         public override void Validate()
         {
-            base.Validate(); // Panggil validasi dari class Induk (User)
+            base.Validate();
+
+            if (string.IsNullOrWhiteSpace(this.Email) || string.IsNullOrWhiteSpace(this.NomorTelepon))
+                throw new InvalidOrderException("Validasi gagal: Kontak Email/Telepon pembeli belum lengkap.", "kontak", "PEMBELI_INVALID");
 
             if (this._riwayatTransaksi == null)
-            {
                 throw new InvalidOrderException("Validasi gagal: List riwayat transaksi belum diinisialisasi.", "riwayat_transaksi", "PEMBELI_INVALID");
-            }
-
-            // Variabel 'validasiListSelesai' dihapus karena itu dead code (tidak pernah dibaca sistem)
         }
     }
 }

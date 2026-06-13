@@ -12,6 +12,8 @@ namespace CollabBuy.CollabBuyApp.Models
     public class Review : IValidatable, IResolvable
     {
         // === PRIVATE FIELDS (Backing Fields) ===
+        private int _idProduk;
+        private int _idUser;
         private DateTime _tanggalUlasan;
         private int _idUlasan;
         private int _rating;
@@ -21,8 +23,27 @@ namespace CollabBuy.CollabBuyApp.Models
         // === PROPERTIES ===
 
         // Auto-Properties (Read-only dari luar)
-        public int IdProduk { get; private set; }
-        public int IdUser { get; private set; }
+        public int IdProduk
+        {
+            get { return this._idProduk; }
+            private set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Produk pada ulasan tidak valid!", "id_produk", "ULASAN_IDPRODUK_INVALID");
+                this._idProduk = value;
+            }
+        }
+
+        public int IdUser
+        {
+            get { return this._idUser; }
+            private set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID User pada ulasan tidak valid!", "id_user", "ULASAN_IDUSER_INVALID");
+                this._idUser = value;
+            }
+        }
         public DateTime TanggalUlasan
         {
             get { return this._tanggalUlasan; }

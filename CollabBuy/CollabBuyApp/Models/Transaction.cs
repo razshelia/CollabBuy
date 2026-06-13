@@ -107,11 +107,6 @@ namespace CollabBuy.CollabBuyApp.Models
             this._details.Add(detail);
         }
 
-        public List<TransactionDetail> GetSemuaDetail()
-        {
-            return this._details;
-        }
-
         public void KosongkanKeranjang()
         {
             if (this._details == null)

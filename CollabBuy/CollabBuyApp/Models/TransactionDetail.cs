@@ -17,6 +17,10 @@ namespace CollabBuy.CollabBuyApp.Models
         private int _jumlahPesanan;
         private string _catatan;
         private string _namaProdukSnapshot;
+        private int _idProduk;
+        private long _hargaSatuanSaatBeli;
+        private long? _hargaDiskonSaatBeli;
+        private long _selisihRefund;
 
         // Referensi In-Memory ke objek Product (Aggregation)
         private Product _produkYangDipesan;
@@ -24,11 +28,47 @@ namespace CollabBuy.CollabBuyApp.Models
         // === PROPERTIES (Enkapsulasi Ketat) ===
 
         // Auto-Properties (Read-only dari luar)
-        public int IdProduk { get; private set; }
-        public long HargaSatuanSaatBeli { get; private set; }
-        public long? HargaDiskonSaatBeli { get; private set; }
-        public long SelisihRefund { get; private set; }
+        public int IdProduk
+        {
+            get { return this._idProduk; }
+            private set
+            {
+                if (value <= 0)
+                    throw new InvalidOrderException("ID Produk pada detail transaksi tidak valid!", "id_produk", "DETAIL_IDPRODUK_INVALID");
+                this._idProduk = value;
+            }
+        }
 
+        public long HargaSatuanSaatBeli
+        {
+            get { return this._hargaSatuanSaatBeli; }
+            private set
+            {
+                if (value < 0)
+                    throw new InvalidOrderException("Harga satuan tidak boleh negatif!", "harga_satuan", "HARGA_SATUAN_INVALID");
+                this._hargaSatuanSaatBeli = value;
+            }
+        }
+
+        public long? HargaDiskonSaatBeli
+        {
+            get { return this._hargaDiskonSaatBeli; }
+            private set
+            {
+                if (value.HasValue && value.Value < 0)
+                    throw new InvalidOrderException("Harga diskon tidak boleh negatif!", "harga_diskon", "HARGA_DISKON_INVALID");
+                this._hargaDiskonSaatBeli = value;
+            }
+        }
+
+        public long SelisihRefund
+        {
+            get { return this._selisihRefund; }
+            private set
+            {
+                this._selisihRefund = value < 0 ? 0 : value;
+            }
+        }
         public int IdDetail
         {
             get { return this._idDetail; }
@@ -188,13 +228,6 @@ namespace CollabBuy.CollabBuyApp.Models
         {
             long subtotal = this.HitungTotal();
             return subtotal > 0 ? $"Rp {subtotal:N0}" : "Gratis";
-        }
-
-        public bool ApakahDapatRefund()
-        {
-            // Pastikan method hitung dijalankan dulu untuk mengevaluasi kondisi terbaru
-            this.HitungRefundGotongRoyong();
-            return this.SelisihRefund > 0;
         }
 
         public string DapatkanInfoRefundUI()

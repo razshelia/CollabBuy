@@ -70,20 +70,16 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
                     string infoPendaftar = verifObj.DapatkanInfoPendaftar();
 
-                    // Sambungkan DapatkanInfoDanus() — tampilkan info lengkap di tooltip atau kolom tambahan
+                    // SESUDAH — cukup 1 objek:
                     Penjual penjualInfoTemp = new Penjual(namaOwner, "tmp_" + idUser, "placeholder123");
                     penjualInfoTemp.Nim = nim;
                     penjualInfoTemp.NamaToko = namaToko;
                     penjualInfoTemp.TahunMasuk = tahunMasuk;
-                    string infoDanus = penjualInfoTemp.DapatkanInfoDanus(); // ← sambungkan dead code
+                    string infoDanus = penjualInfoTemp.DapatkanInfoDanus();
 
-                    // Gabungkan ke infoPendaftar agar tampil di grid
                     infoPendaftar = infoPendaftar + "\n" + infoDanus;
-                    // Buat objek Penjual sementara hanya untuk mengakses method masa studi
-                    Penjual penjualTemp = new Penjual(namaOwner, "tmp_" + idUser, "placeholder123");
-                    penjualTemp.TahunMasuk = tahunMasuk;
 
-                    bool mahasiswaAktif = penjualTemp.ApakahMahasiswaAktif(); // ← sambungkan dead code
+                    bool mahasiswaAktif = penjualInfoTemp.ApakahMahasiswaAktif();
 
                     string statusMaba;
                     if (verifObj.ApakahMahasiswaBaru())

@@ -50,7 +50,7 @@ namespace CollabBuy.CollabBuyApp.Models
                     throw new InvalidOrderException("Nama kategori maksimal 50 karakter!", "nama_kategori", "KATEGORI_TERLALU_PANJANG");
                 }
 
-                this._namaKategori = value;
+                this._namaKategori = value.Trim();
             }
         }
 

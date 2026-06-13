@@ -48,7 +48,7 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._aktivitas; }
             set
             {
-                if (string.IsNullOrEmpty(value))
+                if (string.IsNullOrWhiteSpace(value))
                 {
                     throw new InvalidOrderException("Deskripsi aktivitas log tidak boleh kosong!", "aktivitas", "LOG_KOSONG");
                 }
@@ -86,7 +86,7 @@ namespace CollabBuy.CollabBuyApp.Models
         // Method 1: Validasi Integritas Data (Standar Interface)
         public void Validate()
         {
-            if (string.IsNullOrEmpty(this._aktivitas))
+            if (string.IsNullOrWhiteSpace(this._aktivitas))
             {
                 throw new InvalidOrderException("Log tidak valid: Aktivitas kosong.", "aktivitas", "LOG_INVALID");
             }

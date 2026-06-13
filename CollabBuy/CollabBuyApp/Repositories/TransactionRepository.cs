@@ -223,7 +223,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan)
                             VALUES (@idTrx, @idProduk, @penitip, @jumlah, @catatan);";
 
-                        foreach (var detail in transaksi.GetSemuaDetail())
+                        foreach (var detail in transaksi.Details)
                         {
                             using (var cmdDetail = new NpgsqlCommand(insertDetailQuery, conn, dbTx))
                             {
@@ -309,7 +309,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         // Snapshot harga dan nama akan OTOMATIS diisi oleh Trigger PostgreSQL (t_before_insert_detail)
                         string queryDetail = "INSERT INTO transaction_details (id_transaksi, id_produk, nama_penitip, jumlah_pesanan, catatan) VALUES (@trx, @produk, @penitip, @jumlah, @catatan);";
 
-                        foreach (var detail in transaksi.GetSemuaDetail())
+                        foreach (var detail in transaksi.Details)
                         {
                             using (var cmdDetail = new NpgsqlCommand(queryDetail, conn, dbTx))
                             {

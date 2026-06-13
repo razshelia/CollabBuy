@@ -139,9 +139,10 @@ namespace CollabBuy.CollabBuyApp.Models
             return this._isVerifikasi;
         }
 
-        public string GetAlasanPenolakan()
+        // TAMBAHKAN ini (letakkan bersama property lain):
+        public string AlasanPenolakan
         {
-            return this._alasanPenolakan;
+            get { return this._alasanPenolakan; }
         }
 
         // =========================================================

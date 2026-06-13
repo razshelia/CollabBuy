@@ -206,10 +206,8 @@ namespace CollabBuy.CollabBuyApp.Models
         }
         public void KurangiPesanan(int jumlah)
         {
-            // Mengurangi Terpesan saat titipan diedit ke qty lebih kecil
             if (jumlah <= 0) return;
             this.Terpesan -= jumlah;
-            if (this.Terpesan < 0) this.Terpesan = 0;
         }
 
         /// <summary>
