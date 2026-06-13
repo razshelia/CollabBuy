@@ -94,9 +94,10 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     string peran = row["peran"].ToString();
                     string statusRaw = row["status_akun"].ToString();
 
-                    string infoKontak = string.IsNullOrWhiteSpace(email) || email == "-"
-                        ? (string.IsNullOrWhiteSpace(telepon) || telepon == "-" ? "Belum ada kontak" : telepon)
-                        : email + ((!string.IsNullOrWhiteSpace(telepon) && telepon != "-") ? " | " + telepon : "");
+                    Pembeli userTemp = new Pembeli(nama, username, "placeholder");
+                    if (!string.IsNullOrWhiteSpace(email) && email != "-") userTemp.Email = email;
+                    if (!string.IsNullOrWhiteSpace(telepon) && telepon != "-") userTemp.NomorTelepon = telepon;
+                    string infoKontak = userTemp.DapatkanInfoKontak();
 
                     string tipeUser = peran == "Admin" ? "Administrator Sistem"
                         : peran == "Penjual" ? "Penjual Terverifikasi"

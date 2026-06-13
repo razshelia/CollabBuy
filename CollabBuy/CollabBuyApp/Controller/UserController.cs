@@ -237,19 +237,14 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 if (!string.IsNullOrWhiteSpace(rawPasswordBaru) && rawPasswordLama != null)
                 {
-                    // Validasi panjang password RAW sebelum di-hash
                     if (rawPasswordBaru.Length < 8)
                     {
                         return (false, "Password baru minimal 8 karakter ya!");
                     }
 
                     string hashLama = this.HashSha256(rawPasswordLama);
-                    if (user.Password != hashLama)
-                    {
-                        return (false, "Password lama salah! Coba lagi ya bestie.");
-                    }
-
-                    user.Password = this.HashSha256(rawPasswordBaru);
+                    string hashBaru = this.HashSha256(rawPasswordBaru);
+                    user.UbahPassword(hashLama, hashBaru);
                 }
 
                 this._userRepo.Update(user);
@@ -272,6 +267,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             return hasil;
         }
+
         public bool IsUsernameAvailable(int idUserSaatIni, string username)
         {
             return this._userRepo.IsUsernameAvailable(idUserSaatIni, username);

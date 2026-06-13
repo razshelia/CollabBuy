@@ -188,7 +188,7 @@ namespace CollabBuy.CollabBuyApp.Models
         {
             string infoTelp = string.IsNullOrWhiteSpace(this._nomorTelepon) ? "No HP Belum Diisi" : this._nomorTelepon;
             string infoEmail = string.IsNullOrWhiteSpace(this._email) ? "Email Belum Diisi" : this._email;
-            return $"{this._nama} | 📞 {infoTelp} | ✉️ {infoEmail}";
+            return $"📞 {infoTelp} | ✉️ {infoEmail}";
         }
 
         public bool ApakahAkunAman() => !this._isDiblokir;
