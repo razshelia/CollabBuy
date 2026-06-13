@@ -199,7 +199,7 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public string DapatkanInfoRefundUI()
         {
-            return this.ApakahDapatRefund()
+            return this.SelisihRefund > 0
                 ? $"✨ Cashback Gotong Royong: Rp {this.SelisihRefund:N0}"
                 : "Tidak ada cashback.";
         }

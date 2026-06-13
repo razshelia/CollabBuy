@@ -41,7 +41,16 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         private void PembayaranControl_Load(object sender, EventArgs e)
         {
-            this.lblTotal.Text = "Rp " + this._totalTagihan.ToString("N0");
+            // Buat Transaction sementara hanya untuk format:
+            Models.Transaction trxTemp = new Models.Transaction(this._user.IdUser);
+            // Tidak bisa memanggil DapatkanFormatTagihanUI() tanpa detail — gunakan helper lokal:
+            string formatTagihan = this._totalTagihan == 0
+                ? "Rp 0 (Gratis / Kosong)"
+                : $"Rp {this._totalTagihan:N0}";
+
+            // Alternatif yang lebih bersih — tambahkan static helper di controller:
+            // this.lblTotal.Text = TransactionController.FormatTagihan(this._totalTagihan);
+            this.lblTotal.Text = trxTemp.DapatkanFormatTagihanUI(this._totalTagihan);
             this.LoadInfoRekening();
             this.AturLayout();
         }

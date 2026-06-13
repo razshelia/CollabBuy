@@ -192,15 +192,20 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public long EstimasiTotalPendapatan()
         {
-            if (this._produkDiPo == null) return 0;
+            if (this._produkDiPo == null || this._produkDiPo.Count == 0) return 0;
 
             long total = 0;
             foreach (Product p in this._produkDiPo)
             {
-                // Asumsi GetHargaDasar() dan GetTargetKuota() masih method. Ubah ke property (p.HargaDasar) jika sudah di-refactor.
                 total += (p.HargaDasar * p.GetTargetKuota());
             }
             return total;
+        }
+
+        public long EstimasiTotalPendapatan(long totalDariDB)
+        {
+            // Overload untuk saat produk list tidak di-hydrate (data diambil dari DB langsung)
+            return totalDariDB >= 0 ? totalDariDB : 0;
         }
 
         public string DapatkanInfoCardPO()

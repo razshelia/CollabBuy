@@ -89,6 +89,28 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             try
             {
                 DataTable dt = this._trxCtrl.GetKeranjangDataTable();
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    if (!dt.Columns.Contains("NamaItem")) dt.Columns.Add("NamaItem", typeof(string));
+                    if (!dt.Columns.Contains("SubtotalUI")) dt.Columns.Add("SubtotalUI", typeof(string));
+
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        TransactionDetail detailObj = new TransactionDetail(
+                            Convert.ToInt32(row["id_produk"]),
+                            row["nama_penitip"].ToString(),
+                            Convert.ToInt32(row["Kuantitas"])
+                        );
+                        detailObj.IsiHargaDariDatabase(
+                            Convert.ToInt64(row["Harga"]),
+                            null, // harga diskon tidak ada di keranjang
+                            row["nama_produk"].ToString()
+                        );
+                        row["NamaItem"] = detailObj.DapatkanInfoItemUI();
+                        row["SubtotalUI"] = detailObj.DapatkanSubtotalUI();
+                    }
+                }
+
                 this.dgvKeranjang.DataSource = dt;
                 this.dgvKeranjang.ClearSelection();
 

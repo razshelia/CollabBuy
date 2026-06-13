@@ -143,6 +143,12 @@ namespace CollabBuy.CollabBuyApp.Models
             return totalTagihan == 0 ? "Rp 0 (Gratis / Kosong)" : $"Rp {totalTagihan:N0}";
         }
 
+        public string DapatkanFormatTagihanUI(long totalOverride)
+        {
+            // Overload untuk saat total sudah dihitung di luar (dari DB atau controller)
+            return totalOverride == 0 ? "Rp 0 (Gratis / Kosong)" : $"Rp {totalOverride:N0}";
+        }
+
         public bool ApakahSudahDibayar()
         {
             // Cukup evaluasi kondisi array byte langsung

@@ -113,7 +113,8 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             string jenisPO, int jumlahProduk, decimal hargaMin, decimal hargaMax, DateTime deadline)
         {
             bool isGotongRoyong = jenisPO == "Gotong Royong";
-            bool isTutup = deadline < DateTime.Now;
+            bool isTutup = !this._poController.CekPoBerjalan(idPO);
+            if (idPO <= 0) isTutup = deadline < DateTime.Now;
 
             string badgeText = isGotongRoyong ? "GOTONG ROYONG" : "GASKEUN";
             Color badgeColor = isGotongRoyong
@@ -220,6 +221,14 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 btnIkut.Click += this.BtnIkut_Click;
 
             card.Controls.Add(btnIkut);
+            // === TAMBAHKAN DI BAGIAN PALING BAWAH, SEBELUM return card ===
+            Models.PreOrder poTemp = this._poController.GetPreOrder(idPO);
+            string infoCard = poTemp != null
+                ? poTemp.DapatkanInfoCardPO()
+                : $"{namaSesi} | {(isTutup ? "⏳ Waktu Habis!" : "Aktif")}";
+
+            ToolTip ttCard = new ToolTip();
+            ttCard.SetToolTip(card, infoCard);
             return card;
         }
 

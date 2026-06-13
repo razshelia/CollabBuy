@@ -69,11 +69,30 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     Verification verifObj = new Verification(idUser, nim, namaToko, ktmBytes, tahunMasuk);
 
                     string infoPendaftar = verifObj.DapatkanInfoPendaftar();
-                    string statusMaba;
 
+                    // Sambungkan DapatkanInfoDanus() — tampilkan info lengkap di tooltip atau kolom tambahan
+                    Penjual penjualInfoTemp = new Penjual(namaOwner, "tmp_" + idUser, "placeholder123");
+                    penjualInfoTemp.Nim = nim;
+                    penjualInfoTemp.NamaToko = namaToko;
+                    penjualInfoTemp.TahunMasuk = tahunMasuk;
+                    string infoDanus = penjualInfoTemp.DapatkanInfoDanus(); // ← sambungkan dead code
+
+                    // Gabungkan ke infoPendaftar agar tampil di grid
+                    infoPendaftar = infoPendaftar + "\n" + infoDanus;
+                    // Buat objek Penjual sementara hanya untuk mengakses method masa studi
+                    Penjual penjualTemp = new Penjual(namaOwner, "tmp_" + idUser, "placeholder123");
+                    penjualTemp.TahunMasuk = tahunMasuk;
+
+                    bool mahasiswaAktif = penjualTemp.ApakahMahasiswaAktif(); // ← sambungkan dead code
+
+                    string statusMaba;
                     if (verifObj.ApakahMahasiswaBaru())
                     {
                         statusMaba = "🎓 Mahasiswa Baru (Prioritas)";
+                    }
+                    else if (!mahasiswaAktif)
+                    {
+                        statusMaba = "⚠️ Masa Studi > 7 Tahun";  // Info tambahan untuk Admin
                     }
                     else
                     {

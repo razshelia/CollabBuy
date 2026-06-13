@@ -12,6 +12,7 @@ namespace CollabBuy.CollabBuyApp.Models
     public class Review : IValidatable, IResolvable
     {
         // === PRIVATE FIELDS (Backing Fields) ===
+        private DateTime _tanggalUlasan;
         private int _idUlasan;
         private int _rating;
         private string _komentar;
@@ -22,7 +23,22 @@ namespace CollabBuy.CollabBuyApp.Models
         // Auto-Properties (Read-only dari luar)
         public int IdProduk { get; private set; }
         public int IdUser { get; private set; }
-        public DateTime TanggalUlasan { get; private set; }
+        public DateTime TanggalUlasan
+        {
+            get { return this._tanggalUlasan; }
+            set
+            {
+                // Guard clause 1: Mencegah penempatan tanggal default/kosong
+                if (value == DateTime.MinValue)
+                    throw new InvalidOrderException("Tanggal ulasan tidak boleh kosong!", "tanggal_ulasan", "ULASAN_DATE_EMPTY");
+
+                // Guard clause 2: Mencegah manipulasi waktu ulasan dari masa depan
+                if (value > DateTime.Now)
+                    throw new InvalidOrderException("Tanggal ulasan tidak boleh mendahului waktu saat ini!", "tanggal_ulasan", "ULASAN_DATE_FUTURE");
+
+                this._tanggalUlasan = value;
+            }
+        }
 
         public int IdUlasan
         {

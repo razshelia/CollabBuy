@@ -72,7 +72,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     }
 
                     string bintangUI = ulasanObj.DapatkanBintangUI();
-                    string komenUI = ulasanObj.Komentar;
+                    string komenUI = ulasanObj.DapatkanPreviewKomentar(120);
 
                     Label lblNama = new Label
                     {
@@ -99,49 +99,79 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                         ForeColor = Color.FromArgb(36, 0, 70),
                         Location = new Point(15, 65),
                         AutoSize = true,
-                        MaximumSize = new Size(650, 0) // Teks akan otomatis turun (wrap) jika kepanjangan
+                        MaximumSize = new Size(650, 0)
                     };
 
                     pnl.Controls.Add(lblNama);
                     pnl.Controls.Add(lblProduk);
                     pnl.Controls.Add(lblKomen);
-
-                    if (!ulasanObj.IsSelesai()) // Menggunakan behavior model untuk ngecek status
+                    string tanggalFormatted;
+                    if (r.Table.Columns.Contains("tanggal_ulasan") && r["tanggal_ulasan"] != DBNull.Value)
                     {
-                        Button btnBalas = new Button
-                        {
-                            Text = "Balas Komen",
-                            Location = new Point(700, 50),
-                            Size = new Size(120, 40),
-                            BackColor = Color.FromArgb(36, 0, 70),
-                            ForeColor = Color.FromArgb(253, 255, 182), // Soft yellow
-                            FlatStyle = FlatStyle.Flat,
-                            Font = new Font("Segoe UI Black", 9F, FontStyle.Bold),
-                            Cursor = Cursors.Hand
-                        };
-
-                        btnBalas.FlatAppearance.BorderSize = 0;
-                        btnBalas.Tag = r["id_ulasan"];
-                        btnBalas.Click += this.BtnBalas_Click;
-
-                        pnl.Controls.Add(btnBalas);
+                        DateTime tglUlasan = Convert.ToDateTime(r["tanggal_ulasan"]);
+                        tanggalFormatted = tglUlasan.ToString("dd MMM yyyy, HH:mm");
                     }
                     else
                     {
-                        Label lblBalasan = new Label
+                        tanggalFormatted = ulasanObj.DapatkanWaktuFormatUI();
+
+                        Label lblTanggal = new Label
                         {
-                            Text = $"Balasanmu: {ulasanObj.GetTanggapan()}",
-                            Font = new Font("Segoe UI Semibold", 9.5F),
-                            ForeColor = Color.DarkGreen,
-                            Location = new Point(15, 110),
-                            AutoSize = true,
-                            MaximumSize = new Size(800, 0)
+                            Text = $"🕐 {tanggalFormatted}",
+                            Font = new Font("Segoe UI", 8F),
+                            ForeColor = Color.Gray,
+                            Location = new Point(15, 130),
+                            AutoSize = true
                         };
+                        pnl.Controls.Add(lblTanggal);
+                        pnl.Height = 175;
+                        Label lblStatusBalasan = new Label
+                        {
+                            Text = ulasanObj.DapatkanStatusBalasan(),
+                            Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+                            ForeColor = ulasanObj.IsSelesai() ? Color.DarkGreen : Color.DarkOrange,
+                            Location = new Point(700, 15),
+                            AutoSize = true
+                        };
+                        pnl.Controls.Add(lblStatusBalasan);
 
-                        pnl.Controls.Add(lblBalasan);
+                        if (!ulasanObj.IsSelesai()) // Menggunakan behavior model untuk ngecek status
+                        {
+                            Button btnBalas = new Button
+                            {
+                                Text = "Balas Komen",
+                                Location = new Point(700, 50),
+                                Size = new Size(120, 40),
+                                BackColor = Color.FromArgb(36, 0, 70),
+                                ForeColor = Color.FromArgb(253, 255, 182), // Soft yellow
+                                FlatStyle = FlatStyle.Flat,
+                                Font = new Font("Segoe UI Black", 9F, FontStyle.Bold),
+                                Cursor = Cursors.Hand
+                            };
+
+                            btnBalas.FlatAppearance.BorderSize = 0;
+                            btnBalas.Tag = r["id_ulasan"];
+                            btnBalas.Click += this.BtnBalas_Click;
+
+                            pnl.Controls.Add(btnBalas);
+                        }
+                        else
+                        {
+                            Label lblBalasan = new Label
+                            {
+                                Text = $"Balasanmu: {ulasanObj.GetTanggapan()}",
+                                Font = new Font("Segoe UI Semibold", 9.5F),
+                                ForeColor = Color.DarkGreen,
+                                Location = new Point(15, 110),
+                                AutoSize = true,
+                                MaximumSize = new Size(800, 0)
+                            };
+
+                            pnl.Controls.Add(lblBalasan);
+                        }
+
+                        this.flpUlasan.Controls.Add(pnl);
                     }
-
-                    this.flpUlasan.Controls.Add(pnl);
                 }
             }
         }

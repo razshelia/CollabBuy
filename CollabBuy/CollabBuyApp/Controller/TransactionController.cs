@@ -515,5 +515,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             return dt;
         }
+        // Di TransactionController.cs — tambahkan static method:
+        public static string FormatTagihan(long totalTagihan)
+        {
+            // Membuat transaction dummy hanya untuk mengakses DapatkanFormatTagihanUI()
+            Models.Transaction trxDummy = new Models.Transaction(1);
+            // DapatkanFormatTagihanUI() hitung dari Detail yang ada,
+            // tapi kita bisa bypass dengan cara ini karena method hanya format angka:
+            return totalTagihan == 0 ? "Rp 0 (Gratis / Kosong)" : $"Rp {totalTagihan:N0}";
+            // Catatan: Ini replikasi logika DapatkanFormatTagihanUI() karena model tidak expose static method.
+            // Jika ingin 100% pakai model: tambahkan detail dummy, panggil HitungTotal, lalu DapatkanFormatTagihanUI.
+        }
     }
 }

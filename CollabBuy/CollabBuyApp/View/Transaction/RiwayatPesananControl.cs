@@ -81,7 +81,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 this.dgvRiwayat.Columns.Clear();
 
                 this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdTrx", DataPropertyName = "id_transaksi", Visible = false });
-                this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "NoInvoice", HeaderText = "No. Invoice", DataPropertyName = "no_invoice", Width = 120 });
+                this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "NoInvoice", HeaderText = "No. Invoice", DataPropertyName = "no_invoice", Width = 260 });
                 this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tanggal", HeaderText = "Waktu Pemesanan", DataPropertyName = "tanggal_pesanan", Width = 175 });
                 this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "JumlahItem", HeaderText = "Jml Item", DataPropertyName = "jumlah_item", Width = 75, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
                 this.dgvRiwayat.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total Tagihan", DataPropertyName = "total_harga", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } });
@@ -163,7 +163,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                         dtUI.Rows.Add(
                             trx.IdTransaksi,
-                            $"INV-{trx.IdTransaksi:D6}",
+                            trx.DapatkanInfoResi(),
                             trx.TanggalTransaksi.ToString("dd MMM yyyy, HH:mm"),
                             jumlahStr,
                             tagihStr,

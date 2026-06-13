@@ -135,6 +135,21 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 this.dtpBatas.Value = DateTime.Now.AddDays(1);
 
             this.SetFormEnabled(true);
+            Models.PreOrder poObj = this._poController.GetPreOrder(this._selectedIdPo);
+            if (poObj != null)
+            {
+                // EstimasiTotalPendapatan() dari list kosong = 0, tapi DapatkanInfoCardPO() tetap berguna
+                string infoCard = poObj.DapatkanInfoCardPO();
+                this.lblEditTitle.Text = $"✏️ {infoCard}";
+            }
+            if (poObj != null)
+            {
+                long estimasi = poObj.EstimasiTotalPendapatan();
+                // Cari label yang ada, atau tampilkan di title panel edit:
+                this.pnlEdit.Text = estimasi > 0
+                    ? $"Edit Sesi PO — 💰 Estimasi Omzet: Rp {estimasi:N0}"
+                    : "Edit Sesi PO — Belum ada produk terdaftar";
+            }
         }
 
         private void btnSimpanEdit_Click(object sender, EventArgs e)

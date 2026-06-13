@@ -163,26 +163,45 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
-        public (bool sukses, string pesan) ToggleBlokirUser(int idUser, bool blokir, int idAdmin)
+        public (bool sukses, string pesan) ToggleBlokirUser(int idUser, bool blokir, int idAdmin, string alasan = "")
         {
             try
             {
-                _userRepo.ToggleBlokirUser(idUser, blokir);
+                // Hydrate model dari DB untuk validasi via OOP
+                User targetUser = this._userRepo.GetById(idUser);
+                if (targetUser == null)
+                    return (false, "User tidak ditemukan!");
+
+                if (blokir)
+                {
+                    string alasanFinal = string.IsNullOrWhiteSpace(alasan) ? "Diblokir oleh Admin" : alasan;
+                    targetUser.Blokir(alasanFinal);           // ← memanggil method model
+                }
+                else
+                {
+                    targetUser.BukaBlokir();                  // ← memanggil method model (dead code sebelumnya)
+                }
+
+                // Persist ke database
+                _userRepo.ToggleBlokirUser(idUser, blokir, blokir ? targetUser.AlasanBlokir : "");
 
                 string aksi = blokir ? "diblokir" : "diaktifkan kembali";
-
-                // Catat aksi kritis ke activity log untuk keperluan audit
                 string pesanLog = blokir
-                    ? $"Admin memblokir akun user ID {idUser}"
+                    ? $"Admin memblokir akun user ID {idUser}: {targetUser.AlasanBlokir}"
                     : $"Admin mengaktifkan kembali akun user ID {idUser}";
-                ActivityLog log = new ActivityLog(idAdmin, pesanLog);
-                _logRepo.Insert(log);
 
-                return (true, $"Akun berhasil {aksi}.");
+                ActivityLog log = new ActivityLog(idAdmin, pesanLog);
+                this._logRepo.Insert(log);
+
+                return (true, $"Akun berhasil {aksi}!");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                return (false, "Gagal update status akun: " + ex.Message);
+                return (false, "Error: " + ex.Message);
             }
         }
 

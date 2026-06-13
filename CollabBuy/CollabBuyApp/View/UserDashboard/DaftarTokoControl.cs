@@ -125,6 +125,18 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             if (this._currentUser.Peran == "Penjual")
             {
                 isVerifiedSeller = true;
+
+                // === SAMBUNGKAN ApakahBisaBukaLapak() ===
+                if (this._currentUser is Penjual penjualSaatIni)
+                {
+                    bool bisaBukaLapak = penjualSaatIni.ApakahBisaBukaLapak();
+                    // Tampilkan info di lblStatusVerifikasi jika ada pembatasan
+                    if (!bisaBukaLapak)
+                    {
+                        this.lblStatusVerifikasi.Text = "⚠️ Lapak terverifikasi tapi akses dibatasi. Hubungi Admin.";
+                        this.pnlStatus.BackColor = Color.FromArgb(255, 200, 100);
+                    }
+                }
             }
             else
             {

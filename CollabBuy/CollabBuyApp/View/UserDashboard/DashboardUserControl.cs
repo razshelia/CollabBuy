@@ -52,18 +52,18 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
                 if (isPenjual)
                 {
-                    this.lblTitlePesanan.Text = "Total Produk";
                     this.lblTitleKeranjang.Text = "PO Aktif";
-                    this.lblTitleSaldo.Text = "Total Omzet";
 
-                    DataTable dtStat = this._laporanController
-                        .GetStatistikDashboardPenjual(this._currentUser.IdUser);
+                    DataTable dtStat = this._laporanController.GetStatistikDashboardPenjual(this._currentUser.IdUser);
 
                     if (dtStat != null && dtStat.Rows.Count > 0)
                     {
                         DataRow r = dtStat.Rows[0];
                         this.lblValPesanan.Text = r["total_produk_master"].ToString();
-                        this.lblValKeranjang.Text = r["total_po_aktif"].ToString();
+
+                        int jumlahPoAktif = this._poController.GetJumlahPoAktif();
+                        this.lblValKeranjang.Text = jumlahPoAktif.ToString();
+
                         long omzet = r["total_omzet_kotor"] != DBNull.Value
                             ? Convert.ToInt64(r["total_omzet_kotor"]) : 0L;
                         this.lblValSaldo.Text = "Rp " + omzet.ToString("N0");

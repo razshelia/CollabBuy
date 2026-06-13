@@ -129,6 +129,15 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         private void btnSimpanProduk_Click(object sender, EventArgs e)
         {
+            if (this._currentUser is Penjual penjualAktif && !penjualAktif.ApakahBisaBukaLapak())
+            {
+                MessageBox.Show(
+                    "Lapak kamu belum terverifikasi atau sedang diblokir. Hubungi Admin.",
+                    "Akses Ditolak",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
             if (string.IsNullOrWhiteSpace(txtNamaProduk.Text))
             {
                 MessageBox.Show("Nama produk wajib diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -315,8 +324,25 @@ namespace CollabBuy.CollabBuyApp.View.Product
             try
             {
                 DataTable dt = this._categoryRepo.GetAll();
+                if (dt != null && dt.Columns.Contains("id_kategori") && dt.Columns.Contains("nama_kategori"))
+                {
+                    if (!dt.Columns.Contains("format_dropdown"))
+                        dt.Columns.Add("format_dropdown", typeof(string));
+
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        string namaKat = row["nama_kategori"].ToString();
+                        if (!string.IsNullOrWhiteSpace(namaKat))
+                        {
+                            Models.Category katObj = new Models.Category(namaKat);
+                            katObj.IdKategori = Convert.ToInt32(row["id_kategori"]);
+                            row["format_dropdown"] = katObj.DapatkanFormatDropdown();
+                        }
+                    }
+                }
+
                 cbKategoriProduk.DataSource = dt;
-                cbKategoriProduk.DisplayMember = "nama_kategori";
+                cbKategoriProduk.DisplayMember = "format_dropdown";
                 cbKategoriProduk.ValueMember = "id_kategori";
             }
             catch (Exception ex)

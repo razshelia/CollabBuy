@@ -47,6 +47,31 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 this.txtPasswordLama.Clear();
                 this.txtPasswordBaru.Clear();
                 this.txtKonfirmasiPassword.Clear();
+
+                // === SAMBUNGKAN DapatkanInisialProfil() ===
+                string inisial = this._currentUser.DapatkanInisialProfil(2);
+
+                // Cari atau buat lblAvatar secara dinamis (tidak perlu designer)
+                Label lblAvatar = this.pnlCard.Controls["lblAvatar"] as Label;
+                if (lblAvatar == null)
+                {
+                    lblAvatar = new Label
+                    {
+                        Name = "lblAvatar",
+                        Size = new System.Drawing.Size(70, 70),
+                        Location = new System.Drawing.Point(215, 10), // pojok kanan atas pnlCard
+                        Font = new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Bold),
+                        TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                        BackColor = System.Drawing.Color.FromArgb(36, 0, 70),
+                        ForeColor = System.Drawing.Color.White,
+                        Text = inisial
+                    };
+                    this.pnlCard.Controls.Add(lblAvatar);
+                }
+                else
+                {
+                    lblAvatar.Text = inisial;
+                }
             }
         }
 

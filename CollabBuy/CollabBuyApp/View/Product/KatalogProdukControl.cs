@@ -196,7 +196,51 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     }
 
                     string tipePo = (dt.Columns.Contains("judul_po") && row["judul_po"] != DBNull.Value)
-                        ? row["judul_po"].ToString() : "Reguler";
+    ? row["judul_po"].ToString() : "Reguler";
+
+                    // Buat objek Product sementara untuk akses DapatkanLabelPromo()
+                    int hargaDasarTemp = 0;
+                    if (dt.Columns.Contains("harga_dasar") && row["harga_dasar"] != DBNull.Value)
+                        int.TryParse(row["harga_dasar"].ToString(), out hargaDasarTemp);
+                    if (hargaDasarTemp <= 0) hargaDasarTemp = 1; // fallback agar konstruktor tidak throw
+
+                    int idPenjualTemp = dt.Columns.Contains("id_penjual") && row["id_penjual"] != DBNull.Value
+                        ? Convert.ToInt32(row["id_penjual"]) : 1;
+
+                    Models.Product produkTemp = new Models.Product(idPenjualTemp, 1, nama, hargaDasarTemp);
+
+                    // Set JenisPo jika ada
+                    if (dt.Columns.Contains("jenis_po") && row["jenis_po"] != DBNull.Value)
+                        produkTemp.JenisPo = row["jenis_po"].ToString();
+
+                    // Set TargetKuota jika ada
+                    if (dt.Columns.Contains("target_kuota") && row["target_kuota"] != DBNull.Value)
+                        produkTemp.TargetKuota = Convert.ToInt32(row["target_kuota"]);
+
+                    // Set HargaDiskon jika ada
+                    if (dt.Columns.Contains("harga_diskon") && row["harga_diskon"] != DBNull.Value && row["harga_diskon"] != DBNull.Value)
+                    {
+                        int diskon = Convert.ToInt32(row["harga_diskon"]);
+                        if (diskon > 0 && diskon < hargaDasarTemp)
+                            produkTemp.HargaDiskon = diskon;
+                    }
+
+                    string labelPromo = produkTemp.DapatkanLabelPromo(); // ← sambungkan dead code
+
+                    // Tambahkan label badge ke kartu produk (setelah label nama produk):
+                    Label lblBadge = new Label
+                    {
+                        Text = labelPromo,
+                        Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                        BackColor = labelPromo.Contains("🔥") ? Color.FromArgb(255, 220, 100)
+                                  : labelPromo.Contains("📦") ? Color.FromArgb(200, 230, 255)
+                                  : Color.FromArgb(220, 255, 220),
+                        ForeColor = Color.FromArgb(36, 0, 70),
+                        AutoSize = true,
+                        Padding = new Padding(4, 2, 4, 2),
+                        // Sesuaikan posisi dengan layout kartu yang ada
+                    };
+                    // tambahkan lblBadge ke panel kartu produk
 
                     byte[] fotoData = (dt.Columns.Contains("foto_produk") && row["foto_produk"] != DBNull.Value)
                         ? (byte[])row["foto_produk"] : null;

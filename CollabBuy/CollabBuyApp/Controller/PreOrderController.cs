@@ -38,6 +38,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
                 var po = new Models.PreOrder(idPenjual, judulPo, jenisPo, rekening, batasWaktu);
                 po.TutupOtomatisJikaBasi(); // tandai expired tanpa throw
+                DataTable dtProduk = this._poRepo.GetSemuaProdukAktif(idPenjual);
                 return po;
             }
             catch (Exception ex)
@@ -170,6 +171,15 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try { return this._poRepo.GetPOAktifByPenjual(idPenjual); }
             catch (Exception) { return new DataTable(); }
+        }
+        public bool CekPoBerjalan(int idPo)
+        {
+            try
+            {
+                Models.PreOrder po = this.GetPreOrder(idPo);
+                return po != null && po.ApakahPoBerjalan();
+            }
+            catch { return false; }
         }
     }
 }

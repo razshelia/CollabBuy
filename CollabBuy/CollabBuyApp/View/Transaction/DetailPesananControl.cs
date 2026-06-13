@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Models;
+using System;
 using System.Data;
 using System.Drawing;
 using System.IO;
@@ -61,9 +62,41 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 };
                 this.pnlInfo.Controls.Add(lblTelp);
             }
-            lblTelp.Text = "📞 " + (this._dtDetail.Columns.Contains("nomor_telepon")
-                ? baris["nomor_telepon"].ToString()
-                : "-");
+            string noTelpPembeli = this._dtDetail.Columns.Contains("nomor_telepon")
+            ? baris["nomor_telepon"].ToString()
+            : "";
+
+            lblTelp.Text = "📞 " + (string.IsNullOrWhiteSpace(noTelpPembeli) ? "-" : noTelpPembeli);
+
+            // Sambungkan DapatkanLinkWhatsApp() — buat objek user sementara untuk mengakses method
+            if (!string.IsNullOrWhiteSpace(noTelpPembeli))
+            {
+                Pembeli pembeliTemp = new Pembeli(
+                    baris["nama_pembeli"].ToString(),
+                    "temp_" + DateTime.Now.Ticks,
+                    "placeholder123"
+                );
+                pembeliTemp.NomorTelepon = noTelpPembeli;
+                string linkWa = pembeliTemp.DapatkanLinkWhatsApp();
+
+                if (!string.IsNullOrWhiteSpace(linkWa))
+                {
+                    LinkLabel lnkWa = new LinkLabel
+                    {
+                        Name = "lnkWhatsApp",
+                        Text = "💬 Hubungi via WhatsApp",
+                        AutoSize = true,
+                        Font = new System.Drawing.Font("Segoe UI", 9F),
+                        Location = new System.Drawing.Point(12, 75)
+                    };
+                    lnkWa.LinkClicked += (s, ev) =>
+                    {
+                        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(linkWa) { UseShellExecute = true }); }
+                        catch { MessageBox.Show("Tidak bisa membuka browser.", "Info"); }
+                    };
+                    this.pnlInfo.Controls.Add(lnkWa);
+                }
+            }
 
             this.lblTanggal.Text = baris["tanggal_transaksi"].ToString();
 
@@ -168,14 +201,23 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             {
                 long subtotal = Convert.ToInt64(row["subtotal"]);
                 grandTotal += subtotal;
-
                 long cashback = this._dtDetail.Columns.Contains("selisih_refund")
                     ? Convert.ToInt64(row["selisih_refund"])
                     : 0;
 
-                string cashbackStr = cashback > 0
-                    ? $"Rp {cashback:N0} ✅"
-                    : "-";
+                TransactionDetail detailObj = new TransactionDetail(
+                    Convert.ToInt32(row["id_produk"] != DBNull.Value ? row["id_produk"] : 0),
+                    row["nama_penitip"].ToString(),
+                    Convert.ToInt32(row["jumlah"])
+                );
+                detailObj.IsiHargaDariDatabase(
+                    Convert.ToInt64(row["harga_satuan"]),
+                    null,
+                    row["nama_produk"].ToString()
+                );
+                detailObj.SetSelisihRefundDariDatabase(cashback);
+
+                string cashbackStr = detailObj.DapatkanInfoRefundUI();
 
                 dtGrid.Rows.Add(
                     row["nama_produk"].ToString(),
