@@ -82,7 +82,7 @@ namespace CollabBuy.CollabBuyApp.Models
         /// Menghapus spasi berlebih dan membuat format teks menjadi Title Case (Huruf depan besar).
         /// Contoh: "   makanan   ringan " -> "Makanan Ringan"
         /// </summary>
-        public void RapikanNamaKategori()
+        private void RapikanNamaKategori()
         {
             // Early return jika kosong, langsung keluar dari method
             if (string.IsNullOrWhiteSpace(this._namaKategori)) return;

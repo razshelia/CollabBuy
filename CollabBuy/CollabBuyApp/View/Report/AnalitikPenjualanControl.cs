@@ -17,6 +17,15 @@ namespace CollabBuy.CollabBuyApp.View.Report
         private readonly AdminController _adminController;
         private DataTable _dtRaw;
         private int _adminTabAktif = 0;
+        private int _pdfSectionAdmin = 0;
+        private int _pdfIndexPerforma = 0;
+        private int _pdfIndexPengguna = 0;
+        private int _pdfIndexTerlaris = 0;
+        private int _pdfSectionPenjual = 0;
+        private int _pdfIndexLpj = 0;
+        private string _pdfLpjPoSebelumnya = "";
+        private long _pdfLpjSubOmzet = 0, _pdfLpjSubRefund = 0, _pdfLpjSubBersih = 0;
+        private int _pdfLpjSubUnit = 0;
 
         public AnalitikPenjualanControl(Models.User currentUser)
         {
@@ -408,35 +417,55 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
         private void LoadAdminChart()
         {
-            this.chartPenjualan.Series.Clear();
+            if (this._dtRaw == null || this._dtRaw.Rows.Count == 0) return;
 
+            var rows = this._dtRaw.AsEnumerable()
+                .Where(r => r["total_omzet_bersih"] != DBNull.Value)
+                .OrderByDescending(r => Convert.ToInt64(r["total_omzet_bersih"]))
+                .Take(10)
+                .ToList();
+
+            if (rows.Count == 0) return;
+
+            this.chartPenjualan.Series.Clear();
+            this.chartPenjualan.ChartAreas[0].AxisX.CustomLabels.Clear();
+
+            // Pakai Column (vertikal) — jauh lebih stabil dari Bar horizontal di WinForms Chart
             Series series = new Series("Omzet Penjual");
-            series.ChartType = SeriesChartType.Bar;
+            series.ChartType = SeriesChartType.Column;
             series.Color = Color.FromArgb(90, 24, 154);
             series.BorderColor = Color.FromArgb(36, 0, 70);
             series.BorderWidth = 1;
 
-            if (this._dtRaw != null && this._dtRaw.Rows.Count > 0)
+            for (int i = 0; i < rows.Count; i++)
             {
-                // Tampilkan top 10 penjual berdasarkan omzet
-                var query = this._dtRaw.AsEnumerable()
-                    .Where(row => row["total_omzet_bersih"] != DBNull.Value)
-                    .OrderByDescending(row => Convert.ToInt64(row["total_omzet_bersih"]))
-                    .Take(10);
+                string nama = rows[i]["nama_penjual"]?.ToString() ?? "-";
+                if (nama.Length > 12) nama = nama.Substring(0, 12) + "..";
+                long omzet = Convert.ToInt64(rows[i]["total_omzet_bersih"]);
 
-                foreach (var row in query)
-                {
-                    string nama = row["nama_penjual"]?.ToString() ?? "-";
-                    long omzet = Convert.ToInt64(row["total_omzet_bersih"]);
-                    series.Points.AddXY(nama, omzet);
-                }
+                // Pakai index numerik sebagai X, set AxisLabel secara eksplisit
+                int idx = series.Points.AddXY(i + 1, omzet);
+                series.Points[idx].AxisLabel = nama;
+                series.Points[idx].ToolTip = nama + "\nRp " + omzet.ToString("N0");
             }
 
             this.chartPenjualan.Series.Add(series);
+
+            var area = this.chartPenjualan.ChartAreas[0];
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisX.Interval = 1;
+            area.AxisX.LabelStyle.Font = new Font("Segoe UI", 7.5f);
+            area.AxisX.LabelStyle.Angle = -30;
+            area.AxisX.IsMarginVisible = true;
+            area.AxisY.MajorGrid.LineColor = Color.LightGray;
+            area.AxisY.LabelStyle.Format = "#,##0";
+            area.AxisY.LabelStyle.Font = new Font("Segoe UI", 7);
+
             this.chartPenjualan.Titles.Clear();
             this.chartPenjualan.Titles.Add("Top Omzet Penjual (Rp)");
-            this.chartPenjualan.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-            this.chartPenjualan.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
+
+            this.chartPenjualan.Invalidate();
+            this.chartPenjualan.Update();
         }
 
         // =======================================================
@@ -528,33 +557,56 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
         private void LoadChartDataPenjual()
         {
+            if (this._dtRaw == null || this._dtRaw.Rows.Count == 0) return;
+
+            var grouped = this._dtRaw.AsEnumerable()
+                .Where(r => r["tanggal_pesanan"] != DBNull.Value)
+                .GroupBy(r => Convert.ToDateTime(r["tanggal_pesanan"]).Date)
+                .Select(g => new
+                {
+                    TanggalAsli = g.Key,
+                    Label = g.Key.ToString("dd MMM"),
+                    Total = g.Sum(r => r["total_harga"] != DBNull.Value
+                                   ? Convert.ToInt64(r["total_harga"]) : 0L)
+                })
+                .OrderBy(x => x.TanggalAsli)
+                .ToList();
+
+            if (grouped.Count == 0) return;
+
             this.chartPenjualan.Series.Clear();
+            this.chartPenjualan.ChartAreas[0].AxisX.CustomLabels.Clear();
+
             Series series = new Series("Pendapatan Harian");
             series.ChartType = SeriesChartType.Column;
             series.Color = Color.FromArgb(200, 182, 255);
             series.BorderColor = Color.FromArgb(36, 0, 70);
             series.BorderWidth = 1;
 
-            if (this._dtRaw != null && this._dtRaw.Rows.Count > 0)
+            for (int i = 0; i < grouped.Count; i++)
             {
-                var query = this._dtRaw.AsEnumerable()
-                    .Where(row => row["tanggal_pesanan"] != DBNull.Value)
-                    .GroupBy(row => Convert.ToDateTime(row["tanggal_pesanan"]).ToString("dd MMM"))
-                    .Select(g => new
-                    {
-                        Tanggal = g.Key,
-                        Total = g.Sum(row => row["total_harga"] != DBNull.Value
-                                       ? Convert.ToInt64(row["total_harga"]) : 0L)
-                    })
-                    .Reverse();
-
-                foreach (var item in query)
-                    series.Points.AddXY(item.Tanggal, item.Total);
+                int idx = series.Points.AddXY(i + 1, grouped[i].Total);
+                series.Points[idx].AxisLabel = grouped[i].Label;
+                series.Points[idx].ToolTip = grouped[i].Label + "\nRp " + grouped[i].Total.ToString("N0");
             }
 
             this.chartPenjualan.Series.Add(series);
-            this.chartPenjualan.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-            this.chartPenjualan.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.LightGray;
+
+            var area = this.chartPenjualan.ChartAreas[0];
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisX.Interval = 1;
+            area.AxisX.LabelStyle.Font = new Font("Segoe UI", 7.5f);
+            area.AxisX.LabelStyle.Angle = -30;
+            area.AxisX.IsMarginVisible = true;
+            area.AxisY.MajorGrid.LineColor = Color.LightGray;
+            area.AxisY.LabelStyle.Format = "#,##0";
+            area.AxisY.LabelStyle.Font = new Font("Segoe UI", 7);
+
+            this.chartPenjualan.Titles.Clear();
+            this.chartPenjualan.Titles.Add("Pendapatan Harian (Rp)");
+
+            this.chartPenjualan.Invalidate();
+            this.chartPenjualan.Update();
         }
 
         // =======================================================
@@ -584,15 +636,26 @@ namespace CollabBuy.CollabBuyApp.View.Report
             this.dgvLaporan.Width = gridW;
             this.dgvLaporan.Height = this.pnlGrid.Height - this.dgvLaporan.Top - 20;
 
-            this.chartPenjualan.Left = this.dgvLaporan.Left + gridW + 16;
-            this.chartPenjualan.Width = innerW - gridW - 16;
-            this.chartPenjualan.Height = this.pnlGrid.Height - this.chartPenjualan.Top - 20;
+            // 1. Yang diatur posisinya adalah panel pembungkusnya (pnlChartScroll), bukan chart-nya
+            this.pnlChartScroll.Left = this.dgvLaporan.Left + gridW + 16;
+            this.pnlChartScroll.Width = innerW - gridW - 16;
+            this.pnlChartScroll.Height = this.pnlGrid.Height - this.pnlChartScroll.Top - 20;
+
+            // 2. Buat chart terpasang pas (0,0) memenuhi pnlChartScroll
+            this.chartPenjualan.Left = 0;
+            this.chartPenjualan.Top = 0;
+            this.chartPenjualan.Width = this.pnlChartScroll.Width;
+            this.chartPenjualan.Height = this.pnlChartScroll.Height;
 
             this.btnRefresh.Left = this.pnlGrid.Width - this.btnRefresh.Width - 24;
         }
 
         // =======================================================
         //  CETAK / EXPORT PDF
+        // =======================================================
+
+        // =======================================================
+        //  CETAK / EXPORT PDF (MULTI-PAGE PAGINATION)
         // =======================================================
 
         private void btnUnduhPdf_Click(object sender, EventArgs e)
@@ -609,7 +672,16 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
             if (printDialog.ShowDialog() == DialogResult.OK)
             {
-                try { printDocument.Print(); }
+                try
+                {
+                    // 1. RESET SEMUA INGATAN PAGINATION SEBELUM MULAI CETAK
+                    _pdfSectionAdmin = 0; _pdfIndexPerforma = 0; _pdfIndexPengguna = 0; _pdfIndexTerlaris = 0;
+                    _pdfSectionPenjual = 0; _pdfIndexLpj = 0;
+                    _pdfLpjPoSebelumnya = "";
+                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0;
+
+                    printDocument.Print();
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Gagal mencetak: " + ex.Message, "Error",
@@ -621,289 +693,211 @@ namespace CollabBuy.CollabBuyApp.View.Report
         private void DrawPdfContent(object sender, PrintPageEventArgs e)
         {
             Graphics g = e.Graphics;
-            Font fontJudul = new Font("Segoe UI Black", 18, FontStyle.Bold);
-            Font fontSub = new Font("Segoe UI", 12, FontStyle.Regular);
-            Font fontTabelHeader = new Font("Segoe UI", 10, FontStyle.Bold);
-            Font fontTabelIsi = new Font("Segoe UI", 10, FontStyle.Regular);
+            Font fontJudulLpj = new Font("Segoe UI Black", 14, FontStyle.Bold);
+            Font fontSeksi = new Font("Segoe UI", 10, FontStyle.Bold);
+            Font fontIsi = new Font("Segoe UI", 9, FontStyle.Regular);
+            Font fontItalic = new Font("Segoe UI", 9, FontStyle.Italic);
+            Font fontSub = new Font("Segoe UI", 10, FontStyle.Italic);
             Brush brushHitam = Brushes.Black;
-            Pen penGaris = new Pen(Color.Gray, 1);
+            Brush brushUngu = new SolidBrush(Color.FromArgb(60, 0, 120));
+            Brush brushHijau = new SolidBrush(Color.FromArgb(0, 120, 50));
+            Brush brushMerah = new SolidBrush(Color.FromArgb(180, 0, 0));
+            Pen penTebal = new Pen(Color.FromArgb(60, 0, 120), 2);
+            Pen penTipis = new Pen(Color.LightGray, 1);
 
             int yPos = 50;
             int marginKiri = 50;
+            int lebar = 700;
+            int batasBawah = e.PageBounds.Height - 120; // Batas mentok sebelum pindah halaman baru
 
             bool isAdmin = this._currentUser.Peran == "Admin";
 
             if (isAdmin)
             {
-                // Ambil semua data yang dibutuhkan
+                // =========================================================
+                // LOGIKA PDF ADMIN MULTI-PAGE
+                // =========================================================
                 var stats = this._adminController.GetStatsDashboard();
                 DataTable dtPerforma = this._laporanController.GetKlasifikasiPerformaPenjual();
                 DataTable dtKeuangan = this._laporanController.GetLaporanKeuanganRollup();
                 DataTable dtSultan = this._laporanController.GetSultanMemberIntersect();
                 DataTable dtPasif = this._laporanController.GetPenggunaPasifExcept();
-                DataTable dtKritis = this._laporanController.GetProdukSisaKuotaKritis();
-                DataTable dtBarang = this._laporanController.GetTotalBarangTerjual();
+                DataTable dtBarang = this._laporanController.GetTotalBarangTerjual(); // Produk Terlaris
 
-                // Hitung grand total keuangan dari rollup (baris dengan tahun & bulan = null = grand total)
-                long grandOmzetKotor = 0;
-                long grandRefund = 0;
-                long grandOmzetBersih = 0;
-                if (dtKeuangan != null)
+                if (_pdfSectionAdmin == 0)
                 {
-                    foreach (DataRow row in dtKeuangan.Rows)
+                    g.DrawString("LAPORAN OPERASIONAL SISTEM COLLABBUY", fontJudulLpj, brushUngu, marginKiri, yPos);
+                    yPos += 28;
+                    g.DrawString("Sistem Agregator Dana Usaha Mahasiswa — Laporan Pengelola", fontIsi, Brushes.Gray, marginKiri, yPos);
+                    yPos += 18;
+                    g.DrawLine(penTebal, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 12;
+
+                    g.DrawString($"Dicetak oleh : {this._currentUser.Nama} (Administrator)", fontIsi, brushHitam, marginKiri, yPos);
+                    yPos += 16;
+                    g.DrawString($"Tanggal cetak: {DateTime.Now:dd MMMM yyyy, HH:mm}", fontIsi, brushHitam, marginKiri, yPos);
+                    yPos += 20;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
+
+                    g.DrawString("A. RINGKASAN STATISTIK SISTEM", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 18;
+                    string[] labelStat = { "Total Pengguna", "Total Transaksi", "Sesi PO Aktif", "Aduan Masuk" };
+                    string[] nilaiStat = {
+                        stats.ContainsKey("users") ? stats["users"].ToString() : "0",
+                        stats.ContainsKey("transaksi") ? stats["transaksi"].ToString() : "0",
+                        stats.ContainsKey("po_aktif") ? stats["po_aktif"].ToString() : "0",
+                        stats.ContainsKey("aduan") ? stats["aduan"].ToString() : "0"
+                    };
+
+                    int colW4 = lebar / 4;
+                    for (int i = 0; i < 4; i++)
                     {
-                        bool isTahunNull = row["tahun"] == DBNull.Value;
-                        bool isBulanNull = row["bulan"] == DBNull.Value;
-                        if (isTahunNull && isBulanNull) // baris grand total dari ROLLUP
+                        int x = marginKiri + (i * colW4);
+                        g.DrawRectangle(new Pen(Color.FromArgb(200, 182, 255), 1), x, yPos, colW4 - 4, 44);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(245, 238, 255)), x + 1, yPos + 1, colW4 - 6, 42);
+                        g.DrawString(labelStat[i], fontItalic, Brushes.Gray, x + 6, yPos + 4);
+                        g.DrawString(nilaiStat[i], fontSeksi, brushUngu, x + 6, yPos + 22);
+                    }
+                    yPos += 56;
+
+                    g.DrawString("B. GRAFIK TOP OMZET PENJUAL", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 16;
+                    this.LoadAdminChart();
+                    int chartWA = 700; int chartHA = 280;
+                    using (var bmp = new System.Drawing.Bitmap(chartWA, chartHA))
+                    {
+                        this.chartPenjualan.DrawToBitmap(bmp, new Rectangle(0, 0, chartWA, chartHA));
+                        g.DrawImage(bmp, new Rectangle(marginKiri, yPos, lebar, 220));
+                    }
+                    yPos += 232;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
+
+                    _pdfSectionAdmin = 1;
+                }
+
+                if (_pdfSectionAdmin == 1)
+                {
+                    if (_pdfIndexPerforma == 0)
+                    {
+                        g.DrawString("C. KLASIFIKASI PERFORMA PENJUAL", fontSeksi, brushUngu, marginKiri, yPos);
+                        yPos += 16;
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 20);
+                        g.DrawString("Nama Penjual", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
+                        g.DrawString("Omzet Bersih (Rp)", fontSeksi, brushHitam, marginKiri + 280, yPos + 2);
+                        g.DrawString("Tier", fontSeksi, brushHitam, marginKiri + 500, yPos + 2);
+                        yPos += 20;
+                    }
+
+                    if (dtPerforma != null)
+                    {
+                        for (; _pdfIndexPerforma < dtPerforma.Rows.Count; _pdfIndexPerforma++)
                         {
-                            grandOmzetKotor = row["omzet_kotor"] != DBNull.Value ? Convert.ToInt64(row["omzet_kotor"]) : 0;
-                            grandRefund = row["total_refund"] != DBNull.Value ? Convert.ToInt64(row["total_refund"]) : 0;
-                            grandOmzetBersih = row["omzet_bersih"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih"]) : 0;
+                            if (yPos > batasBawah) { e.HasMorePages = true; return; }
+
+                            DataRow row = dtPerforma.Rows[_pdfIndexPerforma];
+                            string nama = row["nama_penjual"]?.ToString() ?? "-";
+                            long omzet = row["total_omzet_bersih"] != DBNull.Value ? Convert.ToInt64(row["total_omzet_bersih"]) : 0;
+                            string tier = row["tier_penjual"]?.ToString() ?? "-";
+                            if (nama.Length > 28) nama = nama.Substring(0, 28) + "..";
+
+                            g.DrawString(nama, fontIsi, brushHitam, marginKiri + 5, yPos + 2);
+                            g.DrawString("Rp " + omzet.ToString("N0"), fontIsi, brushHijau, marginKiri + 280, yPos + 2);
+                            g.DrawString(tier, fontIsi, brushUngu, marginKiri + 500, yPos + 2);
+                            g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
+                            yPos += 18;
                         }
                     }
+                    yPos += 10;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
+                    _pdfSectionAdmin = 2;
                 }
 
-                Font fontJudulLpj = new Font("Segoe UI Black", 13, FontStyle.Bold);
-                Font fontSeksi = new Font("Segoe UI", 10, FontStyle.Bold);
-                Font fontIsi = new Font("Segoe UI", 9, FontStyle.Regular);
-                Font fontItalic = new Font("Segoe UI", 9, FontStyle.Italic);
-                Brush brushUngu = new SolidBrush(Color.FromArgb(60, 0, 120));
-                Brush brushHijau = new SolidBrush(Color.FromArgb(0, 120, 50));
-                Brush brushMerah = new SolidBrush(Color.FromArgb(180, 0, 0));
-                Pen penTebal = new Pen(Color.FromArgb(60, 0, 120), 2);
-                Pen penTipis = new Pen(Color.LightGray, 1);
-                int lebar = 650;
-
-                // ═══════════════════════════════════════════
-                // I. KOP
-                // ═══════════════════════════════════════════
-                g.DrawString("LAPORAN OPERASIONAL SISTEM COLLABBUY", fontJudulLpj, brushUngu, marginKiri, yPos);
-                yPos += 28;
-                g.DrawString("Sistem Agregator Dana Usaha Mahasiswa — Laporan Pengelola", fontIsi, Brushes.Gray, marginKiri, yPos);
-                yPos += 18;
-                g.DrawLine(penTebal, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 12;
-
-                g.DrawString($"Dicetak oleh : {this._currentUser.Nama} (Administrator)", fontIsi, brushHitam, marginKiri, yPos);
-                yPos += 16;
-                g.DrawString($"Tanggal cetak: {DateTime.Now:dd MMMM yyyy, HH:mm}", fontIsi, brushHitam, marginKiri, yPos);
-                yPos += 20;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
-
-                // ═══════════════════════════════════════════
-                // II. RINGKASAN STATISTIK SISTEM
-                // ═══════════════════════════════════════════
-                g.DrawString("A. RINGKASAN STATISTIK SISTEM", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 18;
-
-                string[] labelStat = { "Total Pengguna", "Total Transaksi", "Sesi PO Aktif", "Aduan Masuk" };
-                string[] nilaiStat =
+                if (_pdfSectionAdmin == 2)
                 {
-                    stats.ContainsKey("users")     ? stats["users"].ToString()     : "0",
-                    stats.ContainsKey("transaksi")  ? stats["transaksi"].ToString() : "0",
-                    stats.ContainsKey("po_aktif")   ? stats["po_aktif"].ToString()  : "0",
-                    stats.ContainsKey("aduan")      ? stats["aduan"].ToString()     : "0"
-                };
+                    if (yPos > batasBawah - 60) { e.HasMorePages = true; return; } // Pastikan judul tidak terpotong
 
-                int colW4 = lebar / 4;
-                for (int i = 0; i < 4; i++)
-                {
-                    int x = marginKiri + (i * colW4);
-                    g.DrawRectangle(new Pen(Color.FromArgb(200, 182, 255), 1), x, yPos, colW4 - 4, 44);
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(245, 238, 255)), x + 1, yPos + 1, colW4 - 6, 42);
-                    g.DrawString(labelStat[i], fontItalic, Brushes.Gray, x + 6, yPos + 4);
-                    g.DrawString(nilaiStat[i], fontSeksi, brushUngu, x + 6, yPos + 22);
-                }
-                yPos += 56;
+                    int maxBaris = Math.Max(dtSultan?.Rows.Count ?? 0, dtPasif?.Rows.Count ?? 0);
 
-                // ═══════════════════════════════════════════
-                // III. RINGKASAN KEUANGAN SISTEM
-                // ═══════════════════════════════════════════
-                g.DrawString("B. RINGKASAN KEUANGAN KESELURUHAN (Transaksi Selesai)", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 18;
-
-                string[] labelKeu = { "Omzet Kotor Platform", "Total Refund GR Dicairkan", "Omzet Bersih Platform" };
-                string[] nilaiKeu =
-                {
-                    "Rp " + grandOmzetKotor.ToString("N0"),
-                    "Rp " + grandRefund.ToString("N0"),
-                    "Rp " + grandOmzetBersih.ToString("N0")
-                };
-                Brush[] brushKeu = { brushHitam, brushMerah, brushHijau };
-
-                int colW3 = lebar / 3;
-                for (int i = 0; i < 3; i++)
-                {
-                    int x = marginKiri + (i * colW3);
-                    g.DrawRectangle(new Pen(Color.FromArgb(200, 182, 255), 1), x, yPos, colW3 - 4, 44);
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(245, 238, 255)), x + 1, yPos + 1, colW3 - 6, 42);
-                    g.DrawString(labelKeu[i], fontItalic, Brushes.Gray, x + 6, yPos + 4);
-                    g.DrawString(nilaiKeu[i], fontSeksi, brushKeu[i], x + 6, yPos + 22);
-                }
-                yPos += 56;
-
-                // Tabel keuangan per bulan (dari ROLLUP, hanya baris yang ada tahun & bulan)
-                g.DrawString("Rincian Keuangan per Bulan:", fontSeksi, brushHitam, marginKiri, yPos);
-                yPos += 16;
-
-                g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 20);
-                g.DrawString("Tahun", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
-                g.DrawString("Bulan", fontSeksi, brushHitam, marginKiri + 80, yPos + 2);
-                g.DrawString("Omzet Kotor (Rp)", fontSeksi, brushHitam, marginKiri + 160, yPos + 2);
-                g.DrawString("Refund GR (Rp)", fontSeksi, brushHitam, marginKiri + 360, yPos + 2); // Cek apakah jarak 160 ke 360 terlalu jauh
-                g.DrawString("Omzet Bersih (Rp)", fontSeksi, brushHitam, marginKiri + 520, yPos + 2);
-                yPos += 20;
-
-                string[] namaBulan = { "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des" };
-                if (dtKeuangan != null)
-                {
-                    foreach (DataRow row in dtKeuangan.Rows)
+                    if (_pdfIndexPengguna == 0)
                     {
-                        if (row["tahun"] == DBNull.Value || row["bulan"] == DBNull.Value) continue; // skip grand total
-                        int tahun = Convert.ToInt32(row["tahun"]);
-                        int bulan = Convert.ToInt32(row["bulan"]);
-                        long ko = row["omzet_kotor"] != DBNull.Value ? Convert.ToInt64(row["omzet_kotor"]) : 0;
-                        long re = row["total_refund"] != DBNull.Value ? Convert.ToInt64(row["total_refund"]) : 0;
-                        long be = row["omzet_bersih"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih"]) : 0;
-                        string bln = bulan >= 1 && bulan <= 12 ? namaBulan[bulan] : bulan.ToString();
-
-                        g.DrawString(tahun.ToString(), fontIsi, brushHitam, marginKiri + 5, yPos + 2);
-                        g.DrawString(bln, fontIsi, brushHitam, marginKiri + 80, yPos + 2);
-                        g.DrawString("Rp " + ko.ToString("N0"), fontIsi, brushHitam, marginKiri + 160, yPos + 2);
-                        g.DrawString("Rp " + re.ToString("N0"), fontIsi, brushMerah, marginKiri + 360, yPos + 2);
-                        g.DrawString("Rp " + be.ToString("N0"), fontIsi, brushHijau, marginKiri + 520, yPos + 2);
-                        g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
-                        yPos += 18;
+                        g.DrawString("D. ANALISIS PENGGUNA", fontSeksi, brushUngu, marginKiri, yPos);
+                        yPos += 16;
+                        g.DrawString($"Sultan Member (Penjual yg juga Belanja) ({(dtSultan?.Rows.Count ?? 0)} org):", fontSeksi, brushHijau, marginKiri, yPos);
+                        g.DrawString($"Pengguna Pasif/Belum Beli ({(dtPasif?.Rows.Count ?? 0)} org):", fontSeksi, brushMerah, marginKiri + 370, yPos);
+                        yPos += 16;
                     }
-                }
-                yPos += 10;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
 
-                // ═══════════════════════════════════════════
-                // IV. GRAFIK TOP OMZET
-                // ═══════════════════════════════════════════
-                g.DrawString("C. GRAFIK TOP OMZET PENJUAL", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 16;
-                int chartWA = Math.Max(this.chartPenjualan.Width, 400);
-                int chartHA = Math.Max(this.chartPenjualan.Height, 200);
-                using (var bmp = new System.Drawing.Bitmap(chartWA, chartHA))
-                {
-                    this.chartPenjualan.DrawToBitmap(bmp, new Rectangle(0, 0, chartWA, chartHA));
-                    g.DrawImage(bmp, new Rectangle(marginKiri, yPos, lebar, 180));
-                }
-                yPos += 192;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
-
-                // ═══════════════════════════════════════════
-                // V. PERFORMA PENJUAL
-                // ═══════════════════════════════════════════
-                g.DrawString("D. KLASIFIKASI PERFORMA PENJUAL", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 16;
-
-                g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 20);
-                g.DrawString("Nama Penjual", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
-                g.DrawString("Omzet Bersih (Rp)", fontSeksi, brushHitam, marginKiri + 280, yPos + 2);
-                g.DrawString("Tier", fontSeksi, brushHitam, marginKiri + 500, yPos + 2);
-                yPos += 20;
-
-                if (dtPerforma != null)
-                {
-                    foreach (DataRow row in dtPerforma.Rows)
+                    for (; _pdfIndexPengguna < maxBaris; _pdfIndexPengguna++)
                     {
-                        string nama = row["nama_penjual"]?.ToString() ?? "-";
-                        long omzet = row["total_omzet_bersih"] != DBNull.Value ? Convert.ToInt64(row["total_omzet_bersih"]) : 0;
-                        string tier = row["tier_penjual"]?.ToString() ?? "-";
-                        if (nama.Length > 28) nama = nama.Substring(0, 28) + "..";
+                        if (yPos > batasBawah) { e.HasMorePages = true; return; }
 
-                        g.DrawString(nama, fontIsi, brushHitam, marginKiri + 5, yPos + 2);
-                        g.DrawString("Rp " + omzet.ToString("N0"), fontIsi, brushHijau, marginKiri + 280, yPos + 2);
-                        g.DrawString(tier, fontIsi, brushUngu, marginKiri + 500, yPos + 2);
-                        g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
-                        yPos += 18;
+                        if (dtSultan != null && _pdfIndexPengguna < dtSultan.Rows.Count)
+                            g.DrawString("• " + dtSultan.Rows[_pdfIndexPengguna]["nama"].ToString(), fontIsi, brushHitam, marginKiri + 5, yPos + 2);
+                        if (dtPasif != null && _pdfIndexPengguna < dtPasif.Rows.Count)
+                            g.DrawString("• " + dtPasif.Rows[_pdfIndexPengguna]["nama"].ToString(), fontIsi, brushHitam, marginKiri + 375, yPos + 2);
+                        yPos += 16;
                     }
-                }
-                yPos += 10;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
-
-                // ═══════════════════════════════════════════
-                // VI. ANALISIS PENGGUNA
-                // ═══════════════════════════════════════════
-                g.DrawString("E. ANALISIS PENGGUNA", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 16;
-
-                // Dua kolom: kiri = penjual aktif bertransaksi, kanan = pengguna pasif
-                g.DrawString($"Penjual Terverifikasi & Bertransaksi ({(dtSultan?.Rows.Count ?? 0)} orang):",
-                    fontSeksi, brushHijau, marginKiri, yPos);
-                g.DrawString($"Pengguna Belum Pernah Transaksi ({(dtPasif?.Rows.Count ?? 0)} orang):",
-                    fontSeksi, brushMerah, marginKiri + 370, yPos);
-                yPos += 16;
-
-                int maxBaris = Math.Max(dtSultan?.Rows.Count ?? 0, dtPasif?.Rows.Count ?? 0);
-                maxBaris = Math.Min(maxBaris, 8); // cap 8 baris agar tidak overflow halaman
-
-                for (int i = 0; i < maxBaris; i++)
-                {
-                    if (dtSultan != null && i < dtSultan.Rows.Count)
-                        g.DrawString("• " + dtSultan.Rows[i]["nama"].ToString(), fontIsi, brushHitam, marginKiri + 5, yPos + 2);
-                    if (dtPasif != null && i < dtPasif.Rows.Count)
-                        g.DrawString("• " + dtPasif.Rows[i]["nama"].ToString(), fontIsi, brushHitam, marginKiri + 375, yPos + 2);
-                    yPos += 16;
+                    yPos += 10;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
+                    _pdfSectionAdmin = 3;
                 }
 
-                if ((dtSultan?.Rows.Count ?? 0) > 8 || (dtPasif?.Rows.Count ?? 0) > 8)
+                if (_pdfSectionAdmin == 3)
                 {
-                    g.DrawString("(dan lainnya — lihat data lengkap di aplikasi)",
-                        fontItalic, Brushes.Gray, marginKiri + 5, yPos + 2);
-                    yPos += 16;
-                }
-                yPos += 6;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 14;
+                    if (yPos > batasBawah - 60) { e.HasMorePages = true; return; }
 
-                // ═══════════════════════════════════════════
-                // VII. PRODUK KUOTA KRITIS
-                // ═══════════════════════════════════════════
-                g.DrawString("F. PRODUK DENGAN SISA KUOTA KRITIS (≤ 5 unit)", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 16;
-
-                if (dtKritis == null || dtKritis.Rows.Count == 0)
-                {
-                    g.DrawString("✅ Tidak ada produk dengan kuota kritis saat ini.", fontIsi, brushHijau, marginKiri + 5, yPos + 2);
-                    yPos += 18;
-                }
-                else
-                {
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 20);
-                    g.DrawString("Nama Produk", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
-                    g.DrawString("Target Kuota", fontSeksi, brushHitam, marginKiri + 500, yPos + 2);
-                    yPos += 20;
-                    foreach (DataRow row in dtKritis.Rows)
+                    if (_pdfIndexTerlaris == 0)
                     {
-                        string produk = row["nama_produk"]?.ToString() ?? "-";
-                        string kuota = row["target_kuota"] != DBNull.Value ? row["target_kuota"].ToString() + " unit" : "-";
-                        if (produk.Length > 55) produk = produk.Substring(0, 55) + "..";
-                        g.DrawString(produk, fontIsi, brushMerah, marginKiri + 5, yPos + 2);
-                        g.DrawString(kuota, fontIsi, brushHitam, marginKiri + 500, yPos + 2);
-                        g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
-                        yPos += 18;
+                        g.DrawString("E. PRODUK TERLARIS (Top 15 Berdasarkan Unit Terjual)", fontSeksi, brushUngu, marginKiri, yPos);
+                        yPos += 16;
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 20);
+                        g.DrawString("Nama Produk", fontSeksi, brushHitam, marginKiri + 5, yPos + 2);
+                        g.DrawString("Total Terjual", fontSeksi, brushHitam, marginKiri + 500, yPos + 2);
+                        yPos += 20;
                     }
+
+                    if (dtBarang != null)
+                    {
+                        for (; _pdfIndexTerlaris < dtBarang.Rows.Count; _pdfIndexTerlaris++)
+                        {
+                            if (_pdfIndexTerlaris >= 15) break; // Batasi cuma cetak top 15 saja
+                            if (yPos > batasBawah) { e.HasMorePages = true; return; }
+
+                            DataRow row = dtBarang.Rows[_pdfIndexTerlaris];
+                            string produk = row["nama_produk"]?.ToString() ?? "-";
+                            string terjual = row["total_terjual"] != DBNull.Value ? row["total_terjual"].ToString() + " unit" : "0 unit";
+                            if (produk.Length > 55) produk = produk.Substring(0, 55) + "..";
+
+                            g.DrawString($"{_pdfIndexTerlaris + 1}. {produk}", fontIsi, brushHitam, marginKiri + 5, yPos + 2);
+                            g.DrawString(terjual, fontSeksi, brushHijau, marginKiri + 500, yPos + 2);
+                            g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
+                            yPos += 18;
+                        }
+                    }
+                    _pdfSectionAdmin = 4;
+                }
+
+                if (_pdfSectionAdmin == 4)
+                {
+                    if (yPos + 30 > batasBawah) { e.HasMorePages = true; return; }
+                    yPos += 30;
+                    g.DrawString($"Laporan ini di-generate otomatis oleh Sistem CollabBuy (Halaman Terakhir).", fontSub, Brushes.Gray, marginKiri, yPos);
+                    e.HasMorePages = false; // Selesai!
                 }
             }
             else
             {
-                // Ambil data LPJ lengkap
+                // =========================================================
+                // LOGIKA PDF PENJUAL (LPJ DANUS) MULTI-PAGE
+                // =========================================================
                 DataTable dtLpj = this._laporanController.GetLpjDanusPerPo(this._currentUser.IdUser);
 
-                // Hitung total keseluruhan
-                long grandOmzetKotor = 0;
-                long grandRefund = 0;
-                long grandOmzetBersih = 0;
+                long grandOmzetKotor = 0, grandRefund = 0, grandOmzetBersih = 0;
                 int grandUnitTerjual = 0;
-
                 if (dtLpj != null)
                 {
                     foreach (DataRow row in dtLpj.Rows)
@@ -915,233 +909,163 @@ namespace CollabBuy.CollabBuyApp.View.Report
                     }
                 }
 
-                // Nama toko (kalau Penjual terverifikasi, pakai NamaToko)
                 string namaToko = this._currentUser.Nama;
                 if (this._currentUser is Models.Penjual penjual && !string.IsNullOrWhiteSpace(penjual.NamaToko))
                     namaToko = penjual.NamaToko;
 
-                Font fontJudulLpj = new Font("Segoe UI Black", 14, FontStyle.Bold);
-                Font fontSeksi = new Font("Segoe UI", 10, FontStyle.Bold);
-                Font fontIsi = new Font("Segoe UI", 9, FontStyle.Regular);
-                Font fontItalic = new Font("Segoe UI", 9, FontStyle.Italic);
-                Brush brushUngu = new SolidBrush(Color.FromArgb(60, 0, 120));
-                Brush brushHijau = new SolidBrush(Color.FromArgb(0, 120, 50));
-                Brush brushMerah = new SolidBrush(Color.FromArgb(180, 0, 0));
-                Pen penTebal = new Pen(Color.FromArgb(60, 0, 120), 2);
-                Pen penTipis = new Pen(Color.LightGray, 1);
-                int lebar = 700;
-
-                // ═══════════════════════════════════════════════
-                // I. KOP DOKUMEN
-                // ═══════════════════════════════════════════════
-                g.DrawString("LAPORAN PERTANGGUNGJAWABAN DANA USAHA (LPJ DANUS)", fontJudulLpj, brushUngu, marginKiri, yPos);
-                yPos += 30;
-                g.DrawString($"Sistem Agregator Dana Usaha Mahasiswa — CollabBuy", fontIsi, Brushes.Gray, marginKiri, yPos);
-                yPos += 20;
-                g.DrawLine(penTebal, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 12;
-
-                // ═══════════════════════════════════════════════
-                // II. IDENTITAS LAPAK
-                // ═══════════════════════════════════════════════
-                g.DrawString("A. IDENTITAS LAPAK / DANUS", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 20;
-
-                void TulisField(string label, string nilai)
+                if (_pdfSectionPenjual == 0)
                 {
-                    g.DrawString(label, fontSeksi, brushHitam, marginKiri + 10, yPos);
-                    g.DrawString(": " + nilai, fontIsi, brushHitam, marginKiri + 190, yPos);
-                    yPos += 18;
-                }
-
-                TulisField("Nama Lapak / Toko", namaToko);
-                TulisField("Penanggungjawab", this._currentUser.Nama);
-                TulisField("Username Sistem", "@" + this._currentUser.Username);
-                TulisField("Periode Laporan", $"{DateTime.Now:MMMM yyyy}");
-                TulisField("Tanggal Cetak", DateTime.Now.ToString("dd MMMM yyyy, HH:mm"));
-                TulisField("Status Akun", this._currentUser.DapatkanStatusAkun());
-                yPos += 6;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 12;
-
-                // ═══════════════════════════════════════════════
-                // III. RINGKASAN EKSEKUTIF
-                // ═══════════════════════════════════════════════
-                g.DrawString("B. RINGKASAN EKSEKUTIF", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 20;
-
-                // Kotak ringkasan
-                string[] labelRingkasan = { "Total Unit Terjual", "Omzet Kotor", "Total Refund GR", "Omzet Bersih" };
-                string[] nilaiRingkasan =
-                {
-                    grandUnitTerjual + " pcs",
-                    "Rp " + grandOmzetKotor.ToString("N0"),
-                    "Rp " + grandRefund.ToString("N0"),
-                    "Rp " + grandOmzetBersih.ToString("N0")
-                };
-
-                int colW = lebar / 4;
-                for (int i = 0; i < 4; i++)
-                {
-                    int x = marginKiri + (i * colW);
-                    g.DrawRectangle(new Pen(Color.FromArgb(200, 182, 255), 1), x, yPos, colW - 4, 46);
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(245, 238, 255)), x + 1, yPos + 1, colW - 6, 44);
-                    g.DrawString(labelRingkasan[i], fontItalic, Brushes.Gray, x + 6, yPos + 4);
-                    Brush brushNilai = (i == 3) ? brushHijau : brushHitam;
-                    if (i == 2) brushNilai = brushMerah;
-                    g.DrawString(nilaiRingkasan[i], fontSeksi, brushNilai, x + 6, yPos + 24);
-                }
-                yPos += 58;
-
-                // Grafik pendapatan harian
-                g.DrawString("Grafik Pendapatan Harian (Transaksi Selesai):", fontSeksi, brushHitam, marginKiri, yPos);
-                yPos += 16;
-                int chartW2 = Math.Max(this.chartPenjualan.Width, 400);
-                int chartH2 = Math.Max(this.chartPenjualan.Height, 200);
-                using (var bmp = new System.Drawing.Bitmap(chartW2, chartH2))
-                {
-                    this.chartPenjualan.DrawToBitmap(bmp, new Rectangle(0, 0, chartW2, chartH2));
-                    g.DrawImage(bmp, new Rectangle(marginKiri, yPos, lebar, 180));
-                }
-                yPos += 192;
-                g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                yPos += 12;
-
-                // ═══════════════════════════════════════════════
-                // IV. REALISASI PER SESI PO
-                // ═══════════════════════════════════════════════
-                g.DrawString("C. REALISASI PENJUALAN PER SESI PRE-ORDER", fontSeksi, brushUngu, marginKiri, yPos);
-                yPos += 18;
-
-                if (dtLpj == null || dtLpj.Rows.Count == 0)
-                {
-                    g.DrawString("Belum ada data penjualan yang selesai.", fontItalic, Brushes.Gray, marginKiri + 10, yPos);
+                    g.DrawString("LAPORAN PERTANGGUNGJAWABAN DANA USAHA (LPJ DANUS)", fontJudulLpj, brushUngu, marginKiri, yPos);
+                    yPos += 30;
+                    g.DrawString($"Sistem Agregator Dana Usaha Mahasiswa — CollabBuy", fontIsi, Brushes.Gray, marginKiri, yPos);
                     yPos += 20;
-                }
-                else
-                {
-                    // Header tabel
-                    int[] colX = {
-                        marginKiri,           // 0   → Sesi PO / Jenis 
-                        marginKiri + 150,     // 150 → Nama Produk 
-                        marginKiri + 280,     // 280 → Harga Dasar (Dapat 80px)
-                        marginKiri + 360,     // 360 → Unit Terjual (Dapat 80px)
-                        marginKiri + 440,     // 440 → Omzet Kotor (Dapat 90px)
-                        marginKiri + 530,     // 530 → Refund GR (Dapat 80px)
-                        marginKiri + 610      // 610 → Bersih (Sisa ruang 90px ke tepi tabel, super aman!)
+                    g.DrawLine(penTebal, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 12;
+
+                    g.DrawString("A. IDENTITAS LAPAK / DANUS", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 20;
+                    g.DrawString("Nama Lapak / Toko", fontSeksi, brushHitam, marginKiri + 10, yPos);
+                    g.DrawString(": " + namaToko, fontIsi, brushHitam, marginKiri + 190, yPos); yPos += 18;
+                    g.DrawString("Penanggungjawab", fontSeksi, brushHitam, marginKiri + 10, yPos);
+                    g.DrawString(": " + this._currentUser.Nama, fontIsi, brushHitam, marginKiri + 190, yPos); yPos += 18;
+                    g.DrawString("Tanggal Cetak", fontSeksi, brushHitam, marginKiri + 10, yPos);
+                    g.DrawString(": " + DateTime.Now.ToString("dd MMM yyyy, HH:mm"), fontIsi, brushHitam, marginKiri + 190, yPos); yPos += 18;
+                    yPos += 6;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 12;
+
+                    g.DrawString("B. RINGKASAN EKSEKUTIF", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 20;
+                    string[] labelRingkasan = { "Total Unit Terjual", "Omzet Kotor", "Total Refund GR", "Omzet Bersih" };
+                    string[] nilaiRingkasan = {
+                        grandUnitTerjual + " pcs", "Rp " + grandOmzetKotor.ToString("N0"),
+                        "Rp " + grandRefund.ToString("N0"), "Rp " + grandOmzetBersih.ToString("N0")
                     };
 
-                    int[] colWArr = { 135, 145, 70, 75, 95, 95, 60 };
-                    string[] hdr = { "Sesi PO / Jenis", "Nama Produk", "Harga Dasar", "Unit Terjual", "Omzet Kotor", "Refund GR", "Bersih" };
-
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)),
-                        marginKiri, yPos, lebar, 22);
-                    for (int i = 0; i < hdr.Length; i++)
-                        g.DrawString(hdr[i], fontSeksi, brushHitam, colX[i] + 3, yPos + 3);
-                    yPos += 22;
-
-                    // Variabel subtotal
-                    string poSebelumnya = "";
-                    long subOmzet = 0, subRefund = 0, subBersih = 0;
-                    int subUnit = 0;
-
-                    foreach (DataRow row in dtLpj.Rows)
+                    int colW = lebar / 4;
+                    for (int i = 0; i < 4; i++)
                     {
-                        string judulPo = row["judul_po"]?.ToString() ?? "-";
-                        string jenisPo = row["jenis_po"]?.ToString() ?? "";
-                        string statusPo = row["status_po"]?.ToString() ?? "";
-                        string produk = row["nama_produk"]?.ToString() ?? "-";
-                        long hargaDsr = row["harga_dasar"] != DBNull.Value ? Convert.ToInt64(row["harga_dasar"]) : 0;
-                        int unit = row["total_barang_terjual"] != DBNull.Value ? Convert.ToInt32(row["total_barang_terjual"]) : 0;
-                        long kotor = row["omzet_kotor"] != DBNull.Value ? Convert.ToInt64(row["omzet_kotor"]) : 0;
-                        long refund = row["total_refund_dicairkan"] != DBNull.Value ? Convert.ToInt64(row["total_refund_dicairkan"]) : 0;
-                        long bersih = row["omzet_bersih_lpj"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih_lpj"]) : 0;
+                        int x = marginKiri + (i * colW);
+                        g.DrawRectangle(new Pen(Color.FromArgb(200, 182, 255), 1), x, yPos, colW - 4, 46);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(245, 238, 255)), x + 1, yPos + 1, colW - 6, 44);
+                        g.DrawString(labelRingkasan[i], fontItalic, Brushes.Gray, x + 6, yPos + 4);
+                        Brush brushNilai = (i == 3) ? brushHijau : (i == 2 ? brushMerah : brushHitam);
+                        g.DrawString(nilaiRingkasan[i], fontSeksi, brushNilai, x + 6, yPos + 24);
+                    }
+                    yPos += 58;
+                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                    yPos += 14;
 
-                        // ── Header PO baru ──────────────────────────────────────────────
-                        if (judulPo != poSebelumnya)
+                    _pdfSectionPenjual = 1;
+                }
+
+                if (_pdfSectionPenjual == 1)
+                {
+                    int[] colX = { marginKiri, marginKiri + 150, marginKiri + 280, marginKiri + 360, marginKiri + 440, marginKiri + 530, marginKiri + 610 };
+                    string[] hdr = { "Sesi PO / Jenis", "Nama Produk", "Harga", "Unit", "Kotor", "Refund", "Bersih" };
+
+                    if (_pdfIndexLpj == 0 || yPos == 50) // Gambar header jika halaman baru atau tabel baru mulai
+                    {
+                        if (_pdfIndexLpj == 0)
                         {
-                            // Cetak subtotal PO sebelumnya terlebih dahulu
-                            if (poSebelumnya != "")
+                            g.DrawString("C. REALISASI PENJUALAN PER SESI PRE-ORDER", fontSeksi, brushUngu, marginKiri, yPos);
+                            yPos += 18;
+                        }
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 22);
+                        for (int i = 0; i < hdr.Length; i++) g.DrawString(hdr[i], fontSeksi, brushHitam, colX[i] + 3, yPos + 3);
+                        yPos += 22;
+                    }
+
+                    if (dtLpj != null)
+                    {
+                        for (; _pdfIndexLpj < dtLpj.Rows.Count; _pdfIndexLpj++)
+                        {
+                            if (yPos > batasBawah - 40) { e.HasMorePages = true; return; } // Sisa ruang untuk subtotal
+
+                            DataRow row = dtLpj.Rows[_pdfIndexLpj];
+                            string judulPo = row["judul_po"]?.ToString() ?? "-";
+                            string jenisPo = row["jenis_po"]?.ToString() ?? "";
+                            string statusPo = row["status_po"]?.ToString() ?? "";
+                            string produk = row["nama_produk"]?.ToString() ?? "-";
+                            long hargaDsr = row["harga_dasar"] != DBNull.Value ? Convert.ToInt64(row["harga_dasar"]) : 0;
+                            int unit = row["total_barang_terjual"] != DBNull.Value ? Convert.ToInt32(row["total_barang_terjual"]) : 0;
+                            long kotor = row["omzet_kotor"] != DBNull.Value ? Convert.ToInt64(row["omzet_kotor"]) : 0;
+                            long refund = row["total_refund_dicairkan"] != DBNull.Value ? Convert.ToInt64(row["total_refund_dicairkan"]) : 0;
+                            long bersih = row["omzet_bersih_lpj"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih_lpj"]) : 0;
+
+                            if (judulPo != _pdfLpjPoSebelumnya)
                             {
-                                g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
-                                g.DrawString($"Sub-total: {poSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
-                                g.DrawString(subUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
-                                g.DrawString("Rp " + subOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                                g.DrawString(subRefund > 0
-                                    ? "Rp " + subRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
-                                g.DrawString("Rp " + subBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
+                                if (_pdfLpjPoSebelumnya != "")
+                                {
+                                    g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
+                                    g.DrawString($"Sub-total: {_pdfLpjPoSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
+                                    g.DrawString(_pdfLpjSubUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
+                                    g.DrawString("Rp " + _pdfLpjSubOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
+                                    g.DrawString(_pdfLpjSubRefund > 0 ? "Rp " + _pdfLpjSubRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
+                                    g.DrawString("Rp " + _pdfLpjSubBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
+                                    yPos += 18;
+                                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0;
+                                }
+
+                                if (yPos > batasBawah) { e.HasMorePages = true; return; }
+
+                                string judulTampil = judulPo.Length > 22 ? judulPo.Substring(0, 22) + ".." : judulPo;
+                                g.FillRectangle(new SolidBrush(Color.FromArgb(240, 235, 255)), marginKiri, yPos, lebar, 18);
+                                g.DrawString($"📦 {judulTampil}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, colX[0] + 3, yPos + 2);
                                 yPos += 18;
-                                subOmzet = 0; subRefund = 0; subBersih = 0; subUnit = 0;
+                                _pdfLpjPoSebelumnya = judulPo;
                             }
 
-                            // Potong judul PO agar tidak overflow ke kolom berikutnya (maks ~22 karakter)
-                            string judulTampil = judulPo.Length > 22 ? judulPo.Substring(0, 22) + ".." : judulPo;
-
-                            g.FillRectangle(new SolidBrush(Color.FromArgb(240, 235, 255)), marginKiri, yPos, lebar, 18);
-                            g.DrawString($"📦 {judulTampil}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, colX[0] + 3, yPos + 2);
+                            if (produk.Length > 20) produk = produk.Substring(0, 20) + "..";
+                            g.DrawString(produk, fontIsi, brushHitam, colX[1] + 3, yPos + 2);
+                            g.DrawString("Rp " + hargaDsr.ToString("N0"), fontIsi, brushHitam, colX[2] + 3, yPos + 2);
+                            g.DrawString(unit + " pcs", fontIsi, brushHitam, colX[3] + 3, yPos + 2);
+                            g.DrawString("Rp " + kotor.ToString("N0"), fontIsi, brushHitam, colX[4] + 3, yPos + 2);
+                            g.DrawString(refund > 0 ? "Rp " + refund.ToString("N0") : "-", fontIsi, brushMerah, colX[5] + 3, yPos + 2);
+                            g.DrawString("Rp " + bersih.ToString("N0"), fontIsi, brushHijau, colX[6] + 3, yPos + 2);
+                            g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
                             yPos += 18;
-                            poSebelumnya = judulPo;
+
+                            _pdfLpjSubUnit += unit; _pdfLpjSubOmzet += kotor; _pdfLpjSubRefund += refund; _pdfLpjSubBersih += bersih;
                         }
-
-                        // ── Baris produk ────────────────────────────────────────────────
-                        // Nama produk: maks ~20 karakter agar tidak nabrak kolom "Harga Dasar" (colX[2])
-                        if (produk.Length > 20) produk = produk.Substring(0, 20) + "..";
-
-                        g.DrawString(produk, fontIsi, brushHitam, colX[1] + 3, yPos + 2);
-                        g.DrawString("Rp " + hargaDsr.ToString("N0"), fontIsi, brushHitam, colX[2] + 3, yPos + 2);
-                        g.DrawString(unit + " pcs", fontIsi, brushHitam, colX[3] + 3, yPos + 2);
-                        g.DrawString("Rp " + kotor.ToString("N0"), fontIsi, brushHitam, colX[4] + 3, yPos + 2);
-                        g.DrawString(refund > 0
-                            ? "Rp " + refund.ToString("N0") : "-", fontIsi, brushMerah, colX[5] + 3, yPos + 2);
-                        g.DrawString("Rp " + bersih.ToString("N0"), fontIsi, brushHijau, colX[6] + 3, yPos + 2);
-                        g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
-                        yPos += 18;
-
-                        subUnit += unit;
-                        subOmzet += kotor;
-                        subRefund += refund;
-                        subBersih += bersih;
                     }
 
-                    // ── Subtotal PO terakhir ────────────────────────────────────────────
-                    if (poSebelumnya != "")
+                    // Cetak subtotal PO terakhir di paling bawah tabel
+                    if (_pdfLpjPoSebelumnya != "")
                     {
+                        if (yPos > batasBawah) { e.HasMorePages = true; return; }
                         g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
-                        g.DrawString($"Sub-total: {poSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
-                        g.DrawString(subUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
-                        g.DrawString("Rp " + subOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                        g.DrawString(subRefund > 0
-                            ? "Rp " + subRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
-                        g.DrawString("Rp " + subBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
+                        g.DrawString($"Sub-total: {_pdfLpjPoSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
+                        g.DrawString(_pdfLpjSubUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
+                        g.DrawString("Rp " + _pdfLpjSubOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
+                        g.DrawString(_pdfLpjSubRefund > 0 ? "Rp " + _pdfLpjSubRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
+                        g.DrawString("Rp " + _pdfLpjSubBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
                         yPos += 18;
                     }
 
-                    // ── Grand total ─────────────────────────────────────────────────────
+                    if (yPos + 40 > batasBawah) { e.HasMorePages = true; return; }
                     yPos += 4;
                     g.FillRectangle(new SolidBrush(Color.FromArgb(60, 0, 120)), marginKiri, yPos, lebar, 26);
                     g.DrawString("TOTAL KESELURUHAN", fontSeksi, Brushes.White, colX[0] + 3, yPos + 4);
                     g.DrawString(grandUnitTerjual + " pcs", fontSeksi, Brushes.White, colX[3] + 3, yPos + 4);
                     g.DrawString("Rp " + grandOmzetKotor.ToString("N0"), fontSeksi, Brushes.White, colX[4] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandRefund.ToString("N0"),
-                        fontSeksi, new SolidBrush(Color.FromArgb(255, 180, 180)), colX[5] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandOmzetBersih.ToString("N0"),
-                        fontSeksi, new SolidBrush(Color.FromArgb(160, 255, 200)), colX[6] + 3, yPos + 4);
-                    yPos += 28;
-
-                    g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
-                    yPos += 14;
-
-                    // ═══════════════════════════════════════════════
-                    // V. TANDA TANGAN
-                    // ═══════════════════════════════════════════════
-                    g.DrawString("D. PERNYATAAN PERTANGGUNGJAWABAN", fontSeksi, brushUngu, marginKiri, yPos);
-                    yPos += 18;
-                    g.DrawString(
-                        "Dengan ini saya menyatakan bahwa laporan ini adalah benar dan dapat dipertanggungjawabkan.",
-                        fontIsi, brushHitam, marginKiri + 10, yPos);
+                    g.DrawString("Rp " + grandRefund.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(255, 180, 180)), colX[5] + 3, yPos + 4);
+                    g.DrawString("Rp " + grandOmzetBersih.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(160, 255, 200)), colX[6] + 3, yPos + 4);
                     yPos += 30;
 
-                    // Tanda tangan kiri: penanggung jawab
+                    _pdfSectionPenjual = 2;
+                }
+
+                if (_pdfSectionPenjual == 2)
+                {
+                    if (yPos + 160 > batasBawah) { e.HasMorePages = true; return; }
+
+                    yPos += 14;
+                    g.DrawString("D. PERNYATAAN PERTANGGUNGJAWABAN", fontSeksi, brushUngu, marginKiri, yPos);
+                    yPos += 18;
+                    g.DrawString("Dengan ini saya menyatakan bahwa laporan ini adalah benar dan dapat dipertanggungjawabkan.", fontIsi, brushHitam, marginKiri + 10, yPos);
+                    yPos += 30;
+
                     g.DrawString("Dibuat oleh,", fontIsi, brushHitam, marginKiri + 40, yPos);
                     g.DrawString("Diketahui oleh,", fontIsi, brushHitam, marginKiri + 370, yPos);
                     yPos += 60;
@@ -1153,11 +1077,12 @@ namespace CollabBuy.CollabBuyApp.View.Report
                     yPos += 16;
                     g.DrawString("Penanggungjawab Danus", fontItalic, Brushes.Gray, marginKiri + 40, yPos);
                     g.DrawString("Bendahara / Supervisor", fontItalic, Brushes.Gray, marginKiri + 360, yPos);
-                }
 
-                // Footer
-                yPos += 30;
-                g.DrawString("Laporan ini di-generate otomatis oleh Sistem CollabBuy.", fontSub, Brushes.Gray, marginKiri, yPos);
+                    yPos += 40;
+                    g.DrawString("Laporan ini di-generate otomatis oleh Sistem CollabBuy.", fontSub, Brushes.Gray, marginKiri, yPos);
+
+                    e.HasMorePages = false; // Selesai mencetak semuanya!
+                }
             }
         }
     }

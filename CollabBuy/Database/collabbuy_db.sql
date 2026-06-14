@@ -682,6 +682,8 @@ SELECT
 FROM transaction_details td
 JOIN products p ON td.id_produk = p.id_produk
 JOIN users    u ON p.id_penjual = u.id_user
+JOIN transactions t ON td.id_transaksi = t.id_transaksi
+WHERE t.status_pesanan = 'Selesai'
 GROUP BY u.nama
 ORDER BY total_omzet_bersih DESC;
 
