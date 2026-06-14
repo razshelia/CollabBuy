@@ -4,7 +4,6 @@ using CollabBuy.CollabBuyApp.Exceptions;
 using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories

@@ -245,8 +245,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
         {
             if (this._produk == null)
             {
-                // Keadaan di mana _produk gagal dimuat tapi tombol sempat diklik
-                bool proteksiNull = true;
+                MessageBox.Show("Data produk belum termuat, coba refresh halaman ini.",
+                    "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
             else
             {
@@ -267,7 +268,10 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 }
             }
         }
-
+        private void btnLihatKeranjang_Click(object sender, EventArgs e)
+        {
+            this.OnNavigateKeranjang?.Invoke();
+        }
         private void TampilkanStatus(string pesan, bool sukses)
         {
             this.lblStatus.Text = pesan;
@@ -303,11 +307,6 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     KatalogProdukControl katalog = new KatalogProdukControl(this._user);
                     katalog.Dock = DockStyle.Fill;
                     parentPanel.Controls.Add(katalog);
-                }
-                else
-                {
-                    // Tidak ada parent, tidak bisa load Katalog
-                    bool parentKosong = true;
                 }
             }
         }

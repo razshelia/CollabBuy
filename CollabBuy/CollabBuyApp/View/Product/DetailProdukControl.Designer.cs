@@ -34,6 +34,7 @@
             this.nudQty = new System.Windows.Forms.NumericUpDown();
             this.btnMasukKeranjang = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
+            this.btnLihatKeranjang = new System.Windows.Forms.Button();
 
             this.pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picFoto)).BeginInit();
@@ -179,6 +180,7 @@
             this.pnlBeli.Controls.Add(this.lblQtyLabel);
             this.pnlBeli.Controls.Add(this.nudQty);
             this.pnlBeli.Controls.Add(this.btnMasukKeranjang);
+            this.pnlBeli.Controls.Add(this.btnLihatKeranjang);
             this.pnlBeli.Location = new System.Drawing.Point(30, 490);
             this.pnlBeli.Size = new System.Drawing.Size(920, 80);
 
@@ -202,6 +204,19 @@
             this.btnMasukKeranjang.Text = "🛒 Sikat Ke Keranjang!";
             this.btnMasukKeranjang.UseVisualStyleBackColor = false;
             this.btnMasukKeranjang.Click += new System.EventHandler(this.btnMasukKeranjang_Click);
+            //
+            // btnLihatKeranjang
+            //
+            this.btnLihatKeranjang.BackColor = System.Drawing.Color.FromArgb(253, 255, 182);
+            this.btnLihatKeranjang.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnLihatKeranjang.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.btnLihatKeranjang.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLihatKeranjang.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnLihatKeranjang.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.btnLihatKeranjang.Name = "btnLihatKeranjang";
+            this.btnLihatKeranjang.Text = "🛒 Lihat Keranjang";
+            this.btnLihatKeranjang.UseVisualStyleBackColor = false;
+            this.btnLihatKeranjang.Click += new System.EventHandler(this.btnLihatKeranjang_Click);
 
             // ============================================================
             // lblStatus
@@ -269,5 +284,6 @@
         private System.Windows.Forms.NumericUpDown nudQty;
         private System.Windows.Forms.Button btnMasukKeranjang;
         private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.Button btnLihatKeranjang;
     }
 }

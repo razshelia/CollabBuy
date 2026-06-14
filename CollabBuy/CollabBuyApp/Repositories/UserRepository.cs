@@ -4,7 +4,6 @@ using CollabBuy.CollabBuyApp.Exceptions;
 using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
@@ -331,7 +330,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 userObj = new Admin(nama, username, password);
                 userObj.Peran = "Admin";
             }
-            else if (sudahVerifikasiPenjual)
+            else if (peranDb.ToLower() == "penjual")
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
@@ -347,7 +346,17 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     penjual.TahunMasuk = reader.GetInt32(reader.GetOrdinal("tahun_masuk"));
                 }
-                penjual.Approve();
+
+                // Hanya approve jika sudah benar-benar terverifikasi.
+                // Sebelumnya: penjual SELALU di-Approve() di branch ini (karena branch
+                // hanya tercapai saat sudahVerifikasiPenjual == true). Sekarang branch
+                // ini mencakup SEMUA penjual (verified maupun belum), jadi status
+                // verifikasi harus mengikuti data sebenarnya dari database.
+                if (sudahVerifikasiPenjual)
+                {
+                    penjual.Approve();
+                }
+
                 if (HasColumn(reader, "bukti_ktm") && !reader.IsDBNull(reader.GetOrdinal("bukti_ktm")))
                 {
                     byte[] ktmBytes = (byte[])reader["bukti_ktm"];
@@ -357,7 +366,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
 
-                try { penjual.Peran = "Penjual"; } catch { }
+                penjual.Peran = "Penjual";
                 userObj = penjual;
             }
             else

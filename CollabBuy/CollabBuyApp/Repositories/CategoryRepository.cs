@@ -1,7 +1,6 @@
 ﻿using CollabBuy.CollabBuyApp.Repositories.Interfaces;
 using Npgsql;
 using System;
-using System.Configuration;
 using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
