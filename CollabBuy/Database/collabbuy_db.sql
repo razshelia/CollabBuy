@@ -553,7 +553,8 @@ SELECT
 FROM transactions t
 JOIN users u ON t.id_koordinator = u.id_user
 JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
-JOIN products p ON td.id_produk = p.id_produk;
+JOIN products p ON td.id_produk = p.id_produk
+WHERE p.is_deleted = FALSE;
 
 -- ── Dipanggil: SELECT * FROM vw_detail_pesanan_penjual WHERE id_penjual = 2;
 -- SELECT * FROM vw_detail_pesanan_penjual WHERE id_penjual = 2;
@@ -571,6 +572,7 @@ FROM transactions t
 JOIN users u ON t.id_koordinator = u.id_user
 JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
 JOIN products p ON td.id_produk = p.id_produk
+WHERE p.is_deleted = FALSE
 GROUP BY t.id_transaksi, u.nama, u.nomor_telepon, t.tanggal_transaksi, t.status_pesanan, p.id_penjual;
 
 -- ── Dipanggil: SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
