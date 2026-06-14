@@ -187,6 +187,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 FROM transaction_details td
                 JOIN products p ON td.id_produk = p.id_produk
                 JOIN users u    ON p.id_penjual = u.id_user
+                JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                WHERE t.status_pesanan = 'Selesai'
                 GROUP BY u.nama
                 ORDER BY total_omzet_bersih DESC;";
             return FillDataTable(query);
@@ -198,6 +200,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 SELECT p.nama_produk, SUM(td.jumlah_pesanan) AS total_terjual
                 FROM transaction_details td
                 JOIN products p ON td.id_produk = p.id_produk
+                JOIN transactions t ON td.id_transaksi = t.id_transaksi
+                WHERE t.status_pesanan = 'Selesai'
                 GROUP BY p.nama_produk
                 ORDER BY total_terjual DESC;";
             return FillDataTable(query);
@@ -217,8 +221,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     SUM(td.jumlah_pesanan)                            AS total_barang_terjual
                 FROM transaction_details td
                 JOIN      products    p   ON td.id_produk   = p.id_produk
+                JOIN      transactions t  ON td.id_transaksi = t.id_transaksi
                 LEFT JOIN preorders   po  ON p.id_po        = po.id_po
                 LEFT JOIN categories  kat ON p.id_kategori  = kat.id_kategori
+                WHERE t.status_pesanan = 'Selesai'
                 GROUP BY CUBE (kat.nama_kategori, po.jenis_po);";
             return FillDataTable(query);
         }
@@ -254,6 +260,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 JOIN products      p   ON td.id_produk    = p.id_produk
                 JOIN categories    kat ON p.id_kategori   = kat.id_kategori
                 JOIN users         u   ON p.id_penjual    = u.id_user
+                WHERE t.status_pesanan = 'Selesai'
                 GROUP BY GROUPING SETS ((u.nama), (kat.nama_kategori));";
             return FillDataTable(query);
         }

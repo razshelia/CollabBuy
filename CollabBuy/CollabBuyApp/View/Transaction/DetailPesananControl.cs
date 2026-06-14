@@ -29,10 +29,22 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         private void DetailPesananControl_Load(object sender, EventArgs e)
         {
+            this.AdjustLayout();
             this.LoadHeaderInfo();
-            this.SetupDataGridView();
             this.LoadRincianItem();
             this.LoadBuktiBayar();
+            this.Resize += (s, e2) => this.AdjustLayout();
+        }
+
+        private void AdjustLayout()
+        {
+            int lebar = Math.Max(this.Width - 60, 600);
+            this.scrollContent.Width = lebar;
+            this.pnlHeader.Width = lebar;
+            this.pnlInfo.Width = lebar;
+            this.dgvRincian.Width = lebar;
+            this.pnlBukti.Width = lebar;
+            this.pnlTombol.Width = lebar;
         }
 
         // =======================================================

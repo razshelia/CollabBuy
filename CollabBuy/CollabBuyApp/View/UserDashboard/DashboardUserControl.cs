@@ -53,6 +53,8 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 if (isPenjual)
                 {
                     this.lblTitleKeranjang.Text = "PO Aktif";
+                    this.lblTitlePesanan.Text = "Total Produk";
+                    this.lblTitleSaldo.Text = "TOTAL OMZET KOTOR 💰";
 
                     DataTable dtStat = this._laporanController.GetStatistikDashboardPenjual(this._currentUser.IdUser);
 
@@ -61,8 +63,8 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                         DataRow r = dtStat.Rows[0];
                         this.lblValPesanan.Text = r["total_produk_master"].ToString();
 
-                        int jumlahPoAktif = this._poController.GetJumlahPoAktif();
-                        this.lblValKeranjang.Text = jumlahPoAktif.ToString();
+                        DataTable dtPoAktif = this._poController.GetPOAktifByPenjual(this._currentUser.IdUser);
+                        this.lblValKeranjang.Text = (dtPoAktif?.Rows.Count ?? 0).ToString();
 
                         long omzet = r["total_omzet_kotor"] != DBNull.Value
                             ? Convert.ToInt64(r["total_omzet_kotor"]) : 0L;
