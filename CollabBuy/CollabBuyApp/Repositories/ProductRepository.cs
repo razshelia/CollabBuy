@@ -9,15 +9,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ProductRepository : IQueryRepository<Product>, ICommandRepository<Product>, ISoftDeletable
+    public class ProductRepository : BaseRepository, IQueryRepository<Product>, ICommandRepository<Product>, ISoftDeletable
     {
-        private readonly string _connectionString;
-
-        public ProductRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-        }
+        public ProductRepository() : base() { }
 
         // =======================================================
         // IMPLEMENTASI IQueryRepository<Product>

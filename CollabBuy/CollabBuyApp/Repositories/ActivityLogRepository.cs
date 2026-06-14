@@ -9,15 +9,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ActivityLogRepository : IQueryRepository<ActivityLog>, IQueryAllRepository<ActivityLog>, ICommandRepository<ActivityLog>
+    public class ActivityLogRepository : BaseRepository, IQueryRepository<ActivityLog>, IQueryAllRepository<ActivityLog>, ICommandRepository<ActivityLog>
     {
-        private readonly string _connectionString;
-
-        public ActivityLogRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-        }
+        public ActivityLogRepository() : base() { }
 
         public ActivityLog GetById(int idLog)
         {

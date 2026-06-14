@@ -13,16 +13,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// Repository untuk mengakses data User.
     /// Mengimplementasikan IQueryRepository dan ICommandRepository dengan Strict OOP.
     /// </summary>
-    public class UserRepository : IQueryRepository<User>, IQueryAllRepository<User>, ICommandRepository<User>
+    public class UserRepository : BaseRepository
     {
-        private readonly string _connectionString;
-
-        public UserRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-            if (string.IsNullOrWhiteSpace(_connectionString))
-                throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-        }
+        public UserRepository() : base() { }
 
 
         // =======================================================
@@ -52,7 +45,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public List<User> GetAll()
         {
             var listUser = new List<User>();
-            string query = "SELECT id_user, nama, username, password, peran, is_diblokir FROM users ORDER BY nama;";
+            // 1. TAMBAHKAN KOLOM email DAN nomor_telepon DI SINI
+            string query = "SELECT id_user, nama, username, password, peran, email, nomor_telepon, is_diblokir FROM users ORDER BY nama;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -74,8 +68,17 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
                         user.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
                         user.Peran = peran;
+
+                        // 2. TANGKAP NILAI EMAIL DAN NOMOR TELEPON DARI READER
+                        if (!reader.IsDBNull(reader.GetOrdinal("email")))
+                            user.Email = reader.GetString(reader.GetOrdinal("email"));
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
+                            user.NomorTelepon = reader.GetString(reader.GetOrdinal("nomor_telepon"));
+
                         if (!reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
                             user.Blokir("Diblokir oleh Admin");
+
                         listUser.Add(user);
                     }
                 }
@@ -145,11 +148,15 @@ namespace CollabBuy.CollabBuyApp.Repositories
                         Penjual penjual = entity as Penjual;
                         if (penjual != null)
                         {
-                            string queryVerif = "UPDATE verifications SET is_verifikasi = @isVerif WHERE id_user = @idUser;";
+                            string queryVerif = @"UPDATE verifications 
+                                                  SET is_verifikasi = @isVerif,
+                                                      nama_toko     = @namaToko
+                                                  WHERE id_user = @idUser;";
                             using (var cmdVerif = new NpgsqlCommand(queryVerif, conn, dbTx))
                             {
                                 cmdVerif.Parameters.AddWithValue("@idUser", penjual.IdUser);
                                 cmdVerif.Parameters.AddWithValue("@isVerif", penjual.GetStatusPersetujuan());
+                                cmdVerif.Parameters.AddWithValue("@namaToko", penjual.NamaToko ?? "");
                                 cmdVerif.ExecuteNonQuery();
                             }
                         }
@@ -328,8 +335,8 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
-                if(HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
-{
+                if (HasColumn(reader, "nim") && !reader.IsDBNull(reader.GetOrdinal("nim")))
+                {
                     penjual.Nim = reader.GetString(reader.GetOrdinal("nim"));
                 }
                 if (HasColumn(reader, "nama_toko") && !reader.IsDBNull(reader.GetOrdinal("nama_toko")))
@@ -359,6 +366,20 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
 
             userObj.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
+
+            // ========================================================
+            // PERBAIKAN: TANGKAP EMAIL DAN NOMOR TELEPON DI SINI!
+            // ========================================================
+            if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
+            {
+                userObj.Email = reader.GetString(reader.GetOrdinal("email"));
+            }
+            if (HasColumn(reader, "nomor_telepon") && !reader.IsDBNull(reader.GetOrdinal("nomor_telepon")))
+            {
+                userObj.NomorTelepon = reader.GetString(reader.GetOrdinal("nomor_telepon"));
+            }
+            // ========================================================
+
             if (HasColumn(reader, "is_diblokir") && !reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
             {
                 string alasanDb = HasColumn(reader, "alasan_blokir") && !reader.IsDBNull(reader.GetOrdinal("alasan_blokir"))
@@ -369,7 +390,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             return userObj;
         }
-
         private void MappingUserToParameters(NpgsqlCommand cmd, User entity)
         {
             cmd.Parameters.AddWithValue("@nama", entity.Nama);
@@ -499,12 +519,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public int? GetIdPenjualByNamaToko(string namaToko)
         {
             string query = @"
-        SELECT u.id_user 
-        FROM users u
-        JOIN verifications v ON u.id_user = v.id_user
-        WHERE LOWER(v.nama_toko) = LOWER(@namaToko)
-          AND v.is_verifikasi = TRUE
-        LIMIT 1;";
+                SELECT u.id_user 
+                FROM users u
+                JOIN verifications v ON u.id_user = v.id_user
+                WHERE LOWER(v.nama_toko) = LOWER(@namaToko)
+                  AND v.is_verifikasi = TRUE
+                LIMIT 1;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

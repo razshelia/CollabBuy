@@ -83,16 +83,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             // Sambungkan DapatkanLinkWhatsApp() — buat objek user sementara untuk mengakses method
             if (!string.IsNullOrWhiteSpace(noTelpPembeli))
             {
-                Pembeli pembeliTemp = new Pembeli(
-                    baris["nama_pembeli"].ToString(),
-                    "temp_" + DateTime.Now.Ticks,
-                    "placeholder123"
-                );
-                pembeliTemp.NomorTelepon = noTelpPembeli;
-                string linkWa = pembeliTemp.DapatkanLinkWhatsApp();
+                string linkWa = User.DapatkanLinkWhatsApp(noTelpPembeli);
 
                 if (!string.IsNullOrWhiteSpace(linkWa))
                 {
+                    // Hapus link lama jika ada, mencegah penumpukan saat reload
+                    var lnkLama = this.pnlInfo.Controls["lnkWhatsApp"] as LinkLabel;
+                    if (lnkLama != null) this.pnlInfo.Controls.Remove(lnkLama);
+
                     LinkLabel lnkWa = new LinkLabel
                     {
                         Name = "lnkWhatsApp",

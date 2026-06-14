@@ -9,15 +9,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class TransactionRepository : IQueryRepository<Transaction>, IQueryAllRepository<Transaction>, ICommandRepository<Transaction>
+    public class TransactionRepository : BaseRepository, IQueryRepository<Transaction>, IQueryAllRepository<Transaction>, ICommandRepository<Transaction>
     {
-        private readonly string _connectionString;
-
-        public TransactionRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-        }
+        public TransactionRepository() : base() { }
 
 
         // =======================================================
@@ -544,7 +538,11 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     }
                 }
             }
-            catch { return 0; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetTotalTerpesanProduk] ERROR: {ex.Message}");
+                return 0;
+            }
         }
 
         public (bool sukses, string pesan) RecalculateCashbackGotongRoyong(int idProduk, int idPo, long hargaDasar, long hargaDiskon)

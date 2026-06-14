@@ -215,10 +215,15 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public string DapatkanLinkWhatsApp()
         {
-            if (string.IsNullOrWhiteSpace(this._nomorTelepon)) return "";
-            return this._nomorTelepon.StartsWith("0")
-                ? "https://wa.me/62" + this._nomorTelepon.Substring(1)
-                : "https://wa.me/" + this._nomorTelepon;
+            return User.DapatkanLinkWhatsApp(this._nomorTelepon);
+        }
+
+        public static string DapatkanLinkWhatsApp(string nomorTelepon)
+        {
+            if (string.IsNullOrWhiteSpace(nomorTelepon)) return "";
+            return nomorTelepon.StartsWith("0")
+                ? "https://wa.me/62" + nomorTelepon.Substring(1)
+                : "https://wa.me/" + nomorTelepon;
         }
 
         // === IMPLEMENTASI IValidatable ===

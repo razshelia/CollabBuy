@@ -6,15 +6,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class PreOrderRepository : ISoftDeletable
+    public class PreOrderRepository : BaseRepository, ISoftDeletable
     {
-        private readonly string _connectionString;
-
-        public PreOrderRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
-        }
+        public PreOrderRepository() : base() { }
 
         public DataTable GetById(int idPo)
         {

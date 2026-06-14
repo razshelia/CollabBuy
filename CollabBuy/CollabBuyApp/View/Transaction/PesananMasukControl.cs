@@ -118,8 +118,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             if (this._dtPesananCache == null) return;
             string kata = this.txtCariPesanan.Text.Trim().ToLower();
             DataView dv = this._dtPesananCache.DefaultView;
+            // Escape tanda kutip tunggal agar tidak crash saat user ketik nama seperti "O'Brien"
+            string kataEscaped = kata.Replace("'", "''");
             dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
-                : $"nama_pembeli LIKE '%{kata}%' OR status_pesanan LIKE '%{kata}%'";
+                : $"nama_pembeli LIKE '%{kataEscaped}%' OR status_pesanan LIKE '%{kataEscaped}%'";
             this.dgvPesanan.DataSource = dv;
             this.dgvPesanan.ClearSelection();
         }
@@ -189,10 +191,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     {
                         MessageBox.Show(pesan, "Gagal Update", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                }
-                else
-                {
-                    bool dibatalkanAksi = true;
                 }
             }
         }

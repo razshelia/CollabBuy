@@ -8,15 +8,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ReviewRepository : IQueryRepository<Review>, ICommandRepository<Review>
+    public class ReviewRepository : BaseRepository, IQueryRepository<Review>, ICommandRepository<Review>
     {
-        private readonly string _connectionString;
-
-        public ReviewRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
-        }
+        public ReviewRepository() : base() { }
 
         public Review GetById(int idUlasan)
         {

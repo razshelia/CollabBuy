@@ -44,9 +44,17 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 this.txtUsername.Text = this._currentUser.Username;
                 this.txtEmail.Text = this._currentUser.Email ?? "";
                 this.txtNoTelepon.Text = this._currentUser.NomorTelepon ?? "";
+
                 this.txtPasswordLama.Clear();
                 this.txtPasswordBaru.Clear();
                 this.txtKonfirmasiPassword.Clear();
+
+                Penjual penjual = this._currentUser as Penjual;
+                if (penjual != null)
+                    this.txtNamaToko.Text = penjual.NamaToko ?? "";
+
+                // Panggil layout dinamis
+                this.UpdateLayout();
             }
         }
 
@@ -113,6 +121,21 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 this._currentUser.Email = this.txtEmail.Text.Trim();
                 this._currentUser.NomorTelepon = this.txtNoTelepon.Text.Trim();
 
+                // Update nama toko jika user adalah Penjual
+                Penjual penjualEdit = this._currentUser as Penjual;
+                if (penjualEdit != null)
+                {
+                    string namaTokoBaru = this.txtNamaToko.Text.Trim();
+                    if (string.IsNullOrWhiteSpace(namaTokoBaru))
+                    {
+                        MessageBox.Show("Nama toko tidak boleh kosong!", "Validasi",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        this.txtNamaToko.Focus();
+                        return;
+                    }
+                    penjualEdit.NamaToko = namaTokoBaru;
+                }
+
                 string passwordBaru = "";
 
                 if (this.chkGantiPassword.Checked)
@@ -170,13 +193,94 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 {
                     MessageBox.Show(pesan, "Yah Gagal",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.LoadDataProfil();
+
+                    // PERBAIKAN: Hapus LoadDataProfil(), cukup kosongkan password-nya saja
+                    // Biarkan nama/email yang barusan diketik tetap ada di layar
+                    this.txtPasswordLama.Clear();
+                    this.txtPasswordBaru.Clear();
+                    this.txtKonfirmasiPassword.Clear();
+
+                    if (this.chkGantiPassword.Checked) this.txtPasswordLama.Focus();
                 }
             }
             catch (InvalidOrderException ex)
             {
                 MessageBox.Show(ex.GetPesanLengkap(), "Waduh Validasi Gagal",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        private void UpdateLayout()
+        {
+            try
+            {
+                this.pnlCard.SuspendLayout(); // Tahan render sesaat agar tidak kedip
+
+                // 1. PASTIKAN SEMUA KOMPONEN ADA DI DALAM KARTU UNGU
+                if (this.lblNamaToko.Parent != this.pnlCard) this.pnlCard.Controls.Add(this.lblNamaToko);
+                if (this.txtNamaToko.Parent != this.pnlCard) this.pnlCard.Controls.Add(this.txtNamaToko);
+                if (this.chkGantiPassword.Parent != this.pnlCard) this.pnlCard.Controls.Add(this.chkGantiPassword);
+                if (this.pnlGantiPassword.Parent != this.pnlCard) this.pnlCard.Controls.Add(this.pnlGantiPassword);
+                if (this.btnSimpan.Parent != this.pnlCard) this.pnlCard.Controls.Add(this.btnSimpan);
+
+                // Kembalikan ke posisi X (kiri) yang rata
+                int paddingX = 39;
+                this.lblNamaToko.Left = 35;
+                this.txtNamaToko.Left = paddingX;
+                this.chkGantiPassword.Left = paddingX;
+                this.pnlGantiPassword.Left = paddingX;
+                this.btnSimpan.Left = paddingX;
+
+                // 2. KITA GUNAKAN ANGKA PASTI (Titik aman di bawah No WhatsApp adalah Y = 360)
+                int currentY = 360;
+
+                // 3. Logika Nama Toko (Hanya Penjual)
+                bool isPenjual = (this._currentUser is Penjual);
+                this.lblNamaToko.Visible = isPenjual;
+                this.txtNamaToko.Visible = isPenjual;
+
+                if (isPenjual)
+                {
+                    this.lblNamaToko.Top = currentY;
+                    this.txtNamaToko.Top = currentY + 25;
+                    currentY = this.txtNamaToko.Top + 45; // Turunkan Y sejauh tinggi textbox
+                }
+
+                // 4. Logika Checkbox Ganti Password
+                this.chkGantiPassword.Top = currentY;
+                currentY = currentY + 40; // Turunkan Y sejauh tinggi checkbox
+
+                // 5. Logika Panel Password
+                if (this.chkGantiPassword.Checked)
+                {
+                    this.pnlGantiPassword.Visible = true;
+                    this.pnlGantiPassword.Top = currentY;
+                    currentY = currentY + 240; // Turunkan Y sejauh tinggi panel (220) + margin
+                }
+                else
+                {
+                    this.pnlGantiPassword.Visible = false;
+                }
+
+                // 6. Posisikan Tombol Simpan
+                this.btnSimpan.Top = currentY;
+
+                // 7. BUKA SEGEL UKURAN KARTU DAN PANJANGKAN
+                this.pnlCard.MaximumSize = new Size(0, 0);
+                this.pnlCard.Height = this.btnSimpan.Top + 80; // Pastikan kartu membungkus tombol
+
+                this.pnlCard.ResumeLayout(true);
+
+                // 8. AKTIFKAN SCROLLBAR HALAMAN
+                // Memberi tahu halaman kalau kartunya memanjang ke bawah
+                this.AutoScrollMinSize = new Size(0, this.pnlCard.Bottom + 50);
+
+                // Pertahankan kartu di tengah layar
+                this.KelolaProfilControl_Resize(null, null);
+            }
+            catch (Exception ex)
+            {
+                // Jika masih ada sistem yang error diam-diam, kita tangkap dan tampilkan!
+                MessageBox.Show("Gagal mengatur layout UI: " + ex.Message);
             }
         }
     }

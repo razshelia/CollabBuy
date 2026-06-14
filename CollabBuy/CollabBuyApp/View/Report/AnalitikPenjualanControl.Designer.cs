@@ -123,6 +123,10 @@
             // lblPesananAktifTitle
             // 
             this.lblPesananAktifTitle.AutoSize = true;
+            this.lblPesananAktifTitle.MaximumSize = new System.Drawing.Size(270, 0);
+            this.lblPesananAktifTitle.Anchor = System.Windows.Forms.AnchorStyles.Top
+                                             | System.Windows.Forms.AnchorStyles.Left
+                                             | System.Windows.Forms.AnchorStyles.Right;
             this.lblPesananAktifTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblPesananAktifTitle.ForeColor = System.Drawing.Color.Gray;
             this.lblPesananAktifTitle.Location = new System.Drawing.Point(19, 65);
@@ -134,6 +138,10 @@
             // lblPesananAktif
             // 
             this.lblPesananAktif.AutoSize = true;
+            this.lblPesananAktif.MaximumSize = new System.Drawing.Size(270, 0);
+            this.lblPesananAktif.Anchor = System.Windows.Forms.AnchorStyles.Top
+                                        | System.Windows.Forms.AnchorStyles.Left
+                                        | System.Windows.Forms.AnchorStyles.Right;
             this.lblPesananAktif.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.lblPesananAktif.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
             this.lblPesananAktif.Location = new System.Drawing.Point(15, 85);

@@ -260,8 +260,13 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("username"))
+                // PERBAIKAN DI SINI: Ubah ke ToLower() agar pengecekan lebih aman, dan tambahkan cek email
+                string errorMsg = ex.Message.ToLower();
+
+                if (errorMsg.Contains("username"))
                     hasil = (false, "Username sudah dipakai orang lain, coba username lain!");
+                else if (errorMsg.Contains("email"))
+                    hasil = (false, "Email ini sudah dipakai oleh akun lain. Gunakan email lain ya!");
                 else
                     hasil = (false, "Error sistem: " + ex.Message);
             }

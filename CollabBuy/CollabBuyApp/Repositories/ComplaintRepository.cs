@@ -8,15 +8,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class ComplaintRepository : IQueryRepository<Complaint>, ICommandRepository<Complaint>
+    public class ComplaintRepository : BaseRepository, IQueryRepository<Complaint>, ICommandRepository<Complaint>
     {
-        private readonly string _connectionString;
-
-        public ComplaintRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
-        }
+        public ComplaintRepository() : base() { }
 
         public Complaint GetById(int idAduan)
         {

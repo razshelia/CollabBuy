@@ -9,15 +9,9 @@ namespace CollabBuy.CollabBuyApp.Repositories
     /// Repository khusus untuk mengakses View, Function, dan Kueri Analitik (Teori Himpunan).
     /// Mengembalikan DataTable karena hasil query tidak memetakan langsung ke satu Model Domain.
     /// </summary>
-    public class LaporanRepository
+    public class LaporanRepository : BaseRepository
     {
-        private readonly string _connectionString;
-
-        public LaporanRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan di App.config!");
-        }
+        public LaporanRepository() : base() { }
 
         // Helper untuk mengisi DataTable dengan query + parameter opsional
         private DataTable FillDataTable(string query, Action<NpgsqlCommand> addParams = null)

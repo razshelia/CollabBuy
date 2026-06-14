@@ -6,15 +6,9 @@ using System.Data;
 
 namespace CollabBuy.CollabBuyApp.Repositories
 {
-    public class CategoryRepository : ISoftDeletable
+    public class CategoryRepository : BaseRepository, ISoftDeletable
     {
-        private readonly string _connectionString;
-
-        public CategoryRepository()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["CollabBuyDb"]?.ConnectionString
-                ?? throw new Exception("Connection string 'CollabBuyDb' tidak ditemukan!");
-        }
+        public CategoryRepository() : base() { }
 
         public DataTable GetAll()
         {
