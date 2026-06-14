@@ -131,14 +131,37 @@ namespace CollabBuy.CollabBuyApp.Repositories
         }
         public void SoftDelete(int id)
         {
-            string query = "UPDATE preorders SET is_aktif = FALSE, is_deleted = TRUE WHERE id_po = @id;";
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 conn.Open();
-                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var dbTx = conn.BeginTransaction())
                 {
-                    cmd.Parameters.AddWithValue("@id", id);
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        // 1. Tandai PO sebagai dihapus
+                        string queryPo = "UPDATE preorders SET is_aktif = FALSE, is_deleted = TRUE WHERE id_po = @id;";
+                        using (var cmd = new NpgsqlCommand(queryPo, conn, dbTx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // 2. Lepaskan produk dari PO yang dihapus (id_po -> NULL)
+                        //    agar produk tidak lagi terkait sesi PO yang sudah tidak ada.
+                        string queryProduk = "UPDATE products SET id_po = NULL, target_kuota = NULL WHERE id_po = @id;";
+                        using (var cmd = new NpgsqlCommand(queryProduk, conn, dbTx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        dbTx.Commit();
+                    }
+                    catch
+                    {
+                        dbTx.Rollback();
+                        throw;
+                    }
                 }
             }
         }

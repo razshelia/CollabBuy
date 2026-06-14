@@ -65,6 +65,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     MessageBox.Show(pesan, "Suksessss!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.txtKomentar.Clear();
                     this.numRating.Value = 5;
+                    this.LoadProduk();
                 }
                 else
                 {
@@ -81,11 +82,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             if (w > 600)
             {
                 w = 600;
-            }
-            else
-            {
-                // Tetap gunakan lebar yang sudah dihitung
-                bool tidakPerluDibatasi = true;
             }
 
             this.pnlForm.Width = w;

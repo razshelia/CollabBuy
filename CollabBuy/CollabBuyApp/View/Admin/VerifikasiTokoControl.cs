@@ -192,7 +192,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         {
             if (e.RowIndex < 0)
             {
-                bool abaikanKlikHeader = true;
+                return;
             }
             else
             {

@@ -671,10 +671,10 @@ SELECT
     k.nama_kategori,
     COALESCE(po.judul_po, '-')     AS judul_po,
     COALESCE(po.jenis_po, 'Biasa') AS jenis_po,
-    CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po
+    CASE WHEN p.id_po IS NULL OR po.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po
 FROM products p
 JOIN categories k ON p.id_kategori = k.id_kategori
-LEFT JOIN preorders po ON p.id_po = po.id_po
+LEFT JOIN preorders po ON p.id_po = po.id_po AND po.is_deleted = FALSE
 WHERE p.is_deleted = FALSE
 ORDER BY p.id_produk DESC;
 
@@ -748,7 +748,7 @@ SELECT
     COALESCE(v.nama_toko, u.nama)                         AS nama_toko,
     po.jenis_po,
     p.target_kuota,
-    CASE WHEN p.id_po IS NULL THEN FALSE ELSE TRUE END     AS in_sesi_po,
+    CASE WHEN p.id_po IS NULL OR po.id_po IS NULL THEN FALSE ELSE TRUE END AS in_sesi_po,
     COALESCE((
         SELECT SUM(td.jumlah_pesanan)
         FROM transaction_details td
@@ -757,7 +757,7 @@ SELECT
           AND t.status_pesanan NOT IN ('Batal', 'Gagal')
     ), 0)                                                  AS terpesan
 FROM products p
-LEFT JOIN preorders   po  ON p.id_po       = po.id_po
+LEFT JOIN preorders   po  ON p.id_po       = po.id_po AND po.is_deleted = FALSE
 LEFT JOIN categories  kat ON p.id_kategori = kat.id_kategori
 LEFT JOIN users       u   ON p.id_penjual  = u.id_user
 LEFT JOIN verifications v ON p.id_penjual  = v.id_user
@@ -999,12 +999,28 @@ CREATE OR REPLACE FUNCTION fn_produk_bisa_diulas(p_id_user INT)
 RETURNS TABLE (id_produk INT, nama_produk TEXT) AS $$
 BEGIN
     RETURN QUERY
-    SELECT DISTINCT p.id_produk, p.nama_produk::TEXT
-    FROM transaction_details td
-    JOIN transactions t ON td.id_transaksi = t.id_transaksi
-    JOIN products     p ON td.id_produk    = p.id_produk
-    WHERE t.id_koordinator = p_id_user
-      AND t.status_pesanan IN ('Diproses', 'Selesai');
+    -- 1. Kumpulkan semua barang yang pernah dibeli user ini & hitung jumlahnya
+    WITH tbl_beli AS (
+        SELECT p.id_produk, p.nama_produk::TEXT, COUNT(*) as total_beli
+        FROM transaction_details td
+        JOIN transactions t ON td.id_transaksi = t.id_transaksi
+        JOIN products p ON td.id_produk = p.id_produk
+        WHERE t.id_koordinator = p_id_user
+          AND t.status_pesanan IN ('Diproses', 'Selesai')
+        GROUP BY p.id_produk, p.nama_produk
+    ),
+    -- 2. Kumpulkan semua barang yang sudah direview user ini & hitung jumlahnya
+    tbl_review AS (
+        SELECT r.id_produk, COUNT(*) as total_review
+        FROM reviews r
+        WHERE r.id_user = p_id_user
+        GROUP BY r.id_produk
+    )
+    -- 3. Tampilkan HANYA JIKA total beli > total review
+    SELECT b.id_produk, b.nama_produk
+    FROM tbl_beli b
+    LEFT JOIN tbl_review r ON b.id_produk = r.id_produk
+    WHERE b.total_beli > COALESCE(r.total_review, 0);
 END;
 $$ LANGUAGE plpgsql;
 
