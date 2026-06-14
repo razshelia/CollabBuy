@@ -330,7 +330,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 userObj = new Admin(nama, username, password);
                 userObj.Peran = "Admin";
             }
-            else if (peranDb.ToLower() == "penjual")
+            else if (peranDb.ToLower() == "penjual" || sudahVerifikasiPenjual) 
             {
                 Penjual penjual = new Penjual(nama, username, password);
 
@@ -347,11 +347,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     penjual.TahunMasuk = reader.GetInt32(reader.GetOrdinal("tahun_masuk"));
                 }
 
-                // Hanya approve jika sudah benar-benar terverifikasi.
-                // Sebelumnya: penjual SELALU di-Approve() di branch ini (karena branch
-                // hanya tercapai saat sudahVerifikasiPenjual == true). Sekarang branch
-                // ini mencakup SEMUA penjual (verified maupun belum), jadi status
-                // verifikasi harus mengikuti data sebenarnya dari database.
                 if (sudahVerifikasiPenjual)
                 {
                     penjual.Approve();
@@ -376,9 +371,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             userObj.IdUser = reader.GetInt32(reader.GetOrdinal("id_user"));
 
-            // ========================================================
-            // PERBAIKAN: TANGKAP EMAIL DAN NOMOR TELEPON DI SINI!
-            // ========================================================
             if (HasColumn(reader, "email") && !reader.IsDBNull(reader.GetOrdinal("email")))
             {
                 userObj.Email = reader.GetString(reader.GetOrdinal("email"));
@@ -387,7 +379,6 @@ namespace CollabBuy.CollabBuyApp.Repositories
             {
                 userObj.NomorTelepon = reader.GetString(reader.GetOrdinal("nomor_telepon"));
             }
-            // ========================================================
 
             if (HasColumn(reader, "is_diblokir") && !reader.IsDBNull(reader.GetOrdinal("is_diblokir")) && reader.GetBoolean(reader.GetOrdinal("is_diblokir")))
             {
