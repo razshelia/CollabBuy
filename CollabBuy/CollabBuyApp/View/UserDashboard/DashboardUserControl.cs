@@ -270,17 +270,27 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
         private void BukaHalamanDetail(int idProduk)
         {
             var parentPanel = this.Parent;
-
             if (parentPanel != null)
             {
                 parentPanel.Controls.Clear();
                 DetailProdukControl detailPage = new DetailProdukControl(this._currentUser, idProduk);
                 detailPage.Dock = DockStyle.Fill;
+                detailPage.OnNavigateKembali += () =>
+                {
+                    parentPanel.Controls.Clear();
+                    DashboardUserControl dash = new DashboardUserControl(this._currentUser);
+                    dash.Dock = DockStyle.Fill;
+                    parentPanel.Controls.Add(dash);
+                };
+                detailPage.OnNavigateKeranjang += () =>
+                {
+                    parentPanel.Controls.Clear();
+                    var trxCtrl = new Controllers.TransactionController(this._currentUser.IdUser);
+                    var keranjang = new Transaction.KeranjangBelanjaControl(this._currentUser, trxCtrl);
+                    keranjang.Dock = DockStyle.Fill;
+                    parentPanel.Controls.Add(keranjang);
+                };
                 parentPanel.Controls.Add(detailPage);
-            }
-            else
-            {
-                bool tidakBisaGantiHalaman = true;
             }
         }
 

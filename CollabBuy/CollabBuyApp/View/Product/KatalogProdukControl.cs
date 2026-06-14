@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CollabBuy.CollabBuyApp.Controllers;
+using CollabBuy.CollabBuyApp.Models;
+using CollabBuy.CollabBuyApp.View.Helper;
+using CollabBuy.CollabBuyApp.View.Transaction;
+using System;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using CollabBuy.CollabBuyApp.Controllers;
-using CollabBuy.CollabBuyApp.Models;
-using CollabBuy.CollabBuyApp.View.Helper;
 
 namespace CollabBuy.CollabBuyApp.View.Product
 {
@@ -196,7 +197,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     }
 
                     string tipePo = (dt.Columns.Contains("judul_po") && row["judul_po"] != DBNull.Value)
-    ? row["judul_po"].ToString() : "Reguler";
+                    ? row["judul_po"].ToString() : "Reguler";
 
                     // Buat objek Product sementara untuk akses DapatkanLabelPromo()
                     int hargaDasarTemp = 0;
@@ -399,6 +400,21 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         parentPanel.Controls.Clear();
                         DetailProdukControl detailPage = new DetailProdukControl(this._user, idProduk);
                         detailPage.Dock = DockStyle.Fill;
+                        detailPage.OnNavigateKembali += () =>
+                        {
+                            parentPanel.Controls.Clear();
+                            KatalogProdukControl katalogBaru = new KatalogProdukControl(this._user);
+                            katalogBaru.Dock = DockStyle.Fill;
+                            parentPanel.Controls.Add(katalogBaru);
+                        };
+                        detailPage.OnNavigateKeranjang += () =>
+                        {
+                            parentPanel.Controls.Clear();
+                            var trxCtrl = new Controllers.TransactionController(this._user.IdUser);
+                            var keranjang = new KeranjangBelanjaControl(this._user, trxCtrl);
+                            keranjang.Dock = DockStyle.Fill;
+                            parentPanel.Controls.Add(keranjang);
+                        };
                         parentPanel.Controls.Add(detailPage);
                     }
                 }

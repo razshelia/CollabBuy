@@ -26,8 +26,11 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
         {
             this.AdjustLayout();
             this.dtpBatasWaktu.MinDate = DateTime.Now;
-            this.cbJenisPO.SelectedIndex = 0; 
+            this.cbJenisPO.SelectedIndex = 0;
             this.LoadMasterProduk();
+            // Sembunyikan numQuota karena kuota diatur per-produk saat tambah ke sesi PO
+            this.numQuota.Visible = false;
+            this.lblQuota.Visible = false;
         }
 
         private void btnSimpanSesi_Click(object sender, EventArgs e)

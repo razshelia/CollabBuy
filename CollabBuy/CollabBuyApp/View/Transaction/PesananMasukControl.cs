@@ -249,9 +249,10 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             int w = this.Width - (margin * 2);
             this.pnlCard.Width = w;
             this.dgvPesanan.Width = this.pnlCard.Width - 68;
+            this.btnBatal.Left = 34;
+            this.btnLihatDetail.Left = this.btnBatal.Left + this.btnBatal.Width + 10;
             this.btnProses.Left = this.pnlCard.Width - this.btnProses.Width - 34;
             this.btnSelesai.Left = this.btnProses.Left - this.btnSelesai.Width - 10;
-            this.btnLihatDetail.Left = this.btnBatal.Left + this.btnBatal.Width + 10;
         }
     }
 }

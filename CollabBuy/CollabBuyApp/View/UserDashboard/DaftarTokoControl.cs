@@ -107,6 +107,13 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
 
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
+                    FileInfo fiKtm = new FileInfo(ofd.FileName);
+                    if (fiKtm.Length > 3145728) // 3MB
+                    {
+                        MessageBox.Show("Ukuran foto KTM maksimal 3MB ya!", "Peringatan",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
                     this._buktiKtmBytes = File.ReadAllBytes(ofd.FileName);
                     this.lblNamaFile.Text = Path.GetFileName(ofd.FileName);
                     this.lblNamaFile.ForeColor = Color.Green;

@@ -188,6 +188,12 @@ namespace CollabBuy.CollabBuyApp.View.Admin
         private void btnBlokir_Click(object sender, EventArgs e)
         {
             if (this._selectedIdUser == 0) return;
+            if (this._selectedIdUser == this._currentUser.IdUser)
+            {
+                MessageBox.Show("Kamu tidak bisa memblokir akun kamu sendiri!",
+                    "Tidak Diizinkan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             bool sedangDiblokir = (this._selectedRawStatus == "Diblokir");
             string aksi = sedangDiblokir ? "mengaktifkan kembali" : "memblokir";

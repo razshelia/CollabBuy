@@ -842,7 +842,7 @@ BEGIN
     JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
     JOIN products p ON td.id_produk = p.id_produk
     WHERE p.id_penjual     = p_id_penjual
-      AND t.status_pesanan != 'Selesai';
+      AND t.status_pesanan NOT IN ('Selesai', 'Dibatalkan');
 END;
 $$ LANGUAGE plpgsql;
 

@@ -63,32 +63,29 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
                 if (dtKeranjang.Rows.Count > 0)
                 {
-                    int idProdukPertama = Convert.ToInt32(dtKeranjang.Rows[0]["IdProduk"]);
-
                     ProductController pc = new ProductController();
-                    Models.Product produkTeratas = pc.GetProdukById(idProdukPertama);
+                    var infoList = new System.Collections.Generic.List<string>();
 
-                    if (produkTeratas != null && produkTeratas.IdPo.HasValue)
+                    foreach (DataRow baris in dtKeranjang.Rows)
                     {
-                        // =======================================================
-                        // OOP BEST PRACTICE: PANGGIL LEWAT CONTROLLER & MODEL
-                        // BUKAN NULIS QUERY SQL DI VIEW!
-                        // =======================================================
-                        Models.PreOrder sesiPo = this._poCtrl.GetPreOrder(produkTeratas.IdPo.Value);
+                        int idProduk = Convert.ToInt32(baris["IdProduk"]);
+                        Models.Product produk = pc.GetProdukById(idProduk);
 
-                        if (sesiPo != null)
+                        if (produk != null && produk.IdPo.HasValue)
                         {
-                            this.lblRekeningInfo.Text = sesiPo.InfoRekening;
+                            Models.PreOrder sesiPo = this._poCtrl.GetPreOrder(produk.IdPo.Value);
+                            if (sesiPo != null && !infoList.Contains(sesiPo.InfoRekening))
+                                infoList.Add(sesiPo.InfoRekening);
                         }
-                        else
+                        else if (produk != null && !infoList.Contains("Chat penjual untuk info transfer"))
                         {
-                            this.lblRekeningInfo.Text = "Data PO tidak valid atau telah dihapus.";
+                            infoList.Add("Chat penjual untuk info transfer");
                         }
                     }
-                    else
-                    {
-                        this.lblRekeningInfo.Text = "Barang jualan reguler (Tanpa PO). Silakan chat penjual untuk info transfer.";
-                    }
+
+                    this.lblRekeningInfo.Text = infoList.Count > 0
+                        ? string.Join("\n─────────\n", infoList)
+                        : "Tidak ada info rekening tersedia.";
                 }
                 else
                 {
@@ -117,6 +114,13 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 {
                     try
                     {
+                        FileInfo fiBukti = new FileInfo(ofd.FileName);
+                        if (fiBukti.Length > 3145728) // 3MB
+                        {
+                            MessageBox.Show("Ukuran bukti transfer maksimal 3MB ya!", "Peringatan",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
                         this._buktiBayar = File.ReadAllBytes(ofd.FileName);
                         this.lblNamaFile.Text = Path.GetFileName(ofd.FileName);
 

@@ -137,7 +137,7 @@
             this.lblNamaToko.AutoSize = true;
             this.lblNamaToko.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblNamaToko.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblNamaToko.Location = new System.Drawing.Point(35, 345);
+            this.lblNamaToko.Location = new System.Drawing.Point(35, 0);
             this.lblNamaToko.Name = "lblNamaToko";
             this.lblNamaToko.Text = "Nama Toko";
             this.lblNamaToko.Visible = false;
@@ -153,7 +153,7 @@
             this.chkGantiPassword.AutoSize = true;
             this.chkGantiPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.chkGantiPassword.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.chkGantiPassword.Location = new System.Drawing.Point(39, 415);
+            this.chkGantiPassword.Location = new System.Drawing.Point(39, 0);
             this.chkGantiPassword.Name = "chkGantiPassword";
             this.chkGantiPassword.Text = "🔐 Ganti Password";
             this.chkGantiPassword.UseVisualStyleBackColor = true;
@@ -236,7 +236,7 @@
             this.btnSimpan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpan.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold);
             this.btnSimpan.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnSimpan.Location = new System.Drawing.Point(39, 685);
+            this.btnSimpan.Location = new System.Drawing.Point(39, 0);
             this.btnSimpan.Name = "btnSimpan";
             this.btnSimpan.Size = new System.Drawing.Size(420, 48);
             this.btnSimpan.Text = "💾 Simpan Perubahan";

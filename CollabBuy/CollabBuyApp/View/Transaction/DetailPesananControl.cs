@@ -30,6 +30,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         private void DetailPesananControl_Load(object sender, EventArgs e)
         {
             this.AdjustLayout();
+            this.SetupDataGridView();
             this.LoadHeaderInfo();
             this.LoadRincianItem();
             this.LoadBuktiBayar();
