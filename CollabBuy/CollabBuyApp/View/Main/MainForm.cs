@@ -475,10 +475,28 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
             if (dr == DialogResult.Yes)
             {
-                int idPembeli = this._currentUser.IdUser;
-                Services.CartManager.BersihkanSesiPembeli(idPembeli);
-                this._currentUser = null;
-                this.ShowLoginControl();
+                try
+                {
+                    if (this._currentUser != null)
+                    {
+                        int idPembeli = this._currentUser.IdUser;
+                        Services.CartManager.BersihkanSesiPembeli(idPembeli);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Terjadi peringatan sistem saat membersihkan memori keranjang: {ex.Message}",
+                        "Peringatan Logika Bisnis",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                }
+                finally
+                {
+                    this._currentUser = null;
+                    this.ShowLoginControl();
+                }
             }
         }
     }

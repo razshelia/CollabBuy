@@ -147,9 +147,16 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._hargaDiskon; }
             set
             {
-                // Harus mengecek terhadap field _hargaDasar agar aman
-                if (value.HasValue && value.Value >= this._hargaDasar)
-                    throw new InvalidOrderException("Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
+                if (value.HasValue)
+                {
+                    if (value.Value <= 0)
+                        throw new InvalidOrderException("Harga diskon harus lebih dari 0!", "harga_diskon", "DISKON_INVALID");
+
+                    // PERBAIKAN: hanya validasi terhadap harga dasar jika harga dasar sudah di-set (> 0)
+                    if (this._hargaDasar > 0 && value.Value >= this._hargaDasar)
+                        throw new InvalidOrderException(
+                            "Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
+                }
                 this._hargaDiskon = value;
             }
         }
@@ -280,6 +287,12 @@ namespace CollabBuy.CollabBuyApp.Models
 
             if (this._hargaDiskon.HasValue && this._hargaDiskon.Value >= this._hargaDasar)
                 throw new InvalidOrderException("Validasi gagal: Harga diskon >= Harga dasar.", "harga_diskon", "DISKON_INVALID");
+            if (this._hargaDiskon.HasValue && this._hargaDasar > 0)
+            {
+                if (this._hargaDiskon.Value >= this._hargaDasar)
+                    throw new InvalidOrderException(
+                        "Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
+            }
         }
 
         // === IMPLEMENTASI ICalculatable ===

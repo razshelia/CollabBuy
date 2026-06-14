@@ -362,7 +362,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
         public int GetActiveTransactionCount(int idKoordinator)
         {
-            string query = "SELECT COUNT(*) FROM transactions WHERE id_koordinator = @id AND status_pesanan != 'Selesai';";
+            string query = "SELECT COUNT(*) FROM transactions WHERE id_koordinator = @id AND status_pesanan IN ('Menunggu', 'Diproses');";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

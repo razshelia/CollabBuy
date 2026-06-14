@@ -13,14 +13,19 @@ namespace CollabBuy.CollabBuyApp.Services
         private static readonly Dictionary<int, Dictionary<int, List<TransactionDetail>>>
             _semuaKeranjang = new Dictionary<int, Dictionary<int, List<TransactionDetail>>>();
 
+        private static readonly object _lockKeranjang = new object();
+
         // Shortcut ke keranjang pembeli aktif
         private Dictionary<int, List<TransactionDetail>> Keranjang
         {
             get
             {
-                if (!_semuaKeranjang.ContainsKey(this._idPembeli))
-                    _semuaKeranjang[this._idPembeli] = new Dictionary<int, List<TransactionDetail>>();
-                return _semuaKeranjang[this._idPembeli];
+                lock (_lockKeranjang)
+                {
+                    if (!_semuaKeranjang.ContainsKey(this._idPembeli))
+                        _semuaKeranjang[this._idPembeli] = new Dictionary<int, List<TransactionDetail>>();
+                    return _semuaKeranjang[this._idPembeli];
+                }
             }
         }
 
@@ -52,9 +57,41 @@ namespace CollabBuy.CollabBuyApp.Services
             produk.TambahPesanan(jumlah);
         }
 
+        /// <summary>
+        /// Hanya menghitung total untuk tampilan UI — tidak mengubah state detail.
+        /// Aman dipanggil berulang kali.
+        /// </summary>
         public long HitungTotalKeranjang()
         {
             long total = 0;
+            foreach (var entry in this.Keranjang)
+            {
+                foreach (TransactionDetail detail in entry.Value)
+                {
+                    Product produk = detail.ProdukYangDipesan;
+                    if (produk != null)
+                    {
+                        // Estimasi harga pakai harga diskon jika ada, tanpa mengubah state
+                        long hargaEfektif = produk.HargaDiskon.HasValue
+                            ? Convert.ToInt64(produk.HargaDiskon.Value)
+                            : produk.HitungTotal();
+                        total += hargaEfektif * detail.JumlahPesanan;
+                    }
+                    else
+                    {
+                        total += detail.HitungTotal();
+                    }
+                }
+            }
+            return total;
+        }
+
+        /// <summary>
+        /// Finalisasi harga saat checkout — mengubah state detail secara permanen.
+        /// Hanya boleh dipanggil SEKALI saat BuildTransaction().
+        /// </summary>
+        public void FinalisasiHargaUntukCheckout()
+        {
             foreach (var entry in this.Keranjang)
             {
                 foreach (TransactionDetail detail in entry.Value)
@@ -68,10 +105,8 @@ namespace CollabBuy.CollabBuyApp.Services
                             : null;
                         detail.FinalisasiHargaSaatCheckout(hargaSaatIni, hargaDiskon);
                     }
-                    total += detail.HitungTotal();
                 }
             }
-            return total;
         }
 
         public Transaction BuildTransaction()
@@ -79,7 +114,7 @@ namespace CollabBuy.CollabBuyApp.Services
             if (this.Keranjang.Count == 0)
                 throw new InvalidOrderException("Keranjang kosong, tidak bisa checkout!", "", "CART_EMPTY");
 
-            this.HitungTotalKeranjang();
+            this.FinalisasiHargaUntukCheckout();
 
             foreach (var entry in this.Keranjang)
             {
@@ -109,14 +144,34 @@ namespace CollabBuy.CollabBuyApp.Services
 
         public void KosongkanKeranjang()
         {
+            // Kembalikan semua stok sebelum keranjang dikosongkan
+            foreach (var entry in this.Keranjang)
+            {
+                foreach (var detail in entry.Value)
+                {
+                    detail.ProdukYangDipesan?.KurangiPesanan(detail.JumlahPesanan);
+                }
+            }
+
+            this.Keranjang.Clear();
+        }
+
+        public void KosongkanKeranjangSetelahCheckout()
+        {
             this.Keranjang.Clear();
         }
 
         public void HapusItem(int idProduk)
         {
-            if (this.Keranjang.ContainsKey(idProduk))
-                this.Keranjang.Remove(idProduk);
-            // Tidak ditemukan → tidak ada yang dilakukan, bukan error
+            if (!this.Keranjang.ContainsKey(idProduk)) return;
+
+            // Kembalikan stok semua detail produk ini sebelum dihapus
+            foreach (var detail in this.Keranjang[idProduk])
+            {
+                detail.ProdukYangDipesan?.KurangiPesanan(detail.JumlahPesanan);
+            }
+
+            this.Keranjang.Remove(idProduk);
         }
 
         public void HapusDetailTitipan(int idProduk, string namaPenitip)
@@ -124,6 +179,14 @@ namespace CollabBuy.CollabBuyApp.Services
             if (!this.Keranjang.ContainsKey(idProduk)) return;
 
             var list = this.Keranjang[idProduk];
+
+            // Kembalikan stok sebelum dihapus
+            var itemYangDihapus = list.FindAll(d => d.NamaPenitip == namaPenitip);
+            foreach (var item in itemYangDihapus)
+            {
+                item.ProdukYangDipesan?.KurangiPesanan(item.JumlahPesanan);
+            }
+
             list.RemoveAll(d => d.NamaPenitip == namaPenitip);
 
             if (list.Count == 0)
@@ -162,8 +225,11 @@ namespace CollabBuy.CollabBuyApp.Services
         /// </summary>
         public static void BersihkanSesiPembeli(int idPembeli)
         {
-            if (_semuaKeranjang.ContainsKey(idPembeli))
-                _semuaKeranjang.Remove(idPembeli);
+            lock (_lockKeranjang)
+            {
+                if (_semuaKeranjang.ContainsKey(idPembeli))
+                    _semuaKeranjang.Remove(idPembeli);
+            }
         }
     }
 }

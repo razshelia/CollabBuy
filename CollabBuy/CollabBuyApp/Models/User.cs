@@ -97,15 +97,23 @@ namespace CollabBuy.CollabBuyApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value)) { this._email = ""; return; }
-                if (value.Trim().Length < 6)
-                    throw new InvalidOrderException("Format email tidak valid! Terlalu pendek.", "email", "USER_EMAIL_INVALID");
-                if (!value.Contains("@") || !value.Contains("."))
-                    throw new InvalidOrderException("Format email tidak valid! (Harus mengandung @ dan .)", "email", "USER_EMAIL_INVALID");
-                if (value.IndexOf("@") < 3)
-                    throw new InvalidOrderException("Format email tidak valid! Bagian sebelum @ tidak boleh kosong.", "email", "USER_EMAIL_INVALID");
-                if (value.LastIndexOf(".") < value.IndexOf("@") + 2)
-                    throw new InvalidOrderException("Format email tidak valid! Domain tidak lengkap.", "email", "USER_EMAIL_INVALID");
-                this._email = value.Trim().ToLower();
+
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(value.Trim());
+                    string domain = addr.Host;
+                    int lastDot = domain.LastIndexOf('.');
+                    if (lastDot < 0 || domain.Length - lastDot - 1 < 2)
+                        throw new FormatException("TLD terlalu pendek.");
+
+                    this._email = addr.Address.ToLower();
+                }
+                catch (FormatException)
+                {
+                    throw new InvalidOrderException(
+                        "Format email tidak valid! Contoh yang benar: nama@domain.com",
+                        "email", "USER_EMAIL_INVALID");
+                }
             }
         }
 

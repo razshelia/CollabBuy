@@ -131,7 +131,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
                     // Trigger cashback SEBELUM KosongkanKeranjang — cart masih berisi data produk GR
                     this.TriggerCashbackInternal();
 
-                    this._cartManager.KosongkanKeranjang();
+                    this._cartManager.KosongkanKeranjangSetelahCheckout();
 
                     ActivityLog log = new ActivityLog(transaksiBaru.IdPembeli, "Berhasil melakukan checkout Transaksi #" + idTransaksi);
                     this._logRepo.Insert(log);
@@ -159,34 +159,41 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 var dict = this._cartManager.GetKeranjangDictionary();
                 foreach (var entry in dict)
                 {
-                    Product produk = null;
+                    Product produkRam = null;
                     foreach (var detail in entry.Value)
                     {
                         if (detail.ProdukYangDipesan != null)
                         {
-                            produk = detail.ProdukYangDipesan;
+                            produkRam = detail.ProdukYangDipesan;
                             break;
                         }
                     }
 
-                    if (produk == null) continue;
-                    if (produk.JenisPo != "Gotong Royong") continue;
-                    if (!produk.HargaDiskon.HasValue) continue;
-                    if (!produk.IdPo.HasValue) continue;  // produk harus punya PO
+                    if (produkRam == null) continue;
+                    if (produkRam.JenisPo != "Gotong Royong") continue;
+                    if (!produkRam.HargaDiskon.HasValue) continue;
+                    if (!produkRam.IdPo.HasValue) continue;
+
+                    // PERBAIKAN: ambil data produk terbaru dari DB, bukan dari RAM
+                    Product produkDb = this._productRepo.GetById(produkRam.IdProduk);
+                    if (produkDb == null) continue;
+                    if (!produkDb.TargetKuota.HasValue) continue;
 
                     int totalTerpesanDB = this._transactionRepo.GetTotalTerpesanProduk(
-                        produk.IdProduk, produk.IdPo.Value);  // filter per PO
+                        produkDb.IdProduk, produkRam.IdPo.Value);
 
-                    bool kuotaTerpenuhi = produk.TargetKuota.HasValue
-                        && totalTerpesanDB >= produk.TargetKuota.Value;
+                    bool kuotaTerpenuhi = totalTerpesanDB >= produkDb.TargetKuota.Value;
 
                     if (!kuotaTerpenuhi) continue;
 
+                    // PERBAIKAN: RecalculateCashback harus idempoten (tidak boleh trigger ganda)
+                    // Pastikan implementasi di repository menggunakan ON CONFLICT DO NOTHING
+                    // atau cek dulu apakah cashback sudah pernah diberikan untuk PO ini
                     this._transactionRepo.RecalculateCashbackGotongRoyong(
-                        produk.IdProduk,
-                        produk.IdPo.Value,   // teruskan idPo
-                        produk.HargaDasar,
-                        produk.HargaDiskon.Value
+                        produkDb.IdProduk,
+                        produkRam.IdPo.Value,
+                        produkDb.HargaDasar,
+                        produkDb.HargaDiskon ?? produkRam.HargaDiskon.Value
                     );
                 }
             }
@@ -288,44 +295,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
         public DataTable GetRiwayatPesanan(int idPembeli)
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("id_transaksi", typeof(int));
-            dt.Columns.Add("waktu_pesan", typeof(DateTime));
-            dt.Columns.Add("total_tagihan", typeof(long));
-            dt.Columns.Add("status_pesanan", typeof(string));
-            dt.Columns.Add("status_bayar", typeof(string));
-
+            // PERBAIKAN: gunakan method repository yang sudah efisien (pakai view DB)
             try
             {
-                List<Transaction> listTrx = this._transactionRepo.GetByIdPembeli(idPembeli);
-
-                if (listTrx != null)
-                {
-                    foreach (Transaction trx in listTrx)
-                    {
-                        string statusBayar = (trx.BuktiBayar != null && trx.BuktiBayar.Length > 0)
-                         ? "Sudah Upload"
-                         : "Belum Bayar";
-
-                        dt.Rows.Add(
-                            trx.IdTransaksi,
-                            trx.TanggalTransaksi,
-                            trx.HitungTotal(),
-                            trx.GetStatus(),
-                            statusBayar
-                        );
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"[GetRiwayatPesanan] Tidak ada riwayat untuk pembeli ID {idPembeli}");
-                }
+                return this._transactionRepo.GetRiwayatPesananDataTable(idPembeli);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error GetRiwayatPesanan: " + ex.Message);
+                return new DataTable();
             }
-            return dt;
         }
 
         public (bool sukses, string pesan) ValidasiPembayaran(int idTransaksi)
@@ -337,6 +316,11 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 if (transaksi == null)
                 {
                     hasil = (false, "Transaksi tidak ditemukan!");
+                }
+                else if (!transaksi.ApakahSudahDibayar())
+                {
+                    // PERBAIKAN: tolak approve jika bukti bayar belum diupload
+                    hasil = (false, "Bukti pembayaran belum diupload oleh pembeli. Tidak bisa divalidasi.");
                 }
                 else
                 {
@@ -362,10 +346,23 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try
             {
-                bool berhasil = this._transactionRepo.UpdateStatusPesanan(idTransaksi, statusBaru);
-                return berhasil
-                    ? (true, "Status pesanan berhasil di-update jadi " + statusBaru + "!")
-                    : (false, "Pesanan nggak ketemu di database.");
+                // PERBAIKAN: muat objek Transaction dulu, validasi lewat state machine
+                Transaction transaksi = this._transactionRepo.GetById(idTransaksi);
+
+                if (transaksi == null)
+                    return (false, "Pesanan nggak ketemu di database.");
+
+                if (!transaksi.BisaDiubahKe(statusBaru))
+                    return (false, $"Status tidak bisa diubah dari '{transaksi.GetStatus()}' ke '{statusBaru}'. Transisi tidak valid.");
+
+                transaksi.UbahStatus(statusBaru);
+                this._transactionRepo.Update(transaksi);
+
+                return (true, "Status pesanan berhasil di-update jadi " + statusBaru + "!");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
@@ -518,13 +515,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // Di TransactionController.cs — tambahkan static method:
         public static string FormatTagihan(long totalTagihan)
         {
-            // Membuat transaction dummy hanya untuk mengakses DapatkanFormatTagihanUI()
-            Models.Transaction trxDummy = new Models.Transaction(1);
-            // DapatkanFormatTagihanUI() hitung dari Detail yang ada,
-            // tapi kita bisa bypass dengan cara ini karena method hanya format angka:
+            // PERBAIKAN: langsung format tanpa membuat dummy object
             return totalTagihan == 0 ? "Rp 0 (Gratis / Kosong)" : $"Rp {totalTagihan:N0}";
-            // Catatan: Ini replikasi logika DapatkanFormatTagihanUI() karena model tidak expose static method.
-            // Jika ingin 100% pakai model: tambahkan detail dummy, panggil HitungTotal, lalu DapatkanFormatTagihanUI.
         }
     }
 }

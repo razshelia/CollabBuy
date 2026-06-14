@@ -53,11 +53,30 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
-                // 1. Validasi Model Asli
+                // PERBAIKAN: verifikasi user pernah membeli produk ini (transaksi Selesai)
+                DataTable produkBisaDiulas = _reviewRepo.GetProdukBisaDiulas(idUser);
+                bool pernahBeli = false;
+
+                if (produkBisaDiulas != null)
+                {
+                    foreach (DataRow row in produkBisaDiulas.Rows)
+                    {
+                        if (Convert.ToInt32(row["id_produk"]) == idProduk)
+                        {
+                            pernahBeli = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!pernahBeli)
+                    return (false, "Kamu belum pernah beli produk ini atau pesanan belum selesai. Hanya pembeli yang sudah selesai transaksi yang bisa review.");
+
+                // Validasi Model Asli
                 Review review = new Review(idProduk, idUser, rating, komentar);
                 review.Validate();
 
-                // 2. Simpan ke DB
+                // Simpan ke DB
                 _reviewRepo.Insert(review);
 
                 return (true, "Makasih banyak review-nya bestie! ⭐");

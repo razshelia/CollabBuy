@@ -3,16 +3,20 @@ using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Data;
+using System.Runtime.Intrinsics.X86;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
     public class PreOrderController
     {
         private readonly PreOrderRepository _poRepo;
+        private readonly UserRepository _userRepo;
 
         public PreOrderController()
         {
             this._poRepo = new PreOrderRepository();
+            this._userRepo = new UserRepository();
         }
 
         /// <summary>
@@ -34,11 +38,62 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 string rekening = row["rekening"].ToString();
                 DateTime batasWaktu = row["batas_waktu"] != DBNull.Value
                     ? Convert.ToDateTime(row["batas_waktu"])
-                    : DateTime.Now.AddDays(1); // fallback aman — bukan masa lalu
+                    : DateTime.Now.AddDays(1);
 
                 var po = new Models.PreOrder(idPenjual, judulPo, jenisPo, rekening, batasWaktu);
-                po.TutupOtomatisJikaBasi(); // tandai expired tanpa throw
-                DataTable dtProduk = this._poRepo.GetSemuaProdukAktif(idPenjual);
+                po.TutupOtomatisJikaBasi();
+
+                // Attach produk berdasarkan idPo (bukan idPenjual) menggunakan kolom yang
+                // benar-benar tersedia dari vw_katalog_produk via GetProdukDalamPO()
+                ProductController pc = new ProductController();
+                DataTable dtProduk = pc.GetProdukDalamPO(idPo);
+
+                if (dtProduk != null)
+                {
+                    foreach (DataRow p in dtProduk.Rows)
+                    {
+                        try
+                        {
+                            // Kolom tersedia: id_produk, nama_produk, harga_dasar,
+                            // harga_diskon, target_kuota, terpesan, jenis_po
+                            // id_kategori & id_penjual tidak ada di view ini,
+                            // gunakan nilai default yang aman
+                            var produk = new Models.Product(
+                                idPenjual,                              // id_penjual dari PO (bukan dari view)
+                                0,                                      // id_kategori tidak tersedia, default 0
+                                p["nama_produk"].ToString(),
+                                p["harga_dasar"] != DBNull.Value
+                                    ? Convert.ToInt32(p["harga_dasar"]) : 0
+                            );
+
+                            produk.IdProduk = Convert.ToInt32(p["id_produk"]);
+
+                            if (p["harga_diskon"] != DBNull.Value)
+                                produk.HargaDiskon = Convert.ToInt32(p["harga_diskon"]);
+
+                            if (p["target_kuota"] != DBNull.Value)
+                                produk.TargetKuota = Convert.ToInt32(p["target_kuota"]);
+
+                            if (p["terpesan"] != DBNull.Value)
+                            {
+                                int jumlahTerpesan = Convert.ToInt32(p["terpesan"]);
+                                if (jumlahTerpesan > 0)
+                                    produk.TambahPesanan(jumlahTerpesan);
+                            }
+
+                            produk.JenisPo = p["jenis_po"] != DBNull.Value
+                                ? p["jenis_po"].ToString() : jenisPo;
+
+                            po.TambahProduk(produk);
+                        }
+                        catch (Exception exProduk)
+                        {
+                            // Skip produk bermasalah, jangan batalkan seluruh PO
+                            Console.WriteLine($"[GetPreOrder] Skip produk: {exProduk.Message}");
+                        }
+                    }
+                }
+
                 return po;
             }
             catch (Exception ex)
@@ -79,12 +134,30 @@ namespace CollabBuy.CollabBuyApp.Controllers
             if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
                 return (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
 
+            if (batasWaktu <= DateTime.Now)
+                return (false, "Batas waktu PO harus di masa depan!", 0);
+
+            // PERBAIKAN: cek verifikasi penjual sebelum buka PO
             try
             {
-                Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, DateTime.Now);
+                Models.Penjual penjual = this._userRepo.GetById(idPenjual) as Models.Penjual;
+                if (penjual == null)
+                    return (false, "Akun penjual tidak ditemukan.", 0);
+
+                if (!penjual.ApakahBisaBukaLapak())
+                    return (false, "Akun penjual belum diverifikasi atau sedang diblokir. Hubungi admin.", 0);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Gagal memverifikasi akun penjual: " + ex.Message, 0);
+            }
+
+            try
+            {
+                Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
                 poBaru.BukaSesiBaru(batasWaktu);
                 int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
-                return (true, $"Sesi PO '{judul}' berhasil dibuka! Sekarang tambahkan produk ke sesi ini lewat Manajemen Produk. 🎉", idPO);
+                return (true, $"Sesi PO '{judul}' berhasil dibuka! 🎉", idPO);
             }
             catch (InvalidOrderException ex) { return (false, ex.GetPesanLengkap(), 0); }
             catch (Exception ex) { return (false, "Error: " + ex.Message, 0); }
