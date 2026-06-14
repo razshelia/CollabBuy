@@ -130,6 +130,16 @@
             this.pnlInfo.Name = "pnlInfo";
             this.pnlInfo.Size = new System.Drawing.Size(760, 88);   // ← naik dari 68 ke 88
             this.pnlInfo.TabIndex = 1;
+            // lblNomorTelepon  ← LETAKNYA DI BAWAH lblNamaPembeli
+            this.lblNomorTelepon = new System.Windows.Forms.Label();
+            this.lblNomorTelepon.AutoSize = true;
+            this.lblNomorTelepon.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblNomorTelepon.ForeColor = System.Drawing.Color.FromArgb(80, 80, 80);
+            this.lblNomorTelepon.Location = new System.Drawing.Point(12, 54);  // Y=54, tepat di bawah nama
+            this.lblNomorTelepon.Name = "lblNomorTelepon";
+            this.lblNomorTelepon.Text = "-";
+            this.lblNomorTelepon.TabIndex = 6;
+
             this.pnlInfo.Controls.Add(this.lblNamaPembeliLabel);
             this.pnlInfo.Controls.Add(this.lblNamaPembeli);
             this.pnlInfo.Controls.Add(this.lblNomorTelepon);        // ← WAJIB ADA DI SINI
@@ -154,16 +164,6 @@
             this.lblNamaPembeli.Name = "lblNamaPembeli";
             this.lblNamaPembeli.Text = "-";
             this.lblNamaPembeli.TabIndex = 1;
-
-            // lblNomorTelepon  ← LETAKNYA DI BAWAH lblNamaPembeli
-            this.lblNomorTelepon = new System.Windows.Forms.Label();
-            this.lblNomorTelepon.AutoSize = true;
-            this.lblNomorTelepon.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.lblNomorTelepon.ForeColor = System.Drawing.Color.FromArgb(80, 80, 80);
-            this.lblNomorTelepon.Location = new System.Drawing.Point(12, 54);  // Y=54, tepat di bawah nama
-            this.lblNomorTelepon.Name = "lblNomorTelepon";
-            this.lblNomorTelepon.Text = "-";
-            this.lblNomorTelepon.TabIndex = 6;
 
             // lblTanggalLabel
             this.lblTanggalLabel.AutoSize = true;

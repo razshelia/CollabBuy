@@ -248,6 +248,7 @@
             this.Controls.Add(this.pnlCard);
             this.Name = "DaftarTokoControl";
             this.Size = new System.Drawing.Size(1020, 720);
+            this.Load += new System.EventHandler(this.DaftarTokoControl_Load);
             this.pnlCard.ResumeLayout(false);
             this.pnlCard.PerformLayout();
             this.pnlStatus.ResumeLayout(false);

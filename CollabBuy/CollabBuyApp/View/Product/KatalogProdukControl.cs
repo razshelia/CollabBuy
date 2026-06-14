@@ -130,7 +130,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                             namaKatMentah = "";
                         }
 
-                        if (!string.IsNullOrWhiteSpace(namaKatMentah))
+                        if (!string.IsNullOrWhiteSpace(namaKatMentah) && namaKatMentah.Trim().Length >= 4)
                         {
                             Models.Category katObj = new Models.Category(namaKatMentah);
                             this._cmbKategori.Items.Add(katObj.NamaKategori);
@@ -558,8 +558,11 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 bool lolosKategori = string.IsNullOrEmpty(kategoriPilihan);
                 if (!lolosKategori && this._dtSemua.Columns.Contains("nama_kategori"))
                 {
-                    string namaKatDb = row["nama_kategori"] != DBNull.Value
-                        ? row["nama_kategori"].ToString() : "";
+                    string namaKatDb = row["nama_kategori"] != DBNull.Value ? row["nama_kategori"].ToString() : "";
+                    if (string.IsNullOrWhiteSpace(namaKatDb) || namaKatDb.Trim().Length < 4)
+                    {
+                        namaKatDb = "Umum";
+                    }
                     Models.Category katRow = new Models.Category(namaKatDb);
                     lolosKategori = katRow.PencarianCocok(kategoriPilihan);
                 }

@@ -3,8 +3,6 @@ using CollabBuy.CollabBuyApp.Models;
 using CollabBuy.CollabBuyApp.Repositories;
 using System;
 using System.Data;
-using System.Runtime.Intrinsics.X86;
-using System.Windows.Forms.DataVisualization.Charting;
 
 namespace CollabBuy.CollabBuyApp.Controllers
 {
@@ -174,6 +172,19 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             if (idProduk <= 0)
                 return (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
+            try
+            {
+                Models.Penjual penjual = this._userRepo.GetById(idPenjual) as Models.Penjual;
+                if (penjual == null)
+                    return (false, "Akun penjual tidak ditemukan.");
+
+                if (!penjual.ApakahBisaBukaLapak())
+                    return (false, "Akun penjual belum diverifikasi atau sedang diblokir. Hubungi admin.");
+            }
+            catch (Exception ex)
+            {
+                return (false, "Gagal memverifikasi akun penjual: " + ex.Message);
+            }
 
             try
             {

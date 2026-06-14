@@ -143,7 +143,7 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             string kata = this.txtCariVerifikasi.Text.Trim();
             DataView dv = this._dtVerifikasiCache.DefaultView;
             dv.RowFilter = string.IsNullOrEmpty(kata) ? ""
-                : $"nama_penjual LIKE '%{kata}%'";
+                : $"nama_owner LIKE '%{kata}%'";
             this.dgvVerifikasi.DataSource = dv;
             this.dgvVerifikasi.ClearSelection();
         }
