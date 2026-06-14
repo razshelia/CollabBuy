@@ -454,6 +454,7 @@ SELECT
     po.judul_po,
     po.jenis_po,
     po.batas_waktu,
+    p.id_produk,
     p.nama_produk,
     p.harga_dasar,
     p.harga_diskon,
@@ -484,6 +485,19 @@ WHERE po.is_deleted = FALSE;
 
 -- ── Dipanggil: SELECT * FROM vw_lpj_danus_per_po;
 -- SELECT * FROM vw_lpj_danus_per_po;
+
+CREATE OR REPLACE VIEW vw_lpj_pesanan_aktif_per_po AS
+SELECT
+    p.id_produk,
+    SUM(td.jumlah_pesanan) AS unit_pending
+FROM transaction_details td
+JOIN transactions t ON td.id_transaksi = t.id_transaksi
+JOIN products p ON td.id_produk = p.id_produk
+WHERE t.status_pesanan != 'Selesai'
+GROUP BY p.id_produk;
+
+-- ── Dipanggil: SELECT * FROM vw_lpj_pesanan_aktif_per_po;
+-- SELECT * FROM vw_lpj_pesanan_aktif_per_po;
 
 CREATE OR REPLACE VIEW vw_log_aktivitas AS
 SELECT
@@ -523,10 +537,12 @@ CREATE OR REPLACE VIEW vw_detail_pesanan_penjual AS
 SELECT
     t.id_transaksi,
     u.nama                                               AS nama_pembeli,
+    u.nomor_telepon                                      AS nomor_telepon,
     TO_CHAR(t.tanggal_transaksi, 'DD Mon YYYY, HH24:MI') AS tanggal_transaksi,
     t.status_pesanan,
     t.bukti_bayar,
     p.id_penjual,
+    td.id_produk,
     COALESCE(td.nama_produk_snapshot, '-')               AS nama_produk,
     td.nama_penitip,
     td.jumlah_pesanan                                    AS jumlah,
@@ -546,6 +562,7 @@ CREATE OR REPLACE VIEW vw_pesanan_masuk_penjual AS
 SELECT
     t.id_transaksi,
     u.nama                                                                    AS nama_pembeli,
+    u.nomor_telepon                                                           AS nomor_telepon,
     t.tanggal_transaksi,
     t.status_pesanan,
     p.id_penjual,
@@ -554,7 +571,7 @@ FROM transactions t
 JOIN users u ON t.id_koordinator = u.id_user
 JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
 JOIN products p ON td.id_produk = p.id_produk
-GROUP BY t.id_transaksi, u.nama, t.tanggal_transaksi, t.status_pesanan, p.id_penjual;
+GROUP BY t.id_transaksi, u.nama, u.nomor_telepon, t.tanggal_transaksi, t.status_pesanan, p.id_penjual;
 
 -- ── Dipanggil: SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
 -- SELECT * FROM vw_pesanan_masuk_penjual WHERE id_penjual = 3;
@@ -812,6 +829,25 @@ $$ LANGUAGE plpgsql;
 
 -- ── Dipanggil:
 -- SELECT * FROM fn_ringkasan_penjualan(3);
+
+-- Ringkasan pesanan aktif (belum Selesai): jumlah & estimasi nilai
+CREATE OR REPLACE FUNCTION fn_ringkasan_pesanan_aktif(p_id_penjual INT)
+RETURNS TABLE (total_pesanan_aktif BIGINT, total_nilai_aktif BIGINT) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COUNT(DISTINCT t.id_transaksi)                                   AS total_pesanan_aktif,
+        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_nilai_aktif
+    FROM transactions t
+    JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    JOIN products p ON td.id_produk = p.id_produk
+    WHERE p.id_penjual     = p_id_penjual
+      AND t.status_pesanan != 'Selesai';
+END;
+$$ LANGUAGE plpgsql;
+
+-- ── Dipanggil:
+-- SELECT * FROM fn_ringkasan_pesanan_aktif(3);
 
 -- Riwayat transaksi selesai per pembeli
 CREATE OR REPLACE FUNCTION fn_riwayat_cuan_penjual(p_id_penjual INT)

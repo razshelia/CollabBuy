@@ -64,6 +64,29 @@ namespace CollabBuy.CollabBuyApp.Repositories
             }
             return (0, 0);
         }
+        public (long totalNilaiAktif, int totalPesananAktif) GetRingkasanPesananAktif(int idPenjual)
+        {
+            string query = "SELECT total_pesanan_aktif, total_nilai_aktif FROM fn_ringkasan_pesanan_aktif(@id);";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPenjual);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int pesananAktif = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader[0]);
+                            long nilaiAktif = reader.IsDBNull(1) ? 0L : Convert.ToInt64(reader[1]);
+                            return (nilaiAktif, pesananAktif);
+                        }
+                    }
+                }
+            }
+            return (0, 0);
+        }
 
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
@@ -284,9 +307,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public DataTable GetLpjDanusPerPo(int idPenjual)
         {
             return FillDataTable(
-                @"SELECT * FROM vw_lpj_danus_per_po
-          WHERE  id_penjual = @idPenjual
-          ORDER  BY batas_waktu DESC, nama_produk ASC;",
+                @"SELECT lpj.*, COALESCE(aktif.unit_pending, 0) AS unit_pending
+                  FROM vw_lpj_danus_per_po lpj
+                  LEFT JOIN vw_lpj_pesanan_aktif_per_po aktif
+                    ON aktif.id_produk = lpj.id_produk
+                  WHERE lpj.id_penjual = @idPenjual
+                  ORDER BY lpj.batas_waktu DESC, lpj.nama_produk ASC;",
                 cmd => cmd.Parameters.AddWithValue("@idPenjual", idPenjual));
         }
     }

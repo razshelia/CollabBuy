@@ -25,7 +25,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
         private int _pdfIndexLpj = 0;
         private string _pdfLpjPoSebelumnya = "";
         private long _pdfLpjSubOmzet = 0, _pdfLpjSubRefund = 0, _pdfLpjSubBersih = 0;
-        private int _pdfLpjSubUnit = 0;
+        private int _pdfLpjSubUnit = 0, _pdfLpjSubUnitPending = 0;
 
         public AnalitikPenjualanControl(Models.User currentUser)
         {
@@ -491,6 +491,12 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 this.lblTotalOrder.Text = totalPesanan + " Pesanan";
                 this.lblOrderTitle.Text = "ORDERAN KELAR ✅";
 
+                var (totalNilaiAktif, totalPesananAktif) =
+                this._laporanController.GetRingkasanPesananAktif(this._currentUser.IdUser);
+
+                this.lblPesananAktif.Text = totalPesananAktif + " Pesanan (Rp " + totalNilaiAktif.ToString("N0") + ")";
+                this.lblPesananAktifTitle.Text = "PESANAN BERJALAN ⏳";
+
                 // Tabel riwayat cuan
                 this._dtRaw = this._laporanController.GetDetailRiwayatCuan(this._currentUser.IdUser);
 
@@ -678,7 +684,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                     _pdfSectionAdmin = 0; _pdfIndexPerforma = 0; _pdfIndexPengguna = 0; _pdfIndexTerlaris = 0;
                     _pdfSectionPenjual = 0; _pdfIndexLpj = 0;
                     _pdfLpjPoSebelumnya = "";
-                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0;
+                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0; _pdfLpjSubUnitPending = 0;
 
                     printDocument.Print();
                 }
@@ -707,7 +713,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
             int yPos = 50;
             int marginKiri = 50;
-            int lebar = 700;
+            int lebar = 750;
             int batasBawah = e.PageBounds.Height - 120; // Batas mentok sebelum pindah halaman baru
 
             bool isAdmin = this._currentUser.Peran == "Admin";
@@ -898,6 +904,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
                 long grandOmzetKotor = 0, grandRefund = 0, grandOmzetBersih = 0;
                 int grandUnitTerjual = 0;
+                int grandUnitPending = 0;
                 if (dtLpj != null)
                 {
                     foreach (DataRow row in dtLpj.Rows)
@@ -906,6 +913,7 @@ namespace CollabBuy.CollabBuyApp.View.Report
                         grandRefund += row["total_refund_dicairkan"] != DBNull.Value ? Convert.ToInt64(row["total_refund_dicairkan"]) : 0;
                         grandOmzetBersih += row["omzet_bersih_lpj"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih_lpj"]) : 0;
                         grandUnitTerjual += row["total_barang_terjual"] != DBNull.Value ? Convert.ToInt32(row["total_barang_terjual"]) : 0;
+                        grandUnitPending += row["unit_pending"] != DBNull.Value ? Convert.ToInt32(row["unit_pending"]) : 0;
                     }
                 }
 
@@ -961,26 +969,20 @@ namespace CollabBuy.CollabBuyApp.View.Report
 
                 if (_pdfSectionPenjual == 1)
                 {
-                    int[] colX = { marginKiri, marginKiri + 150, marginKiri + 280, marginKiri + 360, marginKiri + 440, marginKiri + 530, marginKiri + 610 };
-                    string[] hdr = { "Sesi PO / Jenis", "Nama Produk", "Harga", "Unit", "Kotor", "Refund", "Bersih" };
+                    int tinggiBarisProduk = 36; // 2 baris @18px
+                    int tinggiSubtotal = 18;
 
-                    if (_pdfIndexLpj == 0 || yPos == 50) // Gambar header jika halaman baru atau tabel baru mulai
+                    if (_pdfIndexLpj == 0)
                     {
-                        if (_pdfIndexLpj == 0)
-                        {
-                            g.DrawString("C. REALISASI PENJUALAN PER SESI PRE-ORDER", fontSeksi, brushUngu, marginKiri, yPos);
-                            yPos += 18;
-                        }
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(200, 182, 255)), marginKiri, yPos, lebar, 22);
-                        for (int i = 0; i < hdr.Length; i++) g.DrawString(hdr[i], fontSeksi, brushHitam, colX[i] + 3, yPos + 3);
-                        yPos += 22;
+                        g.DrawString("C. REALISASI PENJUALAN PER SESI PRE-ORDER", fontSeksi, brushUngu, marginKiri, yPos);
+                        yPos += 18;
                     }
 
                     if (dtLpj != null)
                     {
                         for (; _pdfIndexLpj < dtLpj.Rows.Count; _pdfIndexLpj++)
                         {
-                            if (yPos > batasBawah - 40) { e.HasMorePages = true; return; } // Sisa ruang untuk subtotal
+                            if (yPos > batasBawah - (tinggiBarisProduk + tinggiSubtotal + 10)) { e.HasMorePages = true; return; }
 
                             DataRow row = dtLpj.Rows[_pdfIndexLpj];
                             string judulPo = row["judul_po"]?.ToString() ?? "-";
@@ -989,69 +991,94 @@ namespace CollabBuy.CollabBuyApp.View.Report
                             string produk = row["nama_produk"]?.ToString() ?? "-";
                             long hargaDsr = row["harga_dasar"] != DBNull.Value ? Convert.ToInt64(row["harga_dasar"]) : 0;
                             int unit = row["total_barang_terjual"] != DBNull.Value ? Convert.ToInt32(row["total_barang_terjual"]) : 0;
+                            int unitPending = row["unit_pending"] != DBNull.Value ? Convert.ToInt32(row["unit_pending"]) : 0;
                             long kotor = row["omzet_kotor"] != DBNull.Value ? Convert.ToInt64(row["omzet_kotor"]) : 0;
                             long refund = row["total_refund_dicairkan"] != DBNull.Value ? Convert.ToInt64(row["total_refund_dicairkan"]) : 0;
                             long bersih = row["omzet_bersih_lpj"] != DBNull.Value ? Convert.ToInt64(row["omzet_bersih_lpj"]) : 0;
 
+                            // Header sesi PO baru
                             if (judulPo != _pdfLpjPoSebelumnya)
                             {
                                 if (_pdfLpjPoSebelumnya != "")
                                 {
-                                    g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
-                                    g.DrawString($"Sub-total: {_pdfLpjPoSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
-                                    g.DrawString(_pdfLpjSubUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
-                                    g.DrawString("Rp " + _pdfLpjSubOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                                    g.DrawString(_pdfLpjSubRefund > 0 ? "Rp " + _pdfLpjSubRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
-                                    g.DrawString("Rp " + _pdfLpjSubBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
-                                    yPos += 18;
-                                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0;
+                                    if (yPos > batasBawah - tinggiSubtotal) { e.HasMorePages = true; return; }
+                                    g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, tinggiSubtotal);
+                                    string ringkasSub = $"Sub-total {_pdfLpjPoSebelumnya}:  " +
+                                        $"Unit {_pdfLpjSubUnit} pcs" +
+                                        (_pdfLpjSubUnitPending > 0 ? $"  |  Pending {_pdfLpjSubUnitPending} pcs" : "") +
+                                        $"  |  Kotor Rp {_pdfLpjSubOmzet:N0}" +
+                                        (_pdfLpjSubRefund > 0 ? $"  |  Refund Rp {_pdfLpjSubRefund:N0}" : "") +
+                                        $"  |  Bersih Rp {_pdfLpjSubBersih:N0}";
+                                    g.DrawString(ringkasSub, fontItalic, brushUngu, marginKiri + 5, yPos + 2);
+                                    yPos += tinggiSubtotal;
+                                    _pdfLpjSubOmzet = 0; _pdfLpjSubRefund = 0; _pdfLpjSubBersih = 0; _pdfLpjSubUnit = 0; _pdfLpjSubUnitPending = 0;
                                 }
 
-                                if (yPos > batasBawah) { e.HasMorePages = true; return; }
+                                if (yPos > batasBawah - 18) { e.HasMorePages = true; return; }
 
-                                string judulTampil = judulPo.Length > 22 ? judulPo.Substring(0, 22) + ".." : judulPo;
+                                string judulTampil = judulPo.Length > 40 ? judulPo.Substring(0, 40) + ".." : judulPo;
                                 g.FillRectangle(new SolidBrush(Color.FromArgb(240, 235, 255)), marginKiri, yPos, lebar, 18);
-                                g.DrawString($"📦 {judulTampil}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, colX[0] + 3, yPos + 2);
+                                g.DrawString($"📦 {judulTampil}  [{jenisPo}]  — {statusPo}", fontSeksi, brushUngu, marginKiri + 3, yPos + 2);
                                 yPos += 18;
                                 _pdfLpjPoSebelumnya = judulPo;
                             }
 
-                            if (produk.Length > 20) produk = produk.Substring(0, 20) + "..";
-                            g.DrawString(produk, fontIsi, brushHitam, colX[1] + 3, yPos + 2);
-                            g.DrawString("Rp " + hargaDsr.ToString("N0"), fontIsi, brushHitam, colX[2] + 3, yPos + 2);
-                            g.DrawString(unit + " pcs", fontIsi, brushHitam, colX[3] + 3, yPos + 2);
-                            g.DrawString("Rp " + kotor.ToString("N0"), fontIsi, brushHitam, colX[4] + 3, yPos + 2);
-                            g.DrawString(refund > 0 ? "Rp " + refund.ToString("N0") : "-", fontIsi, brushMerah, colX[5] + 3, yPos + 2);
-                            g.DrawString("Rp " + bersih.ToString("N0"), fontIsi, brushHijau, colX[6] + 3, yPos + 2);
-                            g.DrawLine(penTipis, marginKiri, yPos + 18, marginKiri + lebar, yPos + 18);
+                            // Baris 1: nama produk (wrap/ellipsis) + harga satuan rata kanan
+                            RectangleF rectNama = new RectangleF(marginKiri + 5, yPos, lebar - 180, 16);
+                            g.DrawString(produk, fontSeksi, brushHitam, rectNama,
+                                new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap });
+
+                            string hargaText = "Rp " + hargaDsr.ToString("N0") + " / unit";
+                            SizeF hargaSize = g.MeasureString(hargaText, fontIsi);
+                            g.DrawString(hargaText, fontIsi, Brushes.Gray, marginKiri + lebar - hargaSize.Width - 5, yPos + 1);
+                            yPos += 17;
+
+                            // Baris 2: grid info 5 kolom
+                            int[] colInfo = { marginKiri + 5, marginKiri + 160, marginKiri + 320, marginKiri + 480, marginKiri + 620 };
+                            g.DrawString($"Unit: {unit} pcs", fontItalic, brushHitam, colInfo[0], yPos);
+                            g.DrawString(unitPending > 0 ? $"Pending: {unitPending} pcs" : "Pending: -", fontItalic, Brushes.Gray, colInfo[1], yPos);
+                            g.DrawString($"Kotor: Rp {kotor:N0}", fontItalic, brushHitam, colInfo[2], yPos);
+                            g.DrawString(refund > 0 ? $"Refund: Rp {refund:N0}" : "Refund: -", fontItalic, brushMerah, colInfo[3], yPos);
+                            g.DrawString($"Bersih: Rp {bersih:N0}", fontItalic, brushHijau, colInfo[4], yPos);
                             yPos += 18;
 
-                            _pdfLpjSubUnit += unit; _pdfLpjSubOmzet += kotor; _pdfLpjSubRefund += refund; _pdfLpjSubBersih += bersih;
+                            g.DrawLine(penTipis, marginKiri, yPos, marginKiri + lebar, yPos);
+                            yPos += 1;
+
+                            _pdfLpjSubUnit += unit; _pdfLpjSubUnitPending += unitPending; _pdfLpjSubOmzet += kotor; _pdfLpjSubRefund += refund; _pdfLpjSubBersih += bersih;
                         }
                     }
 
-                    // Cetak subtotal PO terakhir di paling bawah tabel
+                    // Sub-total PO terakhir
                     if (_pdfLpjPoSebelumnya != "")
                     {
-                        if (yPos > batasBawah) { e.HasMorePages = true; return; }
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, 18);
-                        g.DrawString($"Sub-total: {_pdfLpjPoSebelumnya}", fontItalic, Brushes.Gray, colX[0] + 3, yPos + 2);
-                        g.DrawString(_pdfLpjSubUnit + " pcs", fontItalic, Brushes.Gray, colX[3] + 3, yPos + 2);
-                        g.DrawString("Rp " + _pdfLpjSubOmzet.ToString("N0"), fontItalic, Brushes.Gray, colX[4] + 3, yPos + 2);
-                        g.DrawString(_pdfLpjSubRefund > 0 ? "Rp " + _pdfLpjSubRefund.ToString("N0") : "Rp 0", fontItalic, brushMerah, colX[5] + 3, yPos + 2);
-                        g.DrawString("Rp " + _pdfLpjSubBersih.ToString("N0"), fontItalic, brushHijau, colX[6] + 3, yPos + 2);
-                        yPos += 18;
+                        if (yPos > batasBawah - tinggiSubtotal) { e.HasMorePages = true; return; }
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(235, 225, 255)), marginKiri, yPos, lebar, tinggiSubtotal);
+                        string ringkasSub = $"Sub-total {_pdfLpjPoSebelumnya}:  " +
+                            $"Unit {_pdfLpjSubUnit} pcs" +
+                            (_pdfLpjSubUnitPending > 0 ? $"  |  Pending {_pdfLpjSubUnitPending} pcs" : "") +
+                            $"  |  Kotor Rp {_pdfLpjSubOmzet:N0}" +
+                            (_pdfLpjSubRefund > 0 ? $"  |  Refund Rp {_pdfLpjSubRefund:N0}" : "") +
+                            $"  |  Bersih Rp {_pdfLpjSubBersih:N0}";
+                        g.DrawString(ringkasSub, fontItalic, brushUngu, marginKiri + 5, yPos + 2);
+                        yPos += tinggiSubtotal;
                     }
 
-                    if (yPos + 40 > batasBawah) { e.HasMorePages = true; return; }
+                    // Grand total
+                    int tinggiTotal = 40;
+                    if (yPos + tinggiTotal > batasBawah) { e.HasMorePages = true; return; }
                     yPos += 4;
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(60, 0, 120)), marginKiri, yPos, lebar, 26);
-                    g.DrawString("TOTAL KESELURUHAN", fontSeksi, Brushes.White, colX[0] + 3, yPos + 4);
-                    g.DrawString(grandUnitTerjual + " pcs", fontSeksi, Brushes.White, colX[3] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandOmzetKotor.ToString("N0"), fontSeksi, Brushes.White, colX[4] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandRefund.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(255, 180, 180)), colX[5] + 3, yPos + 4);
-                    g.DrawString("Rp " + grandOmzetBersih.ToString("N0"), fontSeksi, new SolidBrush(Color.FromArgb(160, 255, 200)), colX[6] + 3, yPos + 4);
-                    yPos += 30;
+                    g.FillRectangle(new SolidBrush(Color.FromArgb(60, 0, 120)), marginKiri, yPos, lebar, tinggiTotal);
+                    g.DrawString("TOTAL KESELURUHAN", fontSeksi, Brushes.White, marginKiri + 5, yPos + 4);
+
+                    string ringkasTotal = $"Unit {grandUnitTerjual} pcs" +
+                        (grandUnitPending > 0 ? $"   |   Pending {grandUnitPending} pcs" : "") +
+                        $"   |   Kotor Rp {grandOmzetKotor:N0}" +
+                        $"   |   Refund Rp {grandRefund:N0}" +
+                        $"   |   Bersih Rp {grandOmzetBersih:N0}";
+                    g.DrawString(ringkasTotal, fontIsi, Brushes.White, marginKiri + 5, yPos + 21);
+
+                    yPos += tinggiTotal + 4;
 
                     _pdfSectionPenjual = 2;
                 }

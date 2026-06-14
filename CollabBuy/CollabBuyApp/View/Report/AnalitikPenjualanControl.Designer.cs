@@ -40,6 +40,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartPenjualan)).BeginInit();
             this.SuspendLayout();
+            this.lblPesananAktifTitle = new System.Windows.Forms.Label();
+            this.lblPesananAktif = new System.Windows.Forms.Label();
 
             // lblTitle
             this.lblTitle.AutoSize = true;
@@ -66,7 +68,7 @@
             this.pnlCuan.Controls.Add(this.lblCuanTitle);
             this.pnlCuan.Location = new System.Drawing.Point(36, 100);
             this.pnlCuan.Name = "pnlCuan";
-            this.pnlCuan.Size = new System.Drawing.Size(340, 110);
+            this.pnlCuan.Size = new System.Drawing.Size(320, 130);
             this.pnlCuan.TabIndex = 2;
 
             // lblTotalCuan
@@ -92,28 +94,52 @@
             this.pnlOrder.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlOrder.Controls.Add(this.lblTotalOrder);
             this.pnlOrder.Controls.Add(this.lblOrderTitle);
-            this.pnlOrder.Location = new System.Drawing.Point(390, 100);
+            this.pnlOrder.Controls.Add(this.lblPesananAktifTitle);
+            this.pnlOrder.Controls.Add(this.lblPesananAktif);
+            this.pnlOrder.Location = new System.Drawing.Point(370, 100);
             this.pnlOrder.Name = "pnlOrder";
-            this.pnlOrder.Size = new System.Drawing.Size(300, 110);
+            this.pnlOrder.Size = new System.Drawing.Size(340, 130);
             this.pnlOrder.TabIndex = 3;
+
+            // lblOrderTitle
+            this.lblOrderTitle.AutoSize = true;
+            this.lblOrderTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblOrderTitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblOrderTitle.Location = new System.Drawing.Point(19, 10);
+            this.lblOrderTitle.Name = "lblOrderTitle";
+            this.lblOrderTitle.TabIndex = 0;
+            this.lblOrderTitle.Text = "ORDERAN KELAR ✅";
 
             // lblTotalOrder
             this.lblTotalOrder.AutoSize = true;
-            this.lblTotalOrder.Font = new System.Drawing.Font("Segoe UI Black", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTotalOrder.Font = new System.Drawing.Font("Segoe UI Black", 16F, System.Drawing.FontStyle.Bold);
             this.lblTotalOrder.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblTotalOrder.Location = new System.Drawing.Point(15, 45);
+            this.lblTotalOrder.Location = new System.Drawing.Point(15, 30);
             this.lblTotalOrder.Name = "lblTotalOrder";
             this.lblTotalOrder.TabIndex = 1;
             this.lblTotalOrder.Text = "0";
 
-            // lblOrderTitle
-            this.lblOrderTitle.AutoSize = true;
-            this.lblOrderTitle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.lblOrderTitle.ForeColor = System.Drawing.Color.Gray;
-            this.lblOrderTitle.Location = new System.Drawing.Point(19, 15);
-            this.lblOrderTitle.Name = "lblOrderTitle";
-            this.lblOrderTitle.TabIndex = 0;
-            this.lblOrderTitle.Text = "ORDERAN KELAR ✅";
+            // 
+            // lblPesananAktifTitle
+            // 
+            this.lblPesananAktifTitle.AutoSize = true;
+            this.lblPesananAktifTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblPesananAktifTitle.ForeColor = System.Drawing.Color.Gray;
+            this.lblPesananAktifTitle.Location = new System.Drawing.Point(19, 65);
+            this.lblPesananAktifTitle.Name = "lblPesananAktifTitle";
+            this.lblPesananAktifTitle.TabIndex = 2;
+            this.lblPesananAktifTitle.Text = "PESANAN BERJALAN ⏳";
+
+            // 
+            // lblPesananAktif
+            // 
+            this.lblPesananAktif.AutoSize = true;
+            this.lblPesananAktif.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblPesananAktif.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblPesananAktif.Location = new System.Drawing.Point(15, 85);
+            this.lblPesananAktif.Name = "lblPesananAktif";
+            this.lblPesananAktif.TabIndex = 3;
+            this.lblPesananAktif.Text = "0 Pesanan (Rp 0)";
 
             // btnUnduhPdf — tombol cetak kanan
             this.btnUnduhPdf.BackColor = System.Drawing.Color.FromArgb(36, 0, 70);
@@ -122,9 +148,9 @@
             this.btnUnduhPdf.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnUnduhPdf.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnUnduhPdf.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnUnduhPdf.Location = new System.Drawing.Point(710, 100);
+            this.btnUnduhPdf.Location = new System.Drawing.Point(724, 100);
             this.btnUnduhPdf.Name = "btnUnduhPdf";
-            this.btnUnduhPdf.Size = new System.Drawing.Size(240, 110);
+            this.btnUnduhPdf.Size = new System.Drawing.Size(226, 130);
             this.btnUnduhPdf.TabIndex = 5;
             this.btnUnduhPdf.Text = "📄 Unduh Laporan (PDF)";
             this.btnUnduhPdf.UseVisualStyleBackColor = false;
@@ -139,7 +165,7 @@
             this.pnlGrid.Controls.Add(this.btnRefresh);
             this.pnlGrid.Controls.Add(this.dgvLaporan);
             this.pnlGrid.Controls.Add(this.pnlChartScroll);
-            this.pnlGrid.Location = new System.Drawing.Point(36, 230);
+            this.pnlGrid.Location = new System.Drawing.Point(36, 250);
             this.pnlGrid.Name = "pnlGrid";
             this.pnlGrid.Size = new System.Drawing.Size(914, 400);
             this.pnlGrid.TabIndex = 4;
@@ -258,6 +284,8 @@
         private System.Windows.Forms.Panel pnlOrder;
         private System.Windows.Forms.Label lblTotalOrder;
         private System.Windows.Forms.Label lblOrderTitle;
+        private System.Windows.Forms.Label lblPesananAktifTitle;
+        private System.Windows.Forms.Label lblPesananAktif;
         private System.Windows.Forms.Button btnUnduhPdf;
         private System.Windows.Forms.Panel pnlGrid;
         private System.Windows.Forms.Label lblGridTitle;

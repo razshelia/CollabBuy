@@ -30,6 +30,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex) { LogError(nameof(GetRingkasanLapak), ex); return (0, 0); }
         }
 
+        public (long totalNilaiAktif, int totalPesananAktif) GetRingkasanPesananAktif(int idPenjual)
+        {
+            try { return _laporanRepo.GetRingkasanPesananAktif(idPenjual); }
+            catch (Exception ex) { LogError(nameof(GetRingkasanPesananAktif), ex); return (0, 0); }
+        }
+
         public DataTable GetDetailRiwayatCuan(int idPenjual)
         {
             try { return _laporanRepo.GetRiwayatCuanDataTable(idPenjual); }
