@@ -87,12 +87,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
         public (long totalNilaiAktif, int totalPesananAktif) GetRingkasanPesananAktifAdmin()
         {
             string query = @"
-    SELECT 
-        COUNT(DISTINCT t.id_transaksi) AS total_pesanan_aktif,
-        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_nilai_aktif
-    FROM transactions t
-    LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
-    WHERE t.status_pesanan NOT IN ('Selesai', 'Dibatalkan');";
+                SELECT 
+                    COUNT(DISTINCT t.id_transaksi) AS total_pesanan_aktif,
+                    COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)), 0) AS total_nilai_aktif
+                FROM transactions t
+                LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+                WHERE t.status_pesanan NOT IN ('Selesai', 'Dibatalkan');";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {

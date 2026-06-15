@@ -255,24 +255,18 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.dgvRincian.DataSource = dtGrid;
             this.dgvRincian.ClearSelection();
             long totalCashback = 0;
-            bool adaYangSudahBayarPenuh = false; // true = pembeli overpay, penjual harus kembalikan manual
+            bool adaYangSudahBayarPenuh = false; // true = pembeli bayar harga asli, penjual harus kembalikan manual
 
             foreach (DataRow row in this._dtDetail.Rows)
             {
-                if (this._dtDetail.Columns.Contains("selisih_refund"))
-                    totalCashback += Convert.ToInt64(row["selisih_refund"]);
+                long refundBaris = this._dtDetail.Columns.Contains("selisih_refund")
+                    ? Convert.ToInt64(row["selisih_refund"]) : 0;
+                totalCashback += refundBaris;
 
-                // Cek apakah pembeli bayar harga dasar (bukan harga diskon)
-                // Jika harga_diskon ada di DB dan harga_satuan > harga_diskon → overpay
-                if (this._dtDetail.Columns.Contains("harga_diskon"))
-                {
-                    long hargaSatuan = Convert.ToInt64(row["harga_satuan"]);
-                    long hargaDiskon = row["harga_diskon"] != DBNull.Value
-                        ? Convert.ToInt64(row["harga_diskon"]) : 0;
-
-                    if (hargaDiskon > 0 && hargaSatuan > hargaDiskon)
-                        adaYangSudahBayarPenuh = true;
-                }
+                // selisih_refund > 0 berarti pembeli terlanjur bayar harga asli sebelum kuota GR tembus
+                // (pembeli yang bayar harga diskon tidak akan punya selisih_refund)
+                if (refundBaris > 0)
+                    adaYangSudahBayarPenuh = true;
             }
 
             long grandTotalBersih = grandTotal - totalCashback;

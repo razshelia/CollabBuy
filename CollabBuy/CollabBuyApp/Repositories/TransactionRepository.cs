@@ -491,7 +491,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
             // Sekarang: NpgsqlDataAdapter.Fill — kolom otomatis dari view
             string query = @"
                 SELECT id_produk, nama_pembeli, nomor_telepon, tanggal_transaksi, status_pesanan, bukti_bayar,
-                       nama_produk, nama_penitip, jumlah, harga_satuan,
+                       nama_produk, nama_penitip, jumlah, harga_satuan, harga_diskon,
                        subtotal, catatan, selisih_refund
                 FROM vw_detail_pesanan_penjual
                 WHERE id_transaksi = @idTrx

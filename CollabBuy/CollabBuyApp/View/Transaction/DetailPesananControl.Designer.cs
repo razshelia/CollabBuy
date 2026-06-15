@@ -42,6 +42,7 @@
             this.pnlTombol = new System.Windows.Forms.Panel();
             this.btnSimpanBukti = new System.Windows.Forms.Button();
             this.btnKembali = new System.Windows.Forms.Button();
+            this.lblCashbackInfo = new System.Windows.Forms.Label();
 
             this.pnlOuter.SuspendLayout();
             this.scrollContent.SuspendLayout();
@@ -254,16 +255,18 @@
             this.lblGrandTotal.Text = "Total Produk Kamu: Rp 0";
             this.lblGrandTotal.TabIndex = 4;
 
-            this.lblCashbackInfo = new System.Windows.Forms.Label();
             this.lblCashbackInfo.AutoSize = false;
             this.lblCashbackInfo.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.lblCashbackInfo.ForeColor = System.Drawing.Color.FromArgb(0, 130, 60);
             this.lblCashbackInfo.BackColor = System.Drawing.Color.FromArgb(210, 255, 230);
             this.lblCashbackInfo.Padding = new System.Windows.Forms.Padding(10);
             this.lblCashbackInfo.Size = new System.Drawing.Size(760, 44);
-            this.lblCashbackInfo.Location = new System.Drawing.Point(30, 772); // tepat bawah pnlBukti (484+280+8)
+            this.lblCashbackInfo.Location = new System.Drawing.Point(30, 772);
             this.lblCashbackInfo.Text = "";
             this.lblCashbackInfo.Visible = false;
+
+            // ============================================================
+            // lblBuktiTitle
 
             // ============================================================
             // lblBuktiTitle

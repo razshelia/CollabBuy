@@ -563,12 +563,12 @@ WHERE p.is_deleted = FALSE;
 CREATE OR REPLACE VIEW vw_pesanan_masuk_penjual AS
 SELECT
     t.id_transaksi,
-    u.nama                                                                    AS nama_pembeli,
-    u.nomor_telepon                                                           AS nomor_telepon,
+    u.nama                                                                                              AS nama_pembeli,
+    u.nomor_telepon                                                                                     AS nomor_telepon,
     t.tanggal_transaksi,
     t.status_pesanan,
     p.id_penjual,
-    COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)           AS total_harga_lapak
+    COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)), 0) AS total_harga_lapak
 FROM transactions t
 JOIN users u ON t.id_koordinator = u.id_user
 JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
@@ -844,8 +844,8 @@ RETURNS TABLE (total_pendapatan BIGINT, total_pesanan BIGINT) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_pendapatan,
-        COUNT(DISTINCT t.id_transaksi)                                   AS total_pesanan
+        COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)), 0) AS total_pendapatan,
+        COUNT(DISTINCT t.id_transaksi)                                                                      AS total_pesanan
     FROM transactions t
     JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
     JOIN products p ON td.id_produk = p.id_produk
@@ -863,8 +863,8 @@ RETURNS TABLE (total_pesanan_aktif BIGINT, total_nilai_aktif BIGINT) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        COUNT(DISTINCT t.id_transaksi)                                   AS total_pesanan_aktif,
-        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_nilai_aktif
+        COUNT(DISTINCT t.id_transaksi)                                                                      AS total_pesanan_aktif,
+        COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)), 0) AS total_nilai_aktif
     FROM transactions t
     JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
     JOIN products p ON td.id_produk = p.id_produk
@@ -886,9 +886,9 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT
-        u.nama::TEXT                                                         AS nama_pembeli,
-        t.tanggal_transaksi                                                  AS tanggal_pesanan,
-        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0)      AS total_harga
+        u.nama::TEXT                                                                                        AS nama_pembeli,
+        t.tanggal_transaksi                                                                                 AS tanggal_pesanan,
+        COALESCE(SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)), 0) AS total_harga
     FROM transactions t
     JOIN users u ON t.id_koordinator = u.id_user
     JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
