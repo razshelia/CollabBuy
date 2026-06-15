@@ -186,14 +186,29 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         long.TryParse(row["harga_dasar"].ToString(), out harga);
                     string hargaStr = "Rp " + harga.ToString("N0");
 
+                    // ── SESUDAH ──
                     string slot = "Ready (Bebas)";
+                    string jenisPoBaris = (dt.Columns.Contains("jenis_po") && row["jenis_po"] != DBNull.Value)
+                        ? row["jenis_po"].ToString() : "Biasa";
+
                     if (dt.Columns.Contains("target_kuota") && row["target_kuota"] != DBNull.Value)
                     {
                         int kuota = Convert.ToInt32(row["target_kuota"]);
                         int terpesan = (dt.Columns.Contains("terpesan") && row["terpesan"] != DBNull.Value)
                             ? Convert.ToInt32(row["terpesan"]) : 0;
                         int sisa = kuota - terpesan;
-                        slot = sisa > 0 ? $"Sisa {sisa} Slot!" : "⛔ Ludes/Penuh!";
+
+                        if (jenisPoBaris == "Gotong Royong")
+                        {
+                            // Kuota = target cashback, bukan batas pemesanan
+                            slot = sisa > 0
+                                ? $"Target cashback: sisa {sisa} slot"
+                                : "🎯 Target cashback tercapai!";
+                        }
+                        else
+                        {
+                            slot = sisa > 0 ? $"Sisa {sisa} Slot!" : "⛔ Ludes/Penuh!";
+                        }
                     }
 
                     string tipePo = (dt.Columns.Contains("judul_po") && row["judul_po"] != DBNull.Value)
@@ -252,7 +267,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         inSesiPo = Convert.ToBoolean(row["in_sesi_po"]);
 
                     this.flpKartu.Controls.Add(
-                        this.BuatKartu(idProduk, nama, penjual, hargaStr, slot, tipePo, fotoData, inSesiPo));
+                        this.BuatKartu(idProduk, nama, penjual, hargaStr, slot, tipePo, fotoData, inSesiPo, jenisPoBaris));
                 }
             }
 
@@ -260,7 +275,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         }
 
         private Panel BuatKartu(int idProduk, string nama, string penjual, string harga,
-            string slot, string tipePo, byte[] fotoData, bool inSesiPo = true)
+        string slot, string tipePo, byte[] fotoData, bool inSesiPo = true, string jenisPo = "Biasa")
         {
             Panel pnl = new Panel
             {
@@ -369,8 +384,9 @@ namespace CollabBuy.CollabBuyApp.View.Product
             });
 
             // ── Logika tombol ──
-            bool isPenuh = slot.Contains("Penuh");
-            // bisaDipesan: harus dalam sesi PO aktif DAN belum penuh
+            // Untuk Gotong Royong: kuota = target cashback, bukan batas beli
+            // Sesi tetap berjalan sampai batas_waktu meski kuota tercapai
+            bool isPenuh = jenisPo == "Gotong Royong" ? false : slot.Contains("Penuh");
             bool bisaDipesan = inSesiPo && !isPenuh;
 
             // ── Tombol Detail ──
@@ -431,6 +447,13 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 teksBtn = "Habis😭";
                 btnSikatBg = Color.Gray;
                 btnSikatTeks = Color.White;
+            }
+            else if (jenisPo == "Gotong Royong" && slot.Contains("tercapai"))
+            {
+                // Kuota cashback sudah tercapai tapi masih bisa beli (harga normal)
+                teksBtn = "🛒 Sikat! (Harga Normal)";
+                btnSikatBg = Color.FromArgb(254, 245, 100);
+                btnSikatTeks = Color.FromArgb(70, 50, 0);
             }
             else if (!inSesiPo)
             {

@@ -126,11 +126,20 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 {
                     try
                     {
+                        // Tentukan peran yang akan disimpan
+                        string peranUpdate = entity.Peran;
+                        Penjual penjualCek = entity as Penjual;
+                        // Jika ini Penjual yang sudah di-approve, pastikan peran di DB ikut diupdate ke 'Penjual'
+                        if (penjualCek != null && penjualCek.GetStatusPersetujuan())
+                        {
+                            peranUpdate = "Penjual";
+                        }
+
                         string queryUser = @"UPDATE users 
-                                     SET nama = @nama, email = @email, nomor_telepon = @telp, 
-                                         password = @pass, is_diblokir = @isBlokir,
-                                         username = @uname
-                                     WHERE id_user = @id;";
+                     SET nama = @nama, email = @email, nomor_telepon = @telp, 
+                         password = @pass, is_diblokir = @isBlokir,
+                         username = @uname, peran = @peran
+                     WHERE id_user = @id;";
 
                         using (var cmd = new NpgsqlCommand(queryUser, conn, dbTx))
                         {
@@ -141,6 +150,7 @@ namespace CollabBuy.CollabBuyApp.Repositories
                             cmd.Parameters.AddWithValue("@telp", string.IsNullOrWhiteSpace(entity.NomorTelepon) ? (object)DBNull.Value : entity.NomorTelepon);
                             cmd.Parameters.AddWithValue("@pass", entity.Password);
                             cmd.Parameters.AddWithValue("@isBlokir", entity.IsDiblokir);
+                            cmd.Parameters.AddWithValue("@peran", peranUpdate);
                             cmd.ExecuteNonQuery();
                         }
 
@@ -325,12 +335,16 @@ namespace CollabBuy.CollabBuyApp.Repositories
 
             User userObj;
 
+            // Calon penjual: peran masih 'User' tapi sudah ada data verifikasi (pending approval)
+            bool adaDataVerifikasi = HasColumn(reader, "nim")
+                && !reader.IsDBNull(reader.GetOrdinal("nim"));
+
             if (peranDb.ToLower() == "admin")
             {
                 userObj = new Admin(nama, username, password);
                 userObj.Peran = "Admin";
             }
-            else if (peranDb.ToLower() == "penjual" || sudahVerifikasiPenjual) 
+            else if (peranDb.ToLower() == "penjual" || sudahVerifikasiPenjual || adaDataVerifikasi)
             {
                 Penjual penjual = new Penjual(nama, username, password);
 

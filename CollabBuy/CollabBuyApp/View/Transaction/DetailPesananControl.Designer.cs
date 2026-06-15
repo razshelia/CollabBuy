@@ -79,6 +79,7 @@
             this.scrollContent.Controls.Add(this.lblGrandTotal);
             this.scrollContent.Controls.Add(this.lblBuktiTitle);
             this.scrollContent.Controls.Add(this.pnlBukti);
+            this.scrollContent.Controls.Add(this.lblCashbackInfo);
             this.scrollContent.Controls.Add(this.pnlTombol);
             this.scrollContent.TabIndex = 0;
 
@@ -259,14 +260,10 @@
             this.lblCashbackInfo.ForeColor = System.Drawing.Color.FromArgb(0, 130, 60);
             this.lblCashbackInfo.BackColor = System.Drawing.Color.FromArgb(210, 255, 230);
             this.lblCashbackInfo.Padding = new System.Windows.Forms.Padding(10);
-            this.lblCashbackInfo.Size = new System.Drawing.Size(700, 40);
-            this.lblCashbackInfo.Location = new System.Drawing.Point(
-                this.lblGrandTotal.Left,
-                this.lblGrandTotal.Top + this.lblGrandTotal.Height + 8
-            );
+            this.lblCashbackInfo.Size = new System.Drawing.Size(760, 44);
+            this.lblCashbackInfo.Location = new System.Drawing.Point(30, 772); // tepat bawah pnlBukti (484+280+8)
             this.lblCashbackInfo.Text = "";
             this.lblCashbackInfo.Visible = false;
-            this.Controls.Add(this.lblCashbackInfo);
 
             // ============================================================
             // lblBuktiTitle
@@ -313,7 +310,7 @@
             // pnlTombol — panel baris tombol di bawah
             // ============================================================
             this.pnlTombol.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
-            this.pnlTombol.Location = new System.Drawing.Point(30, 778);
+            this.pnlTombol.Location = new System.Drawing.Point(30, 824);
             this.pnlTombol.Name = "pnlTombol";
             this.pnlTombol.Size = new System.Drawing.Size(760, 52);
             this.pnlTombol.TabIndex = 7;

@@ -46,6 +46,14 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             this.dgvRincian.Width = lebar;
             this.pnlBukti.Width = lebar;
             this.pnlTombol.Width = lebar;
+
+            // Posisikan lblCashbackInfo tepat di bawah pnlBukti, pnlTombol menyesuaikan
+            int yBawahBukti = this.pnlBukti.Bottom + 8;
+            this.lblCashbackInfo.Location = new System.Drawing.Point(this.pnlBukti.Left, yBawahBukti);
+            this.pnlTombol.Location = new System.Drawing.Point(this.pnlTombol.Left,
+                this.lblCashbackInfo.Visible
+                    ? this.lblCashbackInfo.Bottom + 8
+                    : yBawahBukti);
         }
 
         // =======================================================
@@ -216,6 +224,9 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     ? Convert.ToInt64(row["selisih_refund"])
                     : 0;
 
+                // Subtotal yang ditampilkan = harga yang benar-benar harus dibayar pembeli
+                long subtotalDibayar = subtotal - cashback;
+
                 TransactionDetail detailObj = new TransactionDetail(
                     Convert.ToInt32(row["id_produk"] != DBNull.Value ? row["id_produk"] : 0),
                     row["nama_penitip"].ToString(),
@@ -235,7 +246,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     row["nama_penitip"].ToString(),
                     Convert.ToInt32(row["jumlah"]),
                     Convert.ToInt64(row["harga_satuan"]),
-                    subtotal,
+                    subtotalDibayar,    // ← sudah dikurangi cashback
                     row["catatan"].ToString(),
                     cashbackStr
                 );
@@ -243,24 +254,55 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             this.dgvRincian.DataSource = dtGrid;
             this.dgvRincian.ClearSelection();
-            this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
             long totalCashback = 0;
+            bool adaYangSudahBayarPenuh = false; // true = pembeli overpay, penjual harus kembalikan manual
+
             foreach (DataRow row in this._dtDetail.Rows)
             {
                 if (this._dtDetail.Columns.Contains("selisih_refund"))
                     totalCashback += Convert.ToInt64(row["selisih_refund"]);
+
+                // Cek apakah pembeli bayar harga dasar (bukan harga diskon)
+                // Jika harga_diskon ada di DB dan harga_satuan > harga_diskon → overpay
+                if (this._dtDetail.Columns.Contains("harga_diskon"))
+                {
+                    long hargaSatuan = Convert.ToInt64(row["harga_satuan"]);
+                    long hargaDiskon = row["harga_diskon"] != DBNull.Value
+                        ? Convert.ToInt64(row["harga_diskon"]) : 0;
+
+                    if (hargaDiskon > 0 && hargaSatuan > hargaDiskon)
+                        adaYangSudahBayarPenuh = true;
+                }
             }
+
+            long grandTotalBersih = grandTotal - totalCashback;
 
             if (totalCashback > 0)
             {
-                this.lblCashbackInfo.Text =
-                    $"💸 Total cashback Gotong Royong yang harus kamu kembalikan ke pembeli: Rp {totalCashback:N0}";
+                if (adaYangSudahBayarPenuh)
+                {
+                    // Pembeli sudah terlanjur bayar harga penuh → penjual harus kembalikan manual
+                    this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
+                    this.lblCashbackInfo.Text =
+                        $"⚠️ Total cashback Gotong Royong yang harus kamu kembalikan ke pembeli: Rp {totalCashback:N0}";
+                }
+                else
+                {
+                    // Cashback sudah otomatis terpotong dari tagihan pembeli
+                    this.lblGrandTotal.Text =
+                        $"Total Produk Kamu: Rp {grandTotalBersih:N0} (sudah termasuk potongan cashback GR)";
+                    this.lblCashbackInfo.Text =
+                        $"✅ Cashback Gotong Royong Rp {totalCashback:N0} sudah otomatis dipotong dari tagihan pembeli.";
+                }
                 this.lblCashbackInfo.Visible = true;
             }
             else
             {
+                this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
                 this.lblCashbackInfo.Visible = false;
             }
+
+            this.AdjustLayout();
         }
 
         // =======================================================

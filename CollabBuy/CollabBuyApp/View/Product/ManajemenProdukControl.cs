@@ -52,10 +52,12 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 DataTable dtCombo = new DataTable();
                 dtCombo.Columns.Add("id_po", typeof(object));
                 dtCombo.Columns.Add("judul_po", typeof(string));
+                dtCombo.Columns.Add("jenis_po", typeof(string)); // ← TAMBAH INI
 
                 DataRow rowKosong = dtCombo.NewRow();
                 rowKosong["id_po"] = DBNull.Value;
                 rowKosong["judul_po"] = "— Tidak terikat PO (Reguler) —";
+                rowKosong["jenis_po"] = "Biasa"; // ← TAMBAH INI
                 dtCombo.Rows.Add(rowKosong);
 
                 foreach (DataRow row in dt.Rows)
@@ -69,18 +71,60 @@ namespace CollabBuy.CollabBuyApp.View.Product
                         if (!aktif) label += " (Tutup)";
                     }
                     r["judul_po"] = label;
+                    r["jenis_po"] = row["jenis_po"] != DBNull.Value ? row["jenis_po"].ToString() : "Biasa"; // ← TAMBAH INI
                     dtCombo.Rows.Add(r);
                 }
 
                 this.cbSesiPO.DataSource = dtCombo;
                 this.cbSesiPO.DisplayMember = "judul_po";
                 this.cbSesiPO.ValueMember = "id_po";
+                this.cbSesiPO.SelectedIndexChanged += this.CbSesiPO_SelectedIndexChanged; // ← TAMBAH INI
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Gagal load sesi PO: " + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void CbSesiPO_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            this.AturFieldGotongRoyong();
+        }
+
+        private void AturFieldGotongRoyong()
+        {
+            bool isGotongRoyong = false;
+
+            if (this.cbSesiPO.SelectedItem is DataRowView drv)
+            {
+                string jenis = drv["jenis_po"]?.ToString() ?? "Biasa";
+                isGotongRoyong = jenis == "Gotong Royong";
+            }
+
+            // Enable/disable field diskon dan kuota
+            this.txtHargaDiskon.Enabled = isGotongRoyong;
+            this.txtTargetKuota.Enabled = isGotongRoyong;
+
+            // Kosongkan dan beri placeholder kalau bukan GR
+            if (!isGotongRoyong)
+            {
+                this.txtHargaDiskon.Text = "";
+                this.txtTargetKuota.Text = "";
+                this.txtHargaDiskon.PlaceholderText = "Hanya untuk PO Gotong Royong";
+                this.txtTargetKuota.PlaceholderText = "Hanya untuk PO Gotong Royong";
+            }
+            else
+            {
+                this.txtHargaDiskon.PlaceholderText = "Kosongkan jika tidak ada";
+                this.txtTargetKuota.PlaceholderText = "cth: 50";
+            }
+
+            // Visual hint: warna abu kalau disabled
+            System.Drawing.Color bgDisabled = System.Drawing.Color.FromArgb(220, 220, 220);
+            System.Drawing.Color bgEnabled = System.Drawing.Color.White;
+            this.txtHargaDiskon.BackColor = isGotongRoyong ? bgEnabled : bgDisabled;
+            this.txtTargetKuota.BackColor = isGotongRoyong ? bgEnabled : bgDisabled;
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -98,6 +142,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             this.ResetFormTambah();
             this.pnlTambahProduk.Visible = true;
             this.LoadSesiPO(hanyaAktif: true);
+            this.AturFieldGotongRoyong();
         }
 
         private void btnBatalTambah_Click(object sender, EventArgs e)
@@ -331,6 +376,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             {
                 this.cbSesiPO.SelectedIndex = 0;
             }
+            this.AturFieldGotongRoyong();
 
             // Foto
             _fotoProdukBytes = null;

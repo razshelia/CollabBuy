@@ -547,6 +547,7 @@ SELECT
     td.nama_penitip,
     td.jumlah_pesanan                                    AS jumlah,
     td.harga_satuan_saat_beli                            AS harga_satuan,
+    td.harga_diskon_saat_beli                            AS harga_diskon,  -- ← TAMBAHAN
     (td.jumlah_pesanan * td.harga_satuan_saat_beli)      AS subtotal,
     COALESCE(td.catatan, '-')                            AS catatan,
     COALESCE(td.selisih_refund, 0)                       AS selisih_refund
@@ -1228,10 +1229,13 @@ CREATE OR REPLACE PROCEDURE sp_recalculate_cashback_gr(
 )
 LANGUAGE plpgsql AS $$
 DECLARE
-    v_total_terpesan INT;
-    v_target_kuota   INT;
-    v_selisih        BIGINT;
-    v_affected       INT;
+    v_total_terpesan        INT;
+    v_target_kuota          INT;
+    v_selisih               BIGINT;
+    v_affected              INT;
+    v_id_trx_pemenuhi       INT;
+    v_qty_pemenuhi          INT;
+    v_qty_sebelum_pemenuhi  INT;
 BEGIN
     SELECT target_kuota INTO v_target_kuota FROM products WHERE id_produk = p_id_produk;
 
@@ -1255,6 +1259,17 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Cari transaksi yang memenuhi kuota (transaksi terbaru/terakhir yang masuk)
+    SELECT t.id_transaksi INTO v_id_trx_pemenuhi
+    FROM transaction_details td
+    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    WHERE td.id_produk       = p_id_produk
+      AND td.id_po_saat_beli = p_id_po
+      AND t.status_pesanan   NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+    ORDER BY t.tanggal_transaksi DESC
+    LIMIT 1;
+
+    -- Hanya update transaksi yang BUKAN pemenuhi kuota (mereka yang bayar harga dasar lebih dulu)
     UPDATE transaction_details td
     SET selisih_refund = td.jumlah_pesanan * v_selisih
     FROM transactions t
@@ -1262,7 +1277,8 @@ BEGIN
       AND td.id_produk       = p_id_produk
       AND td.id_po_saat_beli = p_id_po
       AND td.selisih_refund  = 0
-      AND t.status_pesanan   NOT IN ('Dibatalkan', 'Batal', 'Gagal');
+      AND t.status_pesanan   NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+      AND td.id_transaksi   <> v_id_trx_pemenuhi;
 
     GET DIAGNOSTICS v_affected = ROW_COUNT;
     p_sukses := TRUE;
@@ -1270,11 +1286,36 @@ BEGIN
 END;
 $$;
 
+-- Reset selisih_refund yang salah: transaksi terbaru per produk GR yang memenuhi kuota
+-- Jalankan ini untuk membersihkan data yang sudah terlanjur masuk
+UPDATE transaction_details td
+SET selisih_refund = 0
+FROM (
+    SELECT td2.id_transaksi, td2.id_produk, td2.id_po_saat_beli
+    FROM transaction_details td2
+    JOIN transactions t2 ON td2.id_transaksi = t2.id_transaksi
+    WHERE t2.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+      AND td2.selisih_refund > 0
+) sub
+INNER JOIN (
+    SELECT td3.id_produk, td3.id_po_saat_beli, MAX(t3.tanggal_transaksi) AS tgl_max
+    FROM transaction_details td3
+    JOIN transactions t3 ON td3.id_transaksi = t3.id_transaksi
+    WHERE t3.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+    GROUP BY td3.id_produk, td3.id_po_saat_beli
+) latest ON sub.id_produk = latest.id_produk 
+         AND sub.id_po_saat_beli = latest.id_po_saat_beli
+JOIN transactions t ON sub.id_transaksi = t.id_transaksi
+WHERE t.tanggal_transaksi = latest.tgl_max
+  AND td.id_transaksi = sub.id_transaksi
+  AND td.id_produk    = sub.id_produk;
+
 -- ── Cara memanggil SP (tidak perlu di-run untuk setup, hanya referensi):
 /*
 CALL sp_recalculate_cashback_gr(6, 3, 15000, 10000, NULL, NULL);
 */
 
+DROP PROCEDURE IF EXISTS sp_recalculate_cashback_gr(INT, INT, BIGINT, BIGINT);
 
 -- ============================================================
 -- SECTION 7 : TRANSACTION

@@ -270,6 +270,14 @@ namespace CollabBuy.CollabBuyApp.Models
 
             int sisa = this.GetSisaKuota();
 
+            if (this.JenisPo == "Gotong Royong")
+            {
+                // Kuota adalah target cashback, bukan batas pemesanan
+                if (sisa <= 0)
+                    return $"🎯 Target cashback tercapai! ({this.Terpesan}/{this.TargetKuota.Value})";
+                return $"Target cashback: sisa {sisa} slot ({this.Terpesan}/{this.TargetKuota.Value})";
+            }
+
             if (sisa <= 0) return "⛔ Ludes / Penuh!";
 
             return $"Sisa {sisa} Slot (Terkumpul {this.Terpesan}/{this.TargetKuota.Value})";

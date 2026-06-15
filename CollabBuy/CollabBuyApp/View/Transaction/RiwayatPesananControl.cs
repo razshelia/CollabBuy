@@ -269,7 +269,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             TableLayoutPanel tblGrid = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 1050, // Fix tinggi absolut agar bisa di-scroll
+                Height = 1080, // Fix tinggi absolut agar bisa di-scroll
                 ColumnCount = 1,
                 RowCount = 7,
                 BackColor = Color.White,
@@ -282,7 +282,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
             tblGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));   // 3 Label Split
             tblGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 200F));  // 4 DGV Split
             tblGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 350F));  // 5 Bukti Bayar (Ukuran Jumbo)
-            tblGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 80F));   // 6 Footer / Salin Bill
+            tblGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 110F));   // 6 Footer / Salin Bill
 
             // [Row 0] Header
             Panel pnlHdr = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0) };
@@ -594,6 +594,8 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 ForeColor = Color.FromArgb(90, 24, 154),
                 Dock = DockStyle.Left,
                 Width = 400,
+                AutoSize = false,
+                Height = 100,                              // ← TAMBAH INI
                 TextAlign = ContentAlignment.MiddleLeft
             };
 

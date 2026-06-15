@@ -20,6 +20,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private Panel pnlContent;
         private Panel pnlSidebar;
         private Label lblUserInfo;
+        private TransactionController _trxCtrl;
 
         public MainForm()
         {
@@ -159,9 +160,8 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void ShowKeranjangBelanja()
         {
-            var trxCtrl = new TransactionController(this._currentUser.IdUser);
-            var ctrl = new ViewTransaction.KeranjangBelanjaControl(this._currentUser, trxCtrl);
-            ctrl.OnNavigatePembayaran += (totalTagihan) => this.ShowPembayaran(trxCtrl, totalTagihan);
+            var ctrl = new ViewTransaction.KeranjangBelanjaControl(this._currentUser, this._trxCtrl);
+            ctrl.OnNavigatePembayaran += (totalTagihan) => this.ShowPembayaran(this._trxCtrl, totalTagihan);
             this.ShowUserControl(ctrl);
         }
 
@@ -420,6 +420,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
         private void HandleLoginSuccess(User user)
         {
             this._currentUser = user;
+            this._trxCtrl = new TransactionController(user.IdUser);
             this.ShowDashboard();
         }
 
@@ -495,6 +496,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 finally
                 {
                     this._currentUser = null;
+                    this._trxCtrl = null;
                     this.ShowLoginControl();
                 }
             }
