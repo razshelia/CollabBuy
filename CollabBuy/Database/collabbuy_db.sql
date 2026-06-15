@@ -786,6 +786,30 @@ GROUP BY t.id_transaksi, t.id_koordinator, t.tanggal_transaksi,
 -- ── Dipanggil: SELECT * FROM vw_transaksi_lengkap ORDER BY id_transaksi;
 -- SELECT * FROM vw_transaksi_lengkap ORDER BY id_transaksi;
 
+CREATE OR REPLACE VIEW vw_detail_produk AS
+SELECT 
+    p.id_produk, 
+    p.id_penjual, 
+    p.id_po, 
+    p.id_kategori, 
+    p.nama_produk,
+    p.deskripsi, 
+    p.harga_dasar, 
+    p.harga_diskon, 
+    p.target_kuota, 
+    p.min_order,
+    p.foto_produk,
+    COALESCE(po.jenis_po, 'Biasa') AS jenis_po,
+    COALESCE((
+        SELECT SUM(td.jumlah_pesanan)
+        FROM transaction_details td
+        JOIN transactions t ON td.id_transaksi = t.id_transaksi
+        WHERE td.id_produk = p.id_produk
+          AND t.status_pesanan NOT IN ('Batal', 'Gagal')
+    ), 0) AS terpesan
+FROM products p
+LEFT JOIN preorders po ON p.id_po = po.id_po AND po.is_deleted = FALSE
+WHERE p.is_deleted = FALSE;
 
 -- ============================================================
 -- SECTION 5 : FUNCTION (Statement Function / Table Function)
