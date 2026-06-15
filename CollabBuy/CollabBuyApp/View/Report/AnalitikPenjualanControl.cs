@@ -366,6 +366,13 @@ namespace CollabBuy.CollabBuyApp.View.Report
                 // Kartu 2: Total Transaksi
                 this.lblTotalOrder.Text = stats["transaksi"].ToString() + " Transaksi";
                 this.lblOrderTitle.Text = "TOTAL TRANSAKSI 🛒";
+
+                // ✅ TAMBAH: Kartu 3 — Pesanan Berjalan (semua penjual)
+                var (totalNilaiAktif, totalPesananAktif) =
+                    this._laporanController.GetRingkasanPesananAktifAdmin();
+
+                this.lblPesananAktif.Text = totalPesananAktif + " Pesanan (Rp " + totalNilaiAktif.ToString("N0") + ")";
+                this.lblPesananAktifTitle.Text = "PESANAN BERJALAN ⏳";
             }
             catch (Exception ex)
             {

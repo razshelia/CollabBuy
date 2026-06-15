@@ -42,7 +42,12 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex) { LogError(nameof(GetDetailRiwayatCuan), ex); return new DataTable(); }
         }
 
-
+        // TAMBAH method baru untuk Admin (semua transaksi, bukan per penjual)
+        public (long totalNilaiAktif, int totalPesananAktif) GetRingkasanPesananAktifAdmin()
+        {
+            try { return _laporanRepo.GetRingkasanPesananAktifAdmin(); }
+            catch (Exception ex) { LogError(nameof(GetRingkasanPesananAktifAdmin), ex); return (0, 0); }
+        }
         // =======================================================
         // 1. VIEW DATABASE (ADMIN)
         // =======================================================

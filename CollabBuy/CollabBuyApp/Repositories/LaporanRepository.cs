@@ -81,6 +81,37 @@ namespace CollabBuy.CollabBuyApp.Repositories
             return (0, 0);
         }
 
+
+
+        // TAMBAH method baru — hitung semua pesanan aktif di seluruh sistem
+        public (long totalNilaiAktif, int totalPesananAktif) GetRingkasanPesananAktifAdmin()
+        {
+            string query = @"
+    SELECT 
+        COUNT(DISTINCT t.id_transaksi) AS total_pesanan_aktif,
+        COALESCE(SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli), 0) AS total_nilai_aktif
+    FROM transactions t
+    LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+    WHERE t.status_pesanan NOT IN ('Selesai', 'Dibatalkan');";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return (
+                            reader.IsDBNull(reader.GetOrdinal("total_nilai_aktif")) ? 0 : Convert.ToInt64(reader["total_nilai_aktif"]),
+                            reader.IsDBNull(reader.GetOrdinal("total_pesanan_aktif")) ? 0 : Convert.ToInt32(reader["total_pesanan_aktif"])
+                        );
+                    }
+                }
+            }
+            return (0, 0);
+        }
+
         public DataTable GetRiwayatCuanDataTable(int idPenjual)
         {
             // Sebelumnya: query inline dengan GROUP BY dan JOIN

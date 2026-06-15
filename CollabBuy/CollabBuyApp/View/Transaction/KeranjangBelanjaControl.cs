@@ -91,20 +91,21 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 DataTable dt = this._trxCtrl.GetKeranjangDataTable();
                 if (dt != null && dt.Rows.Count > 0)
                 {
-                    if (!dt.Columns.Contains("NamaItem")) dt.Columns.Add("NamaItem", typeof(string));
+                    // Kolom SubtotalUI belum ada di DataTable, perlu ditambah dulu
                     if (!dt.Columns.Contains("SubtotalUI")) dt.Columns.Add("SubtotalUI", typeof(string));
 
                     foreach (DataRow row in dt.Rows)
                     {
+                        // ✅ PERBAIKAN: gunakan nama kolom PascalCase sesuai GetKeranjangDataTable()
                         TransactionDetail detailObj = new TransactionDetail(
-                            Convert.ToInt32(row["id_produk"]),
-                            row["nama_penitip"].ToString(),
+                            Convert.ToInt32(row["IdProduk"]),       
+                            row["NamaPenitip"].ToString(),           
                             Convert.ToInt32(row["Kuantitas"])
                         );
                         detailObj.IsiHargaDariDatabase(
                             Convert.ToInt64(row["Harga"]),
-                            null, // harga diskon tidak ada di keranjang
-                            row["nama_produk"].ToString()
+                            null,
+                            row["NamaItem"].ToString()              
                         );
                         row["NamaItem"] = detailObj.DapatkanInfoItemUI();
                         row["SubtotalUI"] = detailObj.DapatkanSubtotalUI();

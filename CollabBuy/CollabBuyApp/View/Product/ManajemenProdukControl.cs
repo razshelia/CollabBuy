@@ -15,6 +15,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
         private readonly ProductController _productController;
         private readonly CategoryRepository _categoryRepo;
         private byte[] _fotoProdukBytes = null;
+        private int? _targetKuotaLama = null;
         private int _editIdProduk = -1;
         private bool _modeEdit = false;
         private readonly PreOrderController _poController;
@@ -170,6 +171,28 @@ namespace CollabBuy.CollabBuyApp.View.Product
             if (_modeEdit)
             {
                 // === MODE EDIT / UPDATE ===
+                int? hargaDiskonEdit = null;
+                if (!string.IsNullOrWhiteSpace(txtHargaDiskon.Text) &&
+                    int.TryParse(txtHargaDiskon.Text.Trim(), out int hdEditVal) && hdEditVal > 0)
+                {
+                    int hargaAkhir = harga - hdEditVal;  // harga dasar - potongan = harga akhir
+                    if (hargaAkhir <= 0)
+                    {
+                        MessageBox.Show("Potongan diskon tidak boleh melebihi harga dasar!", "Peringatan",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtHargaDiskon.Focus();
+                        return;
+                    }
+                    hargaDiskonEdit = hargaAkhir;
+                }
+
+                int? kuotaEdit = null;
+                if (!string.IsNullOrWhiteSpace(txtTargetKuota.Text) &&
+                    int.TryParse(txtTargetKuota.Text.Trim(), out int kuotaEditVal) && kuotaEditVal > 0)
+                    kuotaEdit = kuotaEditVal;
+                else if (string.IsNullOrWhiteSpace(txtTargetKuota.Text))
+                    kuotaEdit = _targetKuotaLama;
+
                 var result = this._productController.UpdateProduk(
                     idProduk: _editIdProduk,
                     idPenjual: this._currentUser.IdUser,
@@ -179,6 +202,8 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     minOrder: minOrder,
                     deskripsi: txtDeskripsiProduk.Text.Trim(),
                     fotoProduk: _fotoProdukBytes,
+                    targetKuota: kuotaEdit,
+                    hargaDiskon: hargaDiskonEdit,
                     idPo: this.cbSesiPO.SelectedValue == DBNull.Value || this.cbSesiPO.SelectedValue == null
                           ? (int?)null
                           : (int?)Convert.ToInt32(this.cbSesiPO.SelectedValue)
@@ -201,15 +226,39 @@ namespace CollabBuy.CollabBuyApp.View.Product
             else
             {
                 // === MODE TAMBAH BARU ===
+
+                // ✅ kuotaBaru — dideklarasikan di sini
+                int? kuotaBaru = null;
+                if (!string.IsNullOrWhiteSpace(txtTargetKuota.Text) &&
+                    int.TryParse(txtTargetKuota.Text.Trim(), out int kuotaBaruVal) && kuotaBaruVal > 0)
+                    kuotaBaru = kuotaBaruVal;
+
+                // ✅ hargaDiskonBaru — hanya satu deklarasi, sudah pakai konversi potongan → harga akhir
+                int? hargaDiskonBaru = null;
+                if (!string.IsNullOrWhiteSpace(txtHargaDiskon.Text) &&
+                    int.TryParse(txtHargaDiskon.Text.Trim(), out int hdBaruVal) && hdBaruVal > 0)
+                {
+                    int hargaAkhirBaru = harga - hdBaruVal;
+                    if (hargaAkhirBaru <= 0)
+                    {
+                        MessageBox.Show("Potongan diskon tidak boleh melebihi harga dasar!", "Peringatan",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtHargaDiskon.Focus();
+                        return;
+                    }
+                    hargaDiskonBaru = hargaAkhirBaru;
+                }
+
                 var result = this._productController.TambahProdukBaru(
                     idPenjual: this._currentUser.IdUser,
                     idKategori: idKategori,
                     namaProduk: txtNamaProduk.Text.Trim(),
                     hargaDasar: harga,
                     idPo: this.cbSesiPO.SelectedValue == DBNull.Value || this.cbSesiPO.SelectedValue == null
-                    ? (int?)null
-                    : (int?)Convert.ToInt32(this.cbSesiPO.SelectedValue),
-                    targetKuota: null,
+                        ? (int?)null
+                        : (int?)Convert.ToInt32(this.cbSesiPO.SelectedValue),
+                    targetKuota: kuotaBaru,
+                    hargaDiskon: hargaDiskonBaru,
                     minOrder: minOrder,
                     fotoProduk: _fotoProdukBytes
                 );
@@ -244,6 +293,17 @@ namespace CollabBuy.CollabBuyApp.View.Product
             txtHargaProduk.Text = rowData["harga_dasar"].ToString();
             txtMinOrder.Text = rowData["min_order"] != DBNull.Value ? rowData["min_order"].ToString() : "1";
             txtDeskripsiProduk.Text = rowData["deskripsi"] != DBNull.Value ? rowData["deskripsi"].ToString() : "";
+            if (rowData.Table.Columns.Contains("harga_diskon") && rowData["harga_diskon"] != DBNull.Value)
+            {
+                int hargaAkhirDB = Convert.ToInt32(rowData["harga_diskon"]);
+                int hargaDasarDB = Convert.ToInt32(rowData["harga_dasar"]);
+                txtHargaDiskon.Text = (hargaDasarDB - hargaAkhirDB).ToString(); // tampilkan sebagai potongan
+            }
+            else
+            {
+                txtHargaDiskon.Text = "";
+            }
+
 
             // Set kategori
             if (rowData["id_kategori"] != DBNull.Value)
@@ -282,6 +342,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     byte[] imgBytes = (byte[])rowData["foto_produk"];
                     if (imgBytes.Length > 1)
                     {
+                        _fotoProdukBytes = imgBytes;  //simpan foto lama ke field
                         using (MemoryStream ms = new MemoryStream(imgBytes))
                             picFotoPreview.Image = new Bitmap(Image.FromStream(ms));
                     }
@@ -356,9 +417,12 @@ namespace CollabBuy.CollabBuyApp.View.Product
             txtNamaProduk.Clear();
             txtHargaProduk.Clear();
             txtMinOrder.Text = "1";
+            txtHargaDiskon.Text = "";
+            txtTargetKuota.Text = "";
+            _targetKuotaLama = null;
             txtDeskripsiProduk.Clear();
-            picFotoPreview.Image = null;
             _fotoProdukBytes = null;
+            picFotoPreview.Image = null;
             if (cbKategoriProduk.Items.Count > 0) cbKategoriProduk.SelectedIndex = 0;
             if (this.cbSesiPO.Items.Count > 0) this.cbSesiPO.SelectedIndex = 0;
         }

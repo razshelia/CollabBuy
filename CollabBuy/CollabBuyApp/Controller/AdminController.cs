@@ -37,7 +37,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
         public Dictionary<string, int> GetStatsDashboard()
         {
             var stats = new Dictionary<string, int> {
-                { "users", 0 }, { "transaksi", 0 }, { "po_aktif", 0 }, { "aduan", 0 }
+                { "users", 0 }, { "transaksi", 0 }, { "po_aktif", 0 }, { "aduan", 0 }, { "pesanan_aktif", 0 }, { "nilai_pesanan_aktif", 0 }
             };
 
             string connectionString = ConfigurationManager

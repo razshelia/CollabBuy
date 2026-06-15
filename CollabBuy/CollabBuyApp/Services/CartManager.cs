@@ -63,6 +63,16 @@ namespace CollabBuy.CollabBuyApp.Services
         /// </summary>
         public long HitungTotalKeranjang()
         {
+            // Hitung total qty per produk dari keranjang saat ini
+            var qtyDiKeranjang = new Dictionary<int, int>();
+            foreach (var entry in this.Keranjang)
+            {
+                int totalQtyEntry = 0;
+                foreach (var detail in entry.Value)
+                    totalQtyEntry += detail.JumlahPesanan;
+                qtyDiKeranjang[entry.Key] = totalQtyEntry;
+            }
+
             long total = 0;
             foreach (var entry in this.Keranjang)
             {
@@ -71,16 +81,33 @@ namespace CollabBuy.CollabBuyApp.Services
                     Product produk = detail.ProdukYangDipesan;
                     if (produk != null)
                     {
-                        // Estimasi harga pakai harga diskon jika ada, tanpa mengubah state
-                        long hargaEfektif = produk.HargaDiskon.HasValue
-                            ? Convert.ToInt64(produk.HargaDiskon.Value)
-                            : produk.HitungTotal();
-                        total += hargaEfektif * detail.JumlahPesanan;
+                        int qtyKeranjangIni = qtyDiKeranjang.ContainsKey(produk.IdProduk) ? qtyDiKeranjang[produk.IdProduk] : 0;
+
+                        // Terpesan di DB sudah include qty keranjang ini (karena TambahPesanan dipanggil saat add to cart)
+                        // Jadi terpesanSebelumKeranjangIni = Terpesan - qtyKeranjangIni
+                        int terpesanSebelumKeranjangIni = Math.Max(0, produk.Terpesan - qtyKeranjangIni);
+
+                        // Total jika checkout sekarang = terpesanSebelum + qty keranjang ini
+                        int totalJikaCheckout = terpesanSebelumKeranjangIni + qtyKeranjangIni;
+
+                        bool isGR = produk.JenisPo == "Gotong Royong"
+                            && produk.TargetKuota.HasValue
+                            && produk.HargaDiskon.HasValue;
+
+                        // Kuota terpenuhi kalau total setelah checkout >= target
+                        bool kuotaTerpenuhi = isGR && totalJikaCheckout >= produk.TargetKuota.Value;
+
+                        long hargaSaatIni = kuotaTerpenuhi
+                            ? produk.HargaDiskon.Value   // ✅ harga sudah dipotong diskon
+                            : produk.HargaDasar;          // harga normal
+
+                        long? hargaDiskon = kuotaTerpenuhi
+                            ? (long?)Convert.ToInt64(produk.HargaDiskon.Value)
+                            : null;
+
+                        detail.FinalisasiHargaSaatCheckout(hargaSaatIni, hargaDiskon);
                     }
-                    else
-                    {
-                        total += detail.HitungTotal();
-                    }
+                    total += detail.HitungTotal();
                 }
             }
             return total;

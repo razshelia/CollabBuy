@@ -33,6 +33,10 @@
             this.lblSesiPO = new System.Windows.Forms.Label();
             this.cbSesiPO = new System.Windows.Forms.ComboBox();
             this.txtMinOrder = new System.Windows.Forms.TextBox();
+            this.lblHargaDiskon = new System.Windows.Forms.Label();    // ← TAMBAH
+            this.txtHargaDiskon = new System.Windows.Forms.TextBox();
+            this.lblTargetKuota = new System.Windows.Forms.Label();   // ← TAMBAH
+            this.txtTargetKuota = new System.Windows.Forms.TextBox();
             this.lblDeskripsiProduk = new System.Windows.Forms.Label();
             this.txtDeskripsiProduk = new System.Windows.Forms.TextBox();
             this.picFotoPreview = new System.Windows.Forms.PictureBox();
@@ -157,6 +161,10 @@
             this.pnlTambahProduk.Controls.Add(this.txtHargaProduk);
             this.pnlTambahProduk.Controls.Add(this.lblMinOrder);
             this.pnlTambahProduk.Controls.Add(this.txtMinOrder);
+            this.pnlTambahProduk.Controls.Add(this.lblHargaDiskon);   // ← TAMBAH
+            this.pnlTambahProduk.Controls.Add(this.txtHargaDiskon);
+            this.pnlTambahProduk.Controls.Add(this.lblTargetKuota); 
+            this.pnlTambahProduk.Controls.Add(this.txtTargetKuota);
             this.pnlTambahProduk.Controls.Add(this.lblSesiPO);
             this.pnlTambahProduk.Controls.Add(this.cbSesiPO);
             this.pnlTambahProduk.Controls.Add(this.lblDeskripsiProduk);
@@ -167,7 +175,7 @@
             this.pnlTambahProduk.Controls.Add(this.btnBatalTambah);
             this.pnlTambahProduk.Location = new System.Drawing.Point(36, 625);
             this.pnlTambahProduk.Name = "pnlTambahProduk";
-            this.pnlTambahProduk.Size = new System.Drawing.Size(920, 310);
+            this.pnlTambahProduk.Size = new System.Drawing.Size(920, 365);
             this.pnlTambahProduk.TabIndex = 3;
             this.pnlTambahProduk.Visible = false;
 
@@ -247,16 +255,47 @@
             this.txtMinOrder.Size = new System.Drawing.Size(100, 27);
             this.txtMinOrder.Text = "1";
 
+            // lblHargaDiskon   ← TAMBAH BLOK INI
+            this.lblHargaDiskon.AutoSize = true;
+            this.lblHargaDiskon.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblHargaDiskon.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblHargaDiskon.Location = new System.Drawing.Point(20, 168);
+            this.lblHargaDiskon.Name = "lblHargaDiskon";
+            this.lblHargaDiskon.Text = "Potongan Diskon GR (Rp)";
+
+            // txtHargaDiskon   ← TAMBAH BLOK INI
+            this.txtHargaDiskon.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtHargaDiskon.Location = new System.Drawing.Point(20, 186);
+            this.txtHargaDiskon.Name = "txtHargaDiskon";
+            this.txtHargaDiskon.Size = new System.Drawing.Size(180, 27);
+            this.txtHargaDiskon.PlaceholderText = "Kosongkan jika tidak ada";
+
+
+            // lblTargetKuota                                                        // ← TAMBAH BLOK INI
+            this.lblTargetKuota.AutoSize = true;
+            this.lblTargetKuota.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblTargetKuota.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
+            this.lblTargetKuota.Location = new System.Drawing.Point(625, 162);
+            this.lblTargetKuota.Name = "lblTargetKuota";
+            this.lblTargetKuota.Text = "Target Kuota (opsional)";
+
+            // txtTargetKuota                                                        // ← TAMBAH BLOK INI
+            this.txtTargetKuota.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtTargetKuota.Location = new System.Drawing.Point(625, 180);
+            this.txtTargetKuota.Name = "txtTargetKuota";
+            this.txtTargetKuota.Size = new System.Drawing.Size(100, 27);
+            this.txtTargetKuota.PlaceholderText = "cth: 50";
+
             // lblDeskripsiProduk
             this.lblDeskripsiProduk.AutoSize = true;
             this.lblDeskripsiProduk.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblDeskripsiProduk.ForeColor = System.Drawing.Color.FromArgb(36, 0, 70);
-            this.lblDeskripsiProduk.Location = new System.Drawing.Point(20, 172);
+            this.lblDeskripsiProduk.Location = new System.Drawing.Point(20, 228);
             this.lblDeskripsiProduk.Text = "Deskripsi";
 
             // txtDeskripsiProduk
             this.txtDeskripsiProduk.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.txtDeskripsiProduk.Location = new System.Drawing.Point(20, 190);
+            this.txtDeskripsiProduk.Location = new System.Drawing.Point(20, 246);
             this.txtDeskripsiProduk.Multiline = true;
             this.txtDeskripsiProduk.Name = "txtDeskripsiProduk";
             this.txtDeskripsiProduk.Size = new System.Drawing.Size(585, 65);
@@ -290,7 +329,7 @@
             this.btnSimpanProduk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSimpanProduk.Font = new System.Drawing.Font("Segoe UI Black", 10F, System.Drawing.FontStyle.Bold);
             this.btnSimpanProduk.ForeColor = System.Drawing.Color.FromArgb(253, 255, 182);
-            this.btnSimpanProduk.Location = new System.Drawing.Point(620, 215);
+            this.btnSimpanProduk.Location = new System.Drawing.Point(620, 265);
             this.btnSimpanProduk.Name = "btnSimpanProduk";
             this.btnSimpanProduk.Size = new System.Drawing.Size(185, 40);
             this.btnSimpanProduk.Text = "✅ Simpan Produk";
@@ -304,7 +343,7 @@
             this.btnBatalTambah.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBatalTambah.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnBatalTambah.ForeColor = System.Drawing.Color.White;
-            this.btnBatalTambah.Location = new System.Drawing.Point(620, 262);
+            this.btnBatalTambah.Location = new System.Drawing.Point(620, 312);
             this.btnBatalTambah.Name = "btnBatalTambah";
             this.btnBatalTambah.Size = new System.Drawing.Size(185, 36);
             this.btnBatalTambah.Text = "✖ Batal";
@@ -357,5 +396,9 @@
         private System.Windows.Forms.Label lblSesiPO;
         private System.Windows.Forms.ComboBox cbSesiPO;
         private System.Windows.Forms.TextBox txtCariProduk;
+        private System.Windows.Forms.Label lblHargaDiskon;    // ← TAMBAH
+        private System.Windows.Forms.TextBox txtHargaDiskon;
+        private System.Windows.Forms.Label lblTargetKuota;    // ← TAMBAH
+        private System.Windows.Forms.TextBox txtTargetKuota;
     }
 }

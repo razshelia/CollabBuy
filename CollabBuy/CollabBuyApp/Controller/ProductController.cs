@@ -18,13 +18,14 @@ namespace CollabBuy.CollabBuyApp.Controllers
             _logRepo = new ActivityLogRepository();
         }
 
-        public (bool sukses, string pesan) TambahProdukBaru(int idPenjual, int idKategori, string namaProduk, int hargaDasar, int? idPo, int? targetKuota, int minOrder, byte[] fotoProduk)
+        public (bool sukses, string pesan) TambahProdukBaru(int idPenjual, int idKategori, string namaProduk, int hargaDasar, int? idPo, int? targetKuota, int? hargaDiskon, int minOrder, byte[] fotoProduk)
         {
             try
             {
                 Product produk = new Product(idPenjual, idKategori, namaProduk, hargaDasar);
                 if (idPo.HasValue) produk.IdPo = idPo.Value;
                 if (targetKuota.HasValue) produk.TargetKuota = targetKuota;
+                if (hargaDiskon.HasValue) produk.HargaDiskon = hargaDiskon;
                 produk.MinOrder = minOrder;
                 if (fotoProduk != null) produk.FotoProduk = fotoProduk;
                 produk.Validate();
@@ -39,7 +40,7 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception ex) { return (false, "Error sistem: " + ex.Message); }
         }
 
-        public (bool sukses, string pesan) UpdateProduk(int idProduk, int idPenjual, int idKategori, string namaProduk, int hargaDasar, int minOrder, string deskripsi, byte[] fotoProduk, int? idPo = null)
+        public (bool sukses, string pesan) UpdateProduk(int idProduk, int idPenjual, int idKategori, string namaProduk, int hargaDasar, int minOrder, string deskripsi, byte[] fotoProduk, int? idPo = null, int? targetKuota = null, int? hargaDiskon = null)
         {
             try
             {
@@ -49,6 +50,8 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 if (!string.IsNullOrEmpty(deskripsi)) produk.Deskripsi = deskripsi;
                 if (fotoProduk != null) produk.FotoProduk = fotoProduk;
                 if (idPo.HasValue) produk.IdPo = idPo.Value;
+                if (targetKuota.HasValue) produk.TargetKuota = targetKuota;
+                if (hargaDiskon.HasValue) produk.HargaDiskon = hargaDiskon;
                 produk.Validate();
                 _productRepo.Update(produk);
 

@@ -540,18 +540,19 @@ namespace CollabBuy.CollabBuyApp.View.Product
             foreach (DataRow row in this._dtSemua.Rows)
             {
                 // Filter teks
+                //hanya cek kolom nama_produk dan deskripsi
                 bool lolosTeks = string.IsNullOrEmpty(kataKunci);
                 if (!lolosTeks)
                 {
-                    foreach (DataColumn col in this._dtSemua.Columns)
-                    {
-                        if (row[col] != DBNull.Value &&
-                            row[col].ToString().ToLower().Contains(kataKunci.ToLower()))
-                        {
-                            lolosTeks = true;
-                            break;
-                        }
-                    }
+                    string keyword = kataKunci.ToLower();
+
+                    string namaProduk = this._dtSemua.Columns.Contains("nama_produk") && row["nama_produk"] != DBNull.Value
+                        ? row["nama_produk"].ToString().ToLower() : "";
+
+                    string deskripsi = this._dtSemua.Columns.Contains("deskripsi") && row["deskripsi"] != DBNull.Value
+                        ? row["deskripsi"].ToString().ToLower() : "";
+
+                    lolosTeks = namaProduk.Contains(keyword) || deskripsi.Contains(keyword);
                 }
 
                 // Filter kategori

@@ -16,14 +16,12 @@ namespace CollabBuy.CollabBuyApp.Repositories
         // IMPLEMENTASI IQueryRepository<Product>
         // =======================================================
 
+        // GANTI SELURUH GetById() dengan ini:
         public Product GetById(int id)
         {
             Product p = null;
-            string query = @"
-                SELECT id_produk, id_penjual, id_po, id_kategori, nama_produk, 
-                       deskripsi, harga_dasar, harga_diskon, target_kuota, min_order, foto_produk 
-                FROM products 
-                WHERE id_produk = @id AND is_deleted = FALSE;";
+
+            string query = "SELECT * FROM vw_detail_produk WHERE id_produk = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -35,40 +33,22 @@ namespace CollabBuy.CollabBuyApp.Repositories
                     {
                         if (reader.Read())
                         {
-                            p = new Product(reader.GetInt32(reader.GetOrdinal("id_penjual")), reader.GetInt32(reader.GetOrdinal("id_kategori")),
-                                            reader.GetString(reader.GetOrdinal("nama_produk")), reader.GetInt32(reader.GetOrdinal("harga_dasar")));
-                            p.IdProduk = reader.GetInt32(reader.GetOrdinal("id_produk"));
-
-                            if (!reader.IsDBNull(reader.GetOrdinal("id_po")))
-                            {
-                                p.IdPo = reader.GetInt32(reader.GetOrdinal("id_po"));
-                            }
-                            if (!reader.IsDBNull(reader.GetOrdinal("deskripsi")))
-                            {
-                                p.Deskripsi = reader.GetString(reader.GetOrdinal("deskripsi"));
-                            }
-                            if (!reader.IsDBNull(reader.GetOrdinal("harga_diskon")))
-                            {
-                                p.HargaDiskon = reader.GetInt32(reader.GetOrdinal("harga_diskon"));
-                            }
-                            if (!reader.IsDBNull(reader.GetOrdinal("target_kuota")))
-                            {
-                                p.TargetKuota = reader.GetInt32(reader.GetOrdinal("target_kuota"));
-                            }
-                            if (!reader.IsDBNull(reader.GetOrdinal("min_order")))
-                            {
-                                p.MinOrder = reader.GetInt32(reader.GetOrdinal("min_order"));
-                            }
-                            if (!reader.IsDBNull(reader.GetOrdinal("foto_produk")))
-                            {
-                                p.FotoProduk = (byte[])reader["foto_produk"];
-                            }
+                            // Anda bisa memanfaatkan method Helper MappingReaderToProduct yang sudah Anda buat!
+                            p = MappingReaderToProduct(reader);
                         }
                     }
                 }
             }
             return p;
         }
+
+        // DRY Principle: Jangan menulis ulang kode yang sama. 
+        // Cukup panggil method GetById() di dalam sini.
+        public Product GetByIdForKeranjang(int id)
+        {
+            return GetById(id);
+        }
+
         /// <summary>
         /// Mengambil nama toko penjual berdasarkan id_produk.
         /// Dipakai di DetailProdukControl tanpa mengubah model Product.
@@ -158,10 +138,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
             // Sebelumnya: query JOIN 3 tabel inline
             // Sekarang: vw_produk_per_penjual — kolom lengkap, filter id_penjual
             string query = @"
-                SELECT id_produk, id_po, nama_produk, nama_kategori, judul_po,
-                       harga_dasar, target_kuota, foto_produk, deskripsi, min_order, id_kategori
-                FROM vw_produk_per_penjual
-                WHERE id_penjual = @id;";
+            SELECT id_produk, id_po, nama_produk, nama_kategori, judul_po,
+                   harga_dasar, harga_diskon, target_kuota, foto_produk, deskripsi, min_order, id_kategori
+            FROM vw_produk_per_penjual
+            WHERE id_penjual = @id;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -204,10 +184,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
             if (entity == null) throw new ArgumentNullException("Entity produk tidak boleh null.");
 
             string query = @"
-                UPDATE products SET id_po = @po, id_kategori = @kategori, nama_produk = @nama, 
-                deskripsi = @deskripsi, harga_dasar = @hargaDasar, harga_diskon = @hargaDiskon, 
-                target_kuota = @targetKuota, min_order = @minOrder, foto_produk = @foto
-                WHERE id_produk = @id AND is_deleted = FALSE;";
+            UPDATE products SET id_po = @po, id_kategori = @kategori, nama_produk = @nama, 
+            deskripsi = @deskripsi, harga_dasar = @hargaDasar, harga_diskon = @hargaDiskon, 
+            target_kuota = @targetKuota, min_order = @minOrder, foto_produk = @foto
+            WHERE id_produk = @id AND is_deleted = FALSE;";
 
             using (var conn = new NpgsqlConnection(_connectionString))
             {
@@ -215,9 +195,10 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", entity.IdProduk);
-                    MappingProductToParameters(cmd, entity);
+                    MappingProductToParameters(cmd, entity);   // sudah include @targetKuota
                     if (cmd.ExecuteNonQuery() == 0)
                         throw new InvalidOrderException("Gagal mengupdate produk, ID tidak ditemukan.", "id_produk", "DB_UPDATE_PRODUCT_FAILED");
+                    // ← hapus baris AddWithValue @targetKuota yang duplikat
                 }
             }
         }
