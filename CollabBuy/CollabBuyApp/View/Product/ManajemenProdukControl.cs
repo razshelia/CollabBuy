@@ -396,9 +396,22 @@ namespace CollabBuy.CollabBuyApp.View.Product
                 catch { picFotoPreview.Image = null; }
             }
 
+            // Simpan target kuota lama & tampilkan di form
+            if (rowData.Table.Columns.Contains("target_kuota") && rowData["target_kuota"] != DBNull.Value)
+            {
+                _targetKuotaLama = Convert.ToInt32(rowData["target_kuota"]);
+                txtTargetKuota.Text = _targetKuotaLama.ToString();
+            }
+            else
+            {
+                _targetKuotaLama = null;
+                txtTargetKuota.Text = "";
+            }
+
             this.pnlTambahProduk.Visible = true;
             this.pnlTambahProduk.BringToFront();
         }
+        
 
         // === TOMBOL HAPUS (dari kolom action di grid) ===
         private void btnHapus_GridClick(int idProduk, string namaProduk)

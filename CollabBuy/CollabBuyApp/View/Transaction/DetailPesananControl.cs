@@ -263,22 +263,19 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 // Kasus A: checkout setelah diskon aktif
                 // → harga_satuan SAMA DENGAN harga_diskon (trigger pakai harga diskon saat beli)
                 bool checkoutSetelahDiskon = hargaDiskon.HasValue
-                    && hargaSatuan == hargaDiskon.Value
-                    && refundBaris == 0;
+                    ? hargaSatuan == hargaDiskon.Value   // pembeda utama
+                    : refundBaris == 0;
 
                 string cashbackStr;
 
-                if (checkoutSetelahDiskon && hargaDiskon.HasValue)
+                if (checkoutSetelahDiskon)
                 {
-                    // Kasus A: tidak ada yang perlu dikembalikan
-                    // Catatan: "selisih" vs harga dasar tidak kita hitung di sini karena
-                    // kita tidak punya harga_dasar di view. Info cukup dari label saja.
+                    // Kasus A: CO setelah kuota terpenuhi → diskon sudah terpotong otomatis.
+                    // Abaikan selisih_refund sepenuhnya — meski nilainya > 0 di DB (data lama),
+                    // baris ini BUKAN kewajiban pengembalian penjual.
                     cashbackStr = "✅ Diskon GR sudah terpotong saat checkout";
                     adaDiskonSaatCheckout = true;
-
-                    // Estimasi total diskon yang sudah terpotong (optional, hanya untuk label ringkasan)
-                    // Tidak bisa hitung selisih exact tanpa harga_dasar, tapi selisih_refund = 0
-                    // jadi total diterima penjual = subtotal (sudah = harga diskon * qty)
+                    refundBaris = 0; // pastikan tidak ikut dihitung ke total maupun subtotal
                 }
                 else if (refundBaris > 0)
                 {
@@ -292,12 +289,11 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     cashbackStr = "—";
                 }
 
-                // Subtotal yang ditampilkan = harga rill yang diterima penjual dari pembeli
-                // Kasus A: subtotal sudah pakai harga diskon → tampilkan apa adanya
-                // Kasus B: subtotal pakai harga penuh → kurangi cashback
-                long subtotalDibayarPembeli = refundBaris > 0
-                    ? subtotal - refundBaris
-                    : subtotal;
+                // Subtotal yang ditampilkan = jumlah yang DIBAYAR pembeli ke penjual.
+                // Kasus A: pembeli bayar harga diskon → subtotal sudah benar.
+                // Kasus B: pembeli bayar harga penuh → subtotal tampil penuh.
+                //   Cashback yang harus dikembalikan dicatat di lblCashbackInfo, bukan dikurangi di sini.
+                long subtotalDibayarPembeli = subtotal;
 
                 dtGrid.Rows.Add(
                     row["nama_produk"].ToString(),

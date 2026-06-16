@@ -117,12 +117,25 @@ namespace CollabBuy.CollabBuyApp.View.Product
                     }
                     else if (this._produk.GetSisaKuota() <= 0 && this._produk.GetTargetKuota() > 0)
                     {
-                        // Kuota penuh
                         this.lblSlotNilai.Text = this._produk.DapatkanInfoSlot();
-                        this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
-                        this.btnMasukKeranjang.Enabled = false;
-                        this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
-                        this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
+
+                        if (this._produk.JenisPo == "Gotong Royong")
+                        {
+                            // Kuota GR tercapai = cashback aktif, tapi masih BISA beli
+                            this.lblSlotNilai.ForeColor = Color.FromArgb(0, 140, 60);
+                            this.btnMasukKeranjang.Enabled = true;
+                            this.btnMasukKeranjang.Text = "🛒 Sikat Ke Keranjang!";
+                            this.btnMasukKeranjang.BackColor = Color.FromArgb(254, 245, 100);
+                            this.btnMasukKeranjang.ForeColor = Color.FromArgb(70, 50, 0);
+                        }
+                        else
+                        {
+                            // PO Biasa: kuota penuh = tidak bisa beli
+                            this.lblSlotNilai.ForeColor = Color.FromArgb(180, 0, 0);
+                            this.btnMasukKeranjang.Enabled = false;
+                            this.btnMasukKeranjang.BackColor = Color.FromArgb(210, 210, 210);
+                            this.btnMasukKeranjang.ForeColor = Color.FromArgb(140, 140, 140);
+                        }
                     }
                     else
                     {

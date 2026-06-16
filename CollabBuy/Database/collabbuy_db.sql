@@ -267,13 +267,17 @@ BEGIN
         WHERE id_produk = NEW.id_produk AND id_po_saat_beli = v_id_po;
 
         IF v_total_sekarang >= v_target THEN
-            UPDATE transaction_details
-            SET selisih_refund = (harga_satuan_saat_beli - v_harga_diskon) * jumlah_pesanan
-            WHERE id_produk       = NEW.id_produk
-              AND id_po_saat_beli = v_id_po
-              AND harga_satuan_saat_beli > v_harga_diskon
-              AND selisih_refund  = 0;
-        END IF;
+		    UPDATE transaction_details td
+		    SET selisih_refund = (td.harga_satuan_saat_beli - v_harga_diskon) * td.jumlah_pesanan
+		    FROM transactions t
+		    WHERE td.id_transaksi         = t.id_transaksi
+		      AND td.id_produk            = NEW.id_produk
+		      AND td.id_po_saat_beli      = v_id_po
+		      AND td.harga_satuan_saat_beli > v_harga_diskon
+		      AND td.selisih_refund        = 0
+		      AND t.status_pesanan        NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+		      AND td.id_transaksi        <> NEW.id_transaksi;  -- ← EXCLUDE pemenuhi kuota
+		END IF;
     END IF;
     RETURN NEW;
 END;
@@ -1303,6 +1307,45 @@ BEGIN
     p_pesan  := 'Cashback diupdate untuk ' || v_affected || ' baris titipan.';
 END;
 $$;
+
+UPDATE transaction_details td
+SET selisih_refund = 0
+FROM (
+    -- Ambil transaksi terbaru per produk+PO yang punya selisih_refund > 0
+    SELECT DISTINCT ON (td2.id_produk, td2.id_po_saat_beli)
+           td2.id_transaksi, td2.id_produk, td2.id_po_saat_beli
+    FROM transaction_details td2
+    JOIN transactions t2 ON td2.id_transaksi = t2.id_transaksi
+    WHERE td2.selisih_refund > 0
+      AND t2.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+    ORDER BY td2.id_produk, td2.id_po_saat_beli,
+             t2.tanggal_transaksi DESC
+) pemenuhi_kuota
+WHERE td.id_transaksi    = pemenuhi_kuota.id_transaksi
+  AND td.id_produk       = pemenuhi_kuota.id_produk
+  AND td.id_po_saat_beli = pemenuhi_kuota.id_po_saat_beli;
+
+UPDATE transaction_details td
+SET harga_satuan_saat_beli = p.harga_diskon
+FROM (
+    -- Transaksi terbaru per produk+PO = yang menggenapi kuota
+    SELECT DISTINCT ON (td2.id_produk, td2.id_po_saat_beli)
+           td2.id_transaksi, td2.id_produk, td2.id_po_saat_beli
+    FROM transaction_details td2
+    JOIN transactions t2 ON td2.id_transaksi = t2.id_transaksi
+    WHERE t2.status_pesanan NOT IN ('Dibatalkan', 'Batal', 'Gagal')
+    ORDER BY td2.id_produk, td2.id_po_saat_beli,
+             t2.tanggal_transaksi DESC
+) pemenuhi_kuota
+JOIN products p ON pemenuhi_kuota.id_produk = p.id_produk
+WHERE td.id_transaksi    = pemenuhi_kuota.id_transaksi
+  AND td.id_produk       = pemenuhi_kuota.id_produk
+  AND td.id_po_saat_beli = pemenuhi_kuota.id_po_saat_beli
+  -- Hanya update jika harga_satuan lebih besar dari harga_diskon
+  -- (memastikan hanya transaksi yang terkena bug trigger lama)
+  AND td.harga_satuan_saat_beli > p.harga_diskon
+  AND p.harga_diskon IS NOT NULL;
+
 
 -- Reset selisih_refund yang salah: transaksi terbaru per produk GR yang memenuhi kuota
 -- Jalankan ini untuk membersihkan data yang sudah terlanjur masuk

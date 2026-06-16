@@ -386,6 +386,7 @@ namespace CollabBuy.CollabBuyApp.View.Product
             // ── Logika tombol ──
             // Untuk Gotong Royong: kuota = target cashback, bukan batas beli
             // Sesi tetap berjalan sampai batas_waktu meski kuota tercapai
+            // Untuk Gotong Royong: kuota penuh tidak menghalangi pembelian
             bool isPenuh = jenisPo == "Gotong Royong" ? false : slot.Contains("Penuh");
             bool bisaDipesan = inSesiPo && !isPenuh;
 
