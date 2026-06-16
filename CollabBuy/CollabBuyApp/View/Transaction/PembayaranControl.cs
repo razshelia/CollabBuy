@@ -134,21 +134,11 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         {
                             this.UploadBuktiBayar();
                         }
-                        else
-                        {
-                            // Belum checkout, cuma prepare gambar doang
-                            bool skipUpload = true;
-                        }
                     }
                     catch (Exception ex)
                     {
                         this.TampilkanStatus($"❌ Gagal membaca file: {ex.Message}", false);
                     }
-                }
-                else
-                {
-                    // User cancel file dialog
-                    bool batalPilih = true;
                 }
             }
         }

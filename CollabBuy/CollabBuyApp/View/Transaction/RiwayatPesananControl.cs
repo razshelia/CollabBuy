@@ -121,10 +121,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     this.TampilkanDetailLayarPenuh(idTrx, dtDetail);
                 };
             }
-            else
-            {
-                bool tabelKosong = true;
-            }
         }
 
         // ── Load Data ───────────────────────────────────────────
@@ -222,9 +218,7 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         if (dtDetail.Rows[0]["bukti_bayar"] != DBNull.Value)
                             buktiBayar = (byte[])dtDetail.Rows[0]["bukti_bayar"];
                     }
-                    else { bool noRows = true; }
                 }
-                else { bool noCol = true; }
 
                 foreach (DataRow row in dtDetail.Rows)
                 {
@@ -244,10 +238,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                     splitDict[penitip] += subtotal;
                     cashbackDict[penitip] += cashback;
                 }
-            }
-            else
-            {
-                bool dtKosong = true;
             }
 
             // Sembunyikan elemen utama halaman
@@ -424,10 +414,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                         row["catatan"].ToString()
                     );
                 }
-            }
-            else
-            {
-                bool dtDetailKosong = true;
             }
             dgv.DataSource = dtGrid;
             tblGrid.Controls.Add(dgv, 0, 2);

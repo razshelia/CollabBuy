@@ -74,10 +74,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                     this.pnlCard.Top = 20;
                 }
             }
-            else
-            {
-                bool cardBelumDimuat = true; // Assignment nyata menghindari else kosong
-            }
         }
 
         private void DaftarTokoControl_Load(object sender, EventArgs e)
@@ -91,10 +87,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
                 e.Handled = true;
-            }
-            else
-            {
-                bool karakterAman = true;
             }
         }
 
@@ -117,11 +109,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                     this._buktiKtmBytes = File.ReadAllBytes(ofd.FileName);
                     this.lblNamaFile.Text = Path.GetFileName(ofd.FileName);
                     this.lblNamaFile.ForeColor = Color.Green;
-                }
-                else
-                {
-                    // User batal memilih file
-                    bool batalPilihGambar = true;
                 }
             }
         }
@@ -238,11 +225,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                         {
                             MessageBox.Show(pesan, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
-                    }
-                    else
-                    {
-                        // User batal mendaftar di pop-up konfirmasi
-                        bool aksiBatal = true;
                     }
                 }
             }

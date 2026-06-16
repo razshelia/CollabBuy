@@ -177,7 +177,7 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._fotoProduk; }
             set
             {
-                if (value != null && value.Length > 2097152) // 2MB
+                if (value != null && value.Length > 2 * 1024 * 1024) // 2MB
                     throw new InvalidOrderException("Ukuran foto produk maksimal 2MB!", "foto_produk", "FOTO_OVERSIZE");
                 this._fotoProduk = value;
             }

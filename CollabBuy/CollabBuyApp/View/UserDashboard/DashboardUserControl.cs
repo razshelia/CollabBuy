@@ -38,12 +38,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
             this.LoadPOMauHabis();
         }
 
-        private void DashboardUserControl_Resize(object sender, EventArgs e)
-        {
-            // Dummy logic untuk mempertahankan struktur Strict OOP jika event ini dipanggil
-            bool layarDisesuaikan = true;
-        }
-
         private void LoadStatistikAtas()
         {
             try
@@ -165,19 +159,11 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                             pbFoto.Image = new Bitmap(Image.FromStream(ms));
                         }
                     }
-                    else
-                    {
-                        bool formatGambarSalah = true;
-                    }
                 }
                 catch
                 {
                     pbFoto.Image = null;
                 }
-            }
-            else
-            {
-                bool tanpaGambar = true;
             }
 
             if (pbFoto.Image == null)
@@ -190,10 +176,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                     TextAlign = ContentAlignment.MiddleCenter
                 };
                 pbFoto.Controls.Add(lblNoImage);
-            }
-            else
-            {
-                bool gambarAda = true;
             }
 
             Label lblBadge = new Label
@@ -304,10 +286,6 @@ namespace CollabBuy.CollabBuyApp.View.UserDashboard
                 KatalogProdukControl katalogPage = new KatalogProdukControl(this._currentUser);
                 katalogPage.Dock = DockStyle.Fill;
                 parentPanel.Controls.Add(katalogPage);
-            }
-            else
-            {
-                bool tidakBisaGantiHalaman = true;
             }
         }
     }

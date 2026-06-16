@@ -26,10 +26,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 this.pnlCard.Left = (this.Width - this.pnlCard.Width) / 2;
                 this.pnlCard.Top = (this.Height - this.pnlCard.Height) / 2;
             }
-            else
-            {
-                bool panelBelumSiap = true; // Assignment nyata menghindari else kosong
-            }
         }
 
         // --- FITUR BARU: Nahan Input Huruf di No WA ---
@@ -40,10 +36,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             {
                 // Batalkan input jika yang diketik bukan angka
                 e.Handled = true;
-            }
-            else
-            {
-                bool inputValid = true;
             }
         }
         // ----------------------------------------------
@@ -97,10 +89,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                             {
                                 this.OnRegistrationComplete.Invoke(this, EventArgs.Empty);
                             }
-                            else
-                            {
-                                bool tidakAdaSubscriber = true;
-                            }
                         }
                         else
                         {
@@ -120,10 +108,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             if (this.OnRegistrationComplete != null)
             {
                 this.OnRegistrationComplete.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                bool tidakAdaSubscriber = true;
             }
         }
     }

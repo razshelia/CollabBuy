@@ -143,39 +143,32 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
         private void dgvKeranjang_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
+            if (e.RowIndex < 0) return;
+
+            int idProduk = Convert.ToInt32(this.dgvKeranjang.Rows[e.RowIndex].Cells["IdProduk"].Value);
+            string namaPenitip = this.dgvKeranjang.Rows[e.RowIndex].Cells["NamaPenitip"].Value.ToString();
+
+            if (this.dgvKeranjang.Columns[e.ColumnIndex].Name == "BtnHapus")
             {
-                // Klik pada header kolom diabaikan
-                bool ignoreClick = true;
+                this._trxCtrl.HapusItemKeranjang(idProduk, namaPenitip);
+                this.TampilkanInfo("✅ Item berhasil dihapus dari keranjang.", true);
+                this.MuatKeranjang();
             }
             else
             {
-                int idProduk = Convert.ToInt32(this.dgvKeranjang.Rows[e.RowIndex].Cells["IdProduk"].Value);
-                string namaPenitip = this.dgvKeranjang.Rows[e.RowIndex].Cells["NamaPenitip"].Value.ToString();
+                this._selectedIdProduk = idProduk;
+                this._selectedOldPenitip = namaPenitip;
 
-                if (this.dgvKeranjang.Columns[e.ColumnIndex].Name == "BtnHapus")
-                {
-                    this._trxCtrl.HapusItemKeranjang(idProduk, namaPenitip);
-                    this.TampilkanInfo("✅ Item berhasil dihapus dari keranjang.", true);
-                    this.MuatKeranjang();
-                }
-                else
-                {
-                    // Populasikan form Edit Titipan jika baris (bukan tombol hapus) diklik
-                    this._selectedIdProduk = idProduk;
-                    this._selectedOldPenitip = namaPenitip;
+                this.txtProduk.Text = this.dgvKeranjang.Rows[e.RowIndex].Cells["NamaItem"].Value.ToString();
+                this.txtPenitip.Text = namaPenitip;
+                this.txtCatatan.Text = this.dgvKeranjang.Rows[e.RowIndex].Cells["Catatan"].Value.ToString();
+                this.numQty.Value = Convert.ToInt32(this.dgvKeranjang.Rows[e.RowIndex].Cells["Kuantitas"].Value);
 
-                    this.txtProduk.Text = this.dgvKeranjang.Rows[e.RowIndex].Cells["NamaItem"].Value.ToString();
-                    this.txtPenitip.Text = namaPenitip;
-                    this.txtCatatan.Text = this.dgvKeranjang.Rows[e.RowIndex].Cells["Catatan"].Value.ToString();
-                    this.numQty.Value = Convert.ToInt32(this.dgvKeranjang.Rows[e.RowIndex].Cells["Kuantitas"].Value);
-
-                    this.pnlTitipan.Enabled = true;
-                    this.btnSimpanTitipan.BackColor = Color.FromArgb(155, 246, 255);
-                    this.btnSimpanTitipan.ForeColor = Color.FromArgb(36, 0, 70);
-                    this.btnTambahTitipan.BackColor = Color.FromArgb(36, 0, 70);
-                    this.btnTambahTitipan.ForeColor = Color.White;
-                }
+                this.pnlTitipan.Enabled = true;
+                this.btnSimpanTitipan.BackColor = Color.FromArgb(155, 246, 255);
+                this.btnSimpanTitipan.ForeColor = Color.FromArgb(36, 0, 70);
+                this.btnTambahTitipan.BackColor = Color.FromArgb(36, 0, 70);
+                this.btnTambahTitipan.ForeColor = Color.White;
             }
         }
 
@@ -183,30 +176,26 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
         {
             if (this._selectedIdProduk == 0 || string.IsNullOrWhiteSpace(this.txtPenitip.Text))
             {
-                // Form belum valid/kosong
-                bool invalidForm = true;
+                this.TampilkanInfo("⚠️ Nama penitip tidak boleh kosong saat edit!", false);
+                return;
             }
-            else
-            {
-                this._trxCtrl.UpdateTitipan(this._selectedIdProduk, this._selectedOldPenitip, this.txtPenitip.Text, (int)this.numQty.Value, this.txtCatatan.Text);
-                this.TampilkanInfo("✅ Sip! Titipan berhasil di-update.", true);
-                this.MuatKeranjang();
-            }
+
+            this._trxCtrl.UpdateTitipan(this._selectedIdProduk, this._selectedOldPenitip, this.txtPenitip.Text, (int)this.numQty.Value, this.txtCatatan.Text);
+            this.TampilkanInfo("✅ Sip! Titipan berhasil di-update.", true);
+            this.MuatKeranjang();
         }
 
         private void btnTambahTitipan_Click(object sender, EventArgs e)
         {
             if (this._selectedIdProduk == 0 || string.IsNullOrWhiteSpace(this.txtPenitip.Text))
             {
-                // Form belum valid/kosong
-                bool invalidForm = true;
+                this.TampilkanInfo("⚠️ Nama penitip tidak boleh kosong!", false);
+                return; 
             }
-            else
-            {
-                this._trxCtrl.TambahTitipanBaru(this._selectedIdProduk, this.txtPenitip.Text, (int)this.numQty.Value, this.txtCatatan.Text);
-                this.TampilkanInfo("✅ Nice! Titipan baru berhasil dipisah.", true);
-                this.MuatKeranjang();
-            }
+
+            this._trxCtrl.TambahTitipanBaru(this._selectedIdProduk, this.txtPenitip.Text, (int)this.numQty.Value, this.txtCatatan.Text);
+            this.TampilkanInfo("✅ Nice! Titipan baru berhasil dipisah.", true);
+            this.MuatKeranjang();
         }
 
         private void ResetFormTitipan()
@@ -233,11 +222,6 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
                 this._trxCtrl.KosongkanKeranjang();
                 this.TampilkanInfo("✅ Keranjang berhasil dikosongkan.", true);
                 this.MuatKeranjang();
-            }
-            else
-            {
-                // Aksi batal
-                bool aksiBatal = true;
             }
         }
 

@@ -165,7 +165,6 @@
             this.btnUnduhPdf.Click += new System.EventHandler(this.btnUnduhPdf_Click);
 
             // pnlGrid — panel utama konten (tabel + chart)
-            // AutoScroll = true agar chart bisa memanjang ke bawah saat penjual banyak
             this.pnlGrid.AutoScroll = false;
             this.pnlGrid.BackColor = System.Drawing.Color.White;
             this.pnlGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;

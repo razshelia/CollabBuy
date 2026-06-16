@@ -28,10 +28,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 this.pnlCard.Left = (this.Width - this.pnlCard.Width) / 2;
                 this.pnlCard.Top = (this.Height - this.pnlCard.Height) / 2;
             }
-            else
-            {
-                bool panelBelumSiap = true; // Assignment nyata menghindari else kosong
-            }
         }
 
         // FUNGSI BARU: Nampilin dan nyembunyiin password dengan Strict OOP
@@ -68,10 +64,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                         {
                             this.OnLoginSuccess.Invoke(user);
                         }
-                        else
-                        {
-                            bool tidakAdaSubscriber = true;
-                        }
                     }
                     else
                     {
@@ -90,10 +82,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
             if (this.OnNavigateToRegister != null)
             {
                 this.OnNavigateToRegister.Invoke();
-            }
-            else
-            {
-                bool tidakAdaSubscriber = true;
             }
         }
         private void btnLupaPassword_Click(object sender, EventArgs e)
@@ -127,10 +115,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 {
                     pnlLupaPasswordMain.Left = (this.Width - pnlLupaPasswordMain.Width) / 2;
                     pnlLupaPasswordMain.Top = (this.Height - pnlLupaPasswordMain.Height) / 2;
-                }
-                else
-                {
-                    bool abaikanEvent = true;
                 }
             };
             this.Resize += resizeHandler;
@@ -180,10 +164,6 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
                 {
                     ev.Handled = true; // Tolak karakter selain angka
-                }
-                else
-                {
-                    bool karakterValid = true;
                 }
             };
             pnlVerif.Controls.Add(txtTelp);

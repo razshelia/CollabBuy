@@ -64,7 +64,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            bool formDimuat = true;
+            //form dimuat
         }
 
         // ---------------------------------------------------------------

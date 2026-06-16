@@ -61,7 +61,7 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._buktiBayar; }
             set
             {
-                if (value != null && value.Length > 5242880) // 5MB
+                if (value != null && value.Length > 5 * 1024 * 1024) // 5MB
                     throw new InvalidOrderException("Ukuran file bukti bayar maksimal 5MB!", "bukti_bayar", "BUKTI_OVERSIZE");
 
                 this._buktiBayar = value;

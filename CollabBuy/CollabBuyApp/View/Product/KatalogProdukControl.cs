@@ -63,25 +63,20 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         private void InisialisasiDropdownKategori()
         {
-            if (this.pnlFilter == null)
-            {
-                bool abaikanInisialisasi = true;
-            }
-            else
-            {
-                this._cmbKategori = new ComboBox
-                {
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Font = new Font("Segoe UI", 10F),
-                    Width = 180,
-                    Cursor = Cursors.Hand
-                };
+            if (this.pnlFilter == null) return;
 
-                this._cmbKategori.SelectedIndexChanged += (s, e) => this.TerapkanFilterGabungan();
+            this._cmbKategori = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10F),
+                Width = 180,
+                Cursor = Cursors.Hand
+            };
 
-                this.pnlFilter.Controls.Add(this._cmbKategori);
-                this._cmbKategori.BringToFront();
-            }
+            this._cmbKategori.SelectedIndexChanged += (s, e) => this.TerapkanFilterGabungan();
+
+            this.pnlFilter.Controls.Add(this._cmbKategori);
+            this._cmbKategori.BringToFront();
         }
 
         private void MuatKatalog()
@@ -104,48 +99,32 @@ namespace CollabBuy.CollabBuyApp.View.Product
 
         private void PopulasiDropdownKategori()
         {
-            if (this._cmbKategori == null)
+            if (this._cmbKategori == null) return;
+
+            this._cmbKategori.Items.Clear();
+            this._cmbKategori.Items.Add("Semua Kategori");
+
+            if (this._dtSemua != null && this._dtSemua.Columns.Contains("nama_kategori"))
             {
-                bool batalkanPopulasi = true;
+                DataView view = new DataView(this._dtSemua);
+                DataTable distinctKategori = view.ToTable(true, "nama_kategori");
+
+                foreach (DataRow row in distinctKategori.Rows)
+                {
+                    string namaKatMentah = row["nama_kategori"] != DBNull.Value
+                                           ? row["nama_kategori"].ToString()
+                                           : "";
+
+                    if (string.IsNullOrWhiteSpace(namaKatMentah) || namaKatMentah.Trim().Length < 4)
+                        continue;
+
+                    Models.Category katObj = new Models.Category(namaKatMentah);
+                    this._cmbKategori.Items.Add(katObj.NamaKategori);
+                }
             }
-            else
+
+            if (this._cmbKategori.Items.Count > 0)
             {
-                this._cmbKategori.Items.Clear();
-                this._cmbKategori.Items.Add("Semua Kategori");
-
-                if (this._dtSemua != null && this._dtSemua.Columns.Contains("nama_kategori"))
-                {
-                    DataView view = new DataView(this._dtSemua);
-                    DataTable distinctKategori = view.ToTable(true, "nama_kategori");
-
-                    foreach (DataRow row in distinctKategori.Rows)
-                    {
-                        string namaKatMentah;
-                        if (row["nama_kategori"] != DBNull.Value)
-                        {
-                            namaKatMentah = row["nama_kategori"].ToString();
-                        }
-                        else
-                        {
-                            namaKatMentah = "";
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(namaKatMentah) && namaKatMentah.Trim().Length >= 4)
-                        {
-                            Models.Category katObj = new Models.Category(namaKatMentah);
-                            this._cmbKategori.Items.Add(katObj.NamaKategori);
-                        }
-                        else
-                        {
-                            bool dataKosongDilewati = true;
-                        }
-                    }
-                }
-                else
-                {
-                    bool tidakAdaDataUntukDropdown = true;
-                }
-
                 this._cmbKategori.SelectedIndex = 0;
             }
         }

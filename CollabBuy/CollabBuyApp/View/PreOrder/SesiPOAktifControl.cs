@@ -45,10 +45,6 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             {
                 keyword = "";
             }
-            else
-            {
-                bool pencarianAktif = true; // Assignment nyata untuk menghindari else kosong
-            }
 
             this.LoadDataSesiPO(keyword);
         }
@@ -257,10 +253,6 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
                 this.txtCari.Text = "";
                 this.txtCari.ForeColor = Color.FromArgb(36, 0, 70);
             }
-            else
-            {
-                bool pertahankanTeksPencarian = true;
-            }
         }
 
         private void txtCari_Leave(object sender, EventArgs e)
@@ -269,10 +261,6 @@ namespace CollabBuy.CollabBuyApp.View.PreOrder
             {
                 this.txtCari.Text = "Kepoin sesi PO...";
                 this.txtCari.ForeColor = Color.Gray;
-            }
-            else
-            {
-                bool biarkanTeks = true;
             }
         }
 
