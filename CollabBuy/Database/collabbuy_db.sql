@@ -1333,8 +1333,6 @@ WHERE t.tanggal_transaksi = latest.tgl_max
 CALL sp_recalculate_cashback_gr(6, 3, 15000, 10000, NULL, NULL);
 */
 
-DROP PROCEDURE IF EXISTS sp_recalculate_cashback_gr(INT, INT, BIGINT, BIGINT);
-
 -- ============================================================
 -- SECTION 7 : TRANSACTION
 --   Implementasi nyata ada di C# (TransactionRepository.cs).
