@@ -46,14 +46,13 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// Mengirim ulasan produk baru dari pembeli (Versi Upgrade dari KirimUlasan).
         /// Mempertahankan validasi model.
         /// </summary>
+        // =======================================================
+        // TIMPA METHOD GasNgasihRating
+        // =======================================================
         public (bool sukses, string pesan) GasNgasihRating(int idProduk, int idUser, int rating, string komentar)
         {
-            if (idProduk <= 0)
-                return (false, "Pilih dulu barang yang mau di-review dong.");
-
             try
             {
-                // PERBAIKAN: verifikasi user pernah membeli produk ini (transaksi Selesai)
                 DataTable produkBisaDiulas = _reviewRepo.GetProdukBisaDiulas(idUser);
                 bool pernahBeli = false;
 
@@ -70,20 +69,48 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 }
 
                 if (!pernahBeli)
-                    return (false, "Kamu belum pernah beli produk ini atau pesanan belum selesai. Hanya pembeli yang sudah selesai transaksi yang bisa review.");
+                    throw new InvalidOrderException("Kamu belum pernah beli produk ini atau pesanan belum selesai. Hanya pembeli yang sudah selesai transaksi yang bisa review.", "id_produk", "REVIEW_DITOLAK");
 
-                // Validasi Model Asli
+                // Instansiasi Model: Validasi rating & komentar bekerja otomatis
                 Review review = new Review(idProduk, idUser, rating, komentar);
                 review.Validate();
 
-                // Simpan ke DB
                 _reviewRepo.Insert(review);
-
                 return (true, "Makasih banyak review-nya bestie! ⭐");
             }
             catch (InvalidOrderException ex)
             {
-                return (false, "Waduh: " + ex.GetPesanLengkap());
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error sistem: " + ex.Message);
+            }
+        }
+
+        // =======================================================
+        // TIMPA METHOD BalasUlasanLapak
+        // =======================================================
+        public (bool sukses, string pesan) BalasUlasanLapak(int idUlasan, string balasanPenjual, int idPenjual)
+        {
+            try
+            {
+                Review review = _reviewRepo.GetById(idUlasan);
+                if (review == null)
+                    throw new InvalidOrderException("Ulasannya ga ketemu nih.", "id_ulasan", "REVIEW_NOT_FOUND");
+
+                // Model memvalidasi panjang balasan
+                review.BeriTanggapan(balasanPenjual);
+                _reviewRepo.Update(review);
+
+                ActivityLog log = new ActivityLog(idPenjual, "Membalas ulasan ID: " + idUlasan);
+                _logRepo.Insert(log);
+
+                return (true, "Sip, balasan udah terkirim ke customer! 🚀");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
@@ -108,40 +135,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 return new DataTable();
             }
 
-        }
-
-        /// <summary>
-        /// Penjual membalas ulasan dari pembeli (Versi Upgrade dari BalasUlasan).
-        /// </summary>
-        public (bool sukses, string pesan) BalasUlasanLapak(int idUlasan, string balasanPenjual, int idPenjual)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(balasanPenjual))
-                    return (false, "Balasan ke customer ga boleh kosong ngab!");
-
-                Review review = _reviewRepo.GetById(idUlasan);
-                if (review == null)
-                    return (false, "Ulasannya ga ketemu nih.");
-
-                // Method IResolvable
-                review.BeriTanggapan(balasanPenjual);
-                _reviewRepo.Update(review);
-
-                // Tetap menggunakan Activity Log
-                ActivityLog log = new ActivityLog(idPenjual, "Membalas ulasan ID: " + idUlasan);
-                _logRepo.Insert(log);
-
-                return (true, "Sip, balasan udah terkirim ke customer! 🚀");
-            }
-            catch (InvalidOrderException ex)
-            {
-                return (false, "Waduh: " + ex.GetPesanLengkap());
-            }
-            catch (Exception ex)
-            {
-                return (false, "Error sistem: " + ex.Message);
-            }
         }
     }
 }

@@ -48,15 +48,17 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// Membuat aduan baru dari pembeli (Versi Upgrade dari KirimAduan).
         /// Mempertahankan validasi model dan Activity Log.
         /// </summary>
+        // =======================================================
+        // TIMPA METHOD GasSpillKendala
+        // =======================================================
         public (bool sukses, string pesan) GasSpillKendala(int idUser, string subjek, string deskripsi)
         {
-            if (string.IsNullOrWhiteSpace(subjek) || string.IsNullOrWhiteSpace(deskripsi))
-                return (false, "Subjek sama deskripsi jangan dikosongin dong bestie, Mimin bingung nanti!");
-
             try
             {
+                // Cukup panggil Model, dia yang akan protes jika ada isian tidak sesuai.
                 Complaint aduan = new Complaint(idUser, subjek, deskripsi);
                 aduan.Validate();
+
                 this._complaintRepo.Insert(aduan);
 
                 ActivityLog log = new ActivityLog(idUser, "Mengirim aduan: " + subjek);
@@ -66,11 +68,41 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
             catch (InvalidOrderException ex)
             {
-                return (false, "Waduh: " + ex.GetPesanLengkap());
+                return (false, ex.GetPesanLengkap()); // Menangkap pesan exception model
             }
             catch (Exception ex)
             {
                 return (false, "Duh server lagi ngambek: " + ex.Message);
+            }
+        }
+
+        // =======================================================
+        // TIMPA METHOD TanggapiAduan
+        // =======================================================
+        public (bool sukses, string pesan) TanggapiAduan(int idAduan, string balasanAdmin, int idAdmin)
+        {
+            try
+            {
+                Complaint aduan = this._complaintRepo.GetById(idAduan);
+                if (aduan == null)
+                    throw new InvalidOrderException("Aduan tidak ditemukan!", "id_aduan", "ADUAN_NOT_FOUND");
+
+                // Property Setter di dalam Model yang memvalidasi ini
+                aduan.BerikanTanggapan(balasanAdmin, true);
+                this._complaintRepo.Update(aduan);
+
+                ActivityLog log = new ActivityLog(idAdmin, "Membalas aduan ID: " + idAduan);
+                this._logRepo.Insert(log);
+
+                return (true, "Tanggapan berhasil dikirim dan aduan diselesaikan.");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error sistem: " + ex.Message);
             }
         }
 
@@ -91,39 +123,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 Console.WriteLine("[ComplaintController.GetAllAduan] Error: " + ex.Message);
                 return new DataTable();
-            }
-        }
-
-        /// <summary>
-        /// Memberikan tanggapan dan menyelesaikan aduan.
-        /// Memanfaatkan method BerikanTanggapan() dari Class Complaint yang baru.
-        /// </summary>
-        public (bool sukses, string pesan) TanggapiAduan(int idAduan, string balasanAdmin, int idAdmin)
-        {
-            if (string.IsNullOrEmpty(balasanAdmin))
-                return (false, "Balasan admin tidak boleh kosong!");
-
-            try
-            {
-                Complaint aduan = this._complaintRepo.GetById(idAduan);
-
-                if (aduan == null) return (false, "Aduan tidak ditemukan!");
-
-                aduan.BerikanTanggapan(balasanAdmin, true);
-                this._complaintRepo.Update(aduan);
-
-                ActivityLog log = new ActivityLog(idAdmin, "Membalas aduan ID: " + idAduan);
-                this._logRepo.Insert(log);
-
-                return (true, "Tanggapan berhasil dikirim dan aduan diselesaikan.");
-            }
-            catch (InvalidOrderException ex)
-            {
-                return (false, ex.GetPesanLengkap());
-            }
-            catch (Exception ex)
-            {
-                return (false, "Error sistem: " + ex.Message);
             }
         }
 

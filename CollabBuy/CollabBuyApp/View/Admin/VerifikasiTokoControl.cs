@@ -75,9 +75,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     penjualInfoTemp.Nim = nim;
                     penjualInfoTemp.NamaToko = namaToko;
                     penjualInfoTemp.TahunMasuk = tahunMasuk;
-                    string infoDanus = penjualInfoTemp.DapatkanInfoDanus();
-
-                    infoPendaftar = infoPendaftar + "\n" + infoDanus;
 
                     bool mahasiswaAktif = penjualInfoTemp.ApakahMahasiswaAktif();
 
@@ -131,9 +128,13 @@ namespace CollabBuy.CollabBuyApp.View.Admin
             }
 
             this.pbKTM.Image = null;
-            this.btnApprove.Enabled = false;
-            this.btnApprove.BackColor = Color.FromArgb(210, 210, 210);
-            this.btnApprove.ForeColor = Color.FromArgb(140, 140, 140);
+            this.btnApprove.Enabled = true;
+            this.btnApprove.BackColor = Color.FromArgb(36, 0, 70);
+            this.btnApprove.ForeColor = Color.FromArgb(253, 255, 182);
+
+            this.btnTolak.Enabled = true;
+            this.btnTolak.BackColor = Color.FromArgb(200, 50, 50);
+            this.btnTolak.ForeColor = Color.White;
             this._selectedIdUser = 0;
         }
 
@@ -264,6 +265,42 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 {
                     // Admin membatalkan klik YES
                     bool aksiBatal = true;
+                }
+            }
+        }
+        private void btnTolak_Click(object sender, EventArgs e)
+        {
+            if (this._selectedIdUser == 0)
+            {
+                MessageBox.Show("Silakan pilih pendaftar dari tabel terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string alasan = Microsoft.VisualBasic.Interaction.InputBox(
+                "Masukkan alasan penolakan (wajib diisi):",
+                "Tolak Pengajuan Lapak", "");
+
+            if (string.IsNullOrWhiteSpace(alasan))
+            {
+                MessageBox.Show("Penolakan dibatalkan karena alasan tidak diisi.", "Batal", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            DialogResult dr = MessageBox.Show(
+                $"Yakin mau tolak pengajuan ini?\nAlasan: {alasan}",
+                "Konfirmasi Tolak", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (dr == DialogResult.Yes)
+            {
+                var (sukses, pesan) = this._userController.TolakPenjual(this._selectedIdUser, alasan);
+                if (sukses)
+                {
+                    MessageBox.Show("Pengajuan lapak berhasil ditolak.", "Selesai", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.LoadVerifikasi();
+                }
+                else
+                {
+                    MessageBox.Show(pesan, "Gagal", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }

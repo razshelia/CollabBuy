@@ -36,44 +36,18 @@ namespace CollabBuy.CollabBuyApp.Controllers
         /// </summary>
         public Dictionary<string, int> GetStatsDashboard()
         {
-            var stats = new Dictionary<string, int> {
-                { "users", 0 }, { "transaksi", 0 }, { "po_aktif", 0 }, { "aduan", 0 }, { "pesanan_aktif", 0 }, { "nilai_pesanan_aktif", 0 }
-            };
-
-            string connectionString = ConfigurationManager
-                .ConnectionStrings["CollabBuyDb"]?.ConnectionString;
-
             try
             {
-                using (var conn = new NpgsqlConnection(connectionString))
-                {
-                    conn.Open();
-                    string query = @"
-                        SELECT
-                            (SELECT COUNT(*) FROM users)                              AS users,
-                            (SELECT COUNT(*) FROM transactions)                       AS transaksi,
-                            (SELECT COUNT(*) FROM preorders    WHERE is_aktif = TRUE) AS po_aktif,
-                            (SELECT COUNT(*) FROM complaints)                         AS aduan;";
-
-                    using (var cmd = new NpgsqlCommand(query, conn))
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            stats["users"] = Convert.ToInt32(reader["users"]);
-                            stats["transaksi"] = Convert.ToInt32(reader["transaksi"]);
-                            stats["po_aktif"] = Convert.ToInt32(reader["po_aktif"]);
-                            stats["aduan"] = Convert.ToInt32(reader["aduan"]);
-                        }
-                    }
-                }
+                return _userRepo.GetStatsDashboard();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("[AdminController.GetStatsDashboard] Error: " + ex.Message);
+                return new Dictionary<string, int>
+        {
+            { "users", 0 }, { "transaksi", 0 }, { "po_aktif", 0 }, { "aduan", 0 }
+        };
             }
-
-            return stats;
         }
 
 
@@ -133,6 +107,10 @@ namespace CollabBuy.CollabBuyApp.Controllers
         {
             try
             {
+                // Cek dulu apakah kategori masih dipakai produk aktif
+                if (_categoryRepo.IsKategoriDigunakanProduk(id))
+                    return (false, "Kategori tidak bisa dihapus karena masih digunakan oleh produk aktif!");
+
                 _categoryRepo.SoftDelete(id);
                 return (true, "Kategori berhasil dihapus.");
             }

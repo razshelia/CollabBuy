@@ -68,16 +68,16 @@ namespace CollabBuy.CollabBuyApp.Controllers
         // =======================================================
         // FITUR REGISTRASI
         // =======================================================
+        // =======================================================
+        // TIMPA METHOD RegistrasiPembeli
+        // =======================================================
         public (bool sukses, string pesan) RegistrasiPembeli(string nama, string email, string noTelepon, string username, string password)
         {
-            (bool sukses, string pesan) hasil;
-
             try
             {
+                // Lempar exception langsung untuk plaintext password sebelum di-hash
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-                {
-                    return (false, "Password minimal 8 karakter ya!");
-                }
+                    throw new InvalidOrderException("Password minimal 8 karakter ya!", "password", "USER_PASS_PENDEK");
 
                 string hashPassword = this.HashSha256(password);
                 Pembeli pembeliBaru = new Pembeli(nama, username, hashPassword);
@@ -88,35 +88,30 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 pembeliBaru.Validate();
                 this._userRepo.Insert(pembeliBaru);
 
-                hasil = (true, "Yey! Akun kamu berhasil dibuat. Langsung login aja bestie!");
+                return (true, "Yey! Akun kamu berhasil dibuat. Langsung login aja bestie!");
             }
             catch (InvalidOrderException ex)
             {
-                hasil = (false, ex.GetPesanLengkap());
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("username"))
-                    hasil = (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
-                else if (ex.Message.Contains("email"))
-                    hasil = (false, "Email ini udah pernah didaftarin. Lupa password kah?");
-                else
-                    hasil = (false, "Waduh error sistem nih: " + ex.Message);
+                if (ex.Message.Contains("username")) return (false, "Yah, Username itu udah dipakai orang lain. Cari yang lain yuk!");
+                if (ex.Message.Contains("email")) return (false, "Email ini udah pernah didaftarin. Lupa password kah?");
+                return (false, "Waduh error sistem nih: " + ex.Message);
             }
-
-            return hasil;
         }
 
+        // =======================================================
+        // TIMPA METHOD RegistrasiPenjual
+        // =======================================================
         public (bool sukses, string pesan) RegistrasiPenjual(string nama, string username, string password, string nim, string namaToko, int tahunMasuk, byte[] buktiKtm)
         {
-            (bool sukses, string pesan) hasil;
-
             try
             {
+                // Lempar exception langsung
                 if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-                {
-                    return (false, "Password minimal 8 karakter ya!");
-                }
+                    throw new InvalidOrderException("Password minimal 8 karakter ya!", "password", "USER_PASS_PENDEK");
 
                 string hashPassword = this.HashSha256(password);
                 Penjual penjualBaru = new Penjual(nama, username, hashPassword);
@@ -129,21 +124,55 @@ namespace CollabBuy.CollabBuyApp.Controllers
                 penjualBaru.Validate();
                 this._userRepo.Insert(penjualBaru);
 
-                hasil = (true, "Registrasi penjual berhasil! Menunggu verifikasi Admin.");
+                return (true, "Registrasi penjual berhasil! Menunggu verifikasi Admin.");
             }
             catch (InvalidOrderException ex)
             {
-                hasil = (false, ex.GetPesanLengkap());
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("username") || ex.Message.Contains("nim"))
-                    hasil = (false, "Username atau NIM sudah terdaftar!");
-                else
-                    hasil = (false, "Error sistem: " + ex.Message);
+                if (ex.Message.Contains("username") || ex.Message.Contains("nim")) return (false, "Username atau NIM sudah terdaftar!");
+                return (false, "Error sistem: " + ex.Message);
             }
+        }
 
-            return hasil;
+        // =======================================================
+        // TIMPA METHOD UpdateProfil
+        // =======================================================
+        public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru, string rawPasswordLama = null)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(rawPasswordBaru) && rawPasswordLama != null)
+                {
+                    // Lempar exception
+                    if (rawPasswordBaru.Length < 8)
+                        throw new InvalidOrderException("Password baru minimal 8 karakter ya!", "password", "USER_PASS_PENDEK");
+
+                    string hashLama = this.HashSha256(rawPasswordLama);
+                    string hashBaru = this.HashSha256(rawPasswordBaru);
+                    user.UbahPassword(hashLama, hashBaru);
+                }
+
+                this._userRepo.Update(user);
+
+                ActivityLog log = new ActivityLog(user.IdUser, "Update profil akun.");
+                this._logRepo.Insert(log);
+
+                return (true, "Profil berhasil disimpan! Lo makin kece bestie ✨");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = ex.Message.ToLower();
+                if (errorMsg.Contains("username")) return (false, "Username sudah dipakai orang lain, coba username lain!");
+                if (errorMsg.Contains("email")) return (false, "Email ini sudah dipakai oleh akun lain. Gunakan email lain ya!");
+                return (false, "Error sistem: " + ex.Message);
+            }
         }
 
         // =======================================================
@@ -230,49 +259,6 @@ namespace CollabBuy.CollabBuyApp.Controllers
             return tabelAntrean;
         }
 
-        public (bool sukses, string pesan) UpdateProfil(User user, string rawPasswordBaru, string rawPasswordLama = null)
-        {
-            (bool sukses, string pesan) hasil;
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(rawPasswordBaru) && rawPasswordLama != null)
-                {
-                    if (rawPasswordBaru.Length < 8)
-                    {
-                        return (false, "Password baru minimal 8 karakter ya!");
-                    }
-
-                    string hashLama = this.HashSha256(rawPasswordLama);
-                    string hashBaru = this.HashSha256(rawPasswordBaru);
-                    user.UbahPassword(hashLama, hashBaru);
-                }
-
-                this._userRepo.Update(user);
-
-                ActivityLog log = new ActivityLog(user.IdUser, "Update profil akun.");
-                this._logRepo.Insert(log);
-
-                hasil = (true, "Profil berhasil disimpan! Lo makin kece bestie ✨");
-            }
-            catch (InvalidOrderException ex)
-            {
-                hasil = (false, ex.GetPesanLengkap());
-            }
-            catch (Exception ex)
-            {
-                // PERBAIKAN DI SINI: Ubah ke ToLower() agar pengecekan lebih aman, dan tambahkan cek email
-                string errorMsg = ex.Message.ToLower();
-
-                if (errorMsg.Contains("username"))
-                    hasil = (false, "Username sudah dipakai orang lain, coba username lain!");
-                else if (errorMsg.Contains("email"))
-                    hasil = (false, "Email ini sudah dipakai oleh akun lain. Gunakan email lain ya!");
-                else
-                    hasil = (false, "Error sistem: " + ex.Message);
-            }
-            return hasil;
-        }
-
         public bool IsUsernameAvailable(int idUserSaatIni, string username)
         {
             return this._userRepo.IsUsernameAvailable(idUserSaatIni, username);
@@ -290,7 +276,13 @@ namespace CollabBuy.CollabBuyApp.Controllers
 
             try
             {
-                this._userRepo.AjukanLapakBaru(idUser, nim, namaToko, tahunMasuk, buktiKtm);
+                // PERBAIKAN: validasi input lewat model Verification (guard clauses)
+                // sebelum dikirim ke repository, supaya NIM/NamaToko/Tahun/KTM
+                // tidak bisa lolos ke database tanpa validasi seperti sebelumnya.
+                Verification pengajuan = new Verification(idUser, nim, namaToko, buktiKtm, tahunMasuk);
+                pengajuan.Validate();
+
+                this._userRepo.AjukanLapakBaru(idUser, pengajuan.Nim, pengajuan.NamaToko, pengajuan.TahunMasuk, pengajuan.BuktiKtm);
                 hasil = (true, "Pengajuan lapak berhasil dikirim! Silakan tunggu konfirmasi Admin.");
             }
             catch (InvalidOrderException ex)
@@ -343,6 +335,40 @@ namespace CollabBuy.CollabBuyApp.Controllers
             {
                 Console.WriteLine("[UserController.ResetPasswordUser] Error: " + ex.Message);
                 return false;
+            }
+        }
+        public (bool sukses, string pesan) TolakPenjual(int idPenjual, string alasan)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(alasan))
+                    return (false, "Alasan penolakan wajib diisi!");
+
+                User user = this._userRepo.GetById(idPenjual);
+                if (user == null)
+                    return (false, "User tidak ditemukan!");
+
+                Penjual penjual = user as Penjual;
+                if (penjual == null)
+                    return (false, "User ini bukan penjual!");
+
+                penjual.Reject(alasan); // method Reject sudah ada di model Penjual
+
+                // Hapus data verifikasi dari DB agar bisa daftar ulang
+                this._userRepo.TolakVerifikasiPenjual(idPenjual, alasan);
+
+                ActivityLog log = new ActivityLog(idPenjual, $"Pengajuan lapak ditolak Admin. Alasan: {alasan}");
+                this._logRepo.Insert(log);
+
+                return (true, "Pengajuan lapak berhasil ditolak.");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
+            }
+            catch (Exception ex)
+            {
+                return (false, "Error sistem: " + ex.Message);
             }
         }
     }

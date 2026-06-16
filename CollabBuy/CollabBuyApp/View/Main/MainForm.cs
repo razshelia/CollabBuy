@@ -45,7 +45,7 @@ namespace CollabBuy.CollabBuyApp.View.Main
                 Dock = DockStyle.Left,
                 Width = 260,
                 BackColor = System.Drawing.Color.FromArgb(45, 0, 87),
-                AutoScroll = true
+                AutoScroll = false
             };
 
             this.pnlContent = new Panel
@@ -217,13 +217,25 @@ namespace CollabBuy.CollabBuyApp.View.Main
             btnLogout.Click += (s, e) => this.HandleLogout();
             this.pnlSidebar.Controls.Add(btnLogout);
 
-            // Area menu scrollable (Dock=Fill) — ditambah sebelum header
+            // Area menu scrollable — manual height agar tidak numpuk logout
             Panel pnlMenu = new Panel
             {
-                Dock = DockStyle.Fill,
                 BackColor = System.Drawing.Color.FromArgb(45, 0, 87),
-                AutoScroll = true
+                AutoScroll = true,
+                Location = new System.Drawing.Point(0, 130), // di bawah pnlHeader (130px)
+                Width = 260,
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left
             };
+
+            // Hitung tinggi: total sidebar - header (130) - logout (50)
+            pnlMenu.Height = this.pnlSidebar.ClientSize.Height - 130 - 50;
+
+            // Update tinggi dinamis saat sidebar di-resize
+            this.pnlSidebar.Resize += (s, e) =>
+            {
+                pnlMenu.Height = this.pnlSidebar.ClientSize.Height - 130 - 50;
+            };
+
             this.pnlSidebar.Controls.Add(pnlMenu);
 
             // Header logo + info user (Dock=Top) — ditambah TERAKHIR agar tampil paling atas

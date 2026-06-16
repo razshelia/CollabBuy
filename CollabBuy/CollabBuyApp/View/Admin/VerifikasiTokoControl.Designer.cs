@@ -15,6 +15,7 @@
             this.lblKTM = new System.Windows.Forms.Label();
             this.pbKTM = new System.Windows.Forms.PictureBox();
             this.btnApprove = new System.Windows.Forms.Button();
+            this.btnTolak = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvVerifikasi)).BeginInit();
             this.pnlKTM.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbKTM)).BeginInit();
@@ -55,6 +56,8 @@
             this.pnlKTM.BackColor = System.Drawing.Color.FromArgb(155, 246, 255); // Soft Cyan
             this.pnlKTM.Location = new System.Drawing.Point(610, 110);
             this.pnlKTM.Size = new System.Drawing.Size(350, 480);
+            this.pnlKTM.AutoScroll = true;
+            this.pnlKTM.Controls.Add(this.btnTolak);
             this.pnlKTM.Controls.Add(this.btnApprove);
             this.pnlKTM.Controls.Add(this.pbKTM);
             this.pnlKTM.Controls.Add(this.lblKTM);
@@ -83,6 +86,17 @@
             this.btnApprove.Text = "✅ ACC Lapak (Verified)";
             this.btnApprove.Click += new System.EventHandler(this.btnApprove_Click);
 
+            // btnTolak
+            this.btnTolak.BackColor = System.Drawing.Color.FromArgb(200, 50, 50);
+            this.btnTolak.ForeColor = System.Drawing.Color.White;
+            this.btnTolak.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTolak.Font = new System.Drawing.Font("Segoe UI Black", 11F, System.Drawing.FontStyle.Bold);
+            this.btnTolak.Location = new System.Drawing.Point(24, 468);
+            this.btnTolak.Size = new System.Drawing.Size(300, 45);
+            this.btnTolak.Text = "❌ Tolak Pengajuan";
+            this.btnTolak.Enabled = false;
+            this.btnTolak.Click += new System.EventHandler(this.btnTolak_Click);
+
             // Control Setup
             this.BackColor = System.Drawing.Color.White;
             this.Controls.Add(this.pnlKTM);
@@ -105,6 +119,7 @@
         private System.Windows.Forms.Panel pnlKTM;
         private System.Windows.Forms.PictureBox pbKTM;
         private System.Windows.Forms.Button btnApprove;
+        private System.Windows.Forms.Button btnTolak;
         private System.Windows.Forms.TextBox txtCariVerifikasi;
     }
 }

@@ -551,5 +551,72 @@ namespace CollabBuy.CollabBuyApp.Repositories
                 }
             }
         }
+        public void TolakVerifikasiPenjual(int idUser, string alasan)
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var dbTx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // Hapus data verifikasi dari tabel verifications
+                        string queryVerif = "DELETE FROM verifications WHERE id_user = @id;";
+                        using (var cmd = new NpgsqlCommand(queryVerif, conn, dbTx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", idUser);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // Reset peran kembali ke "User" biasa
+                        string queryUser = "UPDATE users SET peran = 'User' WHERE id_user = @id;";
+                        using (var cmd = new NpgsqlCommand(queryUser, conn, dbTx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", idUser);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        dbTx.Commit();
+                    }
+                    catch
+                    {
+                        dbTx.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+        public Dictionary<string, int> GetStatsDashboard()
+        {
+                var stats = new Dictionary<string, int>
+        {
+            { "users", 0 }, { "transaksi", 0 }, { "po_aktif", 0 }, { "aduan", 0 }
+        };
+
+            string query = @"
+                SELECT
+                    (SELECT COUNT(*) FROM users)                              AS users,
+                    (SELECT COUNT(*) FROM transactions)                       AS transaksi,
+                    (SELECT COUNT(*) FROM preorders    WHERE is_aktif = TRUE) AS po_aktif,
+                    (SELECT COUNT(*) FROM complaints)                         AS aduan;";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        stats["users"] = Convert.ToInt32(reader["users"]);
+                        stats["transaksi"] = Convert.ToInt32(reader["transaksi"]);
+                        stats["po_aktif"] = Convert.ToInt32(reader["po_aktif"]);
+                        stats["aduan"] = Convert.ToInt32(reader["aduan"]);
+                    }
+                }
+            }
+
+            return stats;
+        }
     }
 }

@@ -127,73 +127,65 @@ namespace CollabBuy.CollabBuyApp.Controllers
             catch (Exception) { return new DataTable(); }
         }
 
+        // =======================================================
+        // TIMPA METHOD BukaSesiPOBaru
+        // =======================================================
         public (bool sukses, string pesan, int idPO) BukaSesiPOBaru(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu)
         {
-            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
-                return (false, "Judul, jenis PO, dan rekening tidak boleh kosong!", 0);
-
-            if (batasWaktu <= DateTime.Now)
-                return (false, "Batas waktu PO harus di masa depan!", 0);
-
-            // PERBAIKAN: cek verifikasi penjual sebelum buka PO
             try
             {
+                // 1. Instansiasi Model untuk memicu Guard Clause (Enkapsulasi)
+                Models.PreOrder poValidasi = new Models.PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
+                poValidasi.BukaSesiBaru(batasWaktu);
+
+                // 2. Cek verifikasi penjual
                 Models.Penjual penjual = this._userRepo.GetById(idPenjual) as Models.Penjual;
                 if (penjual == null)
-                    return (false, "Akun penjual tidak ditemukan.", 0);
-
+                    throw new InvalidOrderException("Akun penjual tidak ditemukan.", "id_penjual", "PO_PENJUAL_NOT_FOUND");
                 if (!penjual.ApakahBisaBukaLapak())
-                    return (false, "Akun penjual belum diverifikasi atau sedang diblokir. Hubungi admin.", 0);
-            }
-            catch (Exception ex)
-            {
-                return (false, "Gagal memverifikasi akun penjual: " + ex.Message, 0);
-            }
+                    throw new InvalidOrderException("Akun penjual belum diverifikasi atau sedang diblokir. Hubungi admin.", "status_akun", "PO_PENJUAL_BANNED");
 
-            try
-            {
-                Models.PreOrder poBaru = new Models.PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
-                poBaru.BukaSesiBaru(batasWaktu);
                 int idPO = this._poRepo.InsertPOSaja(idPenjual, judul, jenis, rekening, batasWaktu);
                 return (true, $"Sesi PO '{judul}' berhasil dibuka! 🎉", idPO);
             }
-            catch (InvalidOrderException ex) { return (false, ex.GetPesanLengkap(), 0); }
-            catch (Exception ex) { return (false, "Error: " + ex.Message, 0); }
-        }
-
-        public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
-        {
-            // Guard clauses — validasi dulu, keluar cepat jika gagal
-            if (string.IsNullOrWhiteSpace(judul) || string.IsNullOrWhiteSpace(rekening) || string.IsNullOrWhiteSpace(jenis))
-                return (false, "Spill judul, jenis PO, sama rekeningnya dong bestie, ga boleh kosong!");
-
-            if (batasWaktu <= DateTime.Now)
-                return (false, "Waktu tenggatnya masa di masa lalu? Move on dong, set ke masa depan!");
-
-            if (idProduk <= 0)
-                return (false, "Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?");
-            try
+            catch (InvalidOrderException ex)
             {
-                Models.Penjual penjual = this._userRepo.GetById(idPenjual) as Models.Penjual;
-                if (penjual == null)
-                    return (false, "Akun penjual tidak ditemukan.");
-
-                if (!penjual.ApakahBisaBukaLapak())
-                    return (false, "Akun penjual belum diverifikasi atau sedang diblokir. Hubungi admin.");
+                return (false, ex.GetPesanLengkap(), 0);
             }
             catch (Exception ex)
             {
-                return (false, "Gagal memverifikasi akun penjual: " + ex.Message);
+                return (false, "Error: " + ex.Message, 0);
             }
+        }
 
+        // =======================================================
+        // TIMPA METHOD GasLuncurkanPO
+        // =======================================================
+        public (bool sukses, string pesan) GasLuncurkanPO(int idPenjual, string judul, string jenis, string rekening, DateTime batasWaktu, int idProduk, int targetKuota)
+        {
             try
             {
-                bool result = this._poRepo.InsertPOAndUpdateProduct(
-                    idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
+                if (idProduk <= 0)
+                    throw new InvalidOrderException("Pilih dulu produknya ngab, masa buka jualan tapi ga ada barangnya?", "id_produk", "PO_PRODUK_KOSONG");
+
+                // 1. Paksa pembuatan Objek Model agar Guard Clause beraksi
+                Models.PreOrder poValidasi = new Models.PreOrder(idPenjual, judul, jenis, rekening, batasWaktu);
+                poValidasi.BukaSesiBaru(batasWaktu);
+
+                // 2. Cek izin lapak
+                Models.Penjual penjual = this._userRepo.GetById(idPenjual) as Models.Penjual;
+                if (penjual == null || !penjual.ApakahBisaBukaLapak())
+                    throw new InvalidOrderException("Akun penjual belum diverifikasi atau sedang diblokir.", "status_akun", "PO_PENJUAL_BANNED");
+
+                bool result = this._poRepo.InsertPOAndUpdateProduct(idPenjual, judul, jenis, rekening, batasWaktu, idProduk, targetKuota);
 
                 return result
                     ? (true, "Yey! Sesi PO kamu berhasil dilaunching! 🎉 Semoga cuan deres!")
                     : (false, "Hmm, gagal nyimpen ke database nih.");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
@@ -201,30 +193,26 @@ namespace CollabBuy.CollabBuyApp.Controllers
             }
         }
 
+        // =======================================================
+        // TIMPA METHOD EditSesiPO
+        // =======================================================
         public (bool sukses, string pesan) EditSesiPO(int idPo, string judulBaru, string jenisBaru, string rekeningBaru, DateTime batasWaktuBaru)
         {
-            // Validasi input langsung di sini, tanpa buat objek dummy
-            if (string.IsNullOrWhiteSpace(judulBaru) || judulBaru.Trim().Length < 5)
-                return (false, "Judul PO minimal 5 karakter!");
-
-            if (judulBaru.Trim().Length > 100)
-                return (false, "Judul PO maksimal 100 karakter!");
-
-            if (jenisBaru != "Biasa" && jenisBaru != "Gotong Royong")
-                return (false, "Jenis PO hanya boleh 'Biasa' atau 'Gotong Royong'!");
-
-            if (string.IsNullOrWhiteSpace(rekeningBaru) || rekeningBaru.Trim().Length < 10)
-                return (false, "Info rekening minimal 10 karakter! Contoh: 'BCA 1234567890 a/n Nama'");
-
-            if (batasWaktuBaru <= DateTime.Now)
-                return (false, "Waktu tutup harus di masa depan!");
-
             try
             {
+                // Membuat objek menggunakan idPenjual = 1 sebagai dummy agar tidak error di konstruktor.
+                // Tujuannya MURNI agar setter C# melakukan validasi rule bisnis.
+                Models.PreOrder poValidasi = new Models.PreOrder(1, judulBaru, jenisBaru, rekeningBaru, batasWaktuBaru);
+                poValidasi.BukaSesiBaru(batasWaktuBaru);
+
                 bool berhasil = this._poRepo.UpdatePO(idPo, judulBaru.Trim(), jenisBaru, rekeningBaru.Trim(), batasWaktuBaru);
                 return berhasil
                     ? (true, "Sesi PO berhasil diupdate!")
                     : (false, "PO tidak ditemukan atau sudah dihapus.");
+            }
+            catch (InvalidOrderException ex)
+            {
+                return (false, ex.GetPesanLengkap());
             }
             catch (Exception ex)
             {
