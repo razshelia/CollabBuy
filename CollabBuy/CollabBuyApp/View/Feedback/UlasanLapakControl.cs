@@ -189,11 +189,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     MessageBox.Show(pesan, "Waduh Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            else
-            {
-                // Penjual klik cancel atau nge-submit kotak dialog kosong
-                bool abaikanBatal = true;
-            }
         }
     }
 }

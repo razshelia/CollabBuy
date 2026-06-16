@@ -101,10 +101,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     );
                 }
             }
-            else
-            {
-                bool rawKosong = true; // Assignment nyata menghindari else kosong
-            }
 
             this._dtVerifikasiCache = dtUI; 
             this.dgvVerifikasi.DataSource = this._dtVerifikasiCache;
@@ -121,10 +117,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
                 this.dgvVerifikasi.Columns["status_maba"].HeaderText = "Kategori";
                 this.dgvVerifikasi.Columns["status_maba"].Width = 200;
-            }
-            else
-            {
-                bool gridKosong = true;
             }
 
             this.pbKTM.Image = null;
@@ -260,11 +252,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     {
                         MessageBox.Show(pesan, "Waduh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
-                }
-                else
-                {
-                    // Admin membatalkan klik YES
-                    bool aksiBatal = true;
                 }
             }
         }

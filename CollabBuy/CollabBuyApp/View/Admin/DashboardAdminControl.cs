@@ -136,10 +136,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     this.dgvLog.DataSource = dtUI;
                     this.dgvLog.ClearSelection();
                 }
-                else
-                {
-                    bool dataKosong = true; // Assignment untuk menghindari else kosong
-                }
             }
             catch
             {
@@ -182,10 +178,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
 
                     this.dgvLeaderboard.DataSource = dtUI;
                     this.dgvLeaderboard.ClearSelection();
-                }
-                else
-                {
-                    bool dataKosong = true;
                 }
             }
             catch

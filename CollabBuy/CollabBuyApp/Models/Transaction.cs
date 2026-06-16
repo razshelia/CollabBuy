@@ -56,13 +56,11 @@ namespace CollabBuy.CollabBuyApp.Models
             }
         }
 
-        // GANTI DENGAN INI:
         public byte[] BuktiBayar
         {
             get { return this._buktiBayar; }
             set
             {
-                // Validasi ukuran saja; null/kosong diizinkan (transaksi belum upload bukti bayar)
                 if (value != null && value.Length > 5242880) // 5MB
                     throw new InvalidOrderException("Ukuran file bukti bayar maksimal 5MB!", "bukti_bayar", "BUKTI_OVERSIZE");
 
@@ -75,7 +73,6 @@ namespace CollabBuy.CollabBuyApp.Models
             get { return this._alasanPenolakan; }
         }
 
-        // List hanya menggunakan get agar aman dari timpaan data kosong pihak luar
         public List<TransactionDetail> Details
         {
             get { return this._details; }
@@ -84,7 +81,7 @@ namespace CollabBuy.CollabBuyApp.Models
         // === KONSTRUKTOR ===
         public Transaction(int idPembeli)
         {
-            this.IdPembeli = idPembeli; // Otomatis memicu validasi setter properti
+            this.IdPembeli = idPembeli;
 
             this._tanggalTransaksi = DateTime.Now;
             this._statusPesanan = "Menunggu";
@@ -146,7 +143,6 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public bool ApakahSudahDibayar()
         {
-            // Cukup evaluasi kondisi array byte langsung
             return this._buktiBayar != null && this._buktiBayar.Length > 0;
         }
 

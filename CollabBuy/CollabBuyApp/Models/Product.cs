@@ -278,6 +278,7 @@ namespace CollabBuy.CollabBuyApp.Models
         }
 
         // === IMPLEMENTASI IValidatable ===
+        // === IMPLEMENTASI IValidatable ===
         public void Validate()
         {
             // Guard clauses independen tanpa saling terkait (tanpa else if)
@@ -288,13 +289,7 @@ namespace CollabBuy.CollabBuyApp.Models
                 throw new InvalidOrderException("Validasi gagal: Harga dasar tidak valid.", "harga_dasar", "HARGA_INVALID");
 
             if (this._hargaDiskon.HasValue && this._hargaDiskon.Value >= this._hargaDasar)
-                throw new InvalidOrderException("Validasi gagal: Harga diskon >= Harga dasar.", "harga_diskon", "DISKON_INVALID");
-            if (this._hargaDiskon.HasValue && this._hargaDasar > 0)
-            {
-                if (this._hargaDiskon.Value >= this._hargaDasar)
-                    throw new InvalidOrderException(
-                        "Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
-            }
+                throw new InvalidOrderException("Harga diskon harus lebih kecil dari harga dasar!", "harga_diskon", "DISKON_INVALID");
         }
 
         // === IMPLEMENTASI ICalculatable ===

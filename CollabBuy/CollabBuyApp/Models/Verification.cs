@@ -88,7 +88,7 @@ namespace CollabBuy.CollabBuyApp.Models
                 if (value == null || value.Length == 0)
                     throw new InvalidOrderException("Bukti KTM wajib di-upload!", "bukti_ktm", "KTM_KOSONG");
 
-                if (value.Length > 2097152) // 2MB
+                if (value.Length > 2097152)
                     throw new InvalidOrderException("Ukuran file bukti KTM maksimal 2MB!", "bukti_ktm", "KTM_OVERSIZE");
 
                 this._buktiKtm = value;

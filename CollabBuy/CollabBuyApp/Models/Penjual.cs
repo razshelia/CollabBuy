@@ -18,7 +18,7 @@ namespace CollabBuy.CollabBuyApp.Models
         private byte[] _buktiKtm;
         private bool _isVerifikasi;
         private string _alasanPenolakan;
-        private List<Product> _katalogLapak; // Relasi Object
+        private List<Product> _katalogLapak;
 
         // === PROPERTIES ===
         public string Nim
@@ -82,7 +82,7 @@ namespace CollabBuy.CollabBuyApp.Models
                 if (value == null || value.Length == 0)
                     throw new InvalidOrderException("File bukti KTM tidak boleh kosong!", "bukti_ktm", "KTM_KOSONG");
 
-                if (value.Length > 2097152) // 2MB
+                if (value.Length > 2097152)
                     throw new InvalidOrderException("Ukuran file KTM maksimal 2MB!", "bukti_ktm", "KTM_OVERSIZE");
 
                 this._buktiKtm = value;
@@ -99,7 +99,6 @@ namespace CollabBuy.CollabBuyApp.Models
         public Penjual(string nama, string username, string password)
             : base(nama, username, password, "Penjual")
         {
-            // Isi backing field langsung agar tidak memicu error dari guard clause Property
             this._isVerifikasi = false;
             this._alasanPenolakan = "";
             this._nim = "";
@@ -133,13 +132,11 @@ namespace CollabBuy.CollabBuyApp.Models
             this._alasanPenolakan = alasan.Trim();
         }
 
-        // Tetap menggunakan method karena merupakan kontrak dari interface IApprovable
         public bool GetStatusPersetujuan()
         {
             return this._isVerifikasi;
         }
 
-        // TAMBAHKAN ini (letakkan bersama property lain):
         public string AlasanPenolakan
         {
             get { return this._alasanPenolakan; }
@@ -176,7 +173,6 @@ namespace CollabBuy.CollabBuyApp.Models
 
         public bool ApakahBisaBukaLapak()
         {
-            // Langsung evaluasi kondisi boolean
             return this._isVerifikasi && !this.IsDiblokir;
         }
 
@@ -186,7 +182,6 @@ namespace CollabBuy.CollabBuyApp.Models
         /// </summary>
         public bool ApakahMahasiswaAktif()
         {
-            // Cukup 1 baris operasi matematika dan logika
             return (DateTime.Now.Year - this._tahunMasuk) <= 7;
         }
 

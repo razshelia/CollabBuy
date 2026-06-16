@@ -144,10 +144,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     );
                 }
             }
-            else
-            {
-                bool tableKosong = true;
-            }
 
             // Bersihkan kolom lama agar tidak duplikat saat refresh
             this.dgvRiwayat.DataSource = null;
@@ -193,10 +189,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
                 this.dgvRiwayat.Columns.Add(btnDetailCol);
             }
-            else
-            {
-                bool gridAwal = true;
-            }
         }
 
         private void dgvRiwayat_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -217,19 +209,7 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
 
                         this.TampilkanDetailLayarPenuh(subjek, status, tanggal, fullDeskripsi, fullBalasan);
                     }
-                    else
-                    {
-                        bool dataKosong = true;
-                    }
                 }
-                else
-                {
-                    bool bukanTombol = true;
-                }
-            }
-            else
-            {
-                bool headerDiklik = true;
             }
         }
 
@@ -385,10 +365,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
             {
                 formW = 300;
             }
-            else
-            {
-                bool ukuranAman = true;
-            }
 
             if (this.pnlForm != null)
             {
@@ -406,14 +382,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                     this.btnAduan.Top = this.txtDeskripsi.Top + this.txtDeskripsi.Height + 15;
                     this.btnAduan.Width = innerW;
                 }
-                else
-                {
-                    bool formKosong = true;
-                }
-            }
-            else
-            {
-                bool pnlFormKosong = true;
             }
 
             if (this.lblRiwayat != null && this.dgvRiwayat != null)
@@ -423,10 +391,6 @@ namespace CollabBuy.CollabBuyApp.View.Feedback
                 this.dgvRiwayat.Left = riwayatLeft;
                 this.dgvRiwayat.Width = this.Width - riwayatLeft - margin;
                 this.dgvRiwayat.Height = this.Height - this.dgvRiwayat.Top - margin;
-            }
-            else
-            {
-                bool dgvKosong = true;
             }
         }
     }

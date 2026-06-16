@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace CollabBuy.CollabBuyApp.Repositories.Interfaces
+﻿namespace CollabBuy.CollabBuyApp.Repositories.Interfaces
 {
     /// <summary>
     /// Kontrak untuk operasi tulis: Insert dan Update.

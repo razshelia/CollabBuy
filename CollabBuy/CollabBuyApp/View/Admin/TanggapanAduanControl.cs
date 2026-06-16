@@ -87,10 +87,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                     );
                 }
             }
-            else
-            {
-                bool rawKosong = true; // Penugasan nyata menghindari else kosong
-            }
 
             this.dgvAduan.DataSource = dtUI;
 
@@ -104,10 +100,6 @@ namespace CollabBuy.CollabBuyApp.View.Admin
                 this.dgvAduan.Columns["deskripsi"].HeaderText = "Detail Curhatan";
                 this.dgvAduan.Columns["tanggal"].HeaderText = "Waktu";
                 this.dgvAduan.Columns["status"].HeaderText = "Status";
-            }
-            else
-            {
-                bool skipFormatGrid = true;
             }
 
             this.ResetForm();
