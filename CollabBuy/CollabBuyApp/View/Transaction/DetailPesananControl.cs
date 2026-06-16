@@ -216,37 +216,95 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             long grandTotal = 0;
 
+            // ─────────────────────────────────────────────────────────────────
+            // LOGIKA PEMBEDAAN KASUS DISKON GOTONG ROYONG:
+            //
+            // Trigger trg_set_harga_otomatis SELALU mengisi harga_diskon_saat_beli
+            // dari products.harga_diskon — nilainya sama untuk SEMUA transaksi.
+            // Jadi harga_diskon NOT NULL tidak bisa jadi pembeda kasus.
+            //
+            // Pembeda yang benar adalah membandingkan harga_satuan vs harga_diskon:
+            //
+            // Kasus A — Checkout SETELAH kuota terpenuhi (diskon sudah aktif):
+            //   → cek_harga_saat_ini() mengembalikan harga_diskon
+            //   → harga_satuan_saat_beli == harga_diskon_saat_beli
+            //   → trigger recalc TIDAK SET selisih_refund (syarat satuan > diskon tidak terpenuhi)
+            //   → selisih_refund = 0
+            //   → Label: "✅ Diskon sudah terpotong saat checkout"
+            //
+            // Kasus B — Checkout SEBELUM kuota terpenuhi:
+            //   → cek_harga_saat_ini() mengembalikan harga_dasar
+            //   → harga_satuan_saat_beli == harga_dasar > harga_diskon_saat_beli
+            //   → trigger recalc SET selisih_refund saat kuota akhirnya terpenuhi
+            //   → selisih_refund > 0
+            //   → Label: "⚠️ Penjual harus kembalikan ke pembeli"
+            // ─────────────────────────────────────────────────────────────────
+
+            bool adaDiskonSaatCheckout = false;
+            bool adaYangHarusKembalikan = false;
+            long totalCashbackHarusKembali = 0;
+            long totalDiskonSaatCheckout = 0;
+
             foreach (DataRow row in this._dtDetail.Rows)
             {
                 long subtotal = Convert.ToInt64(row["subtotal"]);
                 grandTotal += subtotal;
-                long cashback = this._dtDetail.Columns.Contains("selisih_refund")
-                    ? Convert.ToInt64(row["selisih_refund"])
-                    : 0;
 
-                // Subtotal yang ditampilkan = harga yang benar-benar harus dibayar pembeli
-                long subtotalDibayar = subtotal - cashback;
+                long refundBaris = this._dtDetail.Columns.Contains("selisih_refund")
+                    ? Convert.ToInt64(row["selisih_refund"]) : 0;
 
-                TransactionDetail detailObj = new TransactionDetail(
-                    Convert.ToInt32(row["id_produk"] != DBNull.Value ? row["id_produk"] : 0),
-                    row["nama_penitip"].ToString(),
-                    Convert.ToInt32(row["jumlah"])
-                );
-                detailObj.IsiHargaDariDatabase(
-                    Convert.ToInt64(row["harga_satuan"]),
-                    null,
-                    row["nama_produk"].ToString()
-                );
-                detailObj.SetSelisihRefundDariDatabase(cashback);
+                long hargaSatuan = Convert.ToInt64(row["harga_satuan"]);
 
-                string cashbackStr = detailObj.DapatkanInfoRefundUI();
+                // Ambil harga_diskon dari view (kolom dari vw_detail_pesanan_penjual)
+                long? hargaDiskon = null;
+                if (this._dtDetail.Columns.Contains("harga_diskon") && row["harga_diskon"] != DBNull.Value)
+                    hargaDiskon = Convert.ToInt64(row["harga_diskon"]);
+
+                // Kasus A: checkout setelah diskon aktif
+                // → harga_satuan SAMA DENGAN harga_diskon (trigger pakai harga diskon saat beli)
+                bool checkoutSetelahDiskon = hargaDiskon.HasValue
+                    && hargaSatuan == hargaDiskon.Value
+                    && refundBaris == 0;
+
+                string cashbackStr;
+
+                if (checkoutSetelahDiskon && hargaDiskon.HasValue)
+                {
+                    // Kasus A: tidak ada yang perlu dikembalikan
+                    // Catatan: "selisih" vs harga dasar tidak kita hitung di sini karena
+                    // kita tidak punya harga_dasar di view. Info cukup dari label saja.
+                    cashbackStr = "✅ Diskon GR sudah terpotong saat checkout";
+                    adaDiskonSaatCheckout = true;
+
+                    // Estimasi total diskon yang sudah terpotong (optional, hanya untuk label ringkasan)
+                    // Tidak bisa hitung selisih exact tanpa harga_dasar, tapi selisih_refund = 0
+                    // jadi total diterima penjual = subtotal (sudah = harga diskon * qty)
+                }
+                else if (refundBaris > 0)
+                {
+                    // Kasus B: pembeli bayar harga penuh, penjual harus kembalikan
+                    cashbackStr = $"⚠️ Harus dikembalikan: Rp {refundBaris:N0}";
+                    totalCashbackHarusKembali += refundBaris;
+                    adaYangHarusKembalikan = true;
+                }
+                else
+                {
+                    cashbackStr = "—";
+                }
+
+                // Subtotal yang ditampilkan = harga rill yang diterima penjual dari pembeli
+                // Kasus A: subtotal sudah pakai harga diskon → tampilkan apa adanya
+                // Kasus B: subtotal pakai harga penuh → kurangi cashback
+                long subtotalDibayarPembeli = refundBaris > 0
+                    ? subtotal - refundBaris
+                    : subtotal;
 
                 dtGrid.Rows.Add(
                     row["nama_produk"].ToString(),
                     row["nama_penitip"].ToString(),
                     Convert.ToInt32(row["jumlah"]),
-                    Convert.ToInt64(row["harga_satuan"]),
-                    subtotalDibayar,    // ← sudah dikurangi cashback
+                    hargaSatuan,
+                    subtotalDibayarPembeli,
                     row["catatan"].ToString(),
                     cashbackStr
                 );
@@ -254,45 +312,42 @@ namespace CollabBuy.CollabBuyApp.View.Transaction
 
             this.dgvRincian.DataSource = dtGrid;
             this.dgvRincian.ClearSelection();
-            long totalCashback = 0;
-            bool adaYangSudahBayarPenuh = false; // true = pembeli bayar harga asli, penjual harus kembalikan manual
 
-            foreach (DataRow row in this._dtDetail.Rows)
+            // Total rill yang diterima penjual
+            long totalDiterimaRill = grandTotal - totalCashbackHarusKembali;
+
+            if (adaYangHarusKembalikan && adaDiskonSaatCheckout)
             {
-                long refundBaris = this._dtDetail.Columns.Contains("selisih_refund")
-                    ? Convert.ToInt64(row["selisih_refund"]) : 0;
-                totalCashback += refundBaris;
-
-                // selisih_refund > 0 berarti pembeli terlanjur bayar harga asli sebelum kuota GR tembus
-                // (pembeli yang bayar harga diskon tidak akan punya selisih_refund)
-                if (refundBaris > 0)
-                    adaYangSudahBayarPenuh = true;
+                // Campuran: sebagian item harus kembalikan, sebagian sudah checkout dengan diskon
+                this.lblGrandTotal.Text = $"Total Diterima dari Pembeli: Rp {totalDiterimaRill:N0}";
+                this.lblCashbackInfo.Text =
+                    $"⚠️ Cashback Rp {totalCashbackHarusKembali:N0} harus kamu kembalikan manual ke pembeli " +
+                    $"(bayar harga penuh sebelum kuota terpenuhi).\n" +
+                    $"✅ Ada item lain yang sudah checkout setelah diskon — tidak perlu dikembalikan.";
+                this.lblCashbackInfo.Visible = true;
             }
-
-            long grandTotalBersih = grandTotal - totalCashback;
-
-            if (totalCashback > 0)
+            else if (adaYangHarusKembalikan)
             {
-                if (adaYangSudahBayarPenuh)
-                {
-                    // Pembeli sudah terlanjur bayar harga penuh → penjual harus kembalikan manual
-                    this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
-                    this.lblCashbackInfo.Text =
-                        $"⚠️ Total cashback Gotong Royong yang harus kamu kembalikan ke pembeli: Rp {totalCashback:N0}";
-                }
-                else
-                {
-                    // Cashback sudah otomatis terpotong dari tagihan pembeli
-                    this.lblGrandTotal.Text =
-                        $"Total Produk Kamu: Rp {grandTotalBersih:N0} (sudah termasuk potongan cashback GR)";
-                    this.lblCashbackInfo.Text =
-                        $"✅ Cashback Gotong Royong Rp {totalCashback:N0} sudah otomatis dipotong dari tagihan pembeli.";
-                }
+                // Kasus B murni: penjual harus kembalikan
+                this.lblGrandTotal.Text = $"Total Diterima dari Pembeli: Rp {grandTotal:N0}";
+                this.lblCashbackInfo.Text =
+                    $"⚠️ Cashback Gotong Royong Rp {totalCashbackHarusKembali:N0} harus kamu kembalikan " +
+                    $"manual ke pembeli (mereka bayar harga penuh sebelum kuota terpenuhi).";
+                this.lblCashbackInfo.Visible = true;
+            }
+            else if (adaDiskonSaatCheckout)
+            {
+                // Kasus A murni: semua sudah checkout dengan harga diskon
+                this.lblGrandTotal.Text = $"Total Diterima dari Pembeli: Rp {grandTotal:N0}";
+                this.lblCashbackInfo.Text =
+                    $"✅ Diskon Gotong Royong sudah otomatis terpotong dari tagihan pembeli saat checkout. " +
+                    $"Kamu tidak perlu mengembalikan apapun.";
                 this.lblCashbackInfo.Visible = true;
             }
             else
             {
-                this.lblGrandTotal.Text = $"Total Produk Kamu: Rp {grandTotal:N0}";
+                // Tidak ada cashback/diskon GR
+                this.lblGrandTotal.Text = $"Total Diterima dari Pembeli: Rp {grandTotal:N0}";
                 this.lblCashbackInfo.Visible = false;
             }
 

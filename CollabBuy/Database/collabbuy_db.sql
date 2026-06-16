@@ -462,6 +462,7 @@ SELECT
     COALESCE(agg.omzet_kotor,            0) AS omzet_kotor,
     COALESCE(agg.total_refund_dicairkan, 0) AS total_refund_dicairkan,
     COALESCE(agg.omzet_bersih_lpj,       0) AS omzet_bersih_lpj,
+    COALESCE(agg.total_diskon_checkout,   0) AS total_diskon_checkout,
     CASE
         WHEN po.is_aktif = TRUE AND po.batas_waktu >= NOW() THEN 'Sedang Berjalan'
         WHEN po.is_aktif = TRUE AND po.batas_waktu  < NOW() THEN 'Batas Waktu Habis'
@@ -472,12 +473,29 @@ JOIN products p ON po.id_po = p.id_po
 LEFT JOIN (
     SELECT
         td.id_produk,
-        SUM(td.jumlah_pesanan)                                                          AS total_barang_terjual,
-        SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                              AS omzet_kotor,
-        SUM(COALESCE(td.selisih_refund, 0))                                             AS total_refund_dicairkan,
-        SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) AS omzet_bersih_lpj
+        SUM(td.jumlah_pesanan)                                                                AS total_barang_terjual,
+        -- Omzet kotor = harga satuan saat beli * qty
+        -- (jika beli setelah diskon aktif, harga_satuan sudah = harga diskon via trigger)
+        SUM(td.jumlah_pesanan * td.harga_satuan_saat_beli)                                    AS omzet_kotor,
+        -- Refund yang HARUS dicairkan penjual ke pembeli secara manual
+        -- (pembeli terlanjur bayar harga penuh SEBELUM kuota GR terpenuhi)
+        SUM(COALESCE(td.selisih_refund, 0))                                                   AS total_refund_dicairkan,
+        -- Omzet bersih = omzet kotor dikurangi refund manual
+        SUM((td.jumlah_pesanan * td.harga_satuan_saat_beli) - COALESCE(td.selisih_refund, 0)) AS omzet_bersih_lpj,
+        -- Diskon yang sudah otomatis terpotong saat checkout
+        -- (pembeli checkout SETELAH kuota GR terpenuhi → tidak perlu dikembalikan penjual)
+        SUM(
+            CASE
+                WHEN td.harga_diskon_saat_beli IS NOT NULL
+                    AND p_inner.harga_dasar IS NOT NULL
+                    AND p_inner.harga_dasar > td.harga_satuan_saat_beli
+                THEN (p_inner.harga_dasar - td.harga_satuan_saat_beli) * td.jumlah_pesanan
+                ELSE 0
+            END
+        ) AS total_diskon_checkout
     FROM transaction_details td
-    JOIN transactions t ON td.id_transaksi = t.id_transaksi
+    JOIN transactions t    ON td.id_transaksi = t.id_transaksi
+    JOIN products p_inner  ON td.id_produk = p_inner.id_produk
     WHERE t.status_pesanan = 'Selesai'
     GROUP BY td.id_produk
 ) agg ON p.id_produk = agg.id_produk
